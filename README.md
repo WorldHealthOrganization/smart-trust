@@ -7,14 +7,14 @@ This is the SMART Guidelines Starter Template
 This ImplementationGuide is published in the following locations:
 
 
-Continuous Build:  __https://github.com/WorldHealthOrganization/smart-ig-starter-kit__  
-Canonical / permanent URL: __https://WorldHealthOrganization.github.io/smart-ig-starter-kit__  
+Continuous Build:  __https://github.com/WorldHealthOrganization/smart-trust__  
+Canonical / permanent URL: __https://WorldHealthOrganization.github.io/smart-itrust__  
 
 <br> </br>
 
 ### Issues
 Issues and change requests are managed here:  
 
-Issues:  __https://github.com/WorldHealthOrganization/smart-ig-starter-kit/issues__  
-    or the Kanban board: __https://github.com/WorldHealthOrganization/smart-ig-starter-kit/projects/1__
+Issues:  __https://github.com/WorldHealthOrganization/smart-trust/issues__  
+    or the Kanban board: __https://github.com/WorldHealthOrganization/smart-trust/projects/1__
 
