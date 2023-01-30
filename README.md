@@ -8,7 +8,7 @@ This ImplementationGuide is published in the following locations:
 
 
 Continuous Build:  __https://github.com/WorldHealthOrganization/smart-trust__  
-Canonical / permanent URL: __https://WorldHealthOrganization.github.io/smart-itrust__  
+Canonical / permanent URL: __https://WorldHealthOrganization.github.io/smart-trust__  
 
 <br> </br>
 
