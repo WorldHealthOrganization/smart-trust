@@ -47,6 +47,7 @@ Business Rules Library:​
 - Expresses health policies (e.g. “Needs full course of vaccine”) as executable business​
 rule using the Clinical Quality Language (CQL)​
 - Publishes business rules as FHIR Library resources with a trust health service​
+
 Optionally:​
   - Provide digital signagure of business rule as FHIR Provenance resource​
   - Provides public key to PKD​
@@ -56,7 +57,8 @@ Optionally:​
 Universal Verification App:​
 - Pre-Condition: Perform Federated Verification workflow on one ore more QR-code​
 - Identify one (or more) business rule(s) to be exectued according to use case​
-- Optionally:​
+
+Optionally:​
   - Retrieves business rule signing public key from PKD (either Local PKD or via Aggregating/ Federated PKD)​
   - Verifies authenticity of business rule​
 - Map QR-code content into requiste FHIR resources using FHIR Structure Maps​
