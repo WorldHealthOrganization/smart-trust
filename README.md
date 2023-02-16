@@ -1,6 +1,6 @@
-WHO SMART Guidelines Starter Template
+WHO SMART Trust
 ---
-This is the SMART Guidelines Starter Template
+This is the WHO SMART Trust Implementation Guide
 <br> </br>
 ###
 ### Publication
