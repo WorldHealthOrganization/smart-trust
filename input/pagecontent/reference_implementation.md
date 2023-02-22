@@ -30,4 +30,4 @@ expanding the network of operators and trusted parties to form a federated and
 documented network of trust gateways, supporting all major health credential certificates.
 
 -	[Trust Network Gateway public repository](https://github.com/WorldHealthOrganization/ddcc-gateway)
--	[Architecture](./components/tng/Architecture.md)
+-	[Architecture](./architecture.html)
