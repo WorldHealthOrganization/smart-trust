@@ -383,15 +383,7 @@ curl -X "POST" \
 
 ##### Extracting ELM From a FHIR Library
 
-As an alternative to translating the CQL, if the desired CQL already exists and the ELM translation is packaged with the CQL as part of a FHIR Library then the ELM can be extracted from the Library.
-
-An example FHIR Library containing ELM can be downloaded:
-
-```bash
-curl https://raw.githubusercontent.com/WorldHealthOrganization/ddcc/main/input/resources/Library-DDCCPass-1.0.0.json --output Library-DDCCPass-1.0.0.json
-```
-
-Once the Library has been downloaded the ELM can be extracted. This document describes how to set this up in a simple Node.js project. Node.js will first need to be installed if it is not already available. A new Node.js project can be set up using npm:
+As an alternative to translating the CQL, if the desired CQL already exists and the ELM translation is packaged with the CQL as part of a FHIR Library then the ELM can be extracted from the Library. This document describes how to extract the ELM using a simple Node.js project. Node.js will first need to be installed if it is not already available. A new Node.js project can be set up using npm:
 
 ```bash
 mkdir ExtractELM
@@ -399,7 +391,7 @@ cd ExtractELM
 npm init --yes
 ```
 
-Once the project is set up the ELM can be extracted from the FHIR Library. The following example JavaScript code can serve as a starting point:
+The following example JavaScript code can serve as a starting point:
 
 ```js
 // This example loads a FHIR Library, extracts the ELM, and writes it to a file
@@ -432,7 +424,13 @@ const elm = atob(elmContent.data);
 fs.writeFileSync(elmFile, elm);
 ```
 
-This code can be run to extract the ELM from the downloaded FHIR Library:
+An example FHIR Library containing ELM can be downloaded:
+
+```bash
+curl https://raw.githubusercontent.com/WorldHealthOrganization/ddcc/main/input/resources/Library-DDCCPass-1.0.0.json --output Library-DDCCPass-1.0.0.json
+```
+
+Once the FHIR Library has been downloaded the code can be run to extract the ELM from the Library:
 
 ```bash
 node main.js Library-DDCCPass-1.0.0.json DDCCPassELM.json
