@@ -266,15 +266,13 @@ The following high level steps, described in detail below, can be used to run CQ
 * Set up a [Node.js](https://nodejs.org/) project with appropriate CQL dependencies to provide an execution environment for the ELM representation
 * Run the business rules against the FHIR instance
 
-#### Convert Vaccination Credentials to DDCC resource instance
+#### Convert Vaccination Credentials to DDCC Resource Instance
 
 The process starts with converting the vaccination credential to be evaluated into the DDCC FHIR model. For the examples used in this document we'll start with an example credential payload in the SHC format, which you can download:
 
 ```bash
-curl https://raw.githubusercontent.com/dvci/ddcc/who-88-structuremap-tests/structuremap-tests/fixtures/shc/example-00-b-jws-payload-expanded.json --output example-00-b-jws-payload-expanded.json
+curl https://raw.githubusercontent.com/WorldHealthOrganization/ddcc/main/structuremap-tests/fixtures/shc/example-00-b-jws-payload-expanded.json --output example-00-b-jws-payload-expanded.json
 ```
-
-*TODO: Update the location of this example once merged*
 
 Credentials can be converted using the appropriate StructureMaps using the [Matchbox](https://github.com/ahdis/matchbox) FHIR Server.
 
@@ -283,8 +281,10 @@ Credentials can be converted using the appropriate StructureMaps using the [Matc
 The Matchbox server can be run via its docker image.  The following command starts the docker image on a local machine listening on port 8080:
 
 ```bash
-docker run -d -p 8080:8080 --restart unless-stopped eu.gcr.io/fhir-ch/matchbox:v230
+docker run -d -p 8080:8080 --restart unless-stopped eu.gcr.io/fhir-ch/matchbox:v314
 ```
+
+*NOTE: At the time of writing the latest version of Matchbox does not correctly handle the required StructureMap transformations; ensure that the version of Matchbox you're testing with has been updated. The Matchbox docker image does not appear to have a correct `latest` tag, so be sure to specify the actual version number of the latest docker image.*
 
 Running Matchbox in this fashion uses an in-memory data store rather than a backing database, so will not persist state across different container instantiations.
 
@@ -308,7 +308,7 @@ curl -X 'POST' \
   -d '{ "resourceType": "ImplementationGuide", "version": "0.6.2", "name": "hl7.fhir.uv.shc-vaccination", "packageId": "hl7.fhir.uv.shc-vaccination" }'
 ```
 
-##### Converting the Vaccination Into DDCC FHIR resource
+##### Converting the Vaccination Credential Into a DDCC FHIR Resource
 
 This is a two step process. The first step is to convert the vaccination credential payload into the DDCC CoreDataSet logical model using the [appropriate StructureMap from the DDCC IG](https://worldhealthorganization.github.io/ddcc/artifacts.html#terminology-structure-maps):
 
@@ -332,7 +332,7 @@ curl -X 'POST' \
 -o example-00-a-DDCC.json
 ```
 
-*NOTE: These conversion steps are still being debugged, particularly the final one, and the CQL has not been tested against the final version*
+*NOTE: At the time of writing these conversion steps did not work correctly, particularly the second one, and the CQL has not been tested against the final version*
 
 The record is now ready to be evaluated against the business rules.
 
@@ -380,6 +380,65 @@ curl -X "POST" \
 --data-binary @DDCCPass.cql \
 --output DDCCPassELM.json
 ```
+
+##### Extracting ELM From a FHIR Library
+
+As an alternative to translating the CQL, if the desired CQL already exists and the ELM translation is packaged with the CQL as part of a FHIR Library then the ELM can be extracted from the Library.
+
+An example FHIR Library containing ELM can be downloaded:
+
+```bash
+curl https://raw.githubusercontent.com/WorldHealthOrganization/ddcc/main/input/resources/Library-DDCCPass-1.0.0.json --output Library-DDCCPass-1.0.0.json
+```
+
+Once the Library has been downloaded the ELM can be extracted. This document describes how to set this up in a simple Node.js project. Node.js will first need to be installed if it is not already available. A new Node.js project can be set up using npm:
+
+```bash
+mkdir ExtractELM
+cd ExtractELM
+npm init --yes
+```
+
+Once the project is set up the ELM can be extracted from the FHIR Library. The following example JavaScript code can serve as a starting point:
+
+```js
+// This example loads a FHIR Library, extracts the ELM, and writes it to a file
+
+const { argv, exit } = require('process');
+const fs = require('fs');
+
+if (argv.length < 4) {
+  console.log(`Usage: ${argv[0]} ${argv[1]} <FHIR-Library> <ELM-File>`);
+  exit();
+}
+
+const libraryFile = argv[2];
+const elmFile = argv[3];
+
+// Load the Library contents and parse the JSON
+const library = JSON.parse(fs.readFileSync(libraryFile), 'utf8');
+
+// Find the ELM data
+const elmContent = library.content?.find(c => c.contentType === 'application/elm+json')
+if (!elmContent?.data) {
+  console.log('No ELM content found in Library');
+  exit();
+}
+
+// Base64 decode the ELM
+const elm = atob(elmContent.data);
+
+// Write the ELM to the desired output file
+fs.writeFileSync(elmFile, elm);
+```
+
+This code can be run to extract the ELM from the downloaded FHIR Library:
+
+```bash
+node main.js Library-DDCCPass-1.0.0.json DDCCPassELM.json
+```
+
+Running the script should produce a file with the desired ELM translation.
 
 ##### Running ELM Against Converted Vaccination Credentials
 
