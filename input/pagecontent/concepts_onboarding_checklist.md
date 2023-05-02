@@ -31,7 +31,8 @@ For a successfull connection to the gateway there are several steps to prepare:
  3) After Onboarding in the Test Environment, check the connectivity with the following command:<br>
   ```curl -vvv -H "Accept: */*" --resolve ****.ec.europa.eu:443 --cert "auth_de.pem" --key "key.pem" https://****.ec.europa.eu/trustList``` <br>
     You should see a output like: <br>
-    ![TrustListOutput](images/TrustListResult.PNG)
+    {% include img.html img="TrustListResult.PNG" caption="Trust List Output" width="70%" %}
+
  4) Test the other Truslist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication...)
  5) Create an Document Signer Certificate and sign it by the SCA
  6) Create an CMS Package with the following Command: 
@@ -53,11 +54,11 @@ Ensure that the used version is linked to OpenSSL. Especially under Windows (htt
 <br><br>
 OpenSSL Test Example (working)<br>
 <br>
-![Working Setup](./images/OpenSSL.PNG)
+{% include img.html img="OpenSSL.PNG" caption="Working Setup" width="70%" %}
 <br><br>
 WinSSL Test Example (Not working)
 <br><br>
-![Non Working Setup](./images/WinSSL.PNG)
+{% include img.html img="WinSSL.PNG" caption="Non Working Setup" width="70%" %}
 
 
 

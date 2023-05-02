@@ -28,10 +28,10 @@ The principle of Transitive Trust leverages the trusted relationship that the EC
 
 #### Interim Terms of Participation
 The requirements in this document will subsume those outlined in the EC DCC Equivalence Decision Annex II Technical procedure to onboard third countries.  The following abbreviated Terms of Participation will apply during the IOP:
-* T0:  Will leverage current EC processes and share NB<sub>TLS keys with WHO.  These NB<sub>TLS keys will be signed by WHO.
-* T1:  Will be considered fulfilled 
-* T2:  Will be considered fulfilled
-* T3:  WHO will ask for an assertion/pledge by eligible Trust Network participants to adhere to the applicable policies but will not be responsible for assessing or enforcing compliance the policies or regulatory on which trusted services which are operated by paricipants of the trust network.
+* ***TOP0***  Will leverage current EC processes and share NB<sub>TLS</sub> keys with WHO.  These NB<sub>TLS</sub> keys will be signed by WHO.
+* ***TOP1***  Will be considered fulfilled 
+* ***TOP2***  Will be considered fulfilled
+* ***TOP3***  WHO will ask for an assertion/pledge by eligible Trust Network participants to adhere to the applicable policies but will not be responsible for assessing or enforcing compliance the policies or regulatory on which trusted services which are operated by paricipants of the trust network.
 
 
 #### Organizational Identify
@@ -66,7 +66,7 @@ At launcch of FOP at launch, eligibiltiy to join the GDHNC is limited to WHO Mem
 
 
 
-1. **Self-Assessment** Countries interested in joining the GDHCN should conduct a self-assessment using the provided checklist to ensure their system complies with the WHO's specifications. Eligible participants should adopt the same technical specifications described in the [Onboarding Checklist](OnboardingCheckslit.html) . Open source implementations should be utilized when possible.
+1. **Self-Assessment** Countries interested in joining the GDHCN should conduct a self-assessment using the provided checklist to ensure their system complies with the WHO's specifications. Eligible participants should adopt the same technical specifications described in the [Onboarding Checklist](concepts_onboarding_checklist.html) . Open source implementations should be utilized when possible.
 2. **Official Request**  If the self-assessment is successful, countries should submit a formal request to the WHO via an official letter expressing their interest in joining the GDHCN. The letter should include a description of the country's system and the completed checklist as an annexe Upon receipt, the WHO will initiate the procedure to assess the country's system and determine if the onboarding process can begin.
 3. Steps for Onboarding
 

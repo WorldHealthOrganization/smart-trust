@@ -6,7 +6,7 @@ This digital health trust network is a network of stakeholders that securely exc
 
 
 ### Document Signers
-Document Signers are utilize the private key of a private-public key pair to digitally sign Verifiable Digital Health Certificates.  A single private key is expected to sign a large quantity of Verifable Digital Health Certiciates.  The corresponing public key is referred to as a Document Signer Certificate (DSC). 
+Document Signers utilize the private key of a private-public key pair to digitally sign Verifiable Digital Health Certificates.  A single private key is expected to sign a large quantity of Verifable Digital Health Certiciates.  The corresponing public key is referred to as a Document Signer Certificate (DSC). 
 
 ### Document Signer Certificates (DSCs)
 Docuemnt Signer Certificates are the public key certificates associated to Document Signers which are issued or recogonzied by the Trust Network Participant.
@@ -19,6 +19,13 @@ The Public Key Infrastructure (PKI) is the trust model based on public key certi
 ###  Signing Certificate Authority (SCA)
 Each Trust Network Participant maintains one or more Signing Certificate Authority (SCA), certificates of which are relatively long lived. The SCA issues public key certificates for the national, short lived, Document Signers.  The SCA acts as a trust anchor such that relying Trust Network Participants can use the SCA certificate to validate the authenticity and integrity of the regularly changing DSC certificates
 
+
+### Terms of Participation (TOP)
+The Trust Network Terms of Participation are comprised of the following components:
+* ***TOP0*** Sharing of necessary credentials to establish an mTLS connection between Trust Network Participant backends and WHO Digital Health Trust Network infrastructure
+* ***TOP1*** Compliance with technical and interoperability standards required for a Public Key Infrastructure (PKI);
+* ***TOP2*** Standards for Verifiable Digital Health Certificates and APIs of Trusted Services; and
+* ***TOP3*** Policy and regulatory standards that Trust Network Particpants are expected to comply with pertaining to Trusted Services that a Trust Participants operates or utilizes
 
 ### Trust Lists 
 Universal verifier applications that support different credential standards are complicated by wide variability in format of the credential payloads, signatures, key formats, and key distribution methods. Public keys formats include x509 certificates, JSON Web Key Sets (JWKS), and DID documents. Signing key distribution methods include API gateways, hosted by issuer at a pre-defined URL, embedded in certificates, and by blockchain based resolution. Establishing root of trust by trust anchor or distributing trust list has been accomplished by API gateway, hosted URL, private dissemination and other bilateral sharing agreements.
@@ -35,10 +42,10 @@ The GDHCN currently supports two means for key distribution of keys using trust 
 
 A digital trust network is the set of digital infrastructure, processes and governance framework which is used to manage a trusted set of actors.  This trust network operationalized through software infrastructure that enables verification of digital health records and health certificates through an interoperable trust architecture.  This is done by a trust anchor (a widely trusted central authority with a mandate and history of trustworthiness, eg. WHO) compiling a database of digital public key, provided to WHO by trust network participants. This database is made publicly available, allowing each Trust Network Participant to verify that digitally-signed credentials were issued by a recognized authority of a trust network participant.
 
-![Trust Network](images/trust_network.png)
+{% include img.html img="trust_network.png" caption="Trust Network" width="70%" %}
 
 #### Trust Network Custodian
-The Trust Network Custodian defines the Terms for Participation within the trust network.  The custodian is responsible for: 
+The Trust Network Custodian defines the Terms of Participation within the trust network.  The custodian is responsible for: 
 * establishing eligibility criteria for potential Trust Network Participants;  
 * establishing (and maintaining) the organizational identity of Trust Network Participants; 
 * establishing the Trust Network Terms of Participation within the trust network; and  
@@ -75,13 +82,6 @@ The public key certificate that a Trust Network Participant uses to sign data pa
 ##### Trust Network Participant Verifier
 A system utilzied by a Trust Network Participant to verifiy the digital signature of a Verifiable Digital Health Certificate.
 
-#### Trust Network Terms of Participation
-The Trust Network Terms of Participation are comprised of the following components:
-* ***T0*** Sharing of necessary credentials to establish an mTLS connection between Trust Network Participant backends and WHO Digital Health Trust Network infrastructure
-* ***T1*** Compliance with technical and interoperability standards required for a Public Key Infrastructure (PKI);
-* ***T2*** Standards for Verifiable Digital Health Certificates and APIs of Trusted Services; and
-* ***T3*** Policy and regulatory standards that Trust Network Particpants are expected to comply with pertaining to Trusted Services that a Trust Participants operates or utilizes
-
 
 ### Trusted Service
 A Trusted Service is a digital service operated by a Trust Network Participant related to the issuance, verification, revocation or similar function related to Verifiable Digital Health Certificates.    These trusted services utilize the PKI to validate the authenticity of the asserted issuer of Verifiable Digital Health Certificates.   
@@ -92,7 +92,7 @@ A Trusted Service is a digital service operated by a Trust Network Participant r
 ### Verifiable Digital Health Certificate
 Verifiable Digital Health Certificate is a digital health certificate (or document) that is issued by a Trust Network Participant within an associated digital signature which can be verified by a Public Key that is distributed through the Trust Network and provided by the issuing Trust Network Participant.   Verifiable Digital Health Certificates are health documents defined by interoperable digtal health standards which contain or is associated to a digital singature which can be cerifed using a public key shared with a Trust Network Public Key Infrastructure.
 
-The specific Verifiable Digital Health Certificates are defined in the [Concent Profiles](concent_profiles.html)
+The specific Verifiable Digital Health Certificates are defined in the [Concent Profiles](content_profiles.html)
 
 
 
