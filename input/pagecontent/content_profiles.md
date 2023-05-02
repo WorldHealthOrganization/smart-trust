@@ -17,22 +17,6 @@ The [Digital Documentation of COVID-19 Certificates (DDCC)](https://www.who.int/
 
 #### Source specifications
 
-It can be difficult to find the "source of truth" specifications for the certificate formats that are mapped to the DDCC core data sets. The following are links to the best known documentation for each of the certificate formats listed above:
+It can be difficult to find the "source of truth" specifications for the certificate formats that are mapped to the DDCC core data sets. The [references](references.html) contains links to the best known documentation for each of the certificate formats listed above:
 
-- **EU DCC**
-    - [Technical specifications for EU Digital COVID Certificates - Volumes 1-5](https://health.ec.europa.eu/publications/technical-specifications-eu-digital-covid-certificates-volumes-1-5_en).
-    - [Volume 1: Formats and trust management](https://health.ec.europa.eu/system/files/2022-02/digital-covid-certificates_v1_en.pdf) references "Implementing Decision (EU) 2021/1073, Annex I".
-    - [Implementing Decision (EU) 2021/1073, Annex I can be found here](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv%3AOJ.L_.2021.230.01.0032.01.ENG), along with other relevant Annexes.
-- **DIVOC**
-    - Elements are defined by JSON-LD. As of 2023-02-12, we were told by the DIVOC team that the most current JSON-LD context for [vaccines is here](https://github.com/egovernments/DIVOC/blob/icmr/vaccination-context/vaccination-context.js) and for [test results is here](https://github.com/egovernments/DIVOC/blob/icmr/test-certificate-context/test-certificate-context.js).
-        - Note that the URIs for the DIVOC-specific JSON-LD contexts embedded in the certificates do not resolve.
-    - [DIVOC's documentation is here](https://divoc.digit.org), but this does not include element-level descriptions (e.g., terminology bindings at a per-element level).
-        - Terminology bindings at the element level must be inferred from [more general documentation](https://divoc.digit.org/platform/divocs-verifiable-certificate-features/what-information-goes-into-a-qr-code).
-        - The `v2` JSON-LD context introduces the `evidence.icd11Code` element for vaccines, but there is no documentation on which codes this element is bound to or whether this is used in production.
-        - There is no other computable representation of vaccine type/product.
-    - As of 2023-02-12, the public documentation does not include any information on test result certificates. The information we have was provided privately by the DIVOC team.
-- **[ICAO](https://www.icao.int/vdsnc-spec)**
-- **SMART Health Cards**
-    - [General SMART Health Card specification](https://spec.smarthealth.cards/)
-    - [COVID-19 vaccine and testing-specific specification](http://build.fhir.org/ig/HL7/fhir-shc-vaccination-ig)
 
