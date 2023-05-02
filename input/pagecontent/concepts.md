@@ -57,13 +57,13 @@ A Trust Network comprises the infrastructure, governance/policies and processes 
 
 
 
-#### Trust Network Gateway (TNG)
+### Trust Network Gateway (TNG)
 The Trust Network Gateway (TNG) is a service operated by the Trust Network Custodian which aggregates information related to the Public Key Infrastructure, Trusted Services for Verfiable Digital Health Certificates and other relevant metadata (e.g. validation rules for digital COVID certificates, terminolgies) coming from Trust Network Participants.  
 
-##### Trust Network Gateway - Trust Anchor  (TNG<sub>TA</sub>) 
+#### Trust Network Gateway - Trust Anchor  (TNG<sub>TA</sub>) 
 The Trust Anchor public key certificate of the TNG. The corresponding private key is used to sign the list of all SCA certificates offline.
 
-##### Trust Network Gateway - Transport Layer Security  (TNG<sub>TLS</sub>) 
+#### Trust Network Gateway - Transport Layer Security  (TNG<sub>TLS</sub>) 
 The TLS server public key certificate of the TNG.
 
 
