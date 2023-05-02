@@ -1,28 +1,20 @@
 ### Terminology
 
-
+These [concepts](concepts.html) and the following table contains abbreviations and terminology used throughout this document.
 
 | Term                        | Description                                                                                                                                                                                                                                                                                                     | 
 |-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | DCC                         | Digital COVID-19 Certificate.                                                                                                                                                                                                                                                                                   |
 | DDCC                        | Digital Documentation COVID-19 Certificate.                                                                                                                                                                                                                                                                     |
 | DCC Gateway                 | REST web-application for exchange of document signer certificates, DCC value sets, DCC business rules and revocation lists for dcc verification purposes between the national backends of connected states.                                                                                                     |
-| DDCC Gateway (DDCCG)        | Digital Documentation COVID-19 Certificate Gateway. Renamed to Trust Network Gateway (TNG).                                                                                                                                                                                                                     |
-| TNG                         | Trust Network Gateway (TNG) is an extended version of the DCCG. It has enhanced functionality allowing for interoperability between multiple gateways and supports of the DDCC specification.                                                                                                                   |
-| Member State                | Any country which is connected to the Trust Network Gateway. Member States should provide at least one National Backend for connecting to TNG.                                                                                                                                                                  |
-| CSCA                        | Country Signing Certificate Authority. This is a signing certificate which is used to issue DSC. This certificate is stored securely and used via an air-gap to issue DSC.                                                                                                                                      |
-| DSC                         | Document Signer Certificate.  The Document Signer Certificate (DSC) is the certificate used to digitally sign the vaccination credential.                                                                                                                                                                       |
-| NB                          | National backend. The Member State national backend system for managing the local part of information. The implementation of NB is not in the scope of this document. A national backend can be also understood as a trusted party onboarded in the gateway (can be a script, a proxy or a web server as well). |
-| NB<sub>TLS</sub>            | TLS client authentication certificate of a national backend, used to establish the mutual TLS connection from the NB to the TNG.                                                                                                                                                                                |
-| NB<sub>UP</sub>             | The certificate that a national backend uses to sign data packages that are uploaded to the TNG.                                                                                                                                                                                                                |
-| TNG<sub>TA</sub>            | The Trust Anchor certificate of the TNG formerly known as DCCGTA or DGCGTA. The corresponding private key is used to sign the list of all offline CSCA certificates.                                                                                                                                            |
+ffline SCA certificates.                                                                                                                                            |
 | CMS                         | Cryptographic Message Syntax. According to [RFC5652](https://datatracker.ietf.org/doc/html/rfc5652). This syntax is used to digitally sign, digest, authenticate or encrypt arbitrary message content.                                                                                                          |
 | JRC                         | European Joint Research Centre.                                                                                                                                                                                                                                                                                 |
 | OG                          | Origin Gateway.                                                                                                                                                                                                                                                                                                 |
 | [CQL](https://cql.hl7.org/) | Clinical Quality Language.                                                                                                                                                                                                                                                                                        |
 
 ### Introduction
-This architectural specification provides the means to establish a federated trust network for use with health records like WHO Digital Documentation of COVID-19 Certificates (DDCC) technical specifications and implementation guidance documents. This is based on the assumption that Member States may establish their own independent national trust networks, participate in a regional trust network, or wish to participate in a global federated trust network. Furthermore, Member States may wish for these trust networks to be interoperable for domestic and cross-jurisdictional use cases. While specific governance and policy considerations required in the establishment of such interoperable trust networks is out of scope of this document, the intent is that the technical design within this document would support multiple national and cross-jurisdictional policies of Member States.  
+This architectural specification provides the means to establish a federated trust network for use with health records like WHO Digital Documentation of COVID-19 Certificates (DDCC) technical specifications and implementation guidance documents. This is based on the assumption that Trust Network Participant may establish their own independent national trust networks, participate in a regional trust network, or wish to participate in a global federated trust network. Furthermore, Trust Network Participant may wish for these trust networks to be interoperable for domestic and cross-jurisdictional use cases. While specific governance and policy considerations required in the establishment of such interoperable trust networks is out of scope of this document, the intent is that the technical design within this document would support intra-jursidictional and cross-jurisdictional policies of Trust Network Participant.  
 
 The Trust Network Gateway (TNG) specifications in this document are designed to support the DDCC specification, which acts as bridging/umbrella specification for various health records like digital COVID certificates (e.g., EU’s DCC, SMART Health Cards, DIVOC, and ICAO). This specification builds on the [EU Digital Covid Certificate Gateway](https://ec.europa.eu/health/sites/default/files/ehealth/docs/digital-green-certificates_v2_en.pdf) by extending it in several important ways:
 - allowing for federation and peer exchange of information between gateways;
@@ -30,7 +22,7 @@ The Trust Network Gateway (TNG) specifications in this document are designed to 
 - providing an explicit means for revocation of digital COVID certificates; and
 - allowing for (optional) support of online verification and validation workflows.
 
-Within the current DCC system the centralized gateway plays the key role of establishing  trust between all of the connected Member States. The gateway operators follow a well-documented process to establish the identity and onboard the trust anchor of each Member State. The TNG builds upon this system to enable the creation of trust gateways by other organizations which allows to form a federated network of trust gateways, supporting all of the major COVID-19 credential certificates.
+Within the current DCC system the centralized gateway plays the key role of establishing  trust between all of the connected Trust Network Participant. The gateway operators follow a well-documented process to establish the identity and onboard the trust anchor of each Trust Network Participant. The TNG builds upon this system to enable the creation of trust gateways by other organizations which allows to form a federated network of trust gateways, supporting all of the major COVID-19 credential certificates.
 
 #### Trusted Party vs. National Backend
 The current gateway design is focused on the trust establishment between “National Backends” in terms of a system operated/owned by a national health authority. This can be a script, a fully automated solution or a manual process, which is able to connect the gateway trustfully and able to do uploads and downloads of the content. What other concrete solutions are behind is not in scope of the gateway itself. Within the DDCC scope, the term “National Backend” is worded too sharply, because there can be other parties which can be connected with their publishing system to a gateway in the trust network. Therefore the term “national backend” should be understood within this scope more as “Trusted Party” in terms of an attendee which has received access to a trusted gateway. The trusted gateway or the federator acts then as well as “Trusted Party” to other gateways.
@@ -76,7 +68,7 @@ The gateway content can be used to establish trust between attendees which are j
 
 <img src="ImplicitTrustRelationShip.drawio.png" alt="TNG Use Case - Implict Trust Relation" style="width:400px; float:none; margin: 0px 0px 0px 0px;"/>
 
-To establish the trust between attendees, a trust mediator can be generated which relies on the trustlist of the gateway. The mediator can then use this information to decide whether the trust relationship should be established or not. For instance, the interceptor can check if a signature of a JWT was created by the public key of a certificate which was signed by an onboarded CSCA. When the CSCA is onboarded and trusted, it proves that the signature was made by someone which has the trust of this CSCA. The trust for this attendee is then also given. 
+To establish the trust between attendees, a trust mediator can be generated which relies on the trustlist of the gateway. The mediator can then use this information to decide whether the trust relationship should be established or not. For instance, the interceptor can check if a signature of a JWT was created by the public key of a certificate which was signed by an onboarded SCA. When the SCA is onboarded and trusted, it proves that the signature was made by someone which has the trust of this SCA. The trust for this attendee is then also given. 
 
 <img src="ExplicitTrustRelation.drawio.png" alt="TNG Use Case - Excplicit Trust Relation" style="width:400px; float:none; margin: 0px 0px 0px 0px;"/>
 
@@ -116,7 +108,7 @@ To realize the architectural vision, the existing DCC Gateway will be enhanced b
 The DDCC specification provides interoperable standards for exchanging metadata content such as trusted references, trusted certificates and signer certificates with systems via a Trust Network Gateway. This metadata is managed through Trusted Systems which will need a connection/proxying or facade service with the Trust Network Gateway (“TNG Mediator”). This mediator must be onboarded and trusted by the operator of the TNG before upload or download of content is possible. Technically this can be a script, a backend system or an OpenHIM mediator. The main tasks of this kind of software is to establish a mTLS connection with the gateway, sign the uploaded content (e.g. CMS Cryptographic Message Syntax) and upload signed DSCs, revocation entries or releasing business rules. The procedures used in background is out of scope. There may be manual release processes, automatic decisions or other processes, however it is crucial to ensured that the trusted channel and the security of the used certificates for upload/tls connection are not compromised.
 
 ##### Options for Bridging to other Systems
-A bridge tool for translating the received entries of the origin system to the HL7 FHIR / Rest API of the gateway is necessary for bridging existing systems (i.e. PKDs or any other systems which contain PKI certificates (e.g. ICAO), Business Rules or Value Sets (e.g. FHIR Servers)) to the TNG. For example, to translate an LDAP based Public Key directory to the gateway, a script/mediator may be set up to extract the DSCs and upload them automatically to the gateway. Please note that in this scenario all CSCAs must be onboarded prior to the upload for this process to work. 
+A bridge tool for translating the received entries of the origin system to the HL7 FHIR / Rest API of the gateway is necessary for bridging existing systems (i.e. PKDs or any other systems which contain PKI certificates (e.g. ICAO), Business Rules or Value Sets (e.g. FHIR Servers)) to the TNG. For example, to translate an LDAP based Public Key directory to the gateway, a script/mediator may be set up to extract the DSCs and upload them automatically to the gateway. Please note that in this scenario all SCAs must be onboarded prior to the upload for this process to work. 
 
 Under special circumstances when some “mass data transactions” or heavy synchronisations are necessary there may be an option to set up an adapter directly on top of the gateway database. The TNG itself supports JDBC which is able to accept other databases than mysql. For instance if a Cassandra, MongoDb or CouchDB is used and a JDBC driver is available, the data can be replicated across multiple nodes. 
 
@@ -130,10 +122,10 @@ The Trust Network Gateway consists of the DCC Gateway enhanced by callback mecha
 #### Trust Model
 
 ##### Overview
-The trust model of the gateway is based on the [PKI certificate governance of the DCC Gateway](https://github.com/eu-digital-green-certificates/dgc-overview/blob/main/guides/certificate-governance.md). All security relevant items are uploaded in signed CMS format and secured by different kinds of PKI certificates as defined by the PKI certificate governance. The central items of the trust model are the CSCA to protect the Document Signer Certificates and the CMS messages to protect the uploaded content.
+The trust model of the gateway is based on the [PKI certificate governance of the DCC Gateway](https://github.com/eu-digital-green-certificates/dgc-overview/blob/main/guides/certificate-governance.md). All security relevant items are uploaded in signed CMS format and secured by different kinds of PKI certificates as defined by the PKI certificate governance. The central items of the trust model are the SCA to protect the Document Signer Certificates and the CMS messages to protect the uploaded content.
 
-##### CSCA & DSC
-To sign digital COVID-19 certificates, a Document Signer Certificate (“DSC”) is created by an issuing authority. Each authority distributes their DSCs to verifiers, so that DSC can be used to prove the validity of an issued certificate. To establish a trust chain between used DSCs and the distributors of the national trust lists, each of the DSC is signed by a root authority (“CSCA”) to verify the authenticity of the DSC itself. For security reasons, the CSCA is declared as air gapped, and the public part is later on-boarded into the gateway. During the onboarding, the CSCA is signed by the operator of the gateway to give the trust in the initial check. After onboarding, each incoming DSC can be checked against the trusted CSCA. The operator signature (signed by DCCG<sub>TA</sub>) establishes the trust with different certificates such as the uploader certificate and the TLS authentication certificate as defined by the certificate governance.
+##### SCA & DSC
+To sign digital COVID-19 certificates, a Document Signer Certificate (“DSC”) is created by an issuing authority. Each authority distributes their DSCs to verifiers, so that DSC can be used to prove the validity of an issued certificate. To establish a trust chain between used DSCs and the distributors of the national trust lists, each of the DSC is signed by a root authority (“SCA”) to verify the authenticity of the DSC itself. For security reasons, the SCA is declared as air gapped, and the public part is later on-boarded into the gateway. During the onboarding, the SCA is signed by the operator of the gateway to give the trust in the initial check. After onboarding, each incoming DSC can be checked against the trusted SCA. The operator signature (signed by DCCG<sub>TA</sub>) establishes the trust with different certificates such as the uploader certificate and the TLS authentication certificate as defined by the certificate governance.
 
 <img src="PKITrustModel.PNG" alt="DDCC PKI Trust Model" style="width:400px; float:none; margin: 0px 0px 0px 0px;"/>
 
@@ -147,11 +139,11 @@ The current trust model of the DCC Gateway supports only the connection of multi
 
 <img src="SingleTrustAnchor.png" alt="TNG Implementation - Single Trust Anchor" style="width:400px; float:none; margin: 0px 0px 0px 0px;"/>
 
-To realize the architecture vision, the gateway trust model will be enhanced so that the federator can support multiple trust anchors. For this purpose, the TNG Federator will be onboarded in the source gateway with an NB<sub>TLS</sub> and NB<sub>UP</sub> certificate to access the gateway content. In the destination gateway, the trust anchor of the source gateway is configured (and signed by the operator) to accept the source content as valid. If the verification is successful, the content will be added as a subset to the existing gateway content. The connected national backends can then download all information by activating the federation option, to get the content from both gateways. The trust chain can be verified about the trust anchor of the connected gateway and the trust list of onboarded trust anchors.
+To realize the architecture vision, the gateway trust model will be enhanced so that the federator can support multiple trust anchors. For this purpose, the TNG Federator will be onboarded in the source gateway with an TNP<sub>TLS</sub> and TNP<sub>UP</sub> certificate to access the gateway content. In the destination gateway, the trust anchor of the source gateway is configured (and signed by the operator) to accept the source content as valid. If the verification is successful, the content will be added as a subset to the existing gateway content. The connected national backends can then download all information by activating the federation option, to get the content from both gateways. The trust chain can be verified about the trust anchor of the connected gateway and the trust list of onboarded trust anchors.
 
 <img src="MultipleTrustAnchor.png" alt="TNG Implementation- Multiple Trust Anchor" style="width:400px; float:none; margin: 0px 0px 0px 0px;"/>
 
-<b>Note</b>: The Federator acts as a special kind of “National Backend”, therefore all NB associated certificates except the NB<sub>UP</sub> will be onboarded normally. 
+<b>Note</b>: The Federator acts as a special kind of “National Backend”, therefore all TNP associated certificates except the TNP<sub>UP</sub> will be onboarded normally. 
 
 ##### Raw Public Keys
 The trust model doesn’t support raw public keys due to security reasons especially in cases where: 
@@ -160,7 +152,7 @@ Raw keys cannot be verified for validity
 Raw key ca not be verified by the source (e.g. Root Authority)
 Raw keys can be created and shared easily and bad governance “opens the door” to all participants in the trust network
 
-Therefore all raw keys must be converted to an x509 certificate wrapper to be a DSC on the gateway, which must be signed by a properly onboarded CSCA. Verification of a COVID-19 certificate is not affected by this process, as long as the correct KID is applied during the upload (and in the certificate). 
+Therefore all raw keys must be converted to an x509 certificate wrapper to be a DSC on the gateway, which must be signed by a properly onboarded SCA. Verification of a COVID-19 certificate is not affected by this process, as long as the correct KID is applied during the upload (and in the certificate). 
 
 ##### DSC Limitation
 
@@ -210,7 +202,7 @@ The federator is designed as a new sub component which can be hosted as microser
 |AuthenticationKID|Varchar Array| KIDs of the onboarded TNG<sub>TLS GW</sub> of the other gateway.                                                                                                                                                                                                             |
 |TrustAnchorKIDs|Varchar Array| KIDs of the onboarded Trust Anchor (TNG <sub>TA</sub>)                                                                                                                                                                                                                       |
 |DownloadTarget|String| FEDERATION or GATEWAYONLY                                                                                                                                                                                                                                                    |
-|Mode|int| Enum for the download mode. APPEND or OVERRIDE.The append mode adds the downloaded data to the existing data set (existing federation data will be replaced). Override deletes the existing datasets (excepting the own NB TLS, Trust anchors and federation configurations) |
+|Mode|int| Enum for the download mode. APPEND or OVERRIDE.The append mode adds the downloaded data to the existing data set (existing federation data will be replaced). Override deletes the existing datasets (excepting the own TNP<sub>TLS</sub>, Trust anchors and federation configurations) |
 |Signature|Varchar| Trust Anchor Signature                                                                                                                                                                                                                                                       |
 
 ###### Download Scheduler
@@ -251,7 +243,7 @@ The data format of the federated data should always contain a federation wrapper
 
 #### Download Process
 
-To federate multiple gateway data, a download process is introduced which should ensure that only trusted data is downloaded to a local gateway. Trusted data means in this context, that the operator of a local gateway has the total control which federated data is accepted and which not. To achieve this target, the local gateway operator must explicitly onboard any remote federators plus the trust anchors of the data which can be accepted. This is necessary because each remote federator may deliver the data of multiple other gateways (which are trusted by the origin gateway operator), but this means not necessarily that this data is trusted automatically by the local gateway operator as well (implicit trust relations must be avoided). Therefore, during the download process, a check should be run which skips all data that is not explicitly trusted by the local operator. This can be reached over the whitelisting of multiple trust anchors and the cross check over the NBUP certificates. If the trust chain is established in this way, each content can be downloaded, verified and pushed to the store. The entire download process itself follows a delta download mechanism, which downloads daily the entire content, and within the day just the deltas. This means for the trust network, that a certificate “bubbles” from the origin gateway step by step to all other gateways. Through this behavior, it must be considered that around one day between creating a key pair, and issuing the first certificates with it is considered.
+To federate multiple gateway data, a download process is introduced which should ensure that only trusted data is downloaded to a local gateway. Trusted data means in this context, that the operator of a local gateway has the total control which federated data is accepted and which not. To achieve this target, the local gateway operator must explicitly onboard any remote federators plus the trust anchors of the data which can be accepted. This is necessary because each remote federator may deliver the data of multiple other gateways (which are trusted by the origin gateway operator), but this means not necessarily that this data is trusted automatically by the local gateway operator as well (implicit trust relations must be avoided). Therefore, during the download process, a check should be run which skips all data that is not explicitly trusted by the local operator. This can be reached over the whitelisting of multiple trust anchors and the cross check over the TNP<sub>UP</sub> certificates. If the trust chain is established in this way, each content can be downloaded, verified and pushed to the store. The entire download process itself follows a delta download mechanism, which downloads daily the entire content, and within the day just the deltas. This means for the trust network, that a certificate “bubbles” from the origin gateway step by step to all other gateways. Through this behavior, it must be considered that around one day between creating a key pair, and issuing the first certificates with it is considered.
 
 <img src="DownloadProcess.drawio.png" alt="Download Process" style="width:400px; float:none; margin: 0px 0px 0px 0px;"/>
 
@@ -267,23 +259,23 @@ Each Data Table (SignerInformation, Trusted Issuer, Trusted Reference etc.) gets
 The signer information endpoints must be configurable by a profile to be switched on and off the routes. This is necessary to maintain backwards compatibility with the EU DCC Gateway. In the DDCC context these routes are deactivated.
 
 ##### Trusted Certificate Upload
-To support additional use cases, the gateway will be modified with endpoints which allows it to upload certificates signed by the CSCA of a country. The upload endpoint works similar to the signer information upload endpoint with the difference that the upload contains more additional information about the certificate. The concrete template for this additional information must be defined by a schema. The certificate upload must support the choice of a kid, because other standards define static kids or choose it in other ways than the DCC. If no kid is provided, the DCC standard calculation of the first 8 bytes of the SHA256 hash is applied. 
+To support additional use cases, the gateway will be modified with endpoints which allows it to upload certificates signed by the SCA of a Trust Network Partcipant. The upload endpoint works similar to the signer information upload endpoint with the difference that the upload contains more additional information about the certificate. The concrete template for this additional information must be defined by a schema. The certificate upload must support the choice of a kid, because other standards define static kids or choose it in other ways than the DCC. If no kid is provided, the DCC standard calculation of the first 8 bytes of the SHA256 hash is applied. 
 
 ##### Health Check
 To monitor the status of the Gateway, a health check is introduced. The new route returns 200 if the gateway is up and running. When the gateway is in maintenance, the routes must return 204. All other return codes indicate an error.
 
 ##### Route Profiles
-The routes for POST, PUT and DELETE will be modified by profiles to make them configurable. This allows it to switch off the data upload, which is especially for the primary-secondary/combined sources use case. Within this setup, no NBUP certificates need to be onboarded.
+The routes for POST, PUT and DELETE will be modified by profiles to make them configurable. This allows it to switch off the data upload, which is especially for the primary-secondary/combined sources use case. Within this setup, no TNP<sub>UP</sub> certificates need to be onboarded.
 
 ##### Value Set and Business Rules Endpoints
 The ValueSet and Business Rules endpoints must be configurable by configuration of profiles for enabling/disabling. 
 
-Business Rules gets a new endpoint which is returning single objects by using the business rule id (/rules/{country}/{ruleId}}.
+Business Rules gets a new endpoint which is returning single objects by using the business rule id (/rules/{TrustNetworkPartcipant}/{ruleId}}.
 
 Note: This new route is introduced to create a migration path to the trusted references. Within EU DCC Standard Mode, there is no backwards compatibility impact. 
 
 ##### Trusted References
-The trusted references are URLs which are uploaded by the member states to propagate their service endpoint about value sets, business rules and other content for interoperability. Within the trusted references are just public GET methods allowed. Authorization must be covered by trust mediators, if necessary.   
+The trusted references are URLs which are uploaded by the Trust Network Participants to propagate their service endpoint about value sets, business rules and other content for interoperability. Within the trusted references are just public GET methods allowed. Authorization must be covered by trust mediators, if necessary.   
 
 |Field|Optional|Type|Description|
 |-----|--------|-----|---------|
@@ -291,7 +283,7 @@ The trusted references are URLs which are uploaded by the member states to propa
 |URL|No|String|Can be a HTTP(s)|
 |Type|No|String|FHIR|DCC…|
 |Version|No|String|Any version string.|
-|Country|No|String|Country where the URL relates to. |
+|Country|No|String|Trust Network Participant where the URL relates to. |
 |Service|No|String|e.g. ValueSet, PlanDefinition etc.|
 |Thumbprint|No|String|SHA256 Hash of the content behind it|
 |Name|No|String|Name of the Service|
@@ -300,7 +292,7 @@ The trusted references are URLs which are uploaded by the member states to propa
 |SignatureType|No|String|NONE|JWS|CMS|
 
 ##### Trusted Issuer
-Currently it is possible to onboard CSCAs as Issuer Trust Reference for DSCs which makes it hard to use it outside the PKI world. Other credential types like Verifiable Credentials are using DIDs or other Issuer IDs which are not necessarily linked to any CSCA, but with crypto material behind it e.g. JWKs sources etc. To support these issuers and their credentials, the gateway will be enhanced by a trusted issuer interface which makes it possible to receive this kind of trusted ids. All of these trusted issuers must be onboarded as CSCAs and all other certificates.
+Currently it is possible to onboard SCAs as Issuer Trust Reference for DSCs which makes it hard to use it outside the PKI world. Other credential types like Verifiable Credentials are using DIDs or other Issuer IDs which are not necessarily linked to any SCA, but with crypto material behind it e.g. JWKs sources etc. To support these issuers and their credentials, the gateway will be enhanced by a trusted issuer interface which makes it possible to receive this kind of trusted ids. All of these trusted issuers must be onboarded as SCAs and all other certificates.
 
 A trusted issuer entry which can be onboarded is defined as :
 
@@ -308,7 +300,7 @@ A trusted issuer entry which can be onboarded is defined as :
 |-----|--------|----|-----------|
 |URL|No|String|Can be a HTTP(s) or DID URL.|
 |Type|No|String|HTTP or DID|
-|Country|No|String|Country where the URL relates to. |
+|Country|No|String|Trust Network Participant where the URL relates to. |
 |Thumbprint|Yes|String|SHA256 Hash of the content behind it (if applicable)|
 |Name|No|String|Name of the Service|
 |SSLPublicKey|Yes|String|SSL Certificate of the endpoint (if applicable).|
@@ -331,11 +323,11 @@ All other components like proxies, must be aligned in the configured settings to
 
 #### WHO Trust Network Gateway Modifications
 
-In the last version of the TNG[^1] architecture, the changes for trusted issuers and trusted certificates were made to allow different types of technologies in trust verification. This could be either X509 or DIDs according to the DID Core Specification[^2]. During the last iterations of specification and alignment with member states, there were some key points which must be additionally supported in the gateway:
+In the last version of the TNG[^1] architecture, the changes for trusted issuers and trusted certificates were made to allow different types of technologies in trust verification. This could be either X509 or DIDs according to the DID Core Specification[^2]. During the last iterations of specification and alignment, there were some key points which must be additionally supported in the gateway:
 
-* Native DID Support for the Gateway's Trustlists (DID Document Format)
+* Native DID Support for the Gateway's Trustlists (DID Document Format) (optional)
 * Decentralized Exchange of DID Documents to provide it to verifiers
-* WHO aligned onboarding process for member states
+* WHO aligned onboarding process for eligible Trust Network Participants
 
 This section describes these changes.
 
@@ -354,29 +346,11 @@ Microsoft Azure public cloud is the targeted operation environment for the Trust
 
 ##### Onboarding Process Concept
 
-<img src="OnboardingOverview.drawio.png" style="float:none; margin: 0px 0px 0px 0px;"/>
 
-The WHO Trust Network Secretariat is responsible to manage the onboarding application of member states to connect as a trusted party to the trust network. Prepared onboarding records will be handed over to the TNG operator with the request to process the technical onboarding of the trusted party. An organizational and technical successful application results in a confirmation and the member state can connect to the network as a trusted party. 
-
-###### Onboarding Application Details
-
-The application of the member state must contain at least:
-
-* One or more DID or CSCA, with a statement about the correctness (will not be additionally checked), optionally SHA256 hashes of the DID Document content to anchor it
-* A statement about the acceptance of keys and processes of other jurisdictions which are present in the gateway lists
-* Contact Persons - Technical, Legal, Governance etc.
-
-
-###### Secretariat Tasks
-The secretariat must handle the following tasks to establish the onboarding process:
-
-* Providing a Secure Channel for the member states to deliver secure and trustworthy applications and DID/CSCA informations
-* Creation and Securing a Key Pair (Trust Anchor)  to sign/confirm onboarding requests for the gateway
-* Delivering the Public Key of the Trust Anchor to the Gateway Operations
-* Transmitting Onboarding Requests to the Gateway Operations
+The WHO Global Digital Health Certification Network Secretariat is responsible to manage the [onboarding](concepts_onboarding.html) application of eligible Trust Network Participants to connect as a trusted party to the trust network.
 
 
 ________________
-[^1]: TNG Trust Network Gateway, formerly named DDCC Digital Documentation of Covid Certificates  
+[^1]: TNG Trust Network Gateway, formerly named Digital Documentation of Covid Certificates (DDCC) Gateway
 [^2]: DID Core,   https://www.w3.org/TR/did-core/
 

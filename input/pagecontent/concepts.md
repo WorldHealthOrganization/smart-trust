@@ -70,6 +70,9 @@ The TLS server public key certificate of the TNG.
 #### Trust Network Participant
 A Trust Network Participant is a participant of a Trust Network that adheres to the Terms of Participation and manages the necessary technical infrastructure and governance processes.  Trust Network Participants are responsible for making bilateral determinations related to the utilization of Trusted Services. 
 
+##### Trust Network Participant Backend
+A Trust Network Participant's backend system for managing the local part of information. The implementation of Trust Network Particiapnt's backend is not in the scope of this document. A national backend can be also understood as a trusted party onboarded in the Trust Network Gateway (can be a script, a proxy or a web server as well).
+
 ##### Trust Network Participant - Signing Certificate Authority  (TNP<sub>SCA) 
 The SCA public key certificate of a Trust Network Partcipant (could be more than one).
 
@@ -92,7 +95,7 @@ A Trusted Service is a digital service operated by a Trust Network Participant r
 ### Verifiable Digital Health Certificate
 Verifiable Digital Health Certificate is a digital health certificate (or document) that is issued by a Trust Network Participant within an associated digital signature which can be verified by a Public Key that is distributed through the Trust Network and provided by the issuing Trust Network Participant.   Verifiable Digital Health Certificates are health documents defined by interoperable digtal health standards which contain or is associated to a digital singature which can be cerifed using a public key shared with a Trust Network Public Key Infrastructure.
 
-The specific Verifiable Digital Health Certificates are defined in the [Concent Profiles](content_profiles.html)
+The specific Verifiable Digital Health Certificates are defined in the [Content Profiles](content_profiles.html)
 
 
 

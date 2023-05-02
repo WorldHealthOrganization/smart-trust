@@ -1,6 +1,13 @@
 
 The following describes the onboarding processes for the GDHCN.
 
+
+### Onboarding Process Overview
+
+The WHO Global Digital Health Certification Network Secretariat is responsible to manage the onboarding process and applications of eligible Trust Network Participants to connect as a trusted party to the trust network. Prepared onboarding records will be handed over to the TNG operator with the request to process the technical onboarding of the trusted party. An organizational and technical successful application results in a confirmation and the Trust Network Participant can connect to the network as a trusted party.
+
+<img src="OnboardingOverview.drawio.png" style="float:none; margin: 0px 0px 0px 0px;"/>
+
 Starting in September of 2023, partipcation will be opened to other eligible participants following the Full Onboarding Process (FOP).
 
 Starting in June of 2023 and running throough December 2023, participation in the GDHNC will be open to current participants of the European Union (EU) Digital Covid Certifcate (DCC) network following an Interim Onboarding Process (IOP).  The IOP is an abbreviated verison of the FOP leveraging the notion of transitive trust.
@@ -8,6 +15,24 @@ Starting in June of 2023 and running throough December 2023, participation in th
 Please review the:
 * [Concepts](concepts.html) underpinning the description of these onboarding processes including the general description of the Terms of Participation; and
 * [Certificate Governance](concepts_certificate_governance.html) describing the governance of public key certificiates.
+
+
+#### Onboarding Application Requirements
+
+The application of the Trust Network Participant must contain at least:
+
+* One or more DID or SCA, with a statement about the correctness (will not be additionally checked), optionally SHA256 hashes of the DID Document content to anchor it
+* A statement about the acceptance of keys and processes of other jurisdictions which are present in the gateway lists
+* Contact Persons - Technical, Legal, Governance etc.
+
+
+#### Secretariat Tasks
+The secretariat must handle the following tasks to establish the onboarding process:
+
+* Providing a Secure Channel for the Trust Network Participant to deliver secure and trustworthy applications SCA and/or DID information
+* Creation and Securing a Key Pair (Trust Anchor)  to sign/confirm onboarding requests for the gateway
+* Delivering the Public Key of the Trust Anchor to the Gateway Operations
+* Transmitting Onboarding Requests to the Gateway Operations
 
 
 ### Interim Onboarding Process
@@ -28,7 +53,7 @@ The principle of Transitive Trust leverages the trusted relationship that the EC
 
 #### Interim Terms of Participation
 The requirements in this document will subsume those outlined in the EC DCC Equivalence Decision Annex II Technical procedure to onboard third countries.  The following abbreviated Terms of Participation will apply during the IOP:
-* ***TOP0***  Will leverage current EC processes and share NB<sub>TLS</sub> keys with WHO.  These NB<sub>TLS</sub> keys will be signed by WHO.
+* ***TOP0***  Will leverage current EC processes and share TNP<sub>TLS</sub> keys with WHO.  These TNP<sub>TLS</sub> keys will be signed by WHO.
 * ***TOP1***  Will be considered fulfilled 
 * ***TOP2***  Will be considered fulfilled
 * ***TOP3***  WHO will ask for an assertion/pledge by eligible Trust Network participants to adhere to the applicable policies but will not be responsible for assessing or enforcing compliance the policies or regulatory on which trusted services which are operated by paricipants of the trust network.
@@ -49,7 +74,7 @@ As permissible, configuration information related to connections of EU DCC parti
     * attestation to comply with the Trust Network Terms of Participation.
 * After positively assessing the application form,  WHO will:
     * provide the necessary technical specifications and configuration information to connect to their backend systems to the WHO TNG
-    * invite the country to register their production certificates and promote them to the production environment.
+    * invite the Trust Network Participant to register their production certificates and promote them to the production environment.
 
 
 
@@ -62,17 +87,17 @@ This section describes the steps for the Full Onboarding Process (FOP)  to the G
 The FOP will be in effect in September 2023.  
 
 ##### Eligibility
-At launcch of FOP at launch, eligibiltiy to join the GDHNC is limited to WHO Member States.
+At launch of FOP at launch, eligibiltiy to join the GDHNC is limited to WHO Member States.
 
 
 
 1. **Self-Assessment** Countries interested in joining the GDHCN should conduct a self-assessment using the provided checklist to ensure their system complies with the WHO's specifications. Eligible participants should adopt the same technical specifications described in the [Onboarding Checklist](concepts_onboarding_checklist.html) . Open source implementations should be utilized when possible.
-2. **Official Request**  If the self-assessment is successful, countries should submit a formal request to the WHO via an official letter expressing their interest in joining the GDHCN. The letter should include a description of the country's system and the completed checklist as an annexe Upon receipt, the WHO will initiate the procedure to assess the country's system and determine if the onboarding process can begin.
+2. **Official Request**  If the self-assessment is successful, countries should submit a formal request to the WHO via an official letter expressing their interest in joining the GDHCN. The letter should include a description of the eligible Trust Network Pariticpiant's system and the completed checklist as an annex Upon receipt, the WHO will initiate the procedure to assess the eligble Trust Network Partcipant's system and determine if the onboarding process can begin.
 3. Steps for Onboarding
 
 
 #### Organizational Identify
-The organizational identity will be estabalished in an offline process by WHO through its country offices with appropriate contacts at ministries of health or appropriate public health agency.
+The organizational identity and contact will be estabalished in an offline process by WHO through it's Member State country offices with appropriate contacts at ministries of health or appropriate public health agency.
 
 #### Onboarding Steps
 
