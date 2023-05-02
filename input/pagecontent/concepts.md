@@ -1,32 +1,102 @@
-### Trust List Specification
 
+
+
+
+This digital health trust network is a network of stakeholders that securely exchange and uses health information based on trust, security, and privacy principles, and is designed to ensure that health information is handled in a secure, private, and compliant manner.  Through the GDHCN, WHO serves as the custodian of a digital health trust network.
+
+
+### Document Signers
+Document Signers are utilize the private key of a private-public key pair to digitally sign Verifiable Digital Health Certificates.  A single private key is expected to sign a large quantity of Verifable Digital Health Certiciates.  The corresponing public key is referred to as a Document Signer Certificate (DSC). 
+
+### Document Signer Certificates (DSCs)
+Docuemnt Signer Certificates are the public key certificates associated to Document Signers which are issued or recogonzied by the Trust Network Participant.
+
+
+### Public Key Infrastructure (PKI)
+The Public Key Infrastructure (PKI) is the trust model based on public key certificates and certificate authorities.  It is the means for publishing and distribuing Trust Lists comprising the public keys that can be used to digitally verify the issuer of a Verfiiable Digial Health Certiciate.
+
+
+###  Signing Certificate Authority (SCA)
+Each Trust Network Participant maintains one or more Signing Certificate Authority (SCA), certificates of which are relatively long lived. The SCA issues public key certificates for the national, short lived, Document Signers.  The SCA acts as a trust anchor such that relying Trust Network Participants can use the SCA certificate to validate the authenticity and integrity of the regularly changing DSC certificates
+
+
+### Trust Lists 
 Universal verifier applications that support different credential standards are complicated by wide variability in format of the credential payloads, signatures, key formats, and key distribution methods. Public keys formats include x509 certificates, JSON Web Key Sets (JWKS), and DID documents. Signing key distribution methods include API gateways, hosted by issuer at a pre-defined URL, embedded in certificates, and by blockchain based resolution. Establishing root of trust by trust anchor or distributing trust list has been accomplished by API gateway, hosted URL, private dissemination and other bilateral sharing agreements.
 
-While some variability is expected in an approach that preserves sovereignty, there are opportunities for alignment in key format and distribution for the sake of fostering interoperability. With that goal, we provide a unifying trust list format to assemble and share public key infrastructure for all credential specifications used by existing trust networks. Importantly, this format does not enforce a particular policy framework for members of the trust network.
+While some variability is expected in an approach that preserves sovereignty, there are opportunities for alignment in key format and distribution for the sake of fostering interoperability. With that goal, we provide a unifying trust list format to assemble and share public key infrastructure for all credential specifications used by existing trust networks. Importantly, this format does not enforce a particular policy framework for participants of the trust network.
 
-#### Requirements
-The common trust list specification defines the lowest common denominator format that can interoperate between all included specifications and can support the minimal required features from each specification. This includes considering the minimum security requirements that satisfy each of the specifications. It was designed taking into account the following tenets:
-1. SHALL be convertible from each existing trust network's formats
-2. SHALL describe a key-to-trust-anchor path for all specifications
-3. SHALL be cacheable
-4. SHALL be mergeable (trust list operators can integrate each other's entries)
-5. SHALL be usable by all stakeholders required to verify health credentials in their operations
+The GDHCN currently supports two means for key distribution of keys using trust lists
+- [EU DCC API](concepts_certificate_governance.html) **required**
+- [Decentralized Identifier (DID)](concepts_did.html) optional
 
-#### DID Document
-The unified format is based on the [Decentralized Identifiers (DIDs) v1.0](https://www.w3.org/TR/did-core/) specification. DIDs are globally unique identifier in the form of URIs. The URI scheme includes a method name which corresponds to a standard method by which a DID Document can be resolved. This DID Document is a structured JSON-LD which captures each existing public key (regardless of X.509 or JWK format used) by the members of a trust network in a common format. It allows additional metadata (such as intended purpose and key identifiers) to be added to existing keys with changing the underlying keys themselves​. It provides means to publish and cryptographically sign a master lists of keys recognized used by a trust network.
 
-The unified format DID method selected is did:web, a method to retrieve DID Documents via existing web (https) infrastructure​. ​The did:web identifiers have the form `<DOMAIN NAME>:<PATH COMPONENT 1>:...: <PATH COMPONENT N>`​. Resolution is accomplished by https GET against the URL which is formed from this identifier by​ `https://​DOMAIN NAME/PATH COMPONENT 1/.../PATH COMPONENT N/did.json`. For example did:web:example.com:my:path would resolve a DID Document from the URL `https://example.com/my/path/did.json`​. Additional did methods may be supported in the future.
 
-The DID Document itself should have:​
-* an ‘id’ field which is the DID itself and represents the DID Subject, in this case the trust list
-* a list of public keys within the ‘verificationMethod’ field​
-* an optional signature via a ‘proof’ field​
+### Trust Network
 
-The verificationMethod array represents the individual signing keys associated with issuers within the entity represented by the DID Subject, an includes:
-* an `id` field which is a DID URL composed of the DID for this DID Document and key ID as ​DID#key
-* controller of the public key, which can be current document (in case of publishing a key by a trust network member) or the source of the public key in case of an aggregator 
-* the public key JWK, including the key's x509 and chain of trust to Root Certificate Authority​
+A digital trust network is the set of digital infrastructure, processes and governance framework which is used to manage a trusted set of actors.  This trust network operationalized through software infrastructure that enables verification of digital health records and health certificates through an interoperable trust architecture.  This is done by a trust anchor (a widely trusted central authority with a mandate and history of trustworthiness, eg. WHO) compiling a database of digital public key, provided to WHO by trust network participants. This database is made publicly available, allowing each Trust Network Participant to verify that digitally-signed credentials were issued by a recognized authority of a trust network participant.
 
-The DID Document itself can be signed with addition of a ‘proof’ block containing signature details and key used for verification.
+![Trust Network](images/trust_network.png)
 
-For more information regarding the DID Document format for a Trust List specification, see [WHO DDCC Trust List Specification documentation](https://github.com/WorldHealthOrganization/ddcc-trust/blob/main/TrustListSpecification.md#leading-contender-did-document). For an example of a signed DID Document, see [Appendix A](https://github.com/WorldHealthOrganization/ddcc-trust/blob/main/TrustListSpecification.md#appendix-a-signed-did-document-for-x509-enabled-trust-lists-of-leaf-keys) of the documentation.
+#### Trust Network Custodian
+The Trust Network Custodian defines the Terms for Participation within the trust network.  The custodian is responsible for: 
+* establishing eligibility criteria for potential Trust Network Participants;  
+* establishing (and maintaining) the organizational identity of Trust Network Participants; 
+* establishing the Trust Network Terms of Participation within the trust network; and  
+* defining the onboarding process for the Trust Network Participants to join the trust network within the established terms of participation. 
+
+
+#### Trust Network Ecosystem
+A Trust Network comprises the infrastructure, governance/policies and processes that are defined by a Trust Network Custodian and which characterize the trust relationships that Trust Network Participants have with the Trust Network Custodian and between themselves.   A core infrastructural component of a Trust Network is a Public Key Infrastructure (PKI). 
+
+
+
+#### Trust Network Gateway (TNG)
+The Trust Network Gateway (TNG) is a service operated by the Trust Network Custodian which aggregates information related to the Public Key Infrastructure, Trusted Services for Verfiable Digital Health Certificates and other relevant metadata (e.g. validation rules for digital COVID certificates, terminolgies) coming from Trust Network Participants.  
+
+##### Trust Network Gateway - Trust Anchor  (TNG<sub>TA</sub>) 
+The Trust Anchor public key certificate of the TNG. The corresponding private key is used to sign the list of all SCA certificates offline.
+
+##### Trust Network Gateway - Transport Layer Security  (TNG<sub>TLS</sub>) 
+The TLS server public key certificate of the TNG.
+
+
+#### Trust Network Participant
+A Trust Network Participant is a participant of a Trust Network that adheres to the Terms of Participation and manages the necessary technical infrastructure and governance processes.  Trust Network Participants are responsible for making bilateral determinations related to the utilization of Trusted Services. 
+
+##### Trust Network Participant - Signing Certificate Authority  (TNP<sub>SCA) 
+The SCA public key certificate of a Trust Network Partcipant (could be more than one).
+
+##### Trust Network Participant - Transport Layer Security (TNP<sub>TLS</sub>) 
+The TLS client authentication public key certificate of a Trust Network Participant's backend system.
+
+##### Trust Network Participant - Transport Layer Security (TNP<sub>UP</sub>) 
+The public key certificate that a Trust Network Participant uses to sign data packages that are uploaded to the TNG.
+
+##### Trust Network Participant Verifier
+A system utilzied by a Trust Network Participant to verifiy the digital signature of a Verifiable Digital Health Certificate.
+
+#### Trust Network Terms of Participation
+The Trust Network Terms of Participation are comprised of the following components:
+* ***T0*** Sharing of necessary credentials to establish an mTLS connection between Trust Network Participant backends and WHO Digital Health Trust Network infrastructure
+* ***T1*** Compliance with technical and interoperability standards required for a Public Key Infrastructure (PKI);
+* ***T2*** Standards for Verifiable Digital Health Certificates and APIs of Trusted Services; and
+* ***T3*** Policy and regulatory standards that Trust Network Particpants are expected to comply with pertaining to Trusted Services that a Trust Participants operates or utilizes
+
+
+### Trusted Service
+A Trusted Service is a digital service operated by a Trust Network Participant related to the issuance, verification, revocation or similar function related to Verifiable Digital Health Certificates.    These trusted services utilize the PKI to validate the authenticity of the asserted issuer of Verifiable Digital Health Certificates.   
+
+
+
+
+### Verifiable Digital Health Certificate
+Verifiable Digital Health Certificate is a digital health certificate (or document) that is issued by a Trust Network Participant within an associated digital signature which can be verified by a Public Key that is distributed through the Trust Network and provided by the issuing Trust Network Participant.   Verifiable Digital Health Certificates are health documents defined by interoperable digtal health standards which contain or is associated to a digital singature which can be cerifed using a public key shared with a Trust Network Public Key Infrastructure.
+
+The specific Verifiable Digital Health Certificates are defined in the [Concent Profiles](concent_profiles.html)
+
+
+
+
+
+
+
