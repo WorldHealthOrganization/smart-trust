@@ -67,22 +67,22 @@ The Trust Anchor public key certificate of the TNG. The corresponding private ke
 The TLS server public key certificate of the TNG.
 
 
-#### Trust Network Participant
+### Trust Network Participant (TNP)
 A Trust Network Participant is a participant of a Trust Network that adheres to the Terms of Participation and manages the necessary technical infrastructure and governance processes.  Trust Network Participants are responsible for making bilateral determinations related to the utilization of Trusted Services. 
 
-##### Trust Network Participant Backend
+#### Trust Network Participant Backend
 A Trust Network Participant's backend system for managing the local part of information. The implementation of Trust Network Particiapnt's backend is not in the scope of this document. A national backend can be also understood as a trusted party onboarded in the Trust Network Gateway (can be a script, a proxy or a web server as well).
 
-##### Trust Network Participant - Signing Certificate Authority  (TNP<sub>SCA) 
+#### Trust Network Participant - Signing Certificate Authority  (TNP<sub>SCA) 
 The SCA public key certificate of a Trust Network Partcipant (could be more than one).
 
-##### Trust Network Participant - Transport Layer Security (TNP<sub>TLS</sub>) 
+#### Trust Network Participant - Transport Layer Security (TNP<sub>TLS</sub>) 
 The TLS client authentication public key certificate of a Trust Network Participant's backend system.
 
-##### Trust Network Participant - Transport Layer Security (TNP<sub>UP</sub>) 
+#### Trust Network Participant - Transport Layer Security (TNP<sub>UP</sub>) 
 The public key certificate that a Trust Network Participant uses to sign data packages that are uploaded to the TNG.
 
-##### Trust Network Participant Verifier
+#### Trust Network Participant Verifier
 A system utilzied by a Trust Network Participant to verifiy the digital signature of a Verifiable Digital Health Certificate.
 
 
