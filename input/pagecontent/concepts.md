@@ -4,6 +4,11 @@
 
 This digital health trust network is a network of stakeholders that securely exchange and uses health information based on trust, security, and privacy principles, and is designed to ensure that health information is handled in a secure, private, and compliant manner.  Through the GDHCN, WHO serves as the custodian of a digital health trust network.
 
+In addition to the key concepts used throughout this document, which are defined below, additional documentation may be found on:
+* [Certificate Governance](concepts_certificate_governance.md.html)
+* [Onboarding Process](concepts_onboarding.html)
+
+
 
 ### Document Signers
 Document Signers utilize the private key of a private-public key pair to digitally sign Verifiable Digital Health Certificates.  A single private key is expected to sign a large quantity of Verifiable Digital Health Certificates.  The corresponding public key is referred to as a Document Signer Certificate (DSC). 
