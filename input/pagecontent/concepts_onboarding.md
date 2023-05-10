@@ -3,6 +3,8 @@ The following describes the on-boarding processes for the Global Digital Health 
 
 These [concepts](concepts.html) and the following table contains abbreviations and terminology used throughout this document.
 
+* <a href="Letter_of_Applicaiton_Transititve_Trust.docx">Letter of Application using the Transitive Trust</a> 
+
 ### On-boarding Process Overview
 
 The GDHCN Secretariat manages the on-boarding process and applications of eligible Trust Network Participants to connect as a trusted party to the trust network. Prepared on-boarding records will be handed over to the TNG operator with the request to process the technical on-boarding of the trusted party. An organizational and technical successful application results in a confirmation and the Trust Network Participant can connect to the trust network as a trusted party.
