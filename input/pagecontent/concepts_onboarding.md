@@ -1,4 +1,12 @@
 
+<center>
+  <font size="7" style="color:coral">
+    DRAFT
+  </font>
+</center>
+
+
+
 The following describes the on-boarding processes for the Global Digital Health Certification Network (GDHCN).
 
 These [concepts](concepts.html) and the following table contains abbreviations and terminology used throughout this document.
