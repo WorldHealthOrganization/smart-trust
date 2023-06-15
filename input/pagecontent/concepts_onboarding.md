@@ -1,9 +1,4 @@
 
-<center>
-  <font size="7" style="color:coral">
-    DRAFT
-  </font>
-</center>
 
 
 
