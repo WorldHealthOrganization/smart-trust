@@ -5,7 +5,7 @@
 This digital health trust network is a network of stakeholders that securely exchange and uses health information based on trust, security, and privacy principles, and is designed to ensure that health information is handled in a secure, private, and compliant manner.  Through the GDHCN, WHO serves as the custodian of a digital health trust network.
 
 In addition to the key concepts used throughout this document, which are defined below, additional documentation may be found on:
-* [Certificate Governance](concepts_certificate_governance.md.html)
+* [Certificate Governance](concepts_certificate_governance.html)
 * [Onboarding Process](concepts_onboarding.html)
 
 
