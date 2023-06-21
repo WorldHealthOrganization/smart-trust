@@ -17,23 +17,40 @@ It is highly recommended:
 
 ### Links to the Environments
 
+- Development Environment (Unstable): https://tng-dev.who.int
 - Acceptance Environment: https://tng-uat.who.int
+- Production Environment: https://tng.who.int
 
-### Test Environment
+### User Acceptance Test Environment (UAT) 
 
 For a successfull connection to the gateway there are several steps to prepare: 
 
- 1) Certificates must be prepared for Test Environment (self signed allowed)
+ 1) Certificates must be prepared for Acceptance Environment (self signed allowed) following the requirements in [Certificate Governance](concepts_certificate_governance.html)
     - Authentication: TNP<sub>TLS</sub>
     - Upload:   TNP<sub>UP</sub>
     - SCA(s):  TNP<sub>SCA</sub>
- 2) Send the Public Keys in PEM Format to the contact of the Test Operator (tng-support@who.int functional mailbox)
- 3) After Onboarding in the Test Environment, check the connectivity with the following command:<br>
-  ```curl -vvv -H "Accept: */*" --resolve ****.ec.europa.eu:443 --cert "auth_de.pem" --key "key.pem" https://****.ec.europa.eu/trustList``` <br>
-    You should see a output like: <br>
-    {% include img.html img="TrustListResult.PNG" caption="Trust List Output" width="70%" %}
+    
+ 2) Prepare public keys in PEM format in a private Github repository dedicated to acceptance environment keys. Follow the  procedure described in this Github repository: https://github.com/WorldHealthOrganization/tng-participant-template (for support contact the tng-support@who.int functional mailbox). After technical onboarding you will be notified.
 
- 4) Test the other Truslist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication...)
+ 3) After onboarding in the Acceptance Environment, check the connectivity with the following command:<br>
+  ``` curl -v https://tng-uat.who.int/trustList --cert TLS.pem --key TLS_key.pem``` <br>
+    You should see a output like: <br>
+ 
+    ```
+    [
+    {
+        "kid": "+jrpHSqdqZY=",
+        "timestamp": "2023-05-25T07:55:21Z",
+        "country": "XC",
+        "certificateType": "UPLOAD",
+        "thumbprint": "fa3ae91d...",
+        "signature": "MIAGCSqGSIb3D...",
+        "rawData": "MIIErTCCA5WgAwIBAgII..."
+    }
+    ]
+    ```
+
+ 4) Test the other Trustlist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication...)
  5) Create an Document Signer Certificate and sign it by the SCA
  6) Create an CMS Package with the following Command: 
   ``` 
@@ -41,10 +58,10 @@ For a successfull connection to the gateway there are several steps to prepare:
       openssl cms -sign -nodetach -in cert.der -signer signing.crt -inkey signing.key -out signed.der -outform DER -binary
       openssl base64 -in signed.der -out cms.b64 -e -A 
   ``` 
-   Note: cert.der is your DSC, signing.crt ist the Uploader Certificate)
+   Note: cert.der is your DSC, signing.crt is the TNP<sub>UP</sub>)
   
  7) Upload the CMS Package to the Gateway<br>
-    ```curl -v -X POST -H "Content-Type: application/cms" --cert auth_de.pem --key key.pem --data @cms.b64 https://****.ec.europa.eu/signerCertificate``` <br>
+    ```curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-uat.who.int/signerCertificate``` <br>
  8) Download the Trustlist again, and check if your DSC is available.
  
  
@@ -62,20 +79,10 @@ WinSSL Test Example (Not working)
 
 
 
-### Acceptance Environment
-
-1) Order/Generate your certificates according the defined requirements in [Certificate Governance](concepts_certificate_governace.md):
-    - Authentication: TNP<sub>TLS</sub> 
-    - Upload:   TNP<sub>UP</sub>
-    - SCA(s):  TNP<sub>SCA</sub> 
-2) Transfer the certificates via circABC to the Secretariat
-3) After the certificate whitelisting, test the functionality again with your backend (E2E)
-
-
 ### Production Environment
 
-1) Push the certificates together with your application for going live to the TNG secretariat (TBD) 
-2) Connect your production setup
+1) Prepare public keys in PEM format in a private Github repository dedicated to production environment keys. Follow the  procedure described in this Github repository: https://github.com/WorldHealthOrganization/tng-participant-template
+2) After onboarding succeeded connect your production setup as described above
 
 
 
