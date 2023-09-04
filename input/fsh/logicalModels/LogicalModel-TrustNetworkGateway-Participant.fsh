@@ -31,7 +31,8 @@ Parent: BackboneElement
 
 
 
-//Alias: $TNGContracts = http://worldhealthorganization.github.io/smart-trust/TrustNetworkGatewayContracts
+// Alias: $TNGContracts = http://worldhealthorganization.github.io/smart-trust/TrustNetworkGatewayContracts
+
 Logical: TrustNetworkGatewayRelationship
 Title: "Trust Network Gateway Relatiohsip"
 Description: "Describes a Trust Network relationship.  Instantiated in FHIR as a Contract"

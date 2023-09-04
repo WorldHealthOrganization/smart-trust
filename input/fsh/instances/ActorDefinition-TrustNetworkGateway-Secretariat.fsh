@@ -1,5 +1,5 @@
-Alias $UsageContexts = http://terminology.hl7.org/ValueSet/usage-context-type
-Alias $PublicationStatus = http://hl7.org/fhir/ValueSet/publication-status
+Alias: $UsageContexts = http://terminology.hl7.org/ValueSet/usage-context-type
+Alias: $PublicationStatus = http://hl7.org/fhir/ValueSet/publication-status
 
 Instance: TrustNetworkGatewaySecretariat
 InstanceOf: ActorDefinition
