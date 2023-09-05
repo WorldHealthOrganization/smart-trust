@@ -1,6 +1,5 @@
 
 
-Alias: $TNGContracts = http://worldhealthorganization.github.io/smart-trust/TrustNetworkGatewayContracts
 
 
 Logical: TrustNetworkGatewayParticipant
@@ -45,8 +44,5 @@ Parent: BackboneElement
 * governanceFramework	0..*	Attachment  "Desribes governance that TNG Participants are envaoring to ahere to when agreeing to participate in the Domain"
 * signature		0..*	Attachment "Signed documents (digital or physical) singaling intention to adhere to governanve framework for the Trust Domain"
 * domain		1..*	CodeableConcept "Trust Domain(s) that the participants in the relationship are operating under"
-* domain from $TNGContracts (extensible)
 * trustedServices	0..*	TrustNetworkGatewayTrustedService "Set of Trusted Services that are being operated under this relationship"
 * paricipantIdentifier	1..*	string "Identifier for Trust Network Participant organization that is the source of the relationship"
-
-

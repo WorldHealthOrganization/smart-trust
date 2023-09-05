@@ -19,11 +19,6 @@ Description: "List of codes to describe the Trust Domains defined by WHO's Globa
 * #"TNG-PKI-DID" "Trusted Services for retrieval of DID document containg Public Key Material of the Trust Network Gateway"
 * #"TNG-PKI-EU-DCC" "Trusted Services for management of PKI following EU-DCC specification for the Trust Network Gateway"
 * #"TNG-BR" "Trust Services for executable busines rules that operate on Verifiable Digital Health Certificates"   
-* #"DDCC" "Trusted Sevices for the Digital Documentation of COVID-19 Certficiates (DDCC) domain for a Trust Network Participant"
-
-
-//RACSEL ProjectAThon Services"
-* #"RACSEL-DDVS" "Trusted Services for the Digital Documentation of Vaccine Status (DDVS) for RACSEL ProjectAThon Trust Network Participant"
 
 
 //SMART Guidelines
