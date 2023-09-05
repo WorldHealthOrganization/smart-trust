@@ -1,4 +1,7 @@
-//should be moved to smart-trust
+
+
+Alias: $TNGContracts = http://worldhealthorganization.github.io/smart-trust/TrustNetworkGatewayContracts
+
 
 Logical: TrustNetworkGatewayParticipant
 Title: "Trust Network Gateway Particpant"
@@ -14,7 +17,7 @@ Parent: BackboneElement
 
 
 
-Alias: $TNGContracts = http://worldhealthorganization.github.io/smart-trust/TrustNetworkGatewayContracts
+
 Logical: TrustNetworkGatewayTrustedService
 Title: "Trust Network Gateway Trusted Service"
 Description: "Trusted services.  "
@@ -26,12 +29,9 @@ Parent: BackboneElement
 * name			1..1	string  "TNG Participant" "Name of the Trust Network Gateway (TNG)  Partcipant"
 * mimeType		1..1	string  "mime type of service"
 * url			1..1	string  "URL of service"
-* code			1..* 	CodeableConcept "Code that indicates service (transaction) that this endpoint fulfills
+* code			1..* 	CodeableConcept "Code that indicates service (transaction) that this endpoint fulfills"
 
 
-
-
-// Alias: $TNGContracts = http://worldhealthorganization.github.io/smart-trust/TrustNetworkGatewayContracts
 
 Logical: TrustNetworkGatewayRelationship
 Title: "Trust Network Gateway Relatiohsip"
