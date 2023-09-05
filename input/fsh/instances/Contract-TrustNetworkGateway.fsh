@@ -1,7 +1,6 @@
 
 //perahps this should really be in smart-core
 
-
 Alias: $TrustNetworkGatewayContracts = http://worldhealthorganization.github.io/smart-trust/ValueSet/TrustNetworkGatewayContracts
 
 
@@ -19,7 +18,7 @@ Should have a mCSD-compliant Jursidcition Organization as subject at at least on
 * subject only Reference(MCSDJurisdictionOrganization) 
 * authority only Reference(MCSDJurisdictionOrganization)
 * authority 1.. MS
-* type.coding domain = $TrustNetworkGatewayContracts (extensible)
+* type from $TrustNetworkGatewayContracts (extensible)
 
 
 
