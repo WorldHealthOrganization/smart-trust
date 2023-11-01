@@ -5,10 +5,15 @@
 This digital health trust network is a network of stakeholders that securely exchange and uses health information based on trust, security, and privacy principles, and is designed to ensure that health information is handled in a secure, private, and compliant manner.  Through the GDHCN, WHO serves as the custodian of a digital health trust network.
 
 In addition to the key concepts used throughout this document, which are defined below, additional documentation may be found on:
+* <a href="GDHCN_Administrative_and_Operational_Framework.pdf">GDHCN Administrative and Operational Framework</a>
 * [Certificate Governance](concepts_certificate_governance.html)
 * [Onboarding Process](concepts_onboarding.html)
 
+The <i>GDHCN Administrative and Operational Framework</i> should be considered the authoritative source of definitions and concepts in case of any discrepncies.
 
+
+### Business Owner Representative 
+The individual identified by a GDHCN Participant as having the primary business and programmatic responsibility for the GDHCN Participant for the implementation of the use cases covered by a Trust Domain.
 
 ### Document Signers
 Document Signers utilize the private key of a private-public key pair to digitally sign Verifiable Digital Health Certificates.  A single private key is expected to sign a large quantity of Verifiable Digital Health Certificates.  The corresponding public key is referred to as a Document Signer Certificate (DSC). 
@@ -16,21 +21,77 @@ Document Signers utilize the private key of a private-public key pair to digital
 ### Document Signer Certificates (DSCs)
 Document Signer Certificates are the public key certificates associated to Document Signers which are issued or recognized by the Trust Network Participant.
 
+### Eligible GDHCN Participant 
+An Eligible GDHCN Participant is one of the following:
+ *	a WHO Member State or Associate Member, or sub-national unit thereof;
+ *	a State Party recognized by the International Health Regulations, or sub-national unit thereof;  
+ *	the United Nations (UN) and other intergovernmental organizations in effective relations with WHO;
+ *	a fund, programme, specialized agency, or related organization within the UN system; or
+ *	an organization officially delegated by one of the organizations mentioned above that can abide by the GDHCN Terms of Participation and fulfils one or more of the following health service functions:
+    + Public Health Agency;
+    + Health Professions Education Accreditation Agency;
+    +	Health Services Licensing Agency; or
+    + Public Health Security Agency. 
+Once accepted to the GDHCN, after the successful conclusion of the Onboarding Process, will be referred to as **GDHCN Participant**.  An Eligible GDHCN Participant that has initiated the Onboarding Process will be referred to as an **Eligible GDHCN Applicant**.
+
+
+### Encryption Key Certificate Governance 
+The process and technical specifications regarding the management and use of encryption keys for Verifiable Digital Health Certificates, Public Key Infrastructure, and for securing connections with Trusted Services and the Trust Network Gateway.
+
+### GDCHCN Secretariat 
+The WHO Secretariat serves as the operational and management leadership of the GDCHN, and in this role, the GDHCN Secretariat.
+
+### GDHCN Trust Network  
+The GHDCN Trust Network is a Trust Network comprised of the GDHCN Secretariat and GDHCN Participants. The GDHCN Trust Network operationalizes Trust Domains through a Trust Network Gateway by enabling bilateral verification and utilization of Verifiable Digital Health Certificates and the utilization of Trusted Services by GHDCN Participants. 
+
+### Health Professions Education Accreditation Agency 
+An organization or organizational unit that is responsible for establishing and/or implementing procedures for accreditation of health professions education institutions.  See https://apps.who.int/iris/rest/bitstreams/1473223/retrieve and https://applications.emro.who.int/docs/em_rc50_r9_en.pdf?ua=1
+ 
+### Health Services Licensing Agency 
+An organization or organizational unit that is responsible for establishing and/or implementing procedures for licensure, and the licensing of organizations or individuals to provide clinical, health system or public health services within their jurisdiction. Licensing comprises processes through which duly authorized governmental authorities, such as recognized professional organizations, grant permission to an individual or healthcare organization to operate or engage in a medical occupation or profession. See: https://apps.who.int/iris/rest/bitstreams/1473223/retrieve and https://cdn.who.int/media/docs/default-source/documents/health-systems-strengthening-glossary.pdf.
+
+### Key Master Representative 
+The individual identified by a GDHCN Participant as having the primary responsibility for the management of the Public Key Infrastructure, including the generation of any needed public-private key pairs, and the configuration and management of the connections between the GDHCN Participant’s Public Key Infrastructure and the GDHCN Trust Network Gateway.
+
+### Legal Representative 
+The individual designated by a GDHCN Participant as having the primary responsibility for reviewing the requirements related to a Trust Domain on behalf of this GDHCN Participant. This person should be someone that the GDHCN Secretariat can consult in relation to any legal or policy issues that may arise, such as changes to this document or changes to one of its Annexes that defines a Trust Domain.
+
+### Letter of Application 
+A formal application sent via a verifiable and secure channel from an Eligible GDHCN Participant to the GDHCN Secretariat to join the GDHCN Trust Network and participate within a particular Trust Domain.
+
+### Onboarding Process 
+The processes required for an Eligible GDHCN Participant to join the GDHCN Trust Network. At the successful conclusion of the Onboarding Process, the Eligible GDHCN Participant shall be considered a GDHCN Participant. Sometimes simply referred to as “Onboarding”.
+
+### Public Health Agency 
+An organization, or organizational unit, that is responsible for establishing procedures for and/or implementation of activities related to the protection, promotion, and improvement of public health within a specific jurisdiction or domain. May also be referred to as a Ministry of Health, Department of Health, or Public Health Authority.
+
+### Public Health Security Agency
+An organization, or organizational unit, that is responsible for establishing procedures for and/or implementing required activities, both proactive and reactive, for minimizing the danger and impact of acute public health events that endanger people’s health across geographical regions and international boundaries.  See: https://www.who.int/health-topics/health-security.
 
 ### Public Key Infrastructure (PKI)
 The Public Key Infrastructure (PKI) is the trust model based on public key certificates and certificate authorities.  It is the means for publishing and distributing Trust Lists comprising the public keys that can be used to digitally verify the issuer of a Verifiable Digital Health Certificates.
 
-
 ###  Signing Certificate Authority (SCA)
 Each Trust Network Participant maintains one or more Signing Certificate Authority (SCA), certificates of which are relatively long lived. The SCA issues public key certificates for the national, short lived, Document Signers.  The SCA acts as a trust anchor such that relying Trust Network Participants can use the SCA certificate to validate the authenticity and integrity of the regularly changing DSC certificates
 
+### Technical Representative 
+The individual designated by a GDHCN Participant as having the primary overall responsibility for the security, technical matters and systems infrastructure of this GDHCN Participant for the applicable Trust Domain including ensuring compliance with technical specifications. 
+
 
 ### Terms of Participation (TOP)
-The Trust Network Terms of Participation are comprised of the following components:
-* ***TOP0*** Sharing of necessary credentials to establish an mTLS connection between Trust Network Participant back-ends and WHO Digital Health Trust Network infrastructure
-* ***TOP1*** Compliance with technical and interoperability standards required for a Public Key Infrastructure (PKI);
-* ***TOP2*** Standards for Verifiable Digital Health Certificates and APIs of Trusted Services; and
-* ***TOP3*** Policy and regulatory standards that Trust Network Participants are expected to comply with pertaining to Trusted Services that a Trust Participants operates or utilizes
+Participation in the GDHCN is subject to the Onboarding Process set forth by the GDHCN Secretariat in its sole and absolute discretion, and in accordance with WHO rules, regulations, policies and practices, as may be amended from time to time.
+The requirements for the GDHCN Terms of Participation are comprised of the following components:
+* ***TOP0*** Sharing of necessary credentials to establish an mTLS (mutual transport layer security) connection between a GDHCN Participant’s backend system(s) and the Trust Network Gateway;
+* ***TOP1*** Compliance, during initial Onboarding Process and during routine validation periods, with technical specifications required for a PKI;
+* ***TOP2*** Compliance, during initial Onboarding Process and during routine validation periods, with technical specifications for Verifiable Digital Health Certificates and APIs of Trusted Services for each applicable Trust Domain; 
+* ***TOP3*** Compliance with policy and regulatory standards that GDHCN Participants pertaining to Trusted Services that a GDHCN Trust Participants operates or utilizes for each applicable Trust Domain; and
+* ***TOP4*** Provision of supporting documentation (e.g. mandate, legal framework) demonstrating that it is an Eligible GDHCN Participant, as may be requested by WHO, at its sole discretion, from time to time.
+  
+### Trust Domain
+A Trust Domain consists of:
+*	Defined use cases and business processes related to the utilization of Verifiable Digital Health Certificates; 
+*	the open, interoperable technical specifications that identify or define the applicable Trusted Services and Verifiable Digital Health Certificates; and
+*	a set of policy and regulatory standards describing expected behavior of GDHCN Participants in relation to operation of the Trusted Services and utilization of Verifiable Digital Health Certificates (e.g. data minimization, privacy, scope of use).
 
 ### Trust Lists 
 Universal verifier applications that support different credential standards are complicated by wide variability in format of the credential payloads, signatures, key formats, and key distribution methods. Public keys formats include x509 certificates, JSON Web Key Sets (JWKS), and DID documents. Signing key distribution methods include API gateways, hosted by issuer at a pre-defined URL, embedded in certificates, and by block-chain based resolution. Establishing root of trust by trust anchor or distributing trust list has been accomplished by API gateway, hosted URL, private dissemination and other bilateral sharing agreements.
@@ -42,28 +103,15 @@ The GDHCN currently supports two means for key distribution of keys using trust 
 - [Decentralized Identifier (DID)](concepts_did.html) optional
 
 
-
 ### Trust Network
-
-A digital trust network is the set of digital infrastructure, processes and governance framework which is used to manage a trusted set of actors.  This trust network operationalized through software infrastructure that enables verification of digital health records and health certificates through an interoperable trust architecture.  This is done by a trust anchor (a widely trusted central authority with a mandate and history of trustworthiness, e.g.. WHO) compiling a database of digital public key, provided to WHO by trust network participants. This database is made publicly available, allowing each Trust Network Participant to verify that digitally-signed credentials were issued by a recognized authority of a trust network participant.
-
+A Trust Network is a means to authenticate the encryption public keys used by participants within a network to perform encryption services, verify digital signatures, establish secure connections between systems, and otherwise make use of encryption public keys. 
 {% include img.html img="trust_network.png" caption="Trust Network" width="70%" %}
 
-#### Trust Network Custodian
-The Trust Network Custodian defines the Terms of Participation within the trust network.  The custodian is responsible for: 
-* establishing eligibility criteria for potential Trust Network Participants;  
-* establishing (and maintaining) the organizational identity of Trust Network Participants; 
-* establishing the Trust Network Terms of Participation within the trust network; and  
-* defining the on-boarding process for the Trust Network Participants to join the trust network within the established terms of participation. 
-
-
-#### Trust Network Ecosystem
-A Trust Network comprises the infrastructure, governance/policies and processes that are defined by a Trust Network Custodian and which characterize the trust relationships that Trust Network Participants have with the Trust Network Custodian and between themselves.   A core infrastructural component of a Trust Network is a Public Key Infrastructure (PKI). 
 
 
 
 ### Trust Network Gateway (TNG)
-The Trust Network Gateway (TNG) is a service operated by the Trust Network Custodian which aggregates information related to the Public Key Infrastructure, Trusted Services for Verifiable Digital Health Certificates and other relevant metadata (e.g. validation rules for digital COVID certificates, terminologies) coming from Trust Network Participants.  
+The Trust Network Gateway (TNG) is the open-source software and its IT operational infrastructure, utilizing open standards, for a Public Key Infrastructure and metadata management services which is used to operationalize one or more Trust Domains.
 
 #### Trust Network Gateway - Trust Anchor  (TNG<sub>TA</sub>) 
 The Trust Anchor public key certificate of the TNG. The corresponding private key is used to sign the list of all SCA certificates offline.
@@ -92,13 +140,12 @@ A system utilized by a Trust Network Participant to verify the digital signature
 
 
 ### Trusted Service
-A Trusted Service is a digital service operated by a Trust Network Participant related to the issuance, verification, revocation or similar function related to Verifiable Digital Health Certificates.    These trusted services utilize the PKI to validate the authenticity of the asserted issuer of Verifiable Digital Health Certificates.   
-
+A service (digital or otherwise) related to the issuance, management, verification, exchange, or other relevant processes, of Verifiable Digital Health Certificates which is defined using open, interoperable digital health standards.
 
 
 
 ### Verifiable Digital Health Certificate
-Verifiable Digital Health Certificate is a digital health certificate (or document) that is issued by a Trust Network Participant within an associated digital signature which can be verified by a Public Key that is distributed through the Trust Network and provided by the issuing Trust Network Participant.   Verifiable Digital Health Certificates are health documents defined by interoperable digital health standards which contain or is associated to a digital signature which can be certified using a public key shared with a Trust Network Public Key Infrastructure.
+Verifiable Digital Health Certificate: A digital representation of a data set comprising a certificate or document, designed for a set of specific clinical or public health use cases which is defined using open, interoperable digital health standards; that contains within, or is associated to, a digital signature which can be verified by the public key of a public-private encryption key pair, and which is issued by a GDHCN Participant.
 
 The specific Verifiable Digital Health Certificates are defined in the [Content Profiles](content_profiles.html)
 
