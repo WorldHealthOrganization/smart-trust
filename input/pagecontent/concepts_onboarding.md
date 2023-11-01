@@ -115,7 +115,7 @@ The organizational identity and contact will be established in an offline proces
 * An eligible Trust Network Participant should complete the [On-boarding Checklist](concepts_onboarding_checklist.html) to self-assess its readiness for the on-boarding process.
 * If the assessment concludes that the Trust Network Participant is ready for joining the WHO GDHCN, the eligible Trust Network Participant should submit its Trust Network Technical Evaluation Form (TO BE DEFINED) to tng-secretariat@who.int.
 * WHO acknowledges receipt of the application and provides the applicant with the contact details of the technical team that will assess the compatibility of the Trust Network Participant's system with the WHO's specifications.
-* If the WHO's technical team gives a positive opinion, the eligible Trust Network Participant will be invited to submit a signed Trust Network Application Form (TO BE DEFINED) tng-secretariat@who.int with:
+* If the WHO's technical team gives a positive opinion, the eligible Trust Network Participant will be invited to submit a signed <a href="Letter_of_Applicaiton_DDCC.docx">Letter of Application for DDCC by the Full Onboarding Process</a> with:
     * the necessary information to connect to the production environment
     * attestation to comply with the Trust Network Terms of Participation.
 * After positively assessing the application form,  WHO will:
