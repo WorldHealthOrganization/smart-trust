@@ -19,10 +19,10 @@ The [document](https://github.com/WorldHealthOrganization/smart-trust/blob/docs/
  Note: Please note that the participant’s work begins at step 8 and ends at step 14.
 
 The general information about Smart Trust:
-(https://worldhealthorganization.github.io/smart-trust/)
+(https://smart.who.int/smart-trust/)
 
 The Smart Trust concepts and Terms of Participation: 
-(https://worldhealthorganization.github.io/smart-trust/concepts.html)
+(https://smart.who.int/smart-trust/concepts.html)
 
 
 
