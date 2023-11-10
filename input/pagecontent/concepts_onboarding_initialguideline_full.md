@@ -15,7 +15,7 @@ and [README.md](https://github.com/WorldHealthOrganization/tng-participant-templ
 
  A [Diagram](https://smart.who.int/smart-trust/OnboardingProcessInteractionParticipantAndWHO.png) that gives and overview about the steps in order to start the Full Onboarding.
  
-The [document](https://worldhealthorganization.github.io/smart-trust/concepts_onboarding_process_full.html) contain a detailed description of the tasks to be carried out by the participant.
+The [document](https://github.com/WorldHealthOrganization/smart-trust/blob/docs/OnboardingProcess_Documents/input/pagecontent/concepts_onboarding_process_full.md) contain a detailed description of the tasks to be carried out by the participant.
  Note: Please note that the participant’s work begins at step 8 and ends at step 14.
 
 The general information about Smart Trust:
