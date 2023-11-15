@@ -2,7 +2,7 @@
 
 The GDHCN onboarding process is divided it into three main stages as per the following figure:
 
-
+<img src="OnboardingProcessStepsSimple.png" alt="Onboarding Stages" style="width:600px; float:none; margin: 0px 0px 0px 0px;"/>
 
 Figure 1: Onboarding Stages
 
@@ -10,7 +10,7 @@ Figure 1: Onboarding Stages
 
  
 
-To establish a connection with the Trust Network Gateway (TNG) and become a participant of the GDHCN, the participant is required to prepare their own key materials for us to onboard onto the gateway. This process necessitates technical expertise for the preparation of X.509 certificates, which are to be stored in a GitHub repository owned by the participant for submission. The page [“Guideline to Prepare Key Material”](https://github.com/) provides detailed instructions to guide technically responsible individuals through this process.
+To establish a connection with the Trust Network Gateway (TNG) and become a participant of the GDHCN, the participant is required to prepare their own key materials for us to onboard onto the gateway. This process necessitates technical expertise for the preparation of X.509 certificates, which are to be stored in a GitHub repository owned by the participant for submission. The page [“Guideline to Prepare Key Material”](https://worldhealthorganization.github.io/smart-trust/concepts_onboarding_initialguideline_full.html) provides detailed instructions to guide technically responsible individuals through this process.
 
 
 Once we have received your submission and successfully onboarded the material, we will contact you to start the next phase of testing.
