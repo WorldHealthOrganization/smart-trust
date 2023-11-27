@@ -8,8 +8,8 @@ These [concepts](concepts.html) and the following table contains abbreviations a
 
 * <a href="GDHCN_Administrative_and_Operational_Framework.pdf">GDHCN Administrative and Operational Framework</a>
 * DDCC: The Trust Domain for the Digital Documentation of COVID-19 Certificates
-* <a href="Letter_of_Applicaiton_Transititve_Trust.docx">Letter of Application for DDCC using the Transitive Trust</a> 
-* <a href="Letter_of_Applicaiton_DDCC.docx">Letter of Application for DDCC by the Full Onboarding Process</a>
+* <a href="Letter_of_Application_Transititve_Trust.docx">Letter of Application for DDCC using the Transitive Trust</a> 
+* <a href="Letter_of_Application_DDCC.docx">Letter of Application for DDCC by the Full Onboarding Process</a>
 
 The <i>GDHCN Administrative and Operational Framework</i> should be considered the authoritative source of definitions and concepts in case of any discrepncies.
  
