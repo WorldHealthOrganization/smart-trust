@@ -4,7 +4,7 @@ Title:	       "CBOR Web Token (CWT) Payload (Common)"
 Description:   "Logical Model for CBOR Web Token (CWT) Payload Logical Modelin CWT Payload https://www.iana.org/assignments/cwt/cwt.xhtml "
 
 
-* ^url = "http://smart.who.int/ddcc/StructureDefinition/CWTPayload"
+* ^url = "http://smart.who.int/trust/StructureDefinition/CWTPayload"
 * ^version = "RC2"
 * ^status = #draft
 

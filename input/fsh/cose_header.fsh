@@ -4,7 +4,7 @@ Logical:        COSEHeader
 Title:          "COSE Headers (DRAFT)"
 Description:    "Data elements for COSE Headers https://www.iana.org/assignments/cose/cose.xhtml#header-parameters"
 
-* ^url = "http://smart.who.int/ddcc/StructureDefinition/COSEHeader"
+* ^url = "http://smart.who.int/trust/StructureDefinition/COSEHeader"
 * ^version = "RC2"
 * ^status = #draft
 
