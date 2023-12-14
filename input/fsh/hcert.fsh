@@ -2,7 +2,7 @@ Alias: $IPS = http://hl7.org/fhir/uv/ips/StructureDefinition/Bundle-uv-ips
 Alias: $HCertDCC = http://smart.who.int/ddcc/StructureDefinition/HCertDCC
 Alias: $DDCCVS = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSet.VS
 Alias: $DDCCTR = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSet.TR
-Alias: $SmartHealthLink = http://smart.who.int/ddcc/StructureDefinition/SmartHealthLink
+Alias: $SmartHealthLink = http://smart.who.int/ips-pilgrimage/StructureDefinition/SmartHealthLink
 
 Logical:        HCert
 Title:          "Health Certificate"
