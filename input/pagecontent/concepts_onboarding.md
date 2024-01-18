@@ -8,7 +8,7 @@ These [concepts](concepts.html) and the following table contains abbreviations a
 
 * <a href="GDHCN_Administrative_and_Operational_Framework.pdf">GDHCN Administrative and Operational Framework</a>
 * DDCC: The Trust Domain for the Digital Documentation of COVID-19 Certificates
-* <a href="Letter_of_Application_Transititve_Trust.docx">Letter of Application for DDCC using the Transitive Trust</a> 
+* <a href="Letter_of_Application_Transitive_Trust.docx">Letter of Application for DDCC using the Transitive Trust</a> 
 * <a href="Letter_of_Application_DDCC.docx">Letter of Application for DDCC by the Full Onboarding Process</a>
 
 The <i>GDHCN Administrative and Operational Framework</i> should be considered the authoritative source of definitions and concepts in case of any discrepncies.
@@ -79,7 +79,7 @@ The organizational identity will be considered established and verified under a 
 As permissible, configuration information related to connections of EU DCC participant back-end systems will be provided by the EC to the WHO in order to facilitate establishing connections between EU DCC Trust Network Participants and the WHO Digital Health Trust Network infrastructure.  Otherwise, such configuration information will be shared directly by the eligible Trust Network Participant to the WHO
 
 
-* An eligible Trust Network Participant should submit its <a href="Letter_of_Applicaiton_Transititve_Trust.docx">Letter of Application using the Transitive Trust</a> procress to tng-secretariat@who.int.
+* An eligible Trust Network Participant should submit its <a href="Letter_of_Application_Transitive_Trust.docx">Letter of Application using the Transitive Trust</a> procress to tng-secretariat@who.int.
 * Once eligibility is verified the eligible Trust Network Participant will be invited to submit a signed Trust Network Application Form (TO BE DEFINED) tng-secretariat@who.int with:
     * the necessary information to connect to the production environment
     * attestation to comply with the Trust Network Terms of Participation.
@@ -113,7 +113,7 @@ The organizational identity and contact will be established in an offline proces
 #### On-boarding Steps
 
 * An eligible Trust Network Participant should complete the [On-boarding Checklist](concepts_onboarding_checklist.html) to self-assess its readiness for the on-boarding process via the Technical Evaluation Form (TO BE DEFINED).
-* Eligible Trust Network Participants are invited to submit a signed <a href="Letter_of_Applicaiton_DDCC.docx">Letter of Application for DDCC by the Full Onboarding Process</a> with:
+* Eligible Trust Network Participants are invited to submit a signed <a href="Letter_of_Application_DDCC.docx">Letter of Application for DDCC by the Full Onboarding Process</a> with:
     * the necessary information to connect to the production environment
     * attestation to comply with the Trust Network Terms of Participation.
 * After positively assessing the Letter of Application and assessiung the Technical Evaluation Form,  WHO will:
