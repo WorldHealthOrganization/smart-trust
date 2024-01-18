@@ -35,7 +35,7 @@ In the following description the required steps are divided into three sections:
 
 **[1]** The eligible Trust Network Participant (TNP) has to submit its Statement of Interest [link to the form. [Document 5] ] to tng-support@who.int .
 
-**[2 – 3]** WHO validates all provided data and verify that such a data follows WHO compliance with Trusted Network Terms of Participation (TOP 0 – 3) https://smart.who.int/smart-trust/concepts.htmlas well as: Participant´s eligibility criteria, governmental entity/health agency, contact details of approvers and individuals. [See Elegibility Criteria]. [Document 16]
+**[2 – 3]** WHO validates all provided data and verify that such a data follows WHO compliance with Trusted Network Terms of Participation (TOP 0 – 3) https://smart.who.int/trust/concepts.html as well as: Participant´s eligibility criteria, governmental entity/health agency, contact details of approvers and individuals. [See Elegibility Criteria]. [Document 16]
 
 \< see chapter 9.5 in TOP details \> [Document 6]
 
@@ -53,7 +53,7 @@ In the following description the required steps are divided into three sections:
 
 For a successful connection to the gateway there are the following steps [9] – [11] to prepare:
 
-**[9]** Create certificates per environment. Details can be found here: https://smart.who.int/smart-trust/concepts_CertificatePreperation.html
+**[9]** Create certificates per environment. Details can be found here: https://smart.who.int/trust/concepts_CertificatePreperation.html
 
 1) Certificates must be prepared for all environments (self-signed allowed) following the requirements in Certificate Governance - Authentication: TNPTLS - Upload: TNPUP - SCA(s): TNPSCA
 
