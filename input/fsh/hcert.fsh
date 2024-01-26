@@ -10,7 +10,7 @@ Description:    "Logical Model for the HCERT"
 
 * ^url = "http://smart.who.int/trust/StructureDefinition/HCert"
 * ^version = "1.0.0"
-* ^status = #release
+* ^status = #active
 * hcert 0..1 $HCertDCC "HCERT EU DCC"  "HCERT EU DCC"
 // * 2 0..* RACSEL_DDVC "RACSEL Vaccination Certficate Data Set claim" "RACSEL Vaccination Certificate (PROPOSED)" 
 * ddccvs 0..* $DDCCVS "Vaccination Core Data Set claim" "DDCC Vaccination claim (PROPOSED)"
