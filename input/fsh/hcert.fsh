@@ -6,9 +6,9 @@ Alias: $SmartHealthLink = http://smart.who.int/ips-pilgrimage/StructureDefinitio
 
 Logical:        HCert
 Title:          "Health Certificate"
-Description:    "Logical Model for the HCERT"
+Description:    "Logical Model for the HCERT
 
-The full data structure and encoding mechanisms for HCERT are defined here: [Electronic Health Certificate Specification](http://smart.who.int/trust/hcert_spec.html)
+The full data structure and encoding mechanisms for HCERT are defined here: [Electronic Health Certificate Specification](http://smart.who.int/trust/hcert_spec.html)"
 
 * ^url = "http://smart.who.int/trust/StructureDefinition/HCert"
 * ^version = "1.1.0"
