@@ -5,8 +5,8 @@ Description:   "Logical Model for CBOR Web Token (CWT) Payload Logical Modelin C
 
 
 * ^url = "http://smart.who.int/trust/StructureDefinition/CWTPayload"
-* ^version = "1.0.0"
-* ^status = #draft
+* ^version = "1.1.0"
+* ^status = #active
 
 * 1 0..1 Coding "Issuer Code (iss)" "Issuer"
 * 4 0..1 dateTime "Expiration Date Time(exp)" "Expiration Time"

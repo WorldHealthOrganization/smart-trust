@@ -8,9 +8,11 @@ Logical:        HCert
 Title:          "Health Certificate"
 Description:    "Logical Model for the HCERT"
 
+The full data structure and encoding mechanisms for HCERT are defined here: [Electronic Health Certificate Specification](http://smart.who.int/trust/hcert_spec.html)
+
 * ^url = "http://smart.who.int/trust/StructureDefinition/HCert"
-* ^version = "1.0.0"
-* ^status = #draft
+* ^version = "1.1.0"
+* ^status = #active
 * hcert 0..1 $HCertDCC "HCERT EU DCC"  "HCERT EU DCC"
 // * 2 0..* RACSEL_DDVC "RACSEL Vaccination Certficate Data Set claim" "RACSEL Vaccination Certificate (PROPOSED)" 
 * ddccvs 0..* $DDCCVS "Vaccination Core Data Set claim" "DDCC Vaccination claim (PROPOSED)"
