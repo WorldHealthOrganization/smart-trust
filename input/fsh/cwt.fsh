@@ -7,7 +7,7 @@ Description:    "Logical Model for Data elements in CBOR Web Token (CWT) https:/
 * ^url = "http://smart.who.int/trust/StructureDefinition/CWT"
 * ^version = "1.0.0"
 * ^abstract = true
-* ^status = #draft
+* ^status = #release
 * header 0..1 COSEHeader "COSE Header" "Header"
 * payload 0..1 CWTPayload "CWT Payload"  "Payload"
 * signature 0..1 string "Signature" "Signature"
