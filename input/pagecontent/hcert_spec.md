@@ -2,6 +2,8 @@
 
 Version 1.1.0, 2024-01-26
 
+This specification is based on the [EU Digital Covid Certificate (EU DCC)](https://github.com/ehn-dcc-development/eu-dcc-hcert-spec/blob/66cca0b9c59a9299ad57d767c180bbf8cf5aa5f1/hcert_spec.md) project by the European eHealth network. As of 1st January 2024, WHO has taken over maintenance of the specification and HCERT claims. TNG Participants may request of additional claims through GDHCN Secretariat.
+
 ## 1. Introduction
 
 This document specifies a generic data structure and encoding mechanisms for electronic health certificates. It also specifies a transport encoding mechanism in a machine-readable optical format (QR), which can be displayed on the screen of a mobile device or printed on a piece of paper.
@@ -18,21 +20,15 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 The Electronic Health Certificate Container Format (HCERT) is designed to provide a uniform and standardised vehicle for health certificates from different Issuers. The aim is to harmonise how these health certificates are represented, encoded and signed with the goal of facilitating interoperability.
 
-### 3.1 The WHO Digital Covid Certificate (DCC)
-
-The ability to read and interpret a DCC issued by any Issuer requires a common data structure and agreement on the significance of each data field of the payload. To facilitate such interoperability, a common coordinated data structure is defined through the use of a JSON schema that constitutes the framing of the DCC. The use of these elements is outside the scope of this specification, and is anticipated to be regulated by European Union law.
-
-Note that the DCC defines the data structure, the actual wire format (HCERT) is content neutral.
-
-### 3.2 Structure of the Payload
+### 3.1 Structure of the Payload
 
 The payload is structured and encoded as a CBOR with a COSE digital signature. This is commonly known as a "CBOR Web Token" (CWT), and is defined in [RFC 8392](https://tools.ietf.org/html/rfc8392). The payload, as defined below, is transported in a `hcert` claim.
 
 The integrity and authenticity of origin of payload data MUST be verifiable by the Verifier. To provide this mechanism, the issuer MUST sign the CWT using an asymmetric electronic signature scheme as defined in the COSE specification ([RFC 8152](https://tools.ietf.org/html/rfc8152)).
 
-### 3.3 CWT Claims
+### 3.2 CWT Claims
 
-#### 3.3.1 CWT Structure Overview
+#### 3.2.1 CWT Structure Overview
 
 - Protected Header
   - Signature Algorithm (`alg`, label 1)
@@ -43,9 +39,12 @@ The integrity and authenticity of origin of payload data MUST be verifiable by t
   - Expiration Time (`exp`, claim key 4)
   - Health Certificate (`hcert`, claim key -260)
     - EU Digital Covid Certificate v1 (`eu_dcc_v1` aka `eu_dgc_v1`, claim key 1)
+    - Digital Documentation of Covid Certificate - Vaccination Status (DDCCVS, claim key 3)
+    - Digital Documentation of Covid Certificate - Test Results (DDCCTR, claim key 4)
+    - Smart Health Link (SHL, claim key 5)
 - Signature
 
-#### 3.3.2 Signature Algorithm
+#### 3.2.2 Signature Algorithm
 
 The Signature Algorithm (`alg`) parameter indicates what algorithm is used for creating the signature. It must meet or exceed current SOG-IT guidelines.
 
@@ -63,23 +62,23 @@ This corresponds to the COSE algorithm parameter `ES256`.
 
 This corresponds to the COSE algorithm parameter: `PS256`.
 
-#### 3.3.3 Key Identifier
+#### 3.2.3 Key Identifier
 
 The Key Identifier (`kid`) claim is used by Verifiers for selecting the correct public key from a list of keys pertaining to the Issuer (`iss`) Claim. Several keys may be used in parallel by an Issuer for administrative reasons and when performing key rollovers. The Key Identifier is not a security-critical field. For this reason, it MAY also be placed in an unprotected header if required. Verifiers MUST accept both options.  If both options are present, the Key Identifier in the protected header MUST be used.
 
 Due to the shortening of the identifier (for space-preserving reasons) there is a slim but non-zero chance that the overall list of DSCs accepted by a validator may contain DSCs with duplicate `kid`s. For this reason, a verifier MUST check all DSCs with that `kid`.
 
-#### 3.3.4 Issuer
+#### 3.2.4 Issuer
 
 The Issuer (`iss`) claim is a string value that MAY optionally hold the ISO 3166-1 alpha-2 Country Code of the entity issuing the health certificate. This claim can be used by a Verifier to identify which set of DSCs to use for validation. The Claim Key 1 is used to identify this claim.
 
-#### 3.3.5 Expiration Time
+#### 3.2.5 Expiration Time
 
 The Expiration Time (`exp`) claim SHALL hold a timestamp in the integer NumericDate format (as specified in [RFC 8392](https://tools.ietf.org/html/rfc8392) section 2) indicating for how long this particular signature over the Payload SHALL be considered valid, after which a Verifier MUST reject the Payload as expired. The purpose of the expiry parameter is to force a limit of the validity period of the health certificate. The Claim Key 4 is used to identify this claim.
 
 The Expiration Time MUST not exceed the validity period of the DSC.
 
-#### 3.3.6 Issued At
+#### 3.2.6 Issued At
 
 The Issued At (`iat`) claim SHALL hold a timestamp in the integer NumericDate format (as specified in [RFC 8392](https://tools.ietf.org/html/rfc8392) section 2) indicating the time when the health certificate was created. 
 
@@ -87,15 +86,24 @@ The Issued At field MUST not predate the validity period of the DSC.
 
 Verifiers MAY apply additional policies with the purpose of restricting the validity of the health certificate based on the time of issue. The Claim Key 6 is used to identify this claim.
 
-#### 3.3.7 Health Certificate Claim
+#### 3.2.7 Health Certificate Claim
 
-The Health Certificate (`hcert`) claim is a JSON ([RFC 7159](https://tools.ietf.org/html/rfc7159)) object containing the health status information. Several different types of health certificate MAY exist under the same claim, of which the European DCC is one.
+The Health Certificate (`hcert`) claim is a JSON ([RFC 7159](https://tools.ietf.org/html/rfc7159)) object containing the health status information. The actual wire format of HCERT is content neutral. Several different types of health certificate MAY exist under the same claim, of which the European DCC is one.
 
 Note here that the JSON is purely for schema purposes. The wire format is CBOR as defined in ([RFC 7049](https://tools.ietf.org/html/rfc7049)). Application developers may not actually ever decode or encode to and from the JSON format, but use the in-memory structure.
 
 The Claim Key to be used to identify this claim is -260.
 
 Strings in the JSON object SHOULD be NFC normalised according to the Unicode standard. Decoding applications SHOULD however be permissive and robust in these aspects, and acceptance of any reasonable type conversion is strongly encouraged. If non-normalised data is found during decoding, or in subsequent comparison functions, implementations SHOULD behave as if the input is normalised to NFC.
+
+#### 3.2.7.1 EU Digital Covid Certificate (DCC)
+
+#### 3.2.7.3 Digital Documentation of Covid Certificate - Vaccination Status (DDCCVS)
+
+#### 3.2.7.4 Digital Documentation of Covid Certificate - Test Results (DDCCTR)
+
+#### 3.2.7.5 Smart Health Link (SHL)
+
 
 ## 4 Transport Encodings
 
@@ -223,12 +231,6 @@ The DSC may contain an extended key usage extension with *zero or more* key usag
 
 In absence of any key usage extension (i.e. no extensions or zero extensions), this certificate can be used to validate any type of HCERT.  Other documents MAY define relevant additional extended key usage policy identifiers used with validation of HCERTs.
 _________________
-
-- This specification is based on the EU Digital Covid Certificate (EU DCC) project by the European eHealth network. As of 1st January 2024, WHO has taken over maintenance of the specification and HCERT claims. TNG Participants may request of additional claims through GDHCN Secretariat.
-
-Maintenance and minor revisions:
-
-- WHO
 
 This work is licensed under a
 [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 IGO License][cc-by].
