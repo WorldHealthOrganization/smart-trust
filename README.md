@@ -7,7 +7,7 @@ This is the WHO SMART Trust Implementation Guide
 This ImplementationGuide is published in the following locations:
 
 
-Continuous Build:  __https://github.com/WorldHealthOrganization/smart-trust__  
+Continuous Build:  __https://worldhealthorganization.github.io/smart-trust__  
 Canonical / permanent URL: __https://smart.who.int/trust__  
 
 <br> </br>
