@@ -1,3 +1,5 @@
+<!--badges-->
+<!--/badges-->
 WHO SMART Trust
 ---
 This is the WHO SMART Trust Implementation Guide
