@@ -19,7 +19,7 @@ The general usage of the HCERT Claim is defined [here](https://github.com/ehn-dc
 
  
 * ^url = "http://smart.who.int/trust/StructureDefinition/HCert"
-* ^version = "1.1.0"
+* ^version = "1.1.1"
 * ^status = #active
 * 1 0..1 $HCertDCC "HCERT EU DCC"  "HCERT EU DCC"
 //* 2 0..* $RACSEL_DDVC "RACSEL Vaccination Certficate Data Set claim" "RACSEL Vaccination Certificate (PROPOSED)" 
