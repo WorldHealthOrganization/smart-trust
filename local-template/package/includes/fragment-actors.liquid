@@ -1,0 +1,51 @@
+<table class="table table-bordered">
+  <thead class="thead-dark">
+      <tr>
+          <th>Name</th>
+          <th>Title</th>
+          <th>Description</th>
+      </tr>
+  </thead>
+  <tbody>
+      {% for data_file in site.data %}
+          {% assign filename = data_file[0] %}
+          {% assign entry = data_file[1] %}
+
+                  {% assign name = "" %}
+                  {% assign title = "" %}
+                  {% assign description = "" %}
+                  {% assign link_path = filename | remove: ".json" | append: ".html" %}
+
+                  {% assign profile_includes_string = false %}
+
+                  {% for extension in entry.extension %}
+                      {% if extension.url == "http://hl7.org/fhir/5.0/StructureDefinition/extension-ActorDefinition.name" %}
+                          {% assign name = extension.valueString %}
+                      {% elsif extension.url == "http://hl7.org/fhir/5.0/StructureDefinition/extension-ActorDefinition.title" %}
+                          {% assign title = extension.valueString %}
+                      {% elsif extension.url == "http://hl7.org/fhir/5.0/StructureDefinition/extension-ActorDefinition.description" %}
+                          {% assign description = extension.valueMarkdown %}
+                      {% endif %}
+                  {% endfor %}
+
+                  {% if entry.meta and entry.meta.profile %}
+                      {% for profile in entry.meta.profile %}
+                          {% if profile == "http://worldhealthorganization.github.io/smart-base/StructureDefinition/SGPersona" %}
+                              {% assign profile_includes_string = true %}
+                              {% break %}
+                          {% endif %}
+                      {% endfor %}
+                  {% endif %}
+
+
+                  {% if entry.resourceType == "ActorDefinition" or profile_includes_string %}
+                      <tr>
+                          <td><a href="{{ link_path }}">{{ name }}</a></td>
+                          <td>{{ title }}</td>
+                          <td>{{ description }}</td>
+                      </tr>
+                  {% endif %}
+
+      {% endfor %}
+  </tbody>
+</table>
