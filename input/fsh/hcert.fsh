@@ -8,18 +8,17 @@ Logical:        HCert
 Title:          "Health Certificate"
 Description:    "Logical Model for the HCERT
 
-The full data structure and encoding mechanisms for HCERT are defined here: [Electronic Health Certificate Specification](http://smart.who.int/trust/hcert_spec.html)
+The full data structure and encoding mechanisms for HCERT are defined here: [Electronic Health Certificate Specification](/hcert_spec.html)
 
-An HCERT is claim -260 [CBOR Web Token (CWT) Claim](https://www.rfc-editor.org/rfc/rfc8392.html).
+An HCERT is claim -260 within the [CBOR Web Token (CWT) Claim](https://www.rfc-editor.org/rfc/rfc8392.html).
 
-The general usage of the HCERT Claim is defined [here](https://github.com/ehn-dcc-development/eu-dcc-hcert-spec/blob/main/hcert_spec.md#32-structure-of-the-payload) with
-
+Note for subclaims:
+- subclaims 0 and above are reserved by WHO to be assigned, a new subclaim can be requested for by requesting to create a new trust domain
+- subclaims for negative integer values are for development purposes and are free to use
 "
-
 
  
 * ^url = "http://smart.who.int/trust/StructureDefinition/HCert"
-* ^version = "1.1.1"
 * ^status = #active
 * 1 0..1 $HCertDCC "HCERT EU DCC"  "HCERT EU DCC"
 //* 2 0..* $RACSEL_DDVC "RACSEL Vaccination Certficate Data Set claim" "RACSEL Vaccination Certificate (PROPOSED)" 
