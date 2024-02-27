@@ -12,9 +12,10 @@ The full data structure and encoding mechanisms for HCERT are defined here: [Ele
 
 An HCERT is claim -260 within the [CBOR Web Token (CWT) Claim](https://www.rfc-editor.org/rfc/rfc8392.html).
 
-Note for subclaims:
-- subclaims 0 and above are reserved by WHO to be assigned, a new subclaim can be requested for by requesting to create a new trust domain
-- subclaims for negative integer values are for development purposes and are free to use
+Note for sub claims:
+- sub claims 0 and above are reserved by WHO to be assigned, a new sub claim can be requested for by requesting to create a new trust domain
+- sub claims for negative integer values are for development purposes and are free to use
+- While this logical model mentions assigned sub claims (below), the ones listed in the Electronic Health Certificate Specification are considered authoritative
 "
 
  

@@ -1,8 +1,9 @@
 # Electronic Health Certificate Specification
 
-Version 1.1.0, 2024-01-26
+Version 1.1.1, 2024-02-27
 
-This specification is based on the [EU Digital Covid Certificate (EU DCC)](https://github.com/ehn-dcc-development/eu-dcc-hcert-spec/blob/66cca0b9c59a9299ad57d767c180bbf8cf5aa5f1/hcert_spec.md) project by the European eHealth network. As of 1st January 2024, WHO has taken over maintenance of the specification and HCERT claims. TNG Participants may request of additional claims through GDHCN Secretariat.
+
+This specification, originally developed by the European Union (EU), is based on the [EU Digital Covid Certificate (EU DCC)](https://github.com/ehn-dcc-development/eu-dcc-hcert-spec/blob/66cca0b9c59a9299ad57d767c180bbf8cf5aa5f1/hcert_spec.md) project by the European eHealth network. The specification is now under the maintenance of the WHO from January 1, 2024. The WHO oversees all updates and modifications to HCERT claims. GDHCN Participants may propose additional claims or modifications through the WHO’s GDHCN Secretariat, ensuring the framework remains responsive and adaptable to evolving global health needs. 
 
 ## 1. Introduction
 
@@ -37,12 +38,10 @@ The integrity and authenticity of origin of payload data MUST be verifiable by t
   - Issuer (`iss`, claim key 1, optional, ISO 3166-1 alpha-2 of issuer)
   - Issued At (`iat`, claim key 6)
   - Expiration Time (`exp`, claim key 4)
-  - Health Certificate (`hcert`, claim key -260)
-    - EU Digital Covid Certificate v1 (`eu_dcc_v1` aka `eu_dgc_v1`, claim key 1)
-    - Digital Documentation of Covid Certificate - Vaccination Status (DDCCVS, claim key 3)
-    - Digital Documentation of Covid Certificate - Test Results (DDCCTR, claim key 4)
-    - Smart Health Link (SHL, claim key 5)
+  - Health Certificate (`hcert`, claim key -260, see section [3.2.7] (/smart-trust/hcert_spec.html#327-health-certificate-claim) for subclaim details )
 - Signature
+
+The logical model can be found specified [here](/smart-trust/StructureDefinition-hcert.html)
 
 #### 3.2.2 Signature Algorithm
 
@@ -96,14 +95,26 @@ The Claim Key to be used to identify this claim is -260.
 
 Strings in the JSON object SHOULD be NFC normalised according to the Unicode standard. Decoding applications SHOULD however be permissive and robust in these aspects, and acceptance of any reasonable type conversion is strongly encouraged. If non-normalised data is found during decoding, or in subsequent comparison functions, implementations SHOULD behave as if the input is normalised to NFC.
 
-#### 3.2.7.1 EU Digital Covid Certificate (DCC)
+##### 3.2.7.1 Sub claims
+- sub claims 0 and above are reserved by WHO to be assigned, a new sub claim can be requested for by requesting to create a new trust domain
+- sub claims for negative integer values are for development purposes and are free to use
+- While the [logical model](/smart-trust/StructureDefinition-hcert.html) enlists assigned sub claims, the ones listed in this specification are considered authoritative
 
-#### 3.2.7.3 Digital Documentation of Covid Certificate - Vaccination Status (DDCCVS)
+###### 3.2.7.1.1 EU Digital Covid Certificate (DCC)
+[Data elements] (http://smart.who.int/ddcc/StructureDefinition/HCertDCC) for the EU Digital COVID Certificate Core Data Set. Based on the official specification for COVID-19-related payloads https://health.ec.europa.eu/system/files/2021-06/covid-certificate_json_specification_en_0.pdf as of 2023-01-31, and Implementing Decision (EU) 2021/1073, Annex 1 https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32021D1073&from=EN#d1e34-35-1.
 
-#### 3.2.7.4 Digital Documentation of Covid Certificate - Test Results (DDCCTR)
+###### 3.2.7.1.3 Digital Documentation of Covid Certificate - Vaccination Status (DDCCVS)
+The Digital Documentation of COVID-19 Certificates (DDCC:VS) Trust Domain covers the utilization of COVID-19 Vaccine Certificates for the purposes of continuity of care and proof of vaccination. 
+- [DDCC Vaccination Status (DDCC:VS)](https://www.who.int/publications/i/item/WHO-2019-nCoV-Digital_certificates-vaccination-2021.1) documents the use cases, data requirements, technical specifications and implementation guidance for vaccination certificates.
+- [DDCC FHIR Implementation Guide] (https://smart.who.int/ddcc/)
 
-#### 3.2.7.5 Smart Health Link (SHL)
+###### 3.2.7.1.4 Digital Documentation of Covid Certificate - Test Results (DDCCTR)
+The Digital Documentation of COVID-19 Certificates (DDCC:TR) Trust Domain covers the utilization of COVID-19 Vaccine Certificates for test result certificates that attest to: (a) the fact that an individual has been tested for SARS-CoV-2, and (b) the result of that SARS-CoV-2 diagnostic test. 
+- [DDCC Vaccination Status (DDCC:TR)](https://www.who.int/publications/i/item/WHO-2019-nCoV-Digital_certificates_diagnostic_test_results-2022.1) documents the use cases, data requirements, technical specifications and implementation guidance for vaccination certificates.
+- [DDCC FHIR Implementation Guide] (https://smart.who.int/ddcc/)
 
+###### 3.2.7.1.5 Smart Health Link (SHL)
+Smart Health Links covers the use cases of ability to share signed health data using links as digital connectors, akin to QR codes, facilitating tamper proof data exchange. Specification can be found [here](https://docs.smarthealthit.org/smart-health-links/spec)
 
 ## 4 Transport Encodings
 
@@ -193,21 +204,21 @@ This specification may be used in a way that implies receiving data from untrust
 
 # Appendix A - Trust Management
 
-The signature of the HCERT requires a public key to verify. Countries, or institutions within countries, need to make these public keys available. Ultimately, every Verifier needs to have a list of all public keys it is willing to trust (as the public key is not part of the HCERT).
+The HCERT signature verification process necessitates the use of a public key. GDHCN Participants, or institutions within these participants, are responsible for providing these public keys. Ultimately, every Verifier needs to have a list of all public keys it is willing to trust (as the public key is not part of the HCERT). 
 
-A simplified variation on the ICAO "_Master list_" will be used, tailored to this health certificate application, whereby each country is ultimately responsible for compiling their own master list and making that available to the other Participants. The aid of a coordinating Secretariat for operational and practical purposes will be available.
+Each participant is ultimately responsible for compiling their own master list and making that available to the other Participants. The aid of GDHCN's Secretariat for coordinating operational and practical matters is available. 
 
-The _"Secretariat"_ is a functional role; not a person or a piece of software. It is expected that the Digital Covid Certificate Gateway (DCCG) will automate most of these tasks.
+The "GDHCN Secretariat" is a functional role; not a person or a piece of software. It is expected that the WHO’s GDHCN Gateway  will automate most of these tasks. 
 
-The system consists of (only) two layers; for each TNG Participant one or more country level certificates that each signs one or more document signing certificates that are used in day to day operations.
+The system consists of two layers; for each TNG Participant one or more country level certificates that each signs one or more document signing certificates that are used in day to day operations. 
 
-The TNG Participant certificates are called Signing Certificate Authorities (SCAs) and are (typically) self-signed certificates. Countries may have more than one (e.g., in case of regional devolution). These SCA certificates regularly sign the Document Signing Certificates (DSCs) used for signing HCERTs. TNG Participants will each maintain a public register of the DSC certificates that is kept current, communicated to the Secretariat and also published at a stable URL for bilateral exchange. TNG Participants MUST remove any revoked or stale certificates from this list.
+The TNG Participant certificates are called Signer Certificate Authorities (SCAs) and are  self-signed certificates. Participants may have more than one (e.g., in case of regional devolution). These SCAs regularly sign the Document Signing Certificates (DSCs) used for signing HCERTs. TNG Participants will each maintain a public register of the DSC certificates kept current, communicated to the WHO’s Secretariat and published at a stable URL for bilateral exchange. TNG Participants MUST remove any revoked or stale certificates from this list. 
 
 The Secretariat will regularly aggregate and publish the TNG Participants DSCs, after having verified these against the list of SCA certificates (which have been conveyed and verified by other means). 
 
 The resulting list of DSC certificates then provides the aggregated set of acceptable public keys (and the corresponding `kid`s) that Verifiers can use to validate the signatures over the HCERTs. Verifiers MUST fetch and update this list regularly.
 
-TNG Participants may also bilaterally exchange SCA certificates with a number of other TNG Participants, verify these bilaterally and thus compile their own lists of SCA and DSC certificates which is specific to that TNG Participant. Verifiers may choose to rely on such a national list.
+TNG Participants may also bilaterally exchange SCA certificates with a number of other TNG Participants, verify these bilaterally and thus compile their own lists of SCA and DSC certificates which is specific to that TNG Participant. Verifiers may choose to rely on such a national list. 
 
 Such TNG Participant-specific lists are expected to be adapted in the format for their own national setting. As such, the file format of this trusted list may vary, e.g., it can be a signed JWKS ([JWK set format per RFC 7517 section 5](https://tools.ietf.org/html/rfc7517#section-5)) or any other format specific to the technology used in that TNG Participant.
 
