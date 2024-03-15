@@ -9,7 +9,7 @@ Description:    "Logical Model for Information on the trusted list and its issui
 * sequenceNumber 1..1 integer "TSL sequence number (clause 5.3.2)" "TSL sequence number (clause 5.3.2)"
 * type 1..1 uri "TSL type (clause 5.3.3)" "TSL type (clause 5.3.3)"
 * operatorName 1..1 string "Scheme operator name (clause 5.3.4)" "Scheme operator name (clause 5.3.4)"
-* operatorAddress 1..* BackBoneElement "Scheme operator address (clause 5.3.5)" "Scheme operator address (clause 5.3.5)"
+* operatorAddress 1..* BackboneElement "Scheme operator address (clause 5.3.5)" "Scheme operator address (clause 5.3.5)"
   * operatorPostalAddress 1..* Address "Scheme Operator Postal Address" "Scheme Operator Postal Address"
   * operatorElectronicAddress 0..* ContactPoint "Scheme Operator Electronic Address" "Scheme Operator Electronic Address"
 * name 1..1 string "Scheme name (clause 5.3.6)" "Scheme name (clause 5.3.6) CC:EN_name_value"
