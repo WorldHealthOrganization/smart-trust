@@ -110,14 +110,14 @@ A Trust Network is a means to authenticate the encryption public keys used by pa
 
 
 
-### Trust Network Gateway (TNG)
-The Trust Network Gateway (TNG) is the open-source software and its IT operational infrastructure, utilizing open standards, for a Public Key Infrastructure and metadata management services which is used to operationalize one or more Trust Domains.
+### Trust Network Gateway (GDHCN)
+The Trust Network Gateway (GDHCN) is the open-source software and its IT operational infrastructure, utilizing open standards, for a Public Key Infrastructure and metadata management services which is used to operationalize one or more Trust Domains.
 
-#### Trust Network Gateway - Trust Anchor  (TNG<sub>TA</sub>) 
-The Trust Anchor public key certificate of the TNG. The corresponding private key is used to sign the list of all SCA certificates offline.
+#### Trust Network Gateway - Trust Anchor  (GDHCN<sub>TA</sub>) 
+The Trust Anchor public key certificate of the GDHCN. The corresponding private key is used to sign the list of all SCA certificates offline.
 
-#### Trust Network Gateway - Transport Layer Security  (TNG<sub>TLS</sub>) 
-The TLS server public key certificate of the TNG.
+#### Trust Network Gateway - Transport Layer Security  (GDHCN<sub>TLS</sub>) 
+The TLS server public key certificate of the GDHCN.
 
 
 ### Trust Network Participant (TNP)
@@ -133,7 +133,7 @@ The SCA public key certificate of a Trust Network Participants (could be more th
 The TLS client authentication public key certificate of a Trust Network Participant's back-end system.
 
 #### Trust Network Participant - Transport Layer Security (TNP<sub>UP</sub>) 
-The public key certificate that a Trust Network Participant uses to sign data packages that are uploaded to the TNG.
+The public key certificate that a Trust Network Participant uses to sign data packages that are uploaded to the GDHCN.
 
 #### Trust Network Participant Verifier
 A system utilized by a Trust Network Participant to verify the digital signature of a Verifiable Digital Health Certificate.
