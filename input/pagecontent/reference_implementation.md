@@ -36,10 +36,3 @@ documented network of trust gateways, supporting all major health credential cer
 -	[Trust Network Gateway public repository](https://github.com/WorldHealthOrganization/ddcc-gateway)
 -	[Architecture](./trust_network_gateway_architecture.html)
 
-### Trust Domains
-A Trust Domain consists of:
-*	Defined use cases and business processes related to the utilization of Verifiable Digital Health Certificates; 
-*	the open, interoperable technical specifications that identify or define the applicable Trusted Services and Verifiable Digital Health Certificates; and
-*	a set of policy and regulatory standards describing expected behavior of GDHCN Participants in relation to operation of the Trusted Services and utilization of Verifiable Digital Health Certificates (e.g. data minimization, privacy, scope of use).
-
-{% include available_trust_domains.md %}

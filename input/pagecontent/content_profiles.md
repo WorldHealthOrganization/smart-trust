@@ -1,12 +1,12 @@
+### Trust Domains
+A Trust Domain consists of:
+*	Defined use cases and business processes related to the utilization of Verifiable Digital Health Certificates; These Verifiable Digital Health Certificates may be issued or verified through Trusted Services that are enabled by Trust Network Participants of the Digital Health Trust Network.
+*	the open, interoperable technical specifications that identify or define the applicable Trusted Services and Verifiable Digital Health Certificates; and
+*	a set of policy and regulatory standards describing expected behavior of GDHCN Participants in relation to operation of the Trusted Services and utilization of Verifiable Digital Health Certificates (e.g. data minimization, privacy, scope of use).
 
+At the current time, the following content profiles are recognized through the WHO's Global Digital Health Certification Network (GDHCN):
 
-
-
-These Verfiable Digital Health Certificates may be issued or verified through Trusted Services that are enabled by Trust Network Participants of the Digital Health Trust Network.  At the current time, the following content profiles are recognized through the WHO's [Digital Documentation of COVID Certificates (DDCC)](https://worldhealthorganization.github.com/ddcc): 
-* European Union's [Digital Covid Certificates (DCC)](https://health.ec.europa.eu/publications/technical-specifications-eu-digital-covid-certificates-volumes-1-5_en) **(required)**
-* DIVOC (optional)
-* International Civil Aviation Organisation (ICAO) Visible Digital Seals - Non-Constrained (VDS-NC) (optional)
-* Smart Health Cards (SHC) - Immunization (optional)
+{% include available_trust_domains.md %}
 
 
 ### Digital Documentation of COVID-19 Certificates (DDCC)
@@ -15,8 +15,17 @@ The [Digital Documentation of COVID-19 Certificates (DDCC)](https://www.who.int/
 
 ![ddcc_vs_qr_lm](./ddcc_vs_qr_lm.png){:width="100%"}
 
+At the current time, the following content profiles are recognized through the WHO's [Digital Documentation of COVID Certificates (DDCC)](https://worldhealthorganization.github.com/ddcc): 
+* European Union's [Digital Covid Certificates (DCC)](https://health.ec.europa.eu/publications/technical-specifications-eu-digital-covid-certificates-volumes-1-5_en) **(required)**
+* DIVOC (optional)
+* International Civil Aviation Organisation (ICAO) Visible Digital Seals - Non-Constrained (VDS-NC) (optional)
+* Smart Health Cards (SHC) - Immunization (optional)
+
 #### Source specifications
 
-It can be difficult to find the "source of truth" specifications for the certificate formats that are mapped to the DDCC core data sets. The [references](references.html) contains links to the best known documentation for each of the certificate formats listed above:
+It can be difficult to find the "source of truth" specifications for the certificate formats that are mapped to the DDCC core data sets. The [references](references.html) contains links to the best known documentation for each of the certificate formats listed above.
 
 
+### IPS Pilgrimage (IPS-Pilgrimage)
+
+The implementation guide includes a machine-readable representation of WHO guidelines for verifiable IPS during pilgrimage. It explicitly encodes computer-interoperable logic, including data models, terminologies, and logic expressions, in a computable language to support implementation of IPS during pilgrimage usage scenario.
