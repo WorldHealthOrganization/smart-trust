@@ -15,7 +15,7 @@ The <i>GDHCN Administrative and Operational Framework</i> should be considered t
  
 ### On-boarding Process Overview
 
-The GDHCN Secretariat manages the on-boarding process and applications of eligible Trust Network Participants to connect as a trusted party to the trust network. Prepared on-boarding records will be handed over to the TNG operator with the request to process the technical on-boarding of the trusted party. An organizational and technical successful application results in a confirmation and the Trust Network Participant can connect to the trust network as a trusted party.
+The GDHCN Secretariat manages the on-boarding process and applications of eligible Trust Network Participants to connect as a trusted party to the trust network. Prepared on-boarding records will be handed over to the GDHCN operator with the request to process the technical on-boarding of the trusted party. An organizational and technical successful application results in a confirmation and the Trust Network Participant can connect to the trust network as a trusted party.
 
 <img src="OnboardingOverview.drawio.png" style="float:none; margin: 0px 0px 0px 0px;"/>
 
@@ -79,12 +79,12 @@ The organizational identity will be considered established and verified under a 
 As permissible, configuration information related to connections of EU DCC participant back-end systems will be provided by the EC to the WHO in order to facilitate establishing connections between EU DCC Trust Network Participants and the WHO Digital Health Trust Network infrastructure.  Otherwise, such configuration information will be shared directly by the eligible Trust Network Participant to the WHO
 
 
-* An eligible Trust Network Participant should submit its <a href="Letter_of_Application_Transitive_Trust.docx">Letter of Application using the Transitive Trust</a> procress to tng-secretariat@who.int.
-* Once eligibility is verified the eligible Trust Network Participant will be invited to submit a signed Trust Network Application Form (TO BE DEFINED) tng-secretariat@who.int with:
+* An eligible Trust Network Participant should submit its <a href="Letter_of_Application_Transitive_Trust.docx">Letter of Application using the Transitive Trust</a> process to gdhcn-secretariat@who.int.
+* Once eligibility is verified the eligible Trust Network Participant will be invited to submit a signed Trust Network Application Form (TO BE DEFINED) gdhcn-secretariat@who.int with:
     * the necessary information to connect to the production environment
     * attestation to comply with the Trust Network Terms of Participation.
 * After positively assessing the application form,  WHO will:
-    * provide the necessary technical specifications and configuration information to connect to their back-end systems to the WHO TNG
+    * provide the necessary technical specifications and configuration information to connect to their back-end systems to the WHO GDHCN
     * invite the Trust Network Participant to register their production certificates and promote them to the production environment.
 
 
@@ -117,7 +117,7 @@ The organizational identity and contact will be established in an offline proces
     * the necessary information to connect to the production environment
     * attestation to comply with the Trust Network Terms of Participation.
 * After positively assessing the Letter of Application and assessiung the Technical Evaluation Form,  WHO will:
-    * provide the necessary technical specifications and configuration information to connect to their back-end systems to the WHO TNG
+    * provide the necessary technical specifications and configuration information to connect to their back-end systems to the WHO GDHCN
     * invite the Trust Network Participant to register their production certificates and promote them to the production environment.
 
 

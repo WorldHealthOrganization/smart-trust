@@ -6,7 +6,7 @@ This document describes the standard onboarding process (so called Future Onboar
 
 **Note:** In the embedded image the following relabels apply:
 
-* DCCG -> TNG
+* DCCG -> GDHCN
 
 * CSCA -> SCA
 
@@ -33,7 +33,7 @@ In the following description the required steps are divided into three sections:
 
 ### Application and Verification
 
-**[1]** The eligible Trust Network Participant (TNP) has to submit its Statement of Interest [link to the form. [Document 5] ] to tng-support@who.int .
+**[1]** The eligible Trust Network Participant (TNP) has to submit its Statement of Interest [link to the form. [Document 5] ] to gdhcn-support@who.int .
 
 **[2 – 3]** WHO validates all provided data and verify that such a data follows WHO compliance with Trusted Network Terms of Participation (TOP 0 – 3) https://smart.who.int/trust/concepts.html as well as: Participant´s eligibility criteria, governmental entity/health agency, contact details of approvers and individuals. [See Elegibility Criteria]. [Document 16]
 
@@ -45,11 +45,11 @@ In the following description the required steps are divided into three sections:
 
 **[7]** If the WHO’s technical team gives a positive opinion, the eligible Trust Network Participant will be invited to start the onboarding process. The following information is included:
 
-1.  The necessary technical specifications and configuration information to connect the local backend systems to the WHO TNG
+1.  The necessary technical specifications and configuration information to connect the local backend systems to the WHO GDHCN
     1.  The request to provide the necessary information to be onboarded to the different environments (UAT, PROD, DEV (optional))
     2.  The request to comply with the Trust Network Terms of Participation
 
-**[8]** The TNP receives the confirmation and necessary technical information to connect to the TNG and register the certificates.
+**[8]** The TNP receives the confirmation and necessary technical information to connect to the GDHCN and register the certificates.
 
 For a successful connection to the gateway there are the following steps [9] – [11] to prepare:
 
@@ -85,7 +85,7 @@ Use Algorithm RSA or EC with minimum key length of 4096 bit (RSA) or 256 bit (EC
 1.  Create a private git repository on GitHub.
 2.  Prepare the following information to be provided in the onboarding request:
     -   Environment repository URL’s (all private to hide uploader's identity) (DEV (optional), UAT, PROD)
-    -   Invite the WHO bot user to the private repository (with read rights). The bot user is: [tng-bot](https://github.com/tng-bot) for PROD and [tng-bot-dev](https://github.com/tng-bot-dev) for DEV (optional) and UAT environments.
+    -   Invite the WHO bot user to the private repository (with read rights). The bot user is: [GDHCN-bot](https://github.com/GDHCN-bot) for PROD and [GDHCN-bot-dev](https://github.com/GDHCN-bot-dev) for DEV (optional) and UAT environments.
 
 **[12]** Upon GitHub repository creation and invitation to GitHub bot user to WHO is sent, validity for accepting this invitation is 7 days by default. If no action is taken it loses validity.
 
@@ -172,7 +172,7 @@ When the Letter of Application is received, identification of individuals take p
 <summary> 1) check the connectivity with the following command:  </summary> 
 input:
 
-curl -v https://tng-uat.who.int/trustList --cert TLS.pem --key TLS_key.pem 
+curl -v https://GDHCN-uat.who.int/trustList --cert TLS.pem --key TLS_key.pem 
 
 You should see an output like:
 
@@ -208,17 +208,17 @@ You should see an output like:
 
 **[61]** In case the connection fails, some corrective actions must be performed to analyze and solve the issue(s). The operations team is supporting the TNP.
 
-**[62]** After the connection to the TNG is established the participant can start the dry run test on UAT.
+**[62]** After the connection to the GDHCN is established the participant can start the dry run test on UAT.
 
 This test includes the listed steps:
 
-a) Upload one or more DSCs to the TNG
+a) Upload one or more DSCs to the GDHCN
 
 b) Delete at least one DSC again (revocation of a DSC)
 
 c) Optional: Upload it again (if it is required for further testing)
 
-d) Download the trust list from the TNG gateway
+d) Download the trust list from the GDHCN gateway
 
 e) Provide sample VDHC s to be verified by the service provider
 
@@ -232,16 +232,16 @@ f) Validate some sample VDHC 's to ensure the validation implementation is worki
 
 **[67]** If the Dry Run Test has passed successfully, the whitelisting of the certificates in the gateway (PROD environment) continues.
 
-**[68 - 69]** The Onboarding team informs the TNP to be ready to connect to TNG PROD environment.
+**[68 - 69]** The Onboarding team informs the TNP to be ready to connect to GDHCN PROD environment.
 
-**[70]** The participant is allowed and enabled to connect to TNG PROD environment (for detailed information see [60]).
+**[70]** The participant is allowed and enabled to connect to GDHCN PROD environment (for detailed information see [60]).
 
 **[71]** In case the connection fails, some corrective actions must be performed to analyze and solve the issue(s). The operations team is supporting the TNP.
 
 
 
 
-**[72]** After the connection to the TNG PROD is established the Production Readiness Test can start. 
+**[72]** After the connection to the GDHCN PROD is established the Production Readiness Test can start. 
 
 <details> 
 <summary> This test includes the listed steps: </summary> 
@@ -266,7 +266,7 @@ Note: cert.der is your DSC, signing.crt is the TNPUP
 
 Input:
 
-curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-uat.who.int/signerCertificate  
+curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://GDHCN-uat.who.int/signerCertificate  
 
 
 
@@ -290,4 +290,4 @@ f) Upload it again in case the DSC is required
 
 **[76]** and in case of any issues additional corrective actions are bespoken and solved with the participant.
 
-**[77 - 80]** After passing the Production Readiness Test, the participant is allowed to use the TNG PROD environment. A confirmation email is sent to the participant and to WHO with the confirmation about the successfully passed test and the completion of the onboarding process.
+**[77 - 80]** After passing the Production Readiness Test, the participant is allowed to use the GDHCN PROD environment. A confirmation email is sent to the participant and to WHO with the confirmation about the successfully passed test and the completion of the onboarding process.
