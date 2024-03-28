@@ -5,7 +5,7 @@ Onboarding Checklist
 See [Certificate Governance](concepts_certificate_governance.html)
 
 **Note:** In the embedded image the following relabels apply:
-* DCCG -> GDHCN
+* DCCG -> TNG
 * CSCA -> SCA
 * DCC -> GDHCN
 * NB -> TNP
@@ -17,18 +17,18 @@ It is highly recommended:
 
 ### Links to the Environments
 
-- Development Environment (Unstable): https://GDHCN-dev.who.int
-- User Acceptance Test Environment: https://GDHCN-uat.who.int
-- Production Environment: https://GDHCN.who.int
+- Development Environment (Unstable): https://tng-dev.who.int
+- User Acceptance Test Environment: https://tng-uat.who.int
+- Production Environment: https://tng.who.int
 
 ### User Acceptance Test Environment (UAT)
 
 #### Transitive Trust
 
-With the application as transitive trust participant, the key material is migrated from the DCCG to the GDHCN already.
+With the application as transitive trust participant, the key material is migrated from the DCCG to the TNG already.
 The connection should be tested with the following command:
 
-``` curl -v https://GDHCN-uat.who.int/trustList --cert TLS.pem --key TLS_key.pem``` <br>
+``` curl -v https://tng-uat.who.int/trustList --cert TLS.pem --key TLS_key.pem``` <br>
 
 You should see a response like: <br>
 
@@ -51,17 +51,17 @@ As a transitive trust participant, you should limit the usage to http *GET* requ
 
 #### Full Onboarding
 
-For a successfull connection to the gateway using full onboarding, there are several steps to prepare:
+For a successful connection to the gateway using full onboarding, there are several steps to prepare:
 
  1) Certificates must be prepared for Acceptance Environment (self signed allowed) following the requirements in [Certificate Governance](concepts_certificate_governance.html)
     - Authentication: TNP<sub>TLS</sub>
     - Upload:   TNP<sub>UP</sub>
     - SCA(s):  TNP<sub>SCA</sub>
     
- 2) Prepare public keys in PEM format in a private Github repository dedicated to acceptance environment keys. Follow the  procedure described in this Github repository: https://github.com/WorldHealthOrganization/GDHCN-participant-template (for support contact the GDHCN-support@who.int functional mailbox). After technical onboarding you will be notified.
+ 2) Prepare public keys in PEM format in a private Github repository dedicated to acceptance environment keys. Follow the  procedure described in this Github repository: https://github.com/WorldHealthOrganization/tng-participant-template (for support contact the tng-support@who.int functional mailbox). After technical onboarding you will be notified.
 
  3) After onboarding in the Acceptance Environment, check the connectivity with the following command:<br>
-  ``` curl -v https://GDHCN-uat.who.int/trustList --cert TLS.pem --key TLS_key.pem``` <br>
+  ``` curl -v https://tng-uat.who.int/trustList --cert TLS.pem --key TLS_key.pem``` <br>
     You should see a output like: <br>
  
     ```
@@ -90,7 +90,7 @@ For a successfull connection to the gateway using full onboarding, there are sev
    Note: cert.der is your DSC, signing.crt is the TNP<sub>UP</sub>)
   
  7) Upload the CMS Package to the Gateway<br>
-    ```curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://GDHCN-uat.who.int/signerCertificate``` <br>
+    ```curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-uat.who.int/signerCertificate``` <br>
  8) Download the Trustlist again, and check if your DSC is available.
  
  
@@ -110,7 +110,7 @@ WinSSL Test Example (Not working)
 
 ### Production Environment
 
-1) Prepare public keys in PEM format in a private Github repository dedicated to production environment keys. Follow the  procedure described in this Github repository: https://github.com/WorldHealthOrganization/GDHCN-participant-template
+1) Prepare public keys in PEM format in a private Github repository dedicated to production environment keys. Follow the  procedure described in this Github repository: https://github.com/WorldHealthOrganization/tng-participant-template
 2) After onboarding succeeded connect your production setup as described above
 
 

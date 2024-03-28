@@ -5,11 +5,11 @@ In order to start the onboarding participants need to Prepare Key Material Submi
 
 The main steps are:
 
-* The participant sets up a GitHub repository for each environment (UAT, Production).
-* The participant prepare their keys and push them to repository
+* The GDHCN participant sets up a GitHub repository for each environment (UAT, Production).
+* The GDHCN participant prepare their keys and push them to repository
 
- Please follow the steps described in the: [GDHCN-participant-template](https://github.com/WorldHealthOrganization/GDHCN-participant-template)
-and [README.md](https://github.com/WorldHealthOrganization/GDHCN-participant-template/blob/main/README.md).
+ Please follow the steps described in the: [tng-participant-template](https://github.com/WorldHealthOrganization/tng-participant-template)
+and [README.md](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/README.md).
 
  For more information, you can check the following resources:
 
