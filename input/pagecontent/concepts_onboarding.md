@@ -10,7 +10,7 @@ These [concepts](concepts.html) and the following table contains abbreviations a
 * DDCC: The Trust Domain for the Digital Documentation of COVID-19 Certificates
 * <a href="Letter_of_Application_Transitive_Trust.docx">Letter of Application for DDCC using the Transitive Trust</a> 
 * <a href="Letter_of_Application_DDCC.docx">Letter of Application for DDCC by the Full Onboarding Process</a>
-* <a href="[Letter_of_Application_for_DDCC_by_the_Full_Onboarding_Process_Arabic_Version.docx](https://github.com/WorldHealthOrganization/smart-trust/blob/Alhassan/input/pagecontent/Letter_of_Application_DDCC-Arabic.docx)">Letter of Application for DDCC by the Full Onboarding Process - Arabic Version</a>
+* <a href="https://github.com/WorldHealthOrganization/smart-trust/blob/Alhassan/input/pagecontent/Letter_of_Application_DDCC-Arabic.docx">Letter of Application for DDCC by the Full Onboarding Process - Arabic Version</a>
 * <a href="Letter_of_Application_for_DDCC_by_the_Full_Onboarding_Process_Chinese_Version.docx">Letter of Application for DDCC by the Full Onboarding Process - Chinese Version</a>
 * <a href="Letter_of_Application_for_DDCC_by_the_Full_Onboarding_Process_French_Version.docx">Letter of Application for DDCC by the Full Onboarding Process - French Version</a>
 * <a href="Letter_of_Application_for_DDCC_by_the_Full_Onboarding_Process_Russian_Version.docx">Letter of Application for DDCC by the Full Onboarding Process - Russian Version</a>
