@@ -10,6 +10,12 @@ These [concepts](concepts.html) and the following table contains abbreviations a
 * DDCC: The Trust Domain for the Digital Documentation of COVID-19 Certificates
 * <a href="Letter_of_Application_Transitive_Trust.docx">Letter of Application for DDCC using the Transitive Trust</a> 
 * <a href="Letter_of_Application_DDCC.docx">Letter of Application for DDCC by the Full Onboarding Process</a>
+* <a href="Letter_of_Application_Arabic_Version.docx">Letter of Application - Arabic Version</a>
+* <a href="Letter_of_Application_Chinese_Version.docx">Letter of Application - Chinese Version</a>
+* <a href="Letter_of_Application_French_Version.docx">Letter of Application - French Version</a>
+* <a href="Letter_of_Application_Russian_Version.docx">Letter of Application - Russian Version</a>
+* <a href="Letter_of_Application_Spanish_Version.docx">Letter of Application - Spanish Version</a>
+
 
 The <i>GDHCN Administrative and Operational Framework</i> should be considered the authoritative source of definitions and concepts in case of any discrepncies.
  
