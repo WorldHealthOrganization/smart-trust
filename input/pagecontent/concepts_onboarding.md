@@ -10,11 +10,12 @@ These [concepts](concepts.html) and the following table contains abbreviations a
 * DDCC: The Trust Domain for the Digital Documentation of COVID-19 Certificates
 * <a href="Letter_of_Application_Transitive_Trust.docx">Letter of Application for DDCC using the Transitive Trust</a> 
 * <a href="Letter_of_Application_DDCC.docx">Letter of Application for DDCC by the Full Onboarding Process</a>
-* <a href="Letter_of_Application_Arabic_Version.docx">Letter of Application - Arabic Version</a>
-* <a href="Letter_of_Application_Chinese_Version.docx">Letter of Application - Chinese Version</a>
-* <a href="Letter_of_Application_French_Version.docx">Letter of Application - French Version</a>
-* <a href="Letter_of_Application_Russian_Version.docx">Letter of Application - Russian Version</a>
-* <a href="Letter_of_Application_Spanish_Version.docx">Letter of Application - Spanish Version</a>
+* <a href="Letter_of_Application_for_DDCC_by_the_Full_Onboarding_Process_Arabic_Version.docx">Letter of Application for DDCC by the Full Onboarding Process - Arabic Version</a>
+* <a href="Letter_of_Application_for_DDCC_by_the_Full_Onboarding_Process_Chinese_Version.docx">Letter of Application for DDCC by the Full Onboarding Process - Chinese Version</a>
+* <a href="Letter_of_Application_for_DDCC_by_the_Full_Onboarding_Process_French_Version.docx">Letter of Application for DDCC by the Full Onboarding Process - French Version</a>
+* <a href="Letter_of_Application_for_DDCC_by_the_Full_Onboarding_Process_Russian_Version.docx">Letter of Application for DDCC by the Full Onboarding Process - Russian Version</a>
+* <a href="Letter_of_Application_for_DDCC_by_the_Full_Onboarding_Process_Spanish_Version.docx">Letter of Application for DDCC by the Full Onboarding Process - Spanish Version</a>
+
 
 
 The <i>GDHCN Administrative and Operational Framework</i> should be considered the authoritative source of definitions and concepts in case of any discrepncies.
