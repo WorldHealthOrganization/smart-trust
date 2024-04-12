@@ -100,7 +100,7 @@ For some Credential Types such as Verifiable Credentials, TNG is necessary to en
 #### Solution Concept
 To realize the architectural vision, the existing DCC Gateway will be enhanced by a microservice which implements the TNG Federator component. This federator component is deployed next to the gateway and it handles the communication with other federators. Each federator is able to download the data of other components. Uploading the data to other federators is not foreseen (each gateway downloads over a federator). The trusted consumers can decide to use the federation information and must explicitly activate this feature. To summarize, the federator acts as a gateway connector/synchronizer and as an interface provider for accessing the federated data.
 
-<img src="ArchitectureOverview.drawio.png" alt="TNG Use Case - Implict Trust Relation" style="width:400px; float:none; margin: 0px 0px 0px 0px;"/>
+<img src="ArchitectureOverview.drawio.png" alt="TNG Use Case - Implicit Trust Relation" style="width:400px; float:none; margin: 0px 0px 0px 0px;"/>
 
 <b>Note</b>: The DCC Gateway core architecture remains untouched. Just backwards compatible enhancements will be introduced to support the federation.
 
