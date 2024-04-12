@@ -76,13 +76,13 @@ An organization, or organizational unit, that is responsible for establishing pr
 The Public Key Infrastructure (PKI) is the trust model based on public key certificates and certificate authorities.  It is the means for publishing and distributing Trust Lists comprising the public keys that can be used to digitally verify the issuer of a Verifiable Digital Health Certificates.
 
 ###  Signing Certificate Authority (SCA)
-Each Trust Network Participant maintains one or more Signing Certificate Authority (SCA), certificates of which are relatively long lived. The SCA issues public key certificates for the national, short lived, Document Signers.  The SCA acts as a trust anchor such that relying Trust Network Participants can use the SCA certificate to validate the authenticity and integrity of the regularly changing DSC certificates.
+Each GDHCN Participant maintains one or more Signing Certificate Authority (SCA), certificates of which are relatively long lived. The SCA issues public key certificates for the national, short lived, Document Signers.  The SCA acts as a trust anchor such that relying GDHCN Participants can use the SCA certificate to validate the authenticity and integrity of the regularly changing DSC certificates.
 
 ### Document Signers
 Document Signers utilize the private key of a private-public key pair to digitally sign Verifiable Digital Health Certificates.  A single private key is expected to sign a large quantity of Verifiable Digital Health Certificates. The corresponding public key is referred to as a Document Signer Certificate (DSC). 
 
 ### Document Signer Certificates (DSCs)
-Document Signer Certificates are the public key certificates associated to Document Signers which are issued or recognized by the Trust Network Participant.
+Document Signer Certificates are the public key certificates associated to Document Signers which are issued or recognized by the GDHCN Participant.
 
 ### Encryption Key Certificate Governance 
 The process and technical specifications regarding the management and use of encryption keys for Verifiable Digital Health Certificates, Public Key Infrastructure, and for securing connections with Trusted Services and the Trust Network Gateway.
@@ -116,22 +116,22 @@ The Trust Anchor public key certificate of the TNG. The corresponding private ke
 The TLS server public key certificate of the TNG.
 
 ### Trust Network Participant (TNP)
-A Trust Network Participant (TNP) is an acronym used to label certificates, infrastructure, or technical artifacts made available by GDHCN participants. 
+Trust Network Participant (TNP) is an acronym used to label certificates, infrastructure, or technical artifacts made available by GDHCN Participants under the GDHCN Trust Network. 
 
-#### Trust Network Participant Back-end
-A Trust Network Participant's back-end system for managing the local part of information. The implementation of Trust Network Participant's back-end is not in the scope of this document. A national back-end can be also understood as a trusted party on-boarded in the Trust Network Gateway (can be a script, a proxy or a web server as well).
+#### GDHCN Participant Backend System
+A GDHCN Participant's Backend System for managing the local part of information. The implementation of GDHCN Participant's Backend System is not in the scope of this document. A national backend can be also understood as a trusted party on-boarded in the Trust Network Gateway (can be a script, a proxy or a web server as well).
 
 #### Trust Network Participant - Signing Certificate Authority  (TNP<sub>SCA) 
-The SCA public key certificate of a Trust Network Participants (could be more than one).
+The SCA public key certificate of a GDHCN Participants (could be more than one).
 
 #### Trust Network Participant - Transport Layer Security (TNP<sub>TLS</sub>) 
-The TLS client authentication public key certificate of a Trust Network Participant's back-end system.
+The TLS client authentication public key certificate of a GDHCN Participant's Backend System.
 
 #### Trust Network Participant - Transport Layer Security (TNP<sub>UP</sub>) 
-The public key certificate that a Trust Network Participant uses to sign data packages that are uploaded to the TNG.
+The public key certificate that a GDHCN Participant uses to sign data packages that are uploaded to the TNG.
 
 #### Trust Network Participant Verifier
-A system utilized by a Trust Network Participant to verify the digital signature of a Verifiable Digital Health Certificate.
+A system utilized by a GDHCN Participant to verify the digital signature of a Verifiable Digital Health Certificate.
 
 
 ### Trusted Service
