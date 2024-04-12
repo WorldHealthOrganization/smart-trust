@@ -1,14 +1,10 @@
 name: Release build
 
 on:
-  push:
-    branches:
-      - release-candidate
-  pull_request:
-    branches:
-      - release-candidate
+  release:
+    types: [created]
   workflow_dispatch:
-  
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -17,6 +13,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Check for publication-request.json
         id: checkfile
@@ -27,8 +25,9 @@ jobs:
             echo "::set-output name=exists::false"
           fi
 
-
   trigger:
     needs: check
     if: needs.check.outputs.file_exists == 'true'
-    uses: WorldHealthOrganization/smart-html/.github/workflows/release.yml@main
+    uses: WorldHealthOrganization/smart-html/.github/workflows/release.yml@l2-dak-setup-updates
+#    with:
+#      tag_name: ${{ github.event.release.tag_name }}
