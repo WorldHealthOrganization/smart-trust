@@ -10,7 +10,7 @@ Consensus data models, controlled vocabularies and data transformations allow co
 *Is the vaccine credential, COVID certificate or other trusted health document verifiably from the purported issuer?​*  
 *Has the certificate remained unaltered since it was issued?​*
 
-Existing health data certificate standards use various well-defined methods of providing digital signatures in health documents based on public key crytopgraphy methods. Public key distribution within the federated registry is standardized to allow actors across networks to retrieve and process public keys, metadata, business rules, revocation data from any other actor. Universal verifier applications can use the content shared within the federated registry to extract digital signatures from health documents and verify issuer and integrity of the document content according to the specifications established by the credential standard.
+Existing health data certificate standards use various well-defined methods of providing digital signatures in health documents based on public key cryptography methods. Public key distribution within the federated registry is standardized to allow actors across networks to retrieve and process public keys, metadata, business rules, revocation data from any other actor. Universal verifier applications can use the content shared within the federated registry to extract digital signatures from health documents and verify issuer and integrity of the document content according to the specifications established by the credential standard.
 
 *Is the certificate issuer trusted by the verifier?​*
 
