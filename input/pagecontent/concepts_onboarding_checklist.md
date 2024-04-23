@@ -60,7 +60,7 @@ For a successfull connection to the gateway using full onboarding, there are sev
     
  2) Prepare public keys in PEM format in a private Github repository dedicated to acceptance environment keys. Follow the  procedure described in this Github repository: https://github.com/WorldHealthOrganization/tng-participant-template (for support contact the tng-support@who.int functional mailbox). After technical onboarding you will be notified.
 
- 3) After onboarding in the Acceptance Environment, check the connectivity with the following command:<br>
+ 3) After onboarding in the Acceptance Environment, check the connectivity with the Trust Network Gateway using its [API](openapi).  This can be acheived with following command:<br>
   ``` curl -v https://tng-uat.who.int/trustList --cert TLS.pem --key TLS_key.pem``` <br>
     You should see a output like: <br>
  

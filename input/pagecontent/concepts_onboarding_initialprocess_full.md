@@ -18,7 +18,9 @@ Once we have received your submission and successfully onboarded the material, w
 ### 2. Perform Acceptance Testing
 
 After we contacted the participant about successful onboarding, a connectivity test should be the first action of the process. When connectivity is successfully established the participant should execute their acceptance tests. These acceptance tests must be performed on dedicated test environment called User Acceptance Testing (UAT) which already connects other trust network participants, that applied for onboarding.
- 
+
+The [Trust Network Gateway API](openapi) can be used for interaction keeping the full functionality of the EU DCC Gateway. In addition, various HL7 FHIR services are being added.
+
 The participant needs to [communicate the results] of their tests to us, a quality check about the communicated results will be carried out, so that we can check for any issues or approve their readiness for production rollout.
 
 ### 3. Go Live on Production Environment
