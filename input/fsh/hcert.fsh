@@ -6,7 +6,7 @@ Alias: $SmartHealthLink = http://smart.who.int/ips-pilgrimage/StructureDefinitio
 
 Logical:        HCert
 Title:          "Health Certificate"
-Description:    "Logical Model for the HCERT
+Description:    """Logical Model for the HCERT
 
 The full data structure and encoding mechanisms for HCERT are defined here: [Electronic Health Certificate Specification](/smart-trust/hcert_spec.html)
 
@@ -16,7 +16,7 @@ Note for subclaims:
 - subclaims 0 and above are reserved by WHO to be assigned, a new sub claim can be requested for by requesting to create a new trust domain
 - subclaims for negative integer values are for development purposes and are free to use
 - While this logical model mentions assigned subclaims (below), the ones listed in the Electronic Health Certificate Specification are considered authoritative
-"
+"""
 
  
 * ^url = "http://smart.who.int/trust/StructureDefinition/HCert"
