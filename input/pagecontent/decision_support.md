@@ -103,7 +103,7 @@ declarations allow the CQL to define a local name to represent a codesystem or v
 CQL logic:
 
 ```
-valueset "WHO Specimen Sample Origin": 'https://worldhealthorganization.github.io/ddcc/ValueSet-who-ddcc-sample-origin-covid-19.html'
+valueset "WHO Specimen Sample Origin": 'https://smart.who.int/ddcc/ValueSet-who-ddcc-sample-origin-covid-19.html'
 ```
 
 The local name can then be used to reference the codesystem or valueset in the CQL:
@@ -114,8 +114,8 @@ define "ValidSampleOrigin": [Observation] O where O.method in "WHO Specimen Samp
 
 The code systems and value sets referenced in DDCC health credentials can be found in the DDCC IG:
 
-* [DDCC IG Code Systems](https://worldhealthorganization.github.io/ddcc/artifacts.html#terminology-code-systems)
-* [DDCC IG Value Sets](https://worldhealthorganization.github.io/ddcc/artifacts.html#terminology-value-sets)
+* [DDCC IG Code Systems](https://smart.who.int/ddcc/artifacts.html#terminology-code-systems)
+* [DDCC IG Value Sets](https://smart.who.int/ddcc/artifacts.html#terminology-value-sets)
 
 Complete information on authoring CQL, including examples, can be found in the
 [CQL Authoring Guide](https://cql.hl7.org/02-authorsguide.html).
@@ -127,11 +127,11 @@ Additional guidelines and best practices can be found in the
 The WHO DDCC IG specifies health credentials using the FHIR standard, and the CQL for expressing
 business rules against credentials operates on the FHIR resources that make up a credential. The
 DDCC health credential document Bundle contains a minimal
-[Patient](https://worldhealthorganization.github.io/ddcc/StructureDefinition-DDCCPatient.html)
+[Patient](https://smart.who.int/ddcc/StructureDefinition-DDCCPatient.html)
 resource along with appropriate linked
-[Immunization](https://worldhealthorganization.github.io/ddcc/StructureDefinition-DDCCImmunization.html)
+[Immunization](https://smart.who.int/ddcc/StructureDefinition-DDCCImmunization.html)
 resources representing information on vaccines administered and
-[Observation](https://worldhealthorganization.github.io/ddcc/StructureDefinition-DDCCObservation.html)
+[Observation](https://smart.who.int/ddcc/StructureDefinition-DDCCObservation.html)
 resources representing test results.
 
 <img src="fhir_representation.png" style="float:none; margin: 0px 0px 0px 0px;"/>
@@ -143,7 +143,7 @@ resource, intended for describing and sharing knowledge artifacts like CQL. The
 [CRMI IG Packaging Guidelines](https://build.fhir.org/ig/HL7/cqf-measures/packaging.html)
 provide information on how CQL libraries should be packaged. Examples of CQL packaged in FHIR
 Libraries can be found in the
-[DDCC IG Knowledge Artifact Libraries](https://worldhealthorganization.github.io/ddcc/artifacts.html#knowledge-artifacts-libraries).
+[DDCC IG Knowledge Artifact Libraries](https://smart.who.int/ddcc/artifacts.html#knowledge-artifacts-libraries).
 
 #### Example CQL
 
@@ -207,7 +207,7 @@ also allows terminology resources to be passed into the library at the time of e
 
 #### Structure Maps and Concept Maps
 
-The [DDCC Implementation Guide](https://worldhealthorganization.github.io/ddcc/) defines both the
+The [DDCC Implementation Guide](https://smart.who.int/ddcc/) defines both the
 common standard representation against which the CQL can be written and the mappings for translating
 various source formats into the common representation. The source formats are
 
@@ -218,7 +218,7 @@ various source formats into the common representation. The source formats are
 
 The common representation that these source health credential formats need to be transformed to
 before evaluating CQL business rules is the
-[World Health Organization Digital Documentation of COVID-19 Certificates (WHO DDCC)](https://worldhealthorganization.github.io/ddcc/content_profiles.html)
+[World Health Organization Digital Documentation of COVID-19 Certificates (WHO DDCC)](https://smart.who.int/ddcc/content_profiles.html)
 
 Translating across formats requires correctly mapping both the structure of the credential and the
 clinical concepts expressed within that structure.
@@ -246,8 +246,8 @@ Note that using the Java mapping engine also requires the use of a terminology s
 
 References:
 
-* [DDCC IG Structure Maps](https://worldhealthorganization.github.io/ddcc/artifacts.html#terminology-structure-maps)
-* [DDCC IG Concept Maps](https://worldhealthorganization.github.io/ddcc/artifacts.html#terminology-concept-maps)
+* [DDCC IG Structure Maps](https://smart.who.int/ddcc/artifacts.html#terminology-structure-maps)
+* [DDCC IG Concept Maps](https://smart.who.int/ddcc/artifacts.html#terminology-concept-maps)
 * [Mapping Engine Implementations](https://confluence.hl7.org/display/FHIR/Using+the+FHIR+Mapping+Language#UsingtheFHIRMappingLanguage-MappingEngineImplementations)
 
 ### CQL Primer
@@ -266,15 +266,13 @@ The following high level steps, described in detail below, can be used to run CQ
 * Set up a [Node.js](https://nodejs.org/) project with appropriate CQL dependencies to provide an execution environment for the ELM representation
 * Run the business rules against the FHIR instance
 
-#### Convert Vaccination Credentials to DDCC resource instance
+#### Convert Vaccination Credentials to DDCC Resource Instance
 
 The process starts with converting the vaccination credential to be evaluated into the DDCC FHIR model. For the examples used in this document we'll start with an example credential payload in the SHC format, which you can download:
 
 ```bash
-curl https://raw.githubusercontent.com/dvci/ddcc/who-88-structuremap-tests/structuremap-tests/fixtures/shc/example-00-b-jws-payload-expanded.json --output example-00-b-jws-payload-expanded.json
+curl https://raw.githubusercontent.com/WorldHealthOrganization/ddcc/main/structuremap-tests/fixtures/shc/example-00-b-jws-payload-expanded.json --output example-00-b-jws-payload-expanded.json
 ```
-
-*TODO: Update the location of this example once merged*
 
 Credentials can be converted using the appropriate StructureMaps using the [Matchbox](https://github.com/ahdis/matchbox) FHIR Server.
 
@@ -283,8 +281,10 @@ Credentials can be converted using the appropriate StructureMaps using the [Matc
 The Matchbox server can be run via its docker image.  The following command starts the docker image on a local machine listening on port 8080:
 
 ```bash
-docker run -d -p 8080:8080 --restart unless-stopped eu.gcr.io/fhir-ch/matchbox:v230
+docker run -d -p 8080:8080 --restart unless-stopped eu.gcr.io/fhir-ch/matchbox:v314
 ```
+
+*NOTE: At the time of writing the latest version of Matchbox does not correctly handle the required StructureMap transformations; ensure that the version of Matchbox you're testing with has been updated. The Matchbox docker image does not appear to have a correct `latest` tag, so be sure to specify the actual version number of the latest docker image.*
 
 Running Matchbox in this fashion uses an in-memory data store rather than a backing database, so will not persist state across different container instantiations.
 
@@ -297,7 +297,7 @@ curl -X 'POST' \
   'http://localhost:8080/matchbox/fhir/ImplementationGuide' \
   -H 'accept: application/fhir+json' \
   -H 'Content-Type: application/fhir+json' \
-  -d '{ "resourceType": "ImplementationGuide", "version": "1.0.0", "name": "fhir.who.ddcc", "url": "http://worldhealthorganization.github.io/ddcc/package.tgz" }'
+  -d '{ "resourceType": "ImplementationGuide", "version": "1.0.0", "name": "fhir.who.ddcc", "url": "http://smart.who.int/ddcc/package.tgz" }'
 ```
 
 ```bash
@@ -308,13 +308,13 @@ curl -X 'POST' \
   -d '{ "resourceType": "ImplementationGuide", "version": "0.6.2", "name": "hl7.fhir.uv.shc-vaccination", "packageId": "hl7.fhir.uv.shc-vaccination" }'
 ```
 
-##### Converting the Vaccination Into DDCC FHIR resource
+##### Converting the Vaccination Credential Into a DDCC FHIR Resource
 
-This is a two step process. The first step is to convert the vaccination credential payload into the DDCC CoreDataSet logical model using the [appropriate StructureMap from the DDCC IG](https://worldhealthorganization.github.io/ddcc/artifacts.html#terminology-structure-maps):
+This is a two step process. The first step is to convert the vaccination credential payload into the DDCC CoreDataSet logical model using the [appropriate StructureMap from the DDCC IG](https://smart.who.int/ddcc/artifacts.html#terminology-structure-maps):
 
 ```bash
 curl -X 'POST' \
-'http://localhost:8080/matchbox/fhir/StructureMap/$transform?source=http://worldhealthorganization.github.io/ddcc/StructureMap/CertSHCtoCoreDataSet' \
+'http://localhost:8080/matchbox/fhir/StructureMap/$transform?source=http://smart.who.int/ddcc/StructureMap/CertSHCtoCoreDataSet' \
 -H 'accept: application/fhir+json' \
 -H 'Content-Type: application/fhir+json' \
 -d @example-00-b-jws-payload-expanded.json \
@@ -325,20 +325,20 @@ This should result in a new file containing the vaccine information in the inter
 
 ```bash
 curl -X 'POST' \
-'http://localhost:8080/matchbox/fhir/StructureMap/$transform?source=http://worldhealthorganization.github.io/ddcc/StructureMap/CoreDataSetVSToAddBundle' \
+'http://localhost:8080/matchbox/fhir/StructureMap/$transform?source=http://smart.who.int/ddcc/StructureMap/CoreDataSetVSToAddBundle' \
 -H 'accept: application/fhir+json' \
 -H 'Content-Type: application/fhir+json' \
 -d @example-00-a-DDCCCoreDataSet.json \
 -o example-00-a-DDCC.json
 ```
 
-*NOTE: These conversion steps are still being debugged, particularly the final one, and the CQL has not been tested against the final version*
+*NOTE: At the time of writing these conversion steps did not work correctly, particularly the second one, and the CQL has not been tested against the final version*
 
 The record is now ready to be evaluated against the business rules.
 
 #### Running CQL Against Converted Vaccination Credentials
 
-Running CQL business rules against a record requires translating the CQL to the Expression Logical Model (ELM) representation and running the ELM in a CQL execution engine. For this document we'll start with one of the [examples from the DDCC IG](https://worldhealthorganization.github.io/ddcc/artifacts.html#knowledge-artifacts-libraries):
+Running CQL business rules against a record requires translating the CQL to the Expression Logical Model (ELM) representation and running the ELM in a CQL execution engine. For this document we'll start with one of the [examples from the DDCC IG](https://smart.who.int/ddcc/artifacts.html#knowledge-artifacts-libraries):
 
 ```cql
 // Declare the name and version of the Library of functions
@@ -380,6 +380,63 @@ curl -X "POST" \
 --data-binary @DDCCPass.cql \
 --output DDCCPassELM.json
 ```
+
+##### Extracting ELM From a FHIR Library
+
+As an alternative to translating the CQL, if the desired CQL already exists and the ELM translation is packaged with the CQL as part of a FHIR Library then the ELM can be extracted from the Library. This document describes how to extract the ELM using a simple Node.js project. Node.js will first need to be installed if it is not already available. A new Node.js project can be set up using npm:
+
+```bash
+mkdir ExtractELM
+cd ExtractELM
+npm init --yes
+```
+
+The following example JavaScript code can serve as a starting point:
+
+```js
+// This example loads a FHIR Library, extracts the ELM, and writes it to a file
+
+const { argv, exit } = require('process');
+const fs = require('fs');
+
+if (argv.length < 4) {
+  console.log(`Usage: ${argv[0]} ${argv[1]} <FHIR-Library> <ELM-File>`);
+  exit();
+}
+
+const libraryFile = argv[2];
+const elmFile = argv[3];
+
+// Load the Library contents and parse the JSON
+const library = JSON.parse(fs.readFileSync(libraryFile), 'utf8');
+
+// Find the ELM data
+const elmContent = library.content?.find(c => c.contentType === 'application/elm+json')
+if (!elmContent?.data) {
+  console.log('No ELM content found in Library');
+  exit();
+}
+
+// Base64 decode the ELM
+const elm = atob(elmContent.data);
+
+// Write the ELM to the desired output file
+fs.writeFileSync(elmFile, elm);
+```
+
+An example FHIR Library containing ELM can be downloaded:
+
+```bash
+curl https://raw.githubusercontent.com/WorldHealthOrganization/ddcc/main/input/resources/Library-DDCCPass-1.0.0.json --output Library-DDCCPass-1.0.0.json
+```
+
+Once the FHIR Library has been downloaded the code can be run to extract the ELM from the Library:
+
+```bash
+node main.js Library-DDCCPass-1.0.0.json DDCCPassELM.json
+```
+
+Running the script should produce a file with the desired ELM translation.
 
 ##### Running ELM Against Converted Vaccination Credentials
 
