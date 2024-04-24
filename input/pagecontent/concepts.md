@@ -111,7 +111,7 @@ A Trust Network is a means to authenticate the encryption public keys used by pa
 
 
 ### Trust Network Gateway (TNG)
-The Trust Network Gateway (TNG) is the open-source software and its IT operational infrastructure, utilizing open standards, for a Public Key Infrastructure and metadata management services which is used to operationalize one or more Trust Domains.
+The Trust Network Gateway (TNG) is the open-source software and its IT operational infrastructure, utilizing open standards, for a Public Key Infrastructure and metadata management services which is used to operationalize one or more Trust Domains.  The Trust Network Gateway can be interacted with using the [API](openapi) once a mTLS connection has been established.
 
 #### Trust Network Gateway - Trust Anchor  (TNG<sub>TA</sub>) 
 The Trust Anchor public key certificate of the TNG. The corresponding private key is used to sign the list of all SCA certificates offline.
