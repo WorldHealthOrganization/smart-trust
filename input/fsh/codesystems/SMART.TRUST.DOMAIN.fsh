@@ -1,10 +1,10 @@
-CodeSystem: SMART.TRUST.DOMAINS
+CodeSystem: WHO.TRUST.DOMAIN
 Title: "WHO SMART Trust Domains"
 Description: "Controlled vocabulary used to define WHO SMART Trust network service provider characteristics."
 * ^experimental = false
 * ^caseSensitive = true
-* name = "SMART_TRUST_DOMAINS"
+* ^name = "WHO_TRUST_DOMAIN"
 
 
 * #DDCC "WHO DDCC"
-* #DCC "EU DCC"
+* #IPS-PILGRIMAGE "IPS for Pilgrimage"
