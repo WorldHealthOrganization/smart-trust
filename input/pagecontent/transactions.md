@@ -1,7 +1,7 @@
-<h3 id="mirror_keys">Mirror Local PKD</h3>
-<h4>Trigger Events</h4>
-<h4>Message Semantics</h4>
-<h4>Expected Actions</h4>
+### Mirror Local PKD {#mirror_keys}
+#### Trigger Events
+#### Message Semantics
+#### Expected Actions
 
 Steps include:
 - Local PKD onboarding (one-time). Onboarding may include evaluating Local PKD
@@ -26,32 +26,32 @@ Federated PKDs are expected to:
   - Decentralized Identifiers (DID)
 
 
-<h3 id="sign_claim">Sign Health Certificate (HCERT)  Claim</h3>
-<h4>Trigger Events</h4>
+### Sign Health Certificate (HCERT)  Claim {#sign_claim}
+#### Trigger Events
 The claim payload of a HCERT has been generated and is ready to be signed by an Issuer acting on behalf of a Trust Network Participant.
-<h4>Message Semantics</h4>
+#### Message Semantics
 The output should be a valid signed [HCERT](hcert_spec.html)
-<h4>Expected Actions</h4>
+#### Expected Actions
 
 
 
-<h4 id="put_keys_api">Publish Verification Keys - API </h4>
-<h4>Trigger Events</h4>
+<h4 id="put_keys_api}Publish Verification Keys - API 
+#### Trigger Events
 
 A Trust Network Partcipiant publish keys to the Trust Network Gateway for use by Verification Applications.  Keys may be coded for a variety of uses including following the [certificate governance](concepts_certificate_governance.html) according to their [usage](ValueSet-TRUST.KEYUSAGE.html) and [trust domain](ValueSet-TRUST.DOMAIN.html)
 
 
-<h4>Message Semantics</h4>
+#### Message Semantics
 See [Swagger API](openapi/index.html)
-<h4>Expected Actions</h4>
+#### Expected Actions
 
 
-<h3 id="get_keys_did">Retreive Verification Keys - DID </h3>
-<h4>Trigger Events</h4>
+### Retreive Verification Keys - DID {#get_keys_did}
+#### Trigger Events
 
-<h4>Message Semantics</h4>
+#### Message Semantics
 Keys should be retrieved using the [GDHCN](https://smart.who.int/trust) framework. 
-<h4>Expected Actions</h4>
+#### Expected Actions
 Once a Verification Application has onboarded to the Trust Network it may retrieve verification keys.   The retrieved list of verificaiton keys may be used for the following busines processes:
 - Onboarding a Federated PKD by retrieving the signing key used to sign the master list (one-time).
 - Retrieving the master list from the Federated PKD and verifying the signature (periodic).
@@ -69,12 +69,12 @@ Once a Verification Application has onboarded to the Trust Network it may retrie
   - the business rules of the verification jurisdiction pass for the certificate.  
 
 
-<h3 id="get_keys_api">Retreive Verification Keys - API </h3>
-<h4>Trigger Events</h4>
+### Retreive Verification Keys - API {#get_keys_api}
+#### Trigger Events
 
-<h4>Message Semantics</h4>
+#### Message Semantics
 See [Swagger API](openapi/index.html)
-<h4>Expected Actions</h4>
+#### Expected Actions
 
 Once a Verification Application has onboarded to the Trust Network it may retrieve verification keys.   The retrieved list of verificaiton keys may be used for the following busines processes:
 - Onboarding a Federated PKD by retrieving the signing key used to sign the master list (one-time).
@@ -97,17 +97,17 @@ Keys should be retrieved using the [GDHCN](https://smart.who.int/trust) framewor
 
 
 
-<h3 id="get_rules_api">Request Business Rule Updates - API</h3>
-<h4>Trigger Events</h4>
-<h4>Message Semantics</h4>
+### Request Business Rule Updates - API {#get_rules_api}
+#### Trigger Events
+#### Message Semantics
 See [Swagger API](openapi/index.html)
 
 
-<h4>Expected Actions</h4>
+#### Expected Actions
 
-<h3 id="get_rules_fhir">Request Business Rule Updates - API</h3>
-<h4>Trigger Events</h4>
-<h4>Message Semantics</h4>
+### Request Business Rule Updates - API {#get_rules_fhir}
+#### Trigger Events
+#### Message Semantics
 Shall act as a Business Rules Library:
 - Expresses health policies (e.g. “Needs full course of vaccine”) as executable business rule using the Clinical Quality Language (CQL) as a FHIR Library Resource
 - Publishes business rules as FHIR Library resources with a trust health service
@@ -116,14 +116,14 @@ Optionally:
   - Provide digital signagure of business rule as FHIR Provenance resource
   - Provides public key to PKD
 
-<h4>Expected Actions</h4>
+#### Expected Actions
 
 
 
-<h3 id="execute_rule">Execute Business</h3>
-<h4>Trigger Events</h4>
-<h4>Message Semantics</h4>
-<h4>Expected Actions</h4>
+### Execute Business {#execute_rule}
+#### Trigger Events
+#### Message Semantics
+#### Expected Actions
 
 
 Verification App:
@@ -139,24 +139,25 @@ Optionally:
 
 
 
-<h3 id="get_valuesets_api">Request Value Sets - API</h3>
-<h4>Trigger Events</h4>
-<h4>Message Semantics</h4>
+### Request Value Sets - API {#get_valuesets_api}
+#### Trigger Events
+#### Message Semantics
 See [Swagger API](openapi/index.html)
-<h4>Expected Actions</h4>
+#### Expected Actions
 
 
 
-<h3 id="get_valuesets_api">Request Value Sets - FHIR</h3>
-<h4>Trigger Events</h4>
-<h4>Message Semantics</h4>
+### Request Value Sets - FHIR {#get_valuesets_api}
+#### Trigger Events
+#### Message Semantics
 See [IHE Sharing Value Sets and Concept Maps](https://profiles.ihe.net/ITI/SVCM/) for transactions against a Terminology Service.
-<h4>Expected Actions</h4>
+#### Expected Actions
 
 
 
-<h3 id="execute_rule">Execute Business</h3>
+### Execute Business {#execute_rule}
 
-<h4>Trigger Events</h4>
-<h4>Message Semantics</h4>
-<h4>Expected Actions</h4>
+#### Trigger Events
+#### Message Semantics
+#### Expected Actions
+
