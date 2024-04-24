@@ -1,4 +1,7 @@
 <h3 id="mirror_keys">Mirror Local PKD</h3>
+<h4>Trigger Events</h4>
+<h4>Message Semantics</h4>
+<h4>Expected Actions</h4>
 
 Steps include:
 - Local PKD onboarding (one-time). Onboarding may include evaluating Local PKD
@@ -23,18 +26,55 @@ Federated PKDs are expected to:
   - Decentralized Identifiers (DID)
 
 
-<h3 id="put_keys">Publish Verification Keys</h3>
+<h3 id="sign_claim">Sign Health Certificate (HCERT)  Claim</h3>
+<h4>Trigger Events</h4>
+The claim payload of a HCERT has been generated and is ready to be signed by an Issuer acting on behalf of a Trust Network Participant.
+<h4>Message Semantics</h4>
+The output should be a valid signed [HCERT](hcert_spec.html)
+<h4>Expected Actions</h4>
+
+
+
+<h4 id="put_keys_api">Publish Verification Keys - API </h4>
+<h4>Trigger Events</h4>
 
 A Trust Network Partcipiant publish keys to the Trust Network Gateway for use by Verification Applications.  Keys may be coded for a variety of uses including following the [certificate governance](concepts_certificate_governance.html) according to their [usage](ValueSet-TRUST.KEYUSAGE.html) and [trust domain](ValueSet-TRUST.DOMAIN.html)
 
-<h4 id="put_keys_did">Retreive Verification Keys - DID </h4>
 
-<h4 id="put_keys_api">Retreive Verification Keys - API </h4>
-
+<h4>Message Semantics</h4>
 See [Swagger API](openapi/index.html)
+<h4>Expected Actions</h4>
 
 
-<h3 id="get_keys">Retreive Verification Keys</h3>
+<h3 id="get_keys_did">Retreive Verification Keys - DID </h3>
+<h4>Trigger Events</h4>
+
+<h4>Message Semantics</h4>
+Keys should be retrieved using the [GDHCN](https://smart.who.int/trust) framework. 
+<h4>Expected Actions</h4>
+Once a Verification Application has onboarded to the Trust Network it may retrieve verification keys.   The retrieved list of verificaiton keys may be used for the following busines processes:
+- Onboarding a Federated PKD by retrieving the signing key used to sign the master list (one-time).
+- Retrieving the master list from the Federated PKD and verifying the signature (periodic).
+- Deserializing a Verifiable QR code (e.g.  vaccine credential 2D bar-code) to determine the key id.
+- Retrieving the public key associated with the key id from the master list, or using a cached key.
+- Verifying 
+  - the cryptographic signature within the 2D barcode.
+  - the authority of the issuer to issue this type of certificate with this key.
+  - the expiration date of the keys.
+  - the expiration date from the certificate.
+  - the certificate is not part of revocation lists available.
+  - the issuing key is still present on a trust list by the issuing authority (not revoked).
+  - the issuing key is still present on the trust list of the verification authority.
+  - the name/identity on the certificate matches an ID document.
+  - the business rules of the verification jurisdiction pass for the certificate.  
+
+
+<h3 id="get_keys_api">Retreive Verification Keys - API </h3>
+<h4>Trigger Events</h4>
+
+<h4>Message Semantics</h4>
+See [Swagger API](openapi/index.html)
+<h4>Expected Actions</h4>
 
 Once a Verification Application has onboarded to the Trust Network it may retrieve verification keys.   The retrieved list of verificaiton keys may be used for the following busines processes:
 - Onboarding a Federated PKD by retrieving the signing key used to sign the master list (one-time).
@@ -52,32 +92,38 @@ Once a Verification Application has onboarded to the Trust Network it may retrie
   - the name/identity on the certificate matches an ID document.
   - the business rules of the verification jurisdiction pass for the certificate.  
 
-Keys should be retrieved using the [GDHCN](https://smart.who.int/trust) framework.  There are two methods for retrieval:
-<h4 id="get_keys_did">Retreive Verification Keys - DID </h4>
+Keys should be retrieved using the [GDHCN](https://smart.who.int/trust) framework.  
 
-<h4 id="get_keys_api">Retreive Verification Keys - API </h4>
 
+
+
+<h3 id="get_rules_api">Request Business Rule Updates - API</h3>
+<h4>Trigger Events</h4>
+<h4>Message Semantics</h4>
 See [Swagger API](openapi/index.html)
 
 
-<h3 id="get_rules">Request Business Rule Updates</h3>
+<h4>Expected Actions</h4>
 
-Business Rules Library:
-- Expresses health policies (e.g. “Needs full course of vaccine”) as executable business
-rule using the Clinical Quality Language (CQL)
+<h3 id="get_rules_fhir">Request Business Rule Updates - API</h3>
+<h4>Trigger Events</h4>
+<h4>Message Semantics</h4>
+Shall act as a Business Rules Library:
+- Expresses health policies (e.g. “Needs full course of vaccine”) as executable business rule using the Clinical Quality Language (CQL) as a FHIR Library Resource
 - Publishes business rules as FHIR Library resources with a trust health service
 
 Optionally:
   - Provide digital signagure of business rule as FHIR Provenance resource
   - Provides public key to PKD
 
-<h4 id="get_rules_api">Request Business Rule Updates - API</h4>
+<h4>Expected Actions</h4>
 
-See [Swagger API](openapi/index.html)
 
-<h4 id="get_rules_api">Request Business Rule Updates - FHIR</h4>
 
 <h3 id="execute_rule">Execute Business</h3>
+<h4>Trigger Events</h4>
+<h4>Message Semantics</h4>
+<h4>Expected Actions</h4>
 
 
 Verification App:
@@ -92,15 +138,25 @@ Optionally:
 
 
 
-<h3 id="get_valuesets">Request Value Sets</h3>
 
-Retrieve valuesets
-<h4 id="get_valuesets_api">Request Value Sets - API</h4>
-
+<h3 id="get_valuesets_api">Request Value Sets - API</h3>
+<h4>Trigger Events</h4>
+<h4>Message Semantics</h4>
 See [Swagger API](openapi/index.html)
+<h4>Expected Actions</h4>
 
-<h4 id="get_valuesets_api">Request Value Sets - FHIR</h4>
+
+
+<h3 id="get_valuesets_api">Request Value Sets - FHIR</h3>
+<h4>Trigger Events</h4>
+<h4>Message Semantics</h4>
 See [IHE Sharing Value Sets and Concept Maps](https://profiles.ihe.net/ITI/SVCM/) for transactions against a Terminology Service.
+<h4>Expected Actions</h4>
+
+
 
 <h3 id="execute_rule">Execute Business</h3>
 
+<h4>Trigger Events</h4>
+<h4>Message Semantics</h4>
+<h4>Expected Actions</h4>
