@@ -31,7 +31,7 @@ A Trust Network Partcipiant publish keys to the Trust Network Gateway for use by
 
 <h4 id="put_keys_api">Retreive Verification Keys - API </h4>
 
-See [Swagger API](https://worldhealthorganization.github.io/smart-trust-network-gateway/)
+See [Swagger API](openapi/index.html)
 
 
 <h3 id="get_keys">Retreive Verification Keys</h3>
@@ -57,7 +57,7 @@ Keys should be retrieved using the [GDHCN](https://smart.who.int/trust) framewor
 
 <h4 id="get_keys_api">Retreive Verification Keys - API </h4>
 
-See [Swagger API](https://worldhealthorganization.github.io/smart-trust-network-gateway/)
+See [Swagger API](openapi/index.html)
 
 
 <h3 id="get_rules">Request Business Rule Updates</h3>
@@ -73,7 +73,7 @@ Optionally:
 
 <h4 id="get_rules_api">Request Business Rule Updates - API</h4>
 
-See [Swagger API](https://worldhealthorganization.github.io/smart-trust-network-gateway/)
+See [Swagger API](openapi/index.html)
 
 <h4 id="get_rules_api">Request Business Rule Updates - FHIR</h4>
 
@@ -97,7 +97,7 @@ Optionally:
 Retrieve valuesets
 <h4 id="get_valuesets_api">Request Value Sets - API</h4>
 
-See [Swagger API](https://worldhealthorganization.github.io/smart-trust-network-gateway/)
+See [Swagger API](openapi/index.html)
 
 <h4 id="get_valuesets_api">Request Value Sets - FHIR</h4>
 See [IHE Sharing Value Sets and Concept Maps](https://profiles.ihe.net/ITI/SVCM/) for transactions against a Terminology Service.

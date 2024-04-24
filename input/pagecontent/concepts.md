@@ -99,7 +99,7 @@ Universal verifier applications that support different credential standards are 
 While some variability is expected in an approach that preserves sovereignty, there are opportunities for alignment in key format and distribution for the sake of fostering interoperability. With that goal, we provide a unifying trust list format to assemble and share public key infrastructure for all credential specifications used by existing trust networks. Importantly, this format does not enforce a particular policy framework for participants of the trust network.
 
 The GDHCN currently supports two means for key distribution of keys using trust lists
-- [EU DCC API](openapi) **required**
+- [EU DCC API](openapi/index.html) **required**
 - [Decentralized Identifier (DID)](concepts_did.html) optional
 
 
