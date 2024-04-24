@@ -27,6 +27,6 @@ Description:    "Logical Model for the HCERT"
 //* 2 0..* $RACSEL_DDVC "RACSEL Vaccination Certficate Data Set claim" "RACSEL Vaccination Certificate (PROPOSED)" 
 * 3 0..* $DDCCVS "Vaccination Core Data Set claim" "DDCC Vaccination claim (PROPOSED)"
 * 4 0..* $DDCCTR "Test Result Core Data Set claim" "DDCC Test Result claim (PROPOSED)"
-* 5 0..* $SmartHealthLink "SMART Health Link claim" "SMART Health Link (PROPOSED)"
+* 5 0..* $SmartHealthLink "SMART Health Link claim" "SMART Health Link"
 //* 6 0..* $IPS "IPS" "IPS Bundle (EXAMPLE)"
 
