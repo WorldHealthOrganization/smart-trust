@@ -99,7 +99,7 @@ Universal verifier applications that support different credential standards are 
 While some variability is expected in an approach that preserves sovereignty, there are opportunities for alignment in key format and distribution for the sake of fostering interoperability. With that goal, we provide a unifying trust list format to assemble and share public key infrastructure for all credential specifications used by existing trust networks. Importantly, this format does not enforce a particular policy framework for participants of the trust network.
 
 The GDHCN currently supports two means for key distribution of keys using trust lists
-- [EU DCC API](openapi/index.html) **required**
+- [EU DCC API](concepts_certificate_governance.html) **required**
 - [Decentralized Identifier (DID)](concepts_did.html) optional
 
 ### Trust Network
@@ -107,7 +107,7 @@ A Trust Network is a means to authenticate the encryption public keys used by pa
 {% include img.html img="trust_network.png" caption="Trust Network" width="70%" %}
 
 ### Trust Network Gateway (TNG)
-The Trust Network Gateway (TNG) is the open-source software and its IT operational infrastructure, utilizing open standards, for a Public Key Infrastructure and metadata management services which is used to operationalize one or more Trust Domains.  The Trust Network Gateway can be interacted with using the [API](openapi) once a mTLS connection has been established.
+The Trust Network Gateway (TNG) is the open-source software and its IT operational infrastructure, utilizing open standards, for a Public Key Infrastructure and metadata management services which is used to operationalize one or more Trust Domains.
 
 #### Trust Network Gateway - Trust Anchor  (TNG<sub>TA</sub>) 
 The Trust Anchor public key certificate of the TNG. The corresponding private key is used to sign the list of all SCA certificates offline.

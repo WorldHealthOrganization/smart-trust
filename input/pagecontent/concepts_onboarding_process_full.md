@@ -51,7 +51,7 @@ In the following description the required steps are divided into three sections:
 
 **[8]** The TNP receives the confirmation and necessary technical information to connect to the TNG and register the certificates.
 
-For a successful connection to the Trust Network Gateway there are the following steps [9] – [11] to prepare:
+For a successful connection to the gateway there are the following steps [9] – [11] to prepare:
 
 **[9]** Create certificates per environment. Details can be found here: https://smart.who.int/trust/concepts_CertificatePreperation.html
 
@@ -218,7 +218,7 @@ b) Delete at least one DSC again (revocation of a DSC)
 
 c) Optional: Upload it again (if it is required for further testing)
 
-d) Download the trust list from the TNG gateway [(API)](openapi)
+d) Download the trust list from the TNG gateway
 
 e) Provide sample VDHC s to be verified by the service provider
 
