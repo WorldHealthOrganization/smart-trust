@@ -35,7 +35,7 @@ The output should be a valid signed [HCERT](hcert_spec.html)
 
 
 
-<h4 id="put_keys_api}Publish Verification Keys - API 
+<h4 id="put_keys_api} Publish Verification Keys - API 
 #### Trigger Events
 
 A Trust Network Partcipiant publish keys to the Trust Network Gateway for use by Verification Applications.  Keys may be coded for a variety of uses including following the [certificate governance](concepts_certificate_governance.html) according to their [usage](ValueSet-TRUST.KEYUSAGE.html) and [trust domain](ValueSet-TRUST.DOMAIN.html)
@@ -46,7 +46,7 @@ See [Swagger API](openapi/index.html)
 #### Expected Actions
 
 
-### Retreive Verification Keys - DID {#get_keys_did}
+### Retrieve Verification Keys - DID {#get_keys_did}
 #### Trigger Events
 
 #### Message Semantics
