@@ -33,7 +33,7 @@ In the following description the required steps are divided into three sections:
 
 ### Application and Verification
 
-**[1]** The eligible Trust Network Participant (TNP) has to submit its Statement of Interest [link to the form. [Document 5] ] to tng-support@who.int .
+**[1]** The eligible Trust Network Participant (TNP) has to submit its Statement of Interest [link to the form. [Document 5] ] to gdhcn-support@who.int .
 
 **[2 – 3]** WHO validates all provided data and verify that such a data follows WHO compliance with Trusted Network Terms of Participation (TOP 0 – 3) https://smart.who.int/trust/concepts.html as well as: Participant´s eligibility criteria, governmental entity/health agency, contact details of approvers and individuals. [See Elegibility Criteria]. [Document 16]
 
@@ -51,7 +51,7 @@ In the following description the required steps are divided into three sections:
 
 **[8]** The TNP receives the confirmation and necessary technical information to connect to the TNG and register the certificates.
 
-For a successful connection to the Trust Network Gateway there are the following steps [9] – [11] to prepare:
+For a successful connection to the gateway there are the following steps [9] – [11] to prepare:
 
 **[9]** Create certificates per environment. Details can be found here: https://smart.who.int/trust/concepts_CertificatePreperation.html
 
@@ -218,7 +218,7 @@ b) Delete at least one DSC again (revocation of a DSC)
 
 c) Optional: Upload it again (if it is required for further testing)
 
-d) Download the trust list from the TNG gateway [(API)](openapi)
+d) Download the trust list from the TNG gateway
 
 e) Provide sample VDHC s to be verified by the service provider
 

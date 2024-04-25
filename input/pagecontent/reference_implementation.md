@@ -35,4 +35,4 @@ documented network of trust gateways, supporting all major health credential cer
 
 -	[Trust Network Gateway public repository](https://github.com/WorldHealthOrganization/ddcc-gateway)
 -	[Architecture](./trust_network_gateway_architecture.html)
--	[Swagger API](openapi)
+
