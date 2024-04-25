@@ -11,3 +11,4 @@ Usage: #example
 * title = "TNG"
 * experimental = false
 * description = "Trust Network Gateway"
+* extension[code] = $TrustActor#TNG

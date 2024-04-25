@@ -11,3 +11,4 @@ Usage: #example
 * title = "Credential.Holder"
 * experimental = false
 * description = "Credential Holder"
+* extension[code] = $TrustActor#credential-holder

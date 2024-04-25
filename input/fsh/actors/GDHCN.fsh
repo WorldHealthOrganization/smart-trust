@@ -11,3 +11,4 @@ Usage: #example
 * title = "GDHCN"
 * experimental = false
 * description = "WHO Global Digital Health Certification Network"
+* extension[code] = $TrustActor#GDHCN

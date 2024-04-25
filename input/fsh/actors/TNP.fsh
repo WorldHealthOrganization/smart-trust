@@ -11,3 +11,4 @@ Usage: #example
 * title = "TNP"
 * experimental = false
 * description = "Trust Network Participant"
+* extension[code] = $TrustActor#TNP
