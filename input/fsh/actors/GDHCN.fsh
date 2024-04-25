@@ -1,5 +1,7 @@
+Alias: $SGActor = http://smart.who.int/base/StructureDefinition/SGActor
+
 Instance: GDHCN
-InstanceOf: ActorDefinition
+InstanceOf: $SGActor
 Usage: #example
 * meta.profile = "http://smart.who.int/smart-base/StructureDefinition/SGPersona"
 * type = #system
