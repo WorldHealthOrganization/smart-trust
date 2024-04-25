@@ -1,5 +1,3 @@
-Alias: $SGActor = http://smart.who.int/base/StructureDefinition/SGActor
-
 Instance: GDHCN
 InstanceOf: $SGActor
 Usage: #example
@@ -11,4 +9,4 @@ Usage: #example
 * title = "GDHCN"
 * experimental = false
 * description = "WHO Global Digital Health Certification Network"
-* extension[code] = $TrustActor#GDHCN
+* extension[code].valueCoding = $TrustActor#GDHCN

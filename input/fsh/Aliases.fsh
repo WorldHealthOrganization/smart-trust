@@ -1,4 +1,5 @@
 Alias: $SGActor = http://smart.who.int/base/StructureDefinition/SGActor
+
 Alias: $SGTransactionOp = http://smart.who.int/base/StructureDefinition/SGTransactionOperation
 Alias: $SGTransactionDef = http://smart.who.int/base/StructureDefinition/SGTransactionDefinition
 

@@ -1,5 +1,3 @@
-Alias: $SGActor = http://smart.who.int/base/StructureDefinition/SGActor
-
 Instance: TNP
 InstanceOf: $SGActor
 Usage: #example
@@ -11,4 +9,4 @@ Usage: #example
 * title = "TNP"
 * experimental = false
 * description = "Trust Network Participant"
-* extension[code] = $TrustActor#TNP
+* extension[code].valueCoding = $TrustActor#TNP
