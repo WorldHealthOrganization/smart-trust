@@ -1,7 +1,7 @@
 Alias: $SGActor = http://smart.who.int/base/StructureDefinition/SGActor
 
 Instance: TNP
-InstanceOf: $SGActor
+InstanceOf: ActorDefinition
 Usage: #example
 * meta.profile = "http://smart.who.int/smart-base/StructureDefinition/SGPersona"
 * type = #system
