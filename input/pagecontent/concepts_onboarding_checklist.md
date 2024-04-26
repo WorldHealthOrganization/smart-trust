@@ -51,7 +51,7 @@ As a transitive trust participant, you should limit the usage to http *GET* requ
 
 #### Full Onboarding
 
-For a successfull connection to the gateway using full onboarding, there are several steps to prepare:
+For a successful connection to the gateway using full onboarding, there are several steps to prepare:
 
  1) Certificates must be prepared for Acceptance Environment (self signed allowed) following the requirements in [Certificate Governance](concepts_certificate_governance.html)
     - Authentication: TNP<sub>TLS</sub>
