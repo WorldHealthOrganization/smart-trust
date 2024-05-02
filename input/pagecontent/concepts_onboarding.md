@@ -8,13 +8,13 @@ These [concepts](concepts.html) and the following table contains abbreviations a
 
 * <a href="GDHCN_Administrative_and_Operational_Framework.pdf">GDHCN Administrative and Operational Framework</a>
 * DDCC: The Trust Domain for the Digital Documentation of COVID-19 Certificates
-* <a href="Letter_of_Application_Transitive_Trust.docx">Letter of Application for DDCC using the Transitive Trust</a> 
-* <a href="Letter_of_Application_DDCC.docx">Letter of Application for DDCC by the Full Onboarding Process</a>
-* <a href="Letter_of_Application_DDCC-Arabic.docx">Letter of Application for DDCC by the Full Onboarding Process - Arabic Version</a>
-* <a href="Letter_of_Application_DDCC_Chinese.docx">Letter of Application for DDCC by the Full Onboarding Process - Chinese Version</a>
-* <a href="Letter_of_Application_DDCC_French.docx">Letter of Application for DDCC by the Full Onboarding Process - French Version</a>
-* <a href="Letter_of_Application_DDCC_Russian.docx">Letter of Application for DDCC by the Full Onboarding Process - Russian Version</a>
-* <a href="Letter_of_Application_DDCC-Spanish.docx">Letter of Application for DDCC by the Full Onboarding Process - Spanish Version</a>
+* <a href="Letter_of_Application_Transitive_Trust.doc">Letter of Application for DDCC using the Transitive Trust</a> 
+* <a href="[Letter_of_Application_DDCC.docx](https://github.com/WorldHealthOrganization/smart-trust/blob/Updated-Template-LOAs/input/images/Letter_of_Application_DDCC_UPDATED.docx)">Letter of Application for DDCC by the Full Onboarding Process</a>
+* <a href="[Letter_of_Application_DDCC-Arabic.docx](https://github.com/WorldHealthOrganization/smart-trust/blob/Updated-Template-LOAs/input/images/Letter_of_Application_DDCC-Arabic_Updated.docx)">Letter of Application for DDCC by the Full Onboarding Process - Arabic Version</a>
+* <a href="[Letter_of_Application_DDCC_Chinese.docx](https://github.com/WorldHealthOrganization/smart-trust/blob/Updated-Template-LOAs/input/images/Letter_of_Application_DDCC_Chinese_Updated.docx)">Letter of Application for DDCC by the Full Onboarding Process - Chinese Version</a>
+* <a href="[Letter_of_Application_DDCC_French.docx](https://github.com/WorldHealthOrganization/smart-trust/blob/Updated-Template-LOAs/input/images/Letter_of_Application_DDCC_French_Updated.docx)">Letter of Application for DDCC by the Full Onboarding Process - French Version</a>
+* <a href="[Letter_of_Application_DDCC_Russian.docx](https://github.com/WorldHealthOrganization/smart-trust/blob/Updated-Template-LOAs/input/images/Letter_of_Application_DDCC_Russian_Updated.docx)">Letter of Application for DDCC by the Full Onboarding Process - Russian Version</a>
+* <a href="[Letter_of_Application_DDCC-Spanish.docx](https://github.com/WorldHealthOrganization/smart-trust/blob/Updated-Template-LOAs/input/images/Letter_of_Application_DDCC-Spanish_Updated.docx)">Letter of Application for DDCC by the Full Onboarding Process - Spanish Version</a>
 
 
 
