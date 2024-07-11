@@ -35,7 +35,7 @@ This repository contains the template for building [onboarding](https://github.c
 
 3. Add tng-bot to new repository
 	> Please check [Invite tng-bot to private repository](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.2.full-video.v2.mp4) video for reference
-- Go to Github profile -> Settings
+- Go to Repository -> Settings
 - Go to Collaborators
 - Authenticate
 - Click on Add people
@@ -148,19 +148,14 @@ This repository contains the template for building [onboarding](https://github.c
 	**Note**: keep your private keys safe and secure. Do not share them with anyone.
 
 	Copy the generated certificates to the respective folders and change the file names to match the naming convention. For the case of self-signed TLS certificates, the CA.pem is just a copy of the TLS.pem (check to have keyCertSign in the keyUsage). The CA.pem should exist, since it is used to verify the TLS client certificate when connecting to the TNG application.
+	Files to be copied in respective folders are as follows:
+	- SCA.pem -> onboarding/DCC/SCA
+   	- UP.pem -> onboarding/DCC/UP
+   	- CA.pem -> onboarding/DCC/TLS
+   	- TLS.pem -> onboarding/DCC/TLS
 
-	## Tagging for taking into use
-
-	[](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md#tagging-for-taking-into-use)
-
-	Finally commit push changes and make a signed tag for the version you want to take into use.
-
-	```
-	git add .
-	git commit -m "feat(cert): update certificates for onboarding"
-	GIT_TRACE=1 git tag -s v0.0.1 -m 'onboardingRequest'
-	git push --tags
-	```
+	**Note** On DEV and UAT environment, if the files are generated using a script, delete the generated folder before committing the files.
+	
 
 - For Prod
 **Concepts Certificate Preparation**
@@ -364,27 +359,39 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	notBefore               = IMPLICIT:0,GENERALIZEDTIME:$ENV::PRIV_KEY_START
 	notAfter                = IMPLICIT:1,GENERALIZEDTIME:$ENV::DS_PRIV_KEY_END
 	```
+ 	## Tagging for taking into use
+
+	[](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md#tagging-for-taking-into-use)
+
+	Finally commit push changes and make a signed tag for the version you want to take into use.
+
+	```
+	git add .
+	git commit -m "feat(cert): update certificates for onboarding"
+	GIT_TRACE=1 git tag -s v0.0.1 -m 'onboardingRequest'
+	git push --tags
+	```
 6. **Signing Your Work**
 	> Please check  [Signing (tag) certificates](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.4.full-video.v2.mp4) video for reference
 
 	Git is cryptographically secure, but it’s not foolproof. If you’re taking work from others on the internet and want to verify that commits are actually from a trusted source, Git has a few ways to sign and verify work using GPG.
 
 	First of all, if you want to sign anything you need to get GPG configured and your personal key installed.
-	```
-	$ gpg --list-keys
-	/Users/schacon/.gnupg/pubring.gpg
-	---------------------------------
-	pub   2048R/0A46826A 2014-06-04
-	uid                  Scott Chacon (Git signing key) <schacon@gmail.com>
-	sub   2048R/874529A9 2014-06-04
-	```
+	```	
+	$ gpg --list-secret-keys --keyid-format=long
+	/Users/hubot/.gnupg/secring.gpg
+	------------------------------------
+	sec   4096R/3AA5C34371567BD2 2016-03-10 [expires: 2017-03-10]
+	uid                          Hubot <hubot@example.com>
+	ssb   4096R/4BB6D45482678BE3 2016-03-10
+	````
 	If you don’t have a key installed, you can generate one with **gpg --gen-key**.
 	```
 	$ gpg --gen-key
 	```
 	Once you have a private key to sign with, you can configure Git to use it for signing things by setting the user.signingkey config setting.
 	```
-	$ git config --global user.signingkey 0A46826A!
+	$ git config --global user.signingkey 3AA5C34371567BD2!
 	```
 	Now Git will use your key by default to sign tags and commits if you want.
 	### Signing Tags
