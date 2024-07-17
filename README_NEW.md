@@ -1,7 +1,7 @@
 # Introduction 
 This repository contains the template for building [onboarding](https://github.com/WorldHealthOrganization/smart-trust/blob/main/input/pagecontent/concepts_onboarding.md) informations for the Smart Trust Network Attendees. This includes CSCAs, Auth information, signing information and other relevant files for onboarding a participant.
 
-![Onboarding Process](Onboarding%20Process.drawio.png)
+![Onboarding Process](./input/images/OnboardingDoc/Onboarding%20Process.drawio.png)
 
 ##  Prerequisites
 
@@ -48,6 +48,36 @@ This repository contains the template for building [onboarding](https://github.c
 - Download and install the GPG command line tools for your operating system. We generally recommend installing the latest version for your operating system.
 - Open Git Bash
 - Generate a GPG key pair. Since there are multiple versions of GPG, you may need to consult the relevant man page to find the appropriate key generation command
+  keys can be generated using scripts or using the commands.
+
+	### Using script
+	```
+	Step1 :
+ 	run command 
+
+ 	For Mac:
+	cd scripts/gpgkeygen
+	./gen_key.sh
+
+	For Windows:
+	cd scripts/gpgkeygen
+	./gen_key.ps1
+
+ 	GPG key generation completed. Your key ID is: {KeyId}
+	Your public key has been saved to gpg_key_{KeyId}.txt
+
+ 	Step2 :
+ 	extract the content from gpg_key_{KeyId}.txt and add to gpg
+
+	Step3 : 
+	gpg --list-secret-keys --keyid-format=long
+	git config --global user.signingkey {KeyId}
+	git config --global user.name {gitusername}
+	git config --global user.email {emailid}
+
+ 	```
+ 	
+  	### Using commands
 
 	If you are on version 2.1.17 or greater, paste the text below to generate a GPG key pair.
 	
@@ -521,14 +551,32 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	### Everyone Must Sign - Always a good idea
 	Signing tags and commits is great, but if you decide to use this in your normal workflow, you’ll have to make sure that everyone on your team understands how to do so. This can be achieved by asking everyone working with the repository to run git config --local commit.gpgsign true to automatically have all of their commits in the repository signed by default. If you don’t, you’ll end up spending a lot of time helping people figure out how to rewrite their commits with signed versions. Make sure you understand GPG and the benefits of signing things before adopting this as part of your standard workflow.
 7. Validating the certificates
+
+   There are certain steps to be performed before we actually verify the certificates by making a call to trustlist.
+   	- Go to git repo
+   	- Switch to tags
+   	- Click on the tag you have committed.
+
+   	   ![](./input/images/OnboardingDoc/verify-tag-1.png)
+   	- Verify commit with GPG key. Click on last commit id.
+
+   	   ![](./input/images/OnboardingDoc/verify-tag-2.png)
+   	- Click on verified and confirm the GPG ID.
+
+   	   ![](./input/images/OnboardingDoc/verify-tag-3.png)
+
+   	Once these steps are performed and verified, the gdhcn-support team would perform the activities at their end. Once that is done, participants can then proceed further to test the connection.
+	
+
+9. Send an onboarding/participation request to gdhcn-support@who.int which contains:
+- URL of the private repository created as a prerequisite
+- The GPG key exported in Step 4
+
+9. Testing the connection
 	> Please check [Testing connection](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/3.1.full-video.v2.mp4)  video for reference
 
 	Use the following command to verify the certificates by testing the connection.
 	```
 	curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS.key
 	```
-
-8. Send an onboarding/participation request to gdhcn-support@who.int which contains:
-- URL of the private repository created as a prerequisite
-- The GPG key exported in Step 4
   
