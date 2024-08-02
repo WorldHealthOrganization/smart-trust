@@ -21,6 +21,45 @@ This repository contains the template for building [onboarding](https://github.c
 - Use Authentication code
 - Add Note, Expiration, 'Repo' as a scope and click ‘Generate Token’
 
+**Install OpenSSL on local machine**
+- For Windows
+	```
+	1. Use winget serach command as follows:
+ 	winget search openssl
+
+ 	2. Install appropriate openssl using ID. (eg. Firedaemon)
+ 	winget install FireDaemon.OpenSSL
+ 	```
+ - For Mac
+   	```
+	To install OpenSSL on your Mac M1 using Homebrew, follow these steps:
+
+	1. Verify Homebrew installation
+	: Ensure you have Homebrew installed on your Mac M1. If not, install it by running /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" in your terminal.
+	
+	2. Update Homebrew
+	: Run brew update to ensure you have the latest package list.
+	
+	3. Install OpenSSL
+	: Run brew install openssl to install OpenSSL. This may take a few minutes.
+	
+	4. Verify installation
+	: Run openssl version to verify that OpenSSL has been installed successfully.
+ 
+ - For Linux
+   	```
+	The easiest way to install OpenSSL on Ubuntu is by using the apt package manager. Here are the steps:
+    	- Update your apt repositories to fetch the latest package listings:
+    		$ sudo apt update
+
+    	- Install the openssl package:
+    		$ sudo apt install openssl
+
+    	- Verify the installed version:
+    		$ openssl version
+    
+ This should install OpenSSL on the machine. No additional configuration needs to be done.
+
 ## Onboarding process
 
 1. Go to local repo
