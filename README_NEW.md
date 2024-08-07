@@ -535,11 +535,19 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 - URL of the private repository created as a prerequisite
 - The GPG key exported in Step 4
 
-Once Oboarding is sucessful confirmation  by GHDCN Support Team 
+Once you recieve confirmation on sucesfull onboarding from TNG Support Team ( gdhcn-support@who.int) 
 
 After onboarding in the DEV/UAT/Pro Environment, check the connectivity with the Trust Network Gateway using its API. This can be acheived with following command:
 
+TNG-WHO Endpoints:
+-	PRD:	 https://tng.who.int
+-	UAT:	 https://tng-uat.who.int
+-	DEV:	 https://tng-dev.who.int
+
+
+```
 curl -v https://tng-uat.who.int/trustList --cert TLS.pem --key TLS_key.pem
+```
 You should see a output like:
 
 ```
@@ -559,14 +567,25 @@ You should see a output like:
 5) Create an Document Signer Certificate and sign it by the SCA
 6) Create an CMS Package with the following Command:
 
-      openssl x509 -outform der -in cert.pem -out cert.der
-      openssl cms -sign -nodetach -in cert.der -signer signing.crt -inkey signing.key -out signed.der -outform DER -binary
-      openssl base64 -in signed.der -out cms.b64 -e -A 
-Note: cert.der is your DSC, signing.crt is the TNPUP)
+```
+openssl x509 -outform der -in cert.pem -out cert.der
+openssl cms -sign -nodetach -in cert.der -signer signing.crt -inkey signing.key -out signed.der -outform DER -binary
+openssl base64 -in signed.der -out cms.b64 -e -A
+```
+**Note**: cert.der is your DSC, signing.crt is the TNPUP)
 
-7) Upload the CMS Package to the Gateway
+7) Check DSC is already exist before upload CMS package
+```   
+curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
+```
+9) Upload the CMS Package to the Gateway
+```    
 curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-uat.who.int/signerCertificate
-8) Download the Trustlist again, and check if your DSC is available.
+```
+11) Download the Trustlist again, and check if your DSC is available.
+```   
+curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
+```    
 
 Note: Some versions of curl don’t attach the client certificates automatically. This can be checked via curl --version Ensure that the used version is linked to OpenSSL. Especially under Windows (https://curl.se/windows/):
 
