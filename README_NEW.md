@@ -114,13 +114,16 @@ This repository contains the template for building [onboarding](https://github.c
 **Certificate Preperation**
 	> Disclaimer: The script generates self-signed certificates not intended to be used on production environments.
 	
-	You must adapt the following default certificate parameter in gen_all_certs.sh to your needs:
+	You must adapt the following default certificate parameter of [DN_template.cnf(https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf)] file which will used  in gen_all_certs.sh to your needs:  
 	```
-	export OSSL_COUNTRY_NAME="XA"
+	# Configuration Template for Certificate Generation
+	# Modify for your own needs
+	
+	export OSSL_COUNTRY_NAME="XC"
 	export OSSL_STATE_NAME="Test State"
-	export OSSL_LOCALITY_NAME="Geneva"
+	export OSSL_LOCALITY_NAME="TEST"
 	export OSSL_ORGANIZATION_NAME="WHO"
-	export OSSL_ORGANIZATIONAL_UNIT_NAME="R&D"
+	export OSSL_ORGANIZATIONAL_UNIT_NAME="RND"
 
 	```
 	> Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
@@ -531,4 +534,40 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 8. Send an onboarding/participation request to gdhcn-support@who.int which contains:
 - URL of the private repository created as a prerequisite
 - The GPG key exported in Step 4
-  
+
+Once Oboarding is sucessful confirmation  by GHDCN Support Team 
+
+After onboarding in the DEV/UAT/Pro Environment, check the connectivity with the Trust Network Gateway using its API. This can be acheived with following command:
+
+curl -v https://tng-uat.who.int/trustList --cert TLS.pem --key TLS_key.pem
+You should see a output like:
+
+```
+[
+{
+    "kid": "+jrpHSqdqZY=",
+    "timestamp": "2023-05-25T07:55:21Z",
+    "country": "XC",
+    "certificateType": "UPLOAD",
+    "thumbprint": "fa3ae91d...",
+    "signature": "MIAGCSqGSIb3D...",
+    "rawData": "MIIErTCCA5WgAwIBAgII..."
+}
+]
+```
+4) Test the other Trustlist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication…)
+5) Create an Document Signer Certificate and sign it by the SCA
+6) Create an CMS Package with the following Command:
+
+      openssl x509 -outform der -in cert.pem -out cert.der
+      openssl cms -sign -nodetach -in cert.der -signer signing.crt -inkey signing.key -out signed.der -outform DER -binary
+      openssl base64 -in signed.der -out cms.b64 -e -A 
+Note: cert.der is your DSC, signing.crt is the TNPUP)
+
+7) Upload the CMS Package to the Gateway
+curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-uat.who.int/signerCertificate
+8) Download the Trustlist again, and check if your DSC is available.
+
+Note: Some versions of curl don’t attach the client certificates automatically. This can be checked via curl --version Ensure that the used version is linked to OpenSSL. Especially under Windows (https://curl.se/windows/):
+
+    
