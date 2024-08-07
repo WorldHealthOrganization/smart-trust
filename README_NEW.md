@@ -114,7 +114,7 @@ This repository contains the template for building [onboarding](https://github.c
 **Certificate Preperation**
 	> Disclaimer: The script generates self-signed certificates not intended to be used on production environments.
 	
-	You must adapt the following default certificate parameter of [DN_template.cnf(https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf)] file which will used  in gen_all_certs.sh to your needs:  
+	You must adapt the following default certificate parameter of [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file which will used  in gen_all_certs.sh to your needs:  
 	```
 	# Configuration Template for Certificate Generation
 	# Modify for your own needs
