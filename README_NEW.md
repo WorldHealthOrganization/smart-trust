@@ -546,7 +546,7 @@ TNG-WHO Endpoints:
 
 
 ```
-curl -v https://tng-uat.who.int/trustList --cert TLS.pem --key TLS_key.pem
+curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS_key.pem
 ```
 You should see a output like:
 
@@ -580,7 +580,7 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 ```
 9) Upload the CMS Package to the Gateway
 ```    
-curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-uat.who.int/signerCertificate
+curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-dev.who.int/signerCertificate
 ```
 11) Download the Trustlist again, and check if your DSC is available.
 ```   
