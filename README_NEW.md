@@ -571,8 +571,30 @@ You should see a output like:
 openssl x509 -outform der -in cert.pem -out cert.der
 openssl cms -sign -nodetach -in cert.der -signer signing.crt -inkey signing.key -out signed.der -outform DER -binary
 openssl base64 -in signed.der -out cms.b64 -e -A
+
 ```
-**Note**: cert.der is your DSC, signing.crt is the TNPUP)
+**Note**: cert.der is your DSC, signing.crt is the TNPUP.
+
+The DSC generation and upload of  CMS package to TNG Gateway  could be achieved through the below mentioned scripts.
+For DEV and UAT environments you may use script. 
+
+[Generate DSCs](https://github.com/WorldHealthOrganization/tng-participant-template/tree/main/scripts/certgen#generate-dscs)
+
+[Upload DSCs](https://github.com/WorldHealthOrganization/tng-participant-template/tree/main/scripts/certgen#upload-dscs0)
+
+The Distinguised Nmae ( DN) configuration file while will parse as source  [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) is an example.
+
+Please replace with your actual OSSL_COUNTRY_NAME, OSSL_STATE_NAME etc parameters accordingly of 	DN_template.cnf file.
+
+The script expects at least two arguments:
+A configuration file (DN_template.cnf) that contains the Distinguished Name (DN) template.
+A subdirectory where the SCA (Signing Certificate Authority) PEM and KEY files are located.
+An optional third argument can be provided to specify the purpose of the DSC (e.g., test, vax, rec). If this argument is not provided, the DSC will be generated for all purposes.
+
+Howto run script :  ./script_name.sh DN_template.cnf directory_of_SCA_files [test/vax/rec-purpose}
+
+
+
 
 7) Check DSC is already exist before upload CMS package
 ```   
@@ -581,6 +603,7 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 9) Upload the CMS Package to the Gateway
 ```    
 curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-dev.who.int/signerCertificate
+
 ```
 11) Download the Trustlist again, and check if your DSC is available.
 ```   
@@ -590,10 +613,6 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 Note: Some versions of curl don’t attach the client certificates automatically. This can be checked via curl --version Ensure that the used version is linked to OpenSSL. Especially under Windows (https://curl.se/windows/):
 
 
-The DSC generation and upload CMS package could be achieved the script as well .
 
-[Generate DSCs](https://github.com/WorldHealthOrganization/tng-participant-template/tree/main/scripts/certgen#generate-dscs)
-
-[Upload DSCs](https://github.com/WorldHealthOrganization/tng-participant-template/tree/main/scripts/certgen#upload-dscs0)
 
     
