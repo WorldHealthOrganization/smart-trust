@@ -595,12 +595,24 @@ A configuration file (DN_template.cnf) that contains the Distinguished Name (DN)
 A subdirectory where the SCA (Signing Certificate Authority) PEM and KEY files are located.
 An optional third argument can be provided to specify the purpose of the DSC (e.g., test, vax, rec). If this argument is not provided, the DSC will be generated for all purposes.
 
-Howto to run DSC Generate Script [gen_dsh.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_dsc.sh)
+**Howto to run DSC Generate Script** [gen_dsh.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_dsc.sh)
 
 ``` 
 ./script_name.sh DN_template.cnf directory_of_SCA_files [test/vax/rec-purpose}
 
-``` 
+```
+**How to run upload.sh script:**
+
+./upload_dsc.sh: Replace this with the actual name of your script.
+
+/path/to/subdir: Path to the directory containing UP.pem and UP.key.
+
+/path/to/DSC_dir: Path to the directory containing the DSC files (DSC.pem, DSC.key).
+
+DCC: The domain name to be used. If omitted, the script will default to DCC.
+```
+./upload_dsc.sh /path/to/subdir-up_pem_key  /path/to/DSC_dir [DCC]
+```
 
 7) Check DSC is already exist before upload CMS package
 ```   
