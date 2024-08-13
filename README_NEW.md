@@ -566,7 +566,9 @@ You should see a output like:
 4) Test the other Trustlist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication…)
 5) Create an Document Signer Certificate and sign it by the SCA
 6) Create an CMS Package with the following Command:
+    Note: Step 4 and 5 could be achived through two menthod commandline and script respectively .
 
+**Method 1 - Commandline .**
 ```
 openssl x509 -outform der -in cert.pem -out cert.der
 openssl cms -sign -nodetach -in cert.der -signer signing.crt -inkey signing.key -out signed.der -outform DER -binary
@@ -574,6 +576,8 @@ openssl base64 -in signed.der -out cms.b64 -e -A
 
 ```
 **Note**: cert.der is your DSC, signing.crt is the TNPUP.
+
+**Method 2 - Scripts**
 
 The DSC generation and upload of  CMS package to TNG Gateway  could be achieved through the below mentioned scripts.
 For DEV and UAT environments you may use script. 
@@ -592,8 +596,6 @@ A subdirectory where the SCA (Signing Certificate Authority) PEM and KEY files a
 An optional third argument can be provided to specify the purpose of the DSC (e.g., test, vax, rec). If this argument is not provided, the DSC will be generated for all purposes.
 
 Howto run script :  ./script_name.sh DN_template.cnf directory_of_SCA_files [test/vax/rec-purpose}
-
-
 
 
 7) Check DSC is already exist before upload CMS package
