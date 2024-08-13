@@ -595,8 +595,10 @@ A configuration file (DN_template.cnf) that contains the Distinguished Name (DN)
 A subdirectory where the SCA (Signing Certificate Authority) PEM and KEY files are located.
 An optional third argument can be provided to specify the purpose of the DSC (e.g., test, vax, rec). If this argument is not provided, the DSC will be generated for all purposes.
 
-Howto run script :  ./script_name.sh DN_template.cnf directory_of_SCA_files [test/vax/rec-purpose}
-
+Howto run script :
+``` 
+./script_name.sh DN_template.cnf directory_of_SCA_files [test/vax/rec-purpose}
+``` 
 
 7) Check DSC is already exist before upload CMS package
 ```   
