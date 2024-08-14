@@ -1,7 +1,7 @@
 Alias: $IPS = http://hl7.org/fhir/uv/ips/StructureDefinition/Bundle-uv-ips
 Alias: $HCertDCC = http://smart.who.int/ddcc/StructureDefinition/HCertDCC
-Alias: $DDCCVS = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSet.VS
-Alias: $DDCCTR = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSet.TR
+Alias: $DDCCVS = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetVS
+Alias: $DDCCTR = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetTR
 Alias: $DVC = http://smart.who.int/icvp/StructureDefinition/DVC
 
 Logical:        HCert
