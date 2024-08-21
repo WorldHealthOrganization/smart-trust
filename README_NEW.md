@@ -643,7 +643,26 @@ Note: Some versions of curl don’t attach the client certificates automatically
 
 ## 1. **Renewing TLS Certificates**
 
+The TLS, UP and SCA certificate renewal proces is same as fresh new TLS/UP/SCA certfication generation during fresh new full onboarding you had followed . Once you get notified by TNG Support Team prior 30 daysby E-mail communication on certificate expiration, so accordinlgy you have to renew you respective certificate .
+
+**Validity periods**
+Digital certificates contain a validity period that enforces certificate renewal. Renewal is necessary to use fresh cryptographic keys and to adapt the key sizes when improvements in computation or new attacks threaten the security of the cryptographic algorithm that is used. The shell model applies (see Section “Signing Certificate Authorities and Validation Model”). The following validity periods are recommended based on the assumption of the one-year maximum validity for Verifiable Digital Health Certificates :
+
+SCA: 4 years
+DSC: 2 years
+Upload: 1-2 years
+TLS Client authentication: 1-2 years
+For a timely renewal, the following usage period for the private keys are recommended:
+
+SCA: 1 year
+DSC: 6 months
+GDHCN Participants MUST create new upload certificates and TLS certificates timely, e.g. one month, before expiration in order to allow smooth operation. SCA and DSC SHOULD be renewed at least one month before the private key usage ends (considering the necessary operational procedures). GDHCN Participants MUST provide updated SCA, upload and TLS certificates to the GDHCN Secretariat.
+
+
+
 ### For Production Environment:
+
+### **Renewing UP (TLS Certificates)**
 1. **Create TLS Configuration File (`TLSClient.conf`):**
 
     ```plaintext
@@ -669,6 +688,7 @@ Note: Some versions of curl don’t attach the client certificates automatically
 
     ```bash
     openssl req -x509 -new -days 365 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout TNP_TLS.key -nodes -out TNP_TLS.pem -config TLSClient.conf
+    
     ```
 
 ## 2. **Renewing UP (Upload Certificates)**
@@ -729,6 +749,8 @@ Note: Some versions of curl don’t attach the client certificates automatically
 
     ```bash
     openssl req -x509 -new -days 1461 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout CAprivkey.key -nodes -out CAcert.pem -config sca.conf
+
+    
     ```
 
 ## General Notes:
@@ -736,6 +758,9 @@ Note: Some versions of curl don’t attach the client certificates automatically
 - Ensure to back up any existing certificates before renewing.
 - Verify and update any configurations or deployment settings to use the new certificates.
 - Self-signed certificates are generally used for DEV and UAT environments. For production, use certificates signed by a recognized CA.
+
+
+
 
 ## Git Commit and Tag Push
 
