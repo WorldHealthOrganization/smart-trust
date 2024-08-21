@@ -633,4 +633,145 @@ Note: Some versions of curl don’t attach the client certificates automatically
 
 
 
+
+
+
+=======================================================================
+# Certificate Renewal Procedures
+
+=======================================================================
+
+## 1. **Renewing TLS Certificates**
+
+### For Production Environment:
+1. **Create TLS Configuration File (`TLSClient.conf`):**
+
+    ```plaintext
+    [req]
+    prompt = no
+    default_md = sha256
+    distinguished_name = dn
+
+    [dn]
+    C = DE
+    ST = NRW
+    L = Bonn
+    O = MinistryOfTest
+    OU = DGCOperations
+    CN = NationX_TNP_TLS
+
+    [ext]
+    keyUsage = critical, digitalSignature, keyCertSign
+    extendedKeyUsage = clientAuth
+    ```
+
+2. **Generate New Private Key and Certificate:**
+
+    ```bash
+    openssl req -x509 -new -days 365 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout TNP_TLS.key -nodes -out TNP_TLS.pem -config TLSClient.conf
+    ```
+
+## 2. **Renewing UP (Upload Certificates)**
+
+### For Production Environment:
+1. **Create UP Configuration File (`uploadCert.conf`):**
+
+    ```plaintext
+    [req]
+    prompt = no
+    default_md = sha256
+    distinguished_name = dn
+
+    [dn]
+    C = DE
+    ST = NRW
+    L = Bonn
+    O = MinistryOfTest
+    OU = DGCOperations
+    CN = NationX_TNPUP
+
+    [ext]
+    keyUsage = critical, digitalSignature
+    ```
+
+2. **Generate New Private Key and Certificate:**
+
+    ```bash
+    openssl req -x509 -new -days 365 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout TNP_UP.key -nodes -out TNP_UP.pem -config uploadCert.conf
+    ```
+
+## 3. **Renewing SCA (Signing Certificate Authority)**
+
+### For Production Environment:
+1. **Create SCA Configuration File (`sca.conf`):**
+
+    ```plaintext
+    [req]
+    prompt = no
+    default_md = sha256
+    distinguished_name = dn
+
+    [dn]
+    C = DE
+    ST = NRW
+    L = Bonn
+    O = MinistryOfTest
+    OU = DGCOperations
+    CN = SCA_DGC_DE_01
+
+    [ext]
+    basicConstraints = critical, CA:TRUE, pathlen:0
+    keyUsage = critical, cRLSign, keyCertSign
+    subjectKeyIdentifier = hash
+    ```
+
+2. **Generate New Private Key and Certificate:**
+
+    ```bash
+    openssl req -x509 -new -days 1461 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout CAprivkey.key -nodes -out CAcert.pem -config sca.conf
+    ```
+
+## General Notes:
+- Make sure to replace configuration file details with your specific information.
+- Ensure to back up any existing certificates before renewing.
+- Verify and update any configurations or deployment settings to use the new certificates.
+- Self-signed certificates are generally used for DEV and UAT environments. For production, use certificates signed by a recognized CA.
+
+## Git Commit and Tag Push
+
+### General Steps for Committing and Tagging Renewed Certificates:
+
+1. **Add the renewed certificate to Git:**
+
+    ```bash
+    git add path/to/renewed-certificate.pem
+    ```
+
+2. **Commit the changes:**
+
+    ```bash
+    git commit -m "Add renewed certificate"
+    ```
+
+3. **Push the changes to the main branch:**
+
+    ```bash
+    git push origin main
+    ```
+
+4. **Tag the commit with an appropriate version:**
+
+    ```bash
+    git tag -a v1.3 -m "Renewed certificate"
+    ```
+
+5. **Push the tag to the remote repository:**
+
+    ```bash
+    git push origin v1.3
+    ```
+
+Feel free to adjust the file names and tags as needed for your specific context.
+
+
     
