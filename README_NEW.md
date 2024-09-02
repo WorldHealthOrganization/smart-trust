@@ -219,6 +219,8 @@ extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.2 for Vacination Issuers\
 extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.3 for Recovery Issuers\
 The above example contains all three extended key usages.
 
+
+
 	*Create a certificate signing request (CSR)*
 	In order to create a certificate for a Document Signer, first create a Certificate Signing Request preferably on the machine that will use the certificate in order to avoid copying the private key (DSC01privkey.key) to this machine later. The CSR must contain the Distinguished Name (DN) information that will be included in the DSC. Open a command prompt and use the following command to create the CSR:
 	```
@@ -227,10 +229,14 @@ The above example contains all three extended key usages.
 	If needed, you can repeat this procedure to create multiple CSRs for different DSCs (on different maschines). When prompted, enter the necessary information (e.g. C= your jurisdicion (MUST), O = your Organisation (OPTIONAL), CN = non-empty and unique CN (MUST), …).
 
 	*Issue the certificate*
+  
 	Copy the CSR (DSC01csr.pem) to the folder where the private key of your CA is located. Open a command prompt and use the following command to issue the DSC (DSCcert.pem):
+
 	```
 	openssl x509 -req -in DSC01csr.pem -CA CAcert.pem -CAkey CAprivkey.key -CAcreateserial -days 730 -extensions ext -extfile DSC.conf -out DSCcert.pem
 	```
+  **Important Recommendations for Prod**: Please replace your CAcert.pem and CAprivkey.key which issued by your public Trusted Certificate Authority (CA) insterad of self-signged one.
+
 	#### TNP~UP~  generation example
 	##### uploadCert.conf
 	> Please check [UP Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.UP.v2.mp4)  video for reference
