@@ -766,7 +766,7 @@ GDHCN Participants MUST create new upload certificates and TLS certificates time
 - Make sure to replace configuration file details with your specific information.
 - Ensure to back up any existing certificates before renewing.
 - Verify and update any configurations or deployment settings to use the new certificates.
-- Self-signed certificates are generally used for DEV and UAT environments. For production, use certificates signed by a recognized CA.
+- Self-signed certificates are generally used for DEV and UAT environments. **For production**, use certificates signed by **Trusted Certificate Authority(CA).**
 
 
 
