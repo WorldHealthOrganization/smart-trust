@@ -813,7 +813,7 @@ GDHCN Participants MUST create new upload certificates and TLS certificates time
 
 Feel free to adjust the file names and tags as needed for your specific context.
 
-Once done everything inform TNG-Support Team by email 
+Once you done with nrewal of your certificates(s) then inform TNG-Support Team by email 
 
 
 
