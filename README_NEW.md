@@ -844,7 +844,6 @@ cp CAprivkey.key ${subdir}/CAprivkey.key
 
 
 
-[Jump to DSC generation example](#dsc-generation-example)
 
 
 
