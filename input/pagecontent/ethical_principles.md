@@ -139,20 +139,16 @@ The data protection principles are as follows.
 </p> </li>
 
 <li>
-    <b>PROPORTIONALITY, NECESSITY AND DATA MINIMIZATION</b> 
-    
-    <p>
-        The processing of personal data should be relevant (have a rational link to specified purposes), adequate (sufficient to properly fulfil the specified purposes) and limited to what is required to fulfil the specified purposes. The processing of personal data should not be excessive for the 
+    <b>PROPORTIONALITY, NECESSITY AND DATA MINIMIZATION</b>    
+    <p>The processing of personal data should be relevant (have a rational link to specified purposes), adequate (sufficient to properly fulfil the specified purposes) and limited to what is required to fulfil the specified purposes. The processing of personal data should not be excessive for the 
         
         purposes for which those personal data are collected. Data collected and retained on the digital solution should be as limited as possible, respecting proportionality and necessity. Data access, analysis or other use should be kept to the minimum necessary to fulfil their purpose. The amount of data, including their granularity, should be limited to the minimum necessary. Selective disclosure mechanisms should be used to support proportionate data access. 
         
-        Data use should be monitored to ensure that it does not exceed the legitimate use. Personal data retained in the interest of the application of the digital solution should only be retained and stored for the time that is necessary for specified purposes. Personal data accessed at the point of verification of the digital solution should not be retained and stored in a repository, database or otherwise.
-    </p> 
+        Data use should be monitored to ensure that it does not exceed the legitimate use. Personal data retained in the interest of the application of the digital solution should only be retained and stored for the time that is necessary for specified purposes. Personal data accessed at the point of verification of the digital solution should not be retained and stored in a repository, database or otherwise.</p> 
 </li>
 
 <li>
     <b>CONFIDENTIALITY AND SECURITY </b>
-    
     <p>Personal data processed in the interest of the application of the digital solution should be kept confidential and not disclosed to unauthorized parties; personal data should only be accessible to the data subject or to other explicitly authorized parties. 
     
     With regard to the nature and sensitivity of the personal data processed in the interest of the application of the digital solution, appropriate organizational, physical and 
@@ -160,42 +156,34 @@ The data protection principles are as follows.
 
     Taking into account the available technology and cost of implementation, robust technical and organizational safeguards and procedures (e.g. efficient monitoring of data access, data breach notification procedures) should be implemented to ensure proper data management throughout the data life-cycle. Such measures are to prevent any accidental loss, destruction, damage, unauthorized use, falsification, tampering, fraud, forgery, unauthorized disclosure or breach of personal data. 
 
-    In case of a security breach leading to the accidental or unlawful destruction, loss, alteration, unauthorized disclosure of or access to personal data transmitted, stored or otherwise processed, users of the digital solution,n that hold health records (Data Holders) should be notified in an appropriate and timely manner.  Data Holders should be notified of: any data breach; the nature of the data breach, which may affect their rights as data subjects; and recommendations to mitigate potential adverse effects. </p>
+    In case of a security breach leading to the accidental or unlawful destruction, loss, alteration, unauthorized disclosure of or access to personal data transmitted, stored or otherwise processed, users of the digital solution,n that hold health records (Data Holders) should be notified in an appropriate and timely manner.  Data Holders should be notified of: any data breach; the nature of the data breach, which may affect their rights as data subjects; and recommendations to mitigate potential adverse effects.
+</p>
 </li>
 
 <li>
     <b>DATA SUBJECT RIGHTS, COMPLAINT AND LEGAL REDRESS</b> 
-    
     <p>Data Holders, if they have provided sufficient evidence of being the Data Holder, should be able to exercise data subject rights. These data subject rights include the right of access, correction, deletion, objection and restriction of personal data, subject to conditions regulated by national law, decree, regulation or other official act or order. Data subjects have the right to seek redress by a complaint procedure if they suffer harm or loss as a result of misused  data or incorrect or incomplete data. Data subjects should be provided with easily accessible, concise, comprehensible and reader-friendly information about how they might exercise their data subject rights and how to seek legal redress, including how they can exercise any rights in the case of alleged fraud.</p> 
 </li>
 
 <li>
     <b>INDEPENDENT OVERSIGHT AND ACCOUNTABILITY </b>
-    
     <p>An independent public authority should be responsible for monitoring whether any data controller and data processor involved in the processing of personal data in the interest of the digital solution adhere to the principles, and may recommend revoking the authorization to collect or otherwise process  data. Such a public authority should have access to all information necessary to fulfil its task. Adequate policies and mechanisms should be in place to ensure adherence to these principles. </p>
 </li>
 </ol>
+
 ### Digital personal health record design criteria 
 
 Due to the ethical considerations and data protection principles outlined above, the following design criteria were considered when formulating the requirements for implementing a digital solution. 
 
 <ol>
     <li>Implementation of the digital solution should not increase health inequities or increase the digital divide.</li> 
-    
     <li>Every individual in the jurisdiction should have the right to obtain and hold records on a digital solution.  The records held by the digital solution need to be in a format that can be accessible to all, for example, in paper and digital formats. Any solution should also work in online and offline environments across multiple platforms – paper and digital.</li> 
-    
     <li>Individuals should not be treated differently or given different levels of trust due to the representation format of the data they are using (e.g. there should be no discrimination based on whether someone is presenting a health record on a smartphone or a paper card).</li> 
-    
     <li>Any solution should not be at an additional cost to the person. The interoperability specifications used in digital solutions should be based on open standards to ensure equitable access to a range of non-proprietary digital tools.</li> 
-    
     <li>The infrastructure that the digital solution solution is built on should ensure that individuals and Member States are not locked into a commitment with only one vendor.</li>    
-
     <li>Any solution should be as environmentally friendly as possible. The most environmentally sustainable options should be pursued to reduce any additional undue harm to the environment.</li> 
-    
     <li>Any solution should be designed to augment and work within the context of existing health information systems, as appropriate.</li> 
-    
     <li>Any solution should not share or store more data than is needed to successfully execute its tasks. Minimization of health content for purposes not related to health care, and privacy-protecting features, should be built into the system and be respected accordingly</li>. 
-    
     <li>Anti-fraud mechanisms should be built into any approach.</li>
 </ol> 
 
