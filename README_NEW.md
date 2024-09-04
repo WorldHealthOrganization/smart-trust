@@ -196,8 +196,8 @@ This guide follows the certificate templates defined in the certificate governan
         
 	*Certificate generation*
 	Open a command line prompt in the folder where the sca.conf is located and use the following OpenSSL command to create the private key (CAprivkey.key) and the certificate (CAcert.pem):
-**For Prod to use** [Trusted CA issued  Certificate](https://github.com/arajnor99/smart-trust/blob/main/For%20Prod%20%20Trusted%20CA%20Certificate.md) **recommended,**  As below command for self-siged certificate generation as it's usually only recommened for DEV/UAT enviornment.
-  
+**For Prod to use** [Trusted CA issued  Certificated](#steps-to-obtain-and-use-a-ca-signed-certificate) **recommended,**  As below command for self-siged certificate generation as it's usually only recommened for DEV/UAT enviornment.
+   
 	```
 	openssl req -x509 -new -days 1461 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout CAprivkey.key -nodes -out CAcert.pem -config sca.conf
 	```
@@ -841,7 +841,7 @@ Once you receive the CA-signed certificate, you will use it instead of generatin
 cp signed_CA_cert.pem ${subdir}/CAcert.pem 
 cp CAprivkey.key ${subdir}/CAprivkey.key
 
-[Jump to Steps to Obtain and Use a CA-Signed Certificate](#steps-to-obtain-and-use-a-ca-signed-certificate)
+
 
 
 
