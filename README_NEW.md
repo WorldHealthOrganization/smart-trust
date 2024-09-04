@@ -192,11 +192,15 @@ This guide follows the certificate templates defined in the certificate governan
 	keyUsage = critical, cRLSign, keyCertSign
 	subjectKeyIdentifier = hash
 	```
+        
 	*Certificate generation*
 	Open a command line prompt in the folder where the sca.conf is located and use the following OpenSSL command to create the private key (CAprivkey.key) and the certificate (CAcert.pem):
+**For Prod to use** [Trusted CA issued  Certificate](https://github.com/arajnor99/smart-trust/blob/main/For%20Prod%20%20Trusted%20CA%20Certificate.md) **recommended,**  As below command for self-siged certificate generation as it's usually only recommened for DEV/UAT enviornment.
+  
 	```
 	openssl req -x509 -new -days 1461 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout CAprivkey.key -nodes -out CAcert.pem -config sca.conf
 	```
+ 
 	#### DSC generation example
 	Document Signer Certificates (DSCs) must be signed by the SCA. Hence, you have to create the SCA certificate (with the corresponding private key) before you can issue DSCs.
 
