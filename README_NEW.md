@@ -580,7 +580,8 @@ You should see a output like:
 4) Test the other Trustlist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication…)
 5) Create an Document Signer Certificate and sign it by the SCA [Refer](https://github.com/arajnor99/smart-trust/blob/main/README_NEW.md#elliptic-curve-public-key-certificates-ecdsa-with-nist-p-256)
 6) Create an CMS Package with the following Command:
-    Note: Step 4 and 5 could be achived through two menthod commandline and script respectively .
+    Note: Step 5 and 6 could be achived through two menthod commandline [Commandline reference](#dsc-generation-example)
+ and script respectively .
 
 **Method 1 - Commandline .**
 ```
