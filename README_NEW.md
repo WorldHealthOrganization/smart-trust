@@ -841,7 +841,6 @@ cp signed_CA_cert.pem ${subdir}/CAcert.pem
 cp CAprivkey.key ${subdir}/CAprivkey.key
 
 
-[Link](https://github.com/arajnor99/smart-trust/blob/d6af7e8656094e24604c0df6d80a4af68312fa38/README_NEW.md?plain=1#L818)
 
 
 
