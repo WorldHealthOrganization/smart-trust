@@ -656,7 +656,7 @@ Note: Some versions of curl don’t attach the client certificates automatically
 
 ## 1. **Renewing TLS Certificates**
 
-The TLS, UP and SCA certificate renewal proces is same as fresh new TLS/UP/SCA certfication generation during fresh new full onboarding you had followed . Once you get notified by TNG Support Team prior 30 daysby E-mail communication on certificate expiration, so accordinlgy you have to renew you respective certificate .
+The TLS, UP and SCA certificate renewal proces is same as fresh new TLS/UP/SCA certfication generation during fresh new full onboarding you had followed . Once you get notified by TNG Support Team prior 30 days by E-mail communication on certificate expiration, so accordinlgy you have to renew your respective certificate(s) .
 
 **Validity periods**
 Digital certificates contain a validity period that enforces certificate renewal. Renewal is necessary to use fresh cryptographic keys and to adapt the key sizes when improvements in computation or new attacks threaten the security of the cryptographic algorithm that is used. The shell model applies (see Section “Signing Certificate Authorities and Validation Model”). The following validity periods are recommended based on the assumption of the one-year maximum validity for Verifiable Digital Health Certificates :
@@ -810,6 +810,8 @@ GDHCN Participants MUST create new upload certificates and TLS certificates time
     ```
 
 Feel free to adjust the file names and tags as needed for your specific context.
+
+Once done everything inform TNG-Support Team by email 
 
 
     
