@@ -1,6 +1,8 @@
 This repository contains the template for building [onboarding](https://github.com/WorldHealthOrganization/smart-trust/blob/main/input/pagecontent/concepts_onboarding.md) information for the Smart Trust Network Attendees. This includes CSCAs, Auth information, signing information and other relevant files for onboarding a participant.
 
+
 ![Onboarding Process](Onboarding%20Process.drawio.png)
+
 
 
 
