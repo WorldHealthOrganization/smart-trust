@@ -2,6 +2,8 @@ This repository contains the template for building [onboarding](https://github.c
 
 ![Onboarding Process](Onboarding%20Process.drawio.png)
 
+
+
 ### Git Repository
 
 **Create a private git repository on github. One for each Environment (DEV, UAT, PROD)**
@@ -301,6 +303,7 @@ This guide follows the certificate templates defined in the certificate governan
 	keyUsage = critical, digitalSignature, keyCertSign
 	extendedKeyUsage = clientAuth
 	```
+
 - *Certificate generation*: Open a command line prompt in the folder where the _TLSClient.conf_ is located and use the following OpenSSL command to create the private key (_TNP_TLS.key_) and the certificate (_TNP_TLS.pem_):
 
 	```
@@ -470,7 +473,8 @@ The following configuration files have been provided during the alignment on the
 	```
 
 ### Verifying Tags
-To verify a signed tag, you use git tag -v <tag-name>. This command uses GPG to verify the signature. You need the signer’s public key in your keyring for this to work properly:
+- To verify a signed tag, you use git tag -v <tag-name>. This command uses GPG to verify the signature. You need the signer’s public key in your keyring for this to work properly:
+
 
 	```
 	$ git tag -v v1.4.2.1
@@ -486,7 +490,6 @@ To verify a signed tag, you use git tag -v <tag-name>. This command uses GPG to 
 	gpg: Good signature from "Junio C Hamano <junkio@cox.net>"
 	gpg:                 aka "[jpeg image of size 1513]"
 	Primary key fingerprint: 3565 2A26 2040 E066 C9A7  4A7D C0C6 D9A4 F311 9B9A
-
 	```
 
 - If you don’t have the signer’s public key, you get something like this instead:
@@ -586,7 +589,8 @@ Signing tags and commits is great, but if you decide to use this in your normal 
 	curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS.key
 	```
 
-### Send an onboarding/participation request to gdhcn-support@who.int which contains:
-- URL of the private repository created as a prerequisite
-- The GPG key exported in Step 4
+### Send an onboarding/participation request
+- Send an onboarding/participation request to gdhcn-support@who.int which contains:
+    - URL of the private repository created as a prerequisite
+    - The GPG key exported in Step 4
   
