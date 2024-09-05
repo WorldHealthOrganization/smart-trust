@@ -113,9 +113,9 @@ This repository contains the template for building [onboarding](https://github.c
 	
 ##### Certificate Preparation for DEV and UAT
 
-	> Disclaimer: The script generates self-signed certificates not intended to be used on production environments.
+> Disclaimer: The script generates self-signed certificates not intended to be used on production environments.
 	
-	- You must adapt the following default certificate parameter in gen_all_certs.sh to your needs:
+- You must adapt the following default certificate parameter in gen_all_certs.sh to your needs:
 
 	```
     export OSSL_COUNTRY_NAME="XA"
@@ -125,10 +125,11 @@ This repository contains the template for building [onboarding](https://github.c
 	export OSSL_ORGANIZATIONAL_UNIT_NAME="R&D"
 	```
 
-	> Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
+> Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 	
-	- Then execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
-	
+- Then execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
+
+
 	```
 	For Mac
 	cd scripts/certgen
@@ -138,6 +139,7 @@ This repository contains the template for building [onboarding](https://github.c
 	cd scripts/certgen
 	./gen_all_certs.ps1
 	```
+
 ###### Execution On Windows
 
 	Windows platform you can use  [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1)  instead. Please note that you need to have  [OpenSSL installed](https://slproweb.com/products/Win32OpenSSL.html)  (e.g. Win64 OpenSSL v3.3.0 Light) and added to your PATH environment variable. Also you may need allow the execution by setting an execution policy.
