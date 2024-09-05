@@ -2,7 +2,7 @@ This repository contains the template for building [onboarding](https://github.c
 
 ![Onboarding Process](Onboarding%20Process.drawio.png)
 
-#### Git Repository
+### Git Repository
 
 **Create a private git repository on github. One for each Environment (DEV, UAT, PROD)**
 
@@ -20,7 +20,7 @@ This repository contains the template for building [onboarding](https://github.c
 - Use Authentication code
 - Add Note, Expiration, 'Repo' as a scope and click ‘Generate Token’
 
-#### Local Repository
+### Local Repository
 
 - Go to local repo
 - Clone the new Github repo in your local repo
@@ -32,7 +32,7 @@ This repository contains the template for building [onboarding](https://github.c
 	- git pull template-repo main
 	```
 
-#### Invite tng-bot
+### Invite tng-bot
 - Add tng-bot to new repository
 	> Please check [Invite tng-bot to private repository](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.2.full-video.v2.mp4) video for reference
 - Go to Repository -> Settings
@@ -41,22 +41,21 @@ This repository contains the template for building [onboarding](https://github.c
 - Click on Add people
 - Add tng-bot for Prod and tng-bot-dev for dev and UAT
 
-#### Generate GPG Key
+### Generate GPG Key
 - Create GPG Keys for responsible persons for each environment
 	> Note: Before generating a new GPG key, make sure you've verified your email address. If you haven't verified your email address, you won't be able to sign commits and tags with GPG.
 	> Please check [GPG key Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.2.full-video.v2.mp4)  video for reference
 - Download and install the GPG command line tools for your operating system. We generally recommend installing the latest version for your operating system.
 - Open Git Bash
 - Generate a GPG key pair. Since there are multiple versions of GPG, you may need to consult the relevant man page to find the appropriate key generation command
-
-	If you are on version 2.1.17 or greater, paste the text below to generate a GPG key pair.
+- If you are on version 2.1.17 or greater, paste the text below to generate a GPG key pair.
 	
 
 	```
 	Shell
 	gpg --full-generate-key
 	```
-	If you are not on version 2.1.17 or greater, the gpg --full-generate-key command doesn't work. Paste the text below and skip to step 4.
+- If you are not on version 2.1.17 or greater, the gpg --full-generate-key command doesn't work. Paste the text below and skip to step 4.
 	
 	~~~
 	Shell
@@ -101,17 +100,17 @@ This repository contains the template for building [onboarding](https://github.c
 - Add the GPG key to your GitHub account.
 	> Please check [Adding GPG key to repository](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.3.full-video.v2.mp4)  video for reference
 
-	- Go to Github profile -> Settings
-	- Go to SSH and GPG Keys
-	- Click on New GPG Key
-	- Add Title. Add key copied in last step
-	- Click on Add GPG Key
+- Go to Github profile -> Settings
+- Go to SSH and GPG Keys
+- Click on New GPG Key
+- Add Title. Add key copied in last step
+- Click on Add GPG Key
 
-#### Create Certificates
+### Create Certificates
 - Fill in content for your country
 	>   for DEV and UAT environments you may use the conf files and the  [certgen bash script](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh)  as a guideline according to the  [Certificate Preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md)
 	
-##### Certificate Preparation for DEV and UAT
+#### Certificate Preparation for DEV and UAT
 
 > Disclaimer: The script generates self-signed certificates not intended to be used on production environments.
 	
@@ -140,15 +139,15 @@ This repository contains the template for building [onboarding](https://github.c
 	./gen_all_certs.ps1
 	```
 
-###### Execution On Windows
+**Execution On Windows**
 
-	Windows platform you can use  [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1)  instead. Please note that you need to have  [OpenSSL installed](https://slproweb.com/products/Win32OpenSSL.html)  (e.g. Win64 OpenSSL v3.3.0 Light) and added to your PATH environment variable. Also you may need allow the execution by setting an execution policy.
+Windows platform you can use  [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1)  instead. Please note that you need to have  [OpenSSL installed](https://slproweb.com/products/Win32OpenSSL.html)  (e.g. Win64 OpenSSL v3.3.0 Light) and added to your PATH environment variable. Also you may need allow the execution by setting an execution policy.
 
 	```
-		Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
+	Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
 	```	
 
-###### Prepare Folders
+**Prepare Folders**
 
 **Note**: keep your private keys safe and secure. Do not share them with anyone.
 Copy the generated certificates to the respective folders and change the file names to match the naming convention. For the case of self-signed TLS certificates, the CA.pem is just a copy of the TLS.pem (check to have keyCertSign in the keyUsage). The CA.pem should exist, since it is used to verify the TLS client certificate when connecting to the TNG application.
@@ -161,17 +160,16 @@ Files to be copied in respective folders are as follows:
 **Note** On DEV and UAT environment, if the files are generated using a script, delete the generated folder before committing the files.
 	
 
-##### Certification Preparation for Prod
+#### Certification Preparation for Prod
 
 This guide follows the certificate templates defined in the certificate governance. Public Key Certificates generated by following this guide will include the minimal required fields - further fields can be added in the configuration files if needed.
 
-###### Elliptic Curve Public Key Certificates (ECDSA with NIST-p-256)
+**Elliptic Curve Public Key Certificates (ECDSA with NIST-p-256)**
+
 **SCA certificate (TNP<sub>SCA</sub>) generation example**
-	> Please check [SCA Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.SCA.v2.mp4) video  for reference
+> Please check [SCA Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.SCA.v2.mp4) video  for reference
 
-**sca.conf**
-
-Create a new file called sca.conf and replace the dn entries with your jurisdiction’s details.
+- *sca.conf*: Create a new file called sca.conf and replace the dn entries with your jurisdiction’s details.
 
 	```
 	[req]
@@ -193,18 +191,17 @@ Create a new file called sca.conf and replace the dn entries with your jurisdict
 	subjectKeyIdentifier = hash
 	```
 
-**Certificate generation**
-	Open a command line prompt in the folder where the sca.conf is located and use the following OpenSSL command to create the private key (CAprivkey.key) and the certificate (CAcert.pem):
+- *Certificate generation*: Open a command line prompt in the folder where the sca.conf is located and use the following OpenSSL command to create the private key (CAprivkey.key) and the certificate (CAcert.pem):
 	```
 	openssl req -x509 -new -days 1461 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout CAprivkey.key -nodes -out CAcert.pem -config sca.conf
 	```
+
 **DSC generation example**
 	Document Signer Certificates (DSCs) must be signed by the SCA. Hence, you have to create the SCA certificate (with the corresponding private key) before you can issue DSCs.
 
-**DSC.conf**
-	> Please check [DSC generation and deletion](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/3.2.and3.3.full-video.v2.mp4)  video for reference
+- *DSC.conf*: Please check [DSC generation and deletion](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/3.2.and3.3.full-video.v2.mp4)  video for reference
 	
-	Create a new file called DSC.conf in the folder where your CA’s private key is located and add the following fields:
+- Create a new file called DSC.conf in the folder where your CA’s private key is located and add the following fields:
 
 	```
 	[ext]
@@ -214,34 +211,36 @@ Create a new file called sca.conf and replace the dn entries with your jurisdict
 	crlDistributionPoints = URI:http://crl.exampledomain.example/CRL/SCA.crl
 	extendedKeyUsage = 1.3.6.1.4.1.1847.2021.1.1,1.3.6.1.4.1.1847.2021.1.2,1.3.6.1.4.1.1847.2021.1.3
 	```
-	It is recommended that a SCA provides certificate revocation lists. Therefore, replace the crlDistributionPoints URI with the information for your jurisdiction.
 
-The extendedKeyUsage field is optional and can be used to further restrict the DSC certificate as follows:\
-**Field** &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; **Value**\
-extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.1 for Test Issuers\
-extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.2 for Vacination Issuers\
-extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.3 for Recovery Issuers\
-The above example contains all three extended key usages.
+- It is recommended that a SCA provides certificate revocation lists. Therefore, replace the crlDistributionPoints URI with the information for your jurisdiction.
 
-**Create a certificate signing request (CSR)**
-	In order to create a certificate for a Document Signer, first create a Certificate Signing Request preferably on the machine that will use the certificate in order to avoid copying the private key (DSC01privkey.key) to this machine later. The CSR must contain the Distinguished Name (DN) information that will be included in the DSC. Open a command prompt and use the following command to create the CSR:
+- The extendedKeyUsage field is optional and can be used to further restrict the DSC certificate as follows:
+    **Field** &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; **Value**\
+    extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.1 for Test Issuers\
+    extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.2 for Vacination Issuers\
+    extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.3 for Recovery Issuers\
+- The above example contains all three extended key usages.
+
+- *Create a certificate signing request (CSR)*:In order to create a certificate for a Document Signer, first create a Certificate Signing Request preferably on the machine that will use the certificate in order to avoid copying the private key (DSC01privkey.key) to this machine later. The CSR must contain the Distinguished Name (DN) information that will be included in the DSC. Open a command prompt and use the following command to create the CSR:
 	
     ```
 	openssl req -newkey ec:<(openssl ecparam -name prime256v1) -keyout DSC01privkey.key -nodes -out DSC01csr.pem
 	```
-	If needed, you can repeat this procedure to create multiple CSRs for different DSCs (on different machines). When prompted, enter the necessary information (e.g. C= your jurisdiction (MUST), O = your Organisation (OPTIONAL), CN = non-empty and unique CN (MUST), …).
 
-**Issue the certificate**
-	Copy the CSR (DSC01csr.pem) to the folder where the private key of your CA is located. Open a command prompt and use the following command to issue the DSC (DSCcert.pem):
+- If needed, you can repeat this procedure to create multiple CSRs for different DSCs (on different machines). When prompted, enter the necessary information (e.g. C= your jurisdiction (MUST), O = your Organisation (OPTIONAL), CN = non-empty and unique CN (MUST), …).
+
+- *Issue the certificate*: Copy the CSR (DSC01csr.pem) to the folder where the private key of your CA is located. Open a command prompt and use the following command to issue the DSC (DSCcert.pem):
 	
     ```
 	openssl x509 -req -in DSC01csr.pem -CA CAcert.pem -CAkey CAprivkey.key -CAcreateserial -days 730 -extensions ext -extfile DSC.conf -out DSCcert.pem
 	```
-#### TNP<sub>UP</sub>  generation example
-##### uploadCert.conf
+
+**TNP<sub>UP</sub> generation example**
+
+- *uploadCert.conf*
 > Please check [UP Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.UP.v2.mp4)  video for reference
 	
-Create a new file called _uploadCert.conf_ and replace the dn entries with your jurisdiction’s details.
+- Create a new file called _uploadCert.conf_ and replace the dn entries with your jurisdiction’s details.
 
 	```
 	[req]
@@ -261,18 +260,19 @@ Create a new file called _uploadCert.conf_ and replace the dn entries with your 
 	keyUsage = critical, digitalSignature
 	```
 
-##### Certificate generation
-Open a command line prompt in the folder where the _uploadCert.conf_ is located and use the following OpenSSL command to create the private key (_TNP_UP.key_) and the certificate (_TNP_UP.pem_):
+- *Certificate generation*: Open a command line prompt in the folder where the _uploadCert.conf_ is located and use the following OpenSSL command to create the private key (_TNP_UP.key_) and the certificate (_TNP_UP.pem_):
 
 	```
     plaintext
 	openssl req -x509 -new -days 365 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout TNP_UP.key -nodes -out TNP_UP.pem -config uploadCert.conf
 	```
-#### TNP~TLS~  generation example
-##### TLSClient.conf
+
+**TNP<sub>TLS</sub> generation example**
+
+- *TLSClient.conf*
 > Please check  [TLS Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.TLS.v2.mp4) video for reference 
 	
-Create a new file called _TLSClient.conf_ and replace the dn entries with your jurisdiction’s details.
+- Create a new file called _TLSClient.conf_ and replace the dn entries with your jurisdiction’s details.
 
 	```
 	[req]
@@ -292,19 +292,21 @@ Create a new file called _TLSClient.conf_ and replace the dn entries with your j
 	keyUsage = critical, digitalSignature
 	extendedKeyUsage = clientAuth
 	```
+
 **NOTE** :Beware that self-signed certificates should also contain the key usage Certificate signing (keyCertSign), so that the (self) signature of the certificate can be verified.
+
     ```
     plaintext
 	[ext]
 	keyUsage = critical, digitalSignature, keyCertSign
 	extendedKeyUsage = clientAuth
 	```
-##### Certificate generation
-Open a command line prompt in the folder where the _TLSClient.conf_ is located and use the following OpenSSL command to create the private key (_TNP_TLS.key_) and the certificate (_TNP_TLS.pem_):
+- *Certificate generation*: Open a command line prompt in the folder where the _TLSClient.conf_ is located and use the following OpenSSL command to create the private key (_TNP_TLS.key_) and the certificate (_TNP_TLS.pem_):
 
 	```plaintext
 	openssl req -x509 -new -days 365 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout TNP_TLS.key -nodes -out TNP_TLS.pem -config TLSClient.conf
 	```
+
 ### RSA Public Key Certificates
 In case you want to use RSA certificates you can still use the configuration files provided above. During the CSR/certificate creation, replace the `-newkey ec:<(openssl ecparam -name prime256v1)` with `-newkey rsa:4096` for a 4096 Bit RSA key.  
 Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use RSA as your document signing algorithm, please create either a 2048 bit RSA key or at maximum a 3072 bit RSA key due to the space limitations on the QR codes.
