@@ -303,17 +303,19 @@ This guide follows the certificate templates defined in the certificate governan
 	```
 - *Certificate generation*: Open a command line prompt in the folder where the _TLSClient.conf_ is located and use the following OpenSSL command to create the private key (_TNP_TLS.key_) and the certificate (_TNP_TLS.pem_):
 
-	```plaintext
+	```
+    plaintext
 	openssl req -x509 -new -days 365 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout TNP_TLS.key -nodes -out TNP_TLS.pem -config TLSClient.conf
 	```
 
-### RSA Public Key Certificates
+**RSA Public Key Certificates**
 In case you want to use RSA certificates you can still use the configuration files provided above. During the CSR/certificate creation, replace the `-newkey ec:<(openssl ecparam -name prime256v1)` with `-newkey rsa:4096` for a 4096 Bit RSA key.  
 Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use RSA as your document signing algorithm, please create either a 2048 bit RSA key or at maximum a 3072 bit RSA key due to the space limitations on the QR codes.
 
-### Appendix A: Further example configuration files
-	The following configuration files have been provided during the alignment on the [certificate governance](https://worldhealthorganization.github.io/smart-trust/concepts_certificate_governance.html). The configuration files contain additional fields that a Trust Network Participant might want to include and use. The config-files are not tested with the OpenSSL commands provided above.
-#### SCA Conf
+**Appendix A: Further example configuration files**
+The following configuration files have been provided during the alignment on the [certificate governance](https://worldhealthorganization.github.io/smart-trust/concepts_certificate_governance.html). The configuration files contain additional fields that a Trust Network Participant might want to include and use. The config-files are not tested with the OpenSSL commands provided above.
+
+- *SCA Conf*
 
 	```
     plaintext
@@ -336,7 +338,7 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	L=XX
 	```
 
-#### DSC conf
+- *DSC conf*
 
 	```
     plaintext
@@ -384,11 +386,12 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	notBefore               = IMPLICIT:0,GENERALIZEDTIME:$ENV::PRIV_KEY_START
 	notAfter                = IMPLICIT:1,GENERALIZEDTIME:$ENV::DS_PRIV_KEY_END
 	```
-## Tagging for taking into use
+
+**Tagging for taking into use**
 
 [](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md#tagging-for-taking-into-use)
 
-Finally commit push changes and make a signed tag for the version you want to take into use.
+- Finally commit push changes and make a signed tag for the version you want to take into use.
 
 	```
 	git add .
@@ -397,12 +400,12 @@ Finally commit push changes and make a signed tag for the version you want to ta
 	git push --tags
 	```
 
-## 6. Signing Your Work
+### Signing Your Work
 > Please check  [Signing (tag) certificates](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.4.full-video.v2.mp4) video for reference
 
-Git is cryptographically secure, but it’s not foolproof. If you’re taking work from others on the internet and want to verify that commits are actually from a trusted source, Git has a few ways to sign and verify work using GPG.
+- Git is cryptographically secure, but it’s not foolproof. If you’re taking work from others on the internet and want to verify that commits are actually from a trusted source, Git has a few ways to sign and verify work using GPG.
 
-First of all, if you want to sign anything you need to get GPG configured and your personal key installed.
+- First of all, if you want to sign anything you need to get GPG configured and your personal key installed.
 
 	```	
 	$ gpg --list-secret-keys --keyid-format=long
@@ -412,21 +415,23 @@ First of all, if you want to sign anything you need to get GPG configured and yo
 	uid                          Hubot <hubot@example.com>
 	ssb   4096R/4BB6D45482678BE3 2016-03-10
 	````
-If you don’t have a key installed, you can generate one with **gpg --gen-key**.
+
+- If you don’t have a key installed, you can generate one with **gpg --gen-key**.
 
 	```
 	$ gpg --gen-key
 	```
 
-Once you have a private key to sign with, you can configure Git to use it for signing things by setting the user.signingkey config setting.
+- Once you have a private key to sign with, you can configure Git to use it for signing things by setting the user.signingkey config setting.
 
 	```
 	$ git config --global user.signingkey 3AA5C34371567BD2!
 	```
-Now Git will use your key by default to sign tags and commits if you want.
+
+- Now Git will use your key by default to sign tags and commits if you want.
 
 ### Signing Tags
-If you have a GPG private key set up, you can now use it to sign new tags. All you have to do is use -s instead of -a:
+- If you have a GPG private key set up, you can now use it to sign new tags. All you have to do is use -s instead of -a:
 
 	```
 	$ git tag -s v1.5 -m 'my signed 1.5 tag'
@@ -436,7 +441,7 @@ If you have a GPG private key set up, you can now use it to sign new tags. All y
 	2048-bit RSA key, ID 800430EB, created 2014-05-04
 	```
 
-If you run git show on that tag, you can see your GPG signature attached to it:
+- If you run git show on that tag, you can see your GPG signature attached to it:
 
 	```
 	$ git show v1.5
@@ -463,6 +468,7 @@ If you run git show on that tag, you can see your GPG signature attached to it:
 
 	    Change version number
 	```
+
 ### Verifying Tags
 To verify a signed tag, you use git tag -v <tag-name>. This command uses GPG to verify the signature. You need the signer’s public key in your keyring for this to work properly:
 
@@ -482,15 +488,17 @@ To verify a signed tag, you use git tag -v <tag-name>. This command uses GPG to 
 	Primary key fingerprint: 3565 2A26 2040 E066 C9A7  4A7D C0C6 D9A4 F311 9B9A
 
 	```
-If you don’t have the signer’s public key, you get something like this instead:
+
+- If you don’t have the signer’s public key, you get something like this instead:
 
 	```
 	gpg: Signature made Wed Sep 13 02:08:25 2006 PDT using DSA key ID F3119B9A
 	gpg: Can't check signature: public key not found
 	error: could not verify the tag 'v1.4.2.1'
 	```
+
 ### Signing Commits
-In more recent versions of Git (v1.7.9 and above), you can now also sign individual commits. If you’re interested in signing commits directly instead of just the tags, all you need to do is add a -S to your git commit command.
+- In more recent versions of Git (v1.7.9 and above), you can now also sign individual commits. If you’re interested in signing commits directly instead of just the tags, all you need to do is add a -S to your git commit command.
 
 	```
 	$ git commit -a -S -m 'Signed commit'
@@ -504,7 +512,8 @@ In more recent versions of Git (v1.7.9 and above), you can now also sign individ
 	 rewrite Rakefile (100%)
 	 create mode 100644 lib/git.rb
 	```
-To see and verify these signatures, there is also a --show-signature option to git log.
+
+- To see and verify these signatures, there is also a --show-signature option to git log.
 
 	```
 	$ git log --show-signature -1
@@ -516,7 +525,8 @@ To see and verify these signatures, there is also a --show-signature option to g
 
 	    Signed commit
 	```
-Additionally, you can configure git log to check any signatures it finds and list them in its output with the %G? format.
+
+- Additionally, you can configure git log to check any signatures it finds and list them in its output with the %G? format.
 
 	```
 	$ git log --pretty="format:%h %G? %aN  %s"
@@ -526,18 +536,19 @@ Additionally, you can configure git log to check any signatures it finds and lis
 	085bb3b N Scott Chacon  Remove unnecessary test code
 	a11bef0 N Scott Chacon  Initial commit
 	```
-Here we can see that only the latest commit is signed and valid and the previous commits are not.
 
-In Git 1.8.3 and later, git merge and git pull can be told to inspect and reject when merging a commit that does not carry a trusted GPG signature with the --verify-signatures command.
+- Here we can see that only the latest commit is signed and valid and the previous commits are not.
 
-If you use this option when merging a branch and it contains commits that are not signed and valid, the merge will not work.
+- In Git 1.8.3 and later, git merge and git pull can be told to inspect and reject when merging a commit that does not carry a trusted GPG signature with the --verify-signatures command.
+
+- If you use this option when merging a branch and it contains commits that are not signed and valid, the merge will not work.
 
 	```
 	$ git merge --verify-signatures non-verify
 	fatal: Commit ab06180 does not have a GPG signature.
 	```
 
-If the merge contains only valid signed commits, the merge command will show you all the signatures it has checked and then move forward with the merge.
+- If the merge contains only valid signed commits, the merge command will show you all the signatures it has checked and then move forward with the merge.
 	
     ```
 	$ git merge --verify-signatures signed-branch
@@ -548,7 +559,7 @@ If the merge contains only valid signed commits, the merge command will show you
 	 1 file changed, 2 insertions(+)
 	```
 
-You can also use the -S option with the git merge command to sign the resulting merge commit itself. The following example both verifies that every commit in the branch to be merged is signed and furthermore signs the resulting merge commit.
+- You can also use the -S option with the git merge command to sign the resulting merge commit itself. The following example both verifies that every commit in the branch to be merged is signed and furthermore signs the resulting merge commit.
 
 	```
 	$ git merge --verify-signatures -S  signed-branch
@@ -562,19 +573,20 @@ You can also use the -S option with the git merge command to sign the resulting 
 	 README | 2 ++
 	 1 file changed, 2 insertions(+)
 	```
-### Everyone Must Sign - Always a good idea
+
+**Everyone Must Sign - Always a good idea**
 Signing tags and commits is great, but if you decide to use this in your normal workflow, you’ll have to make sure that everyone on your team understands how to do so. This can be achieved by asking everyone working with the repository to run git config --local commit.gpgsign true to automatically have all of their commits in the repository signed by default. If you don’t, you’ll end up spending a lot of time helping people figure out how to rewrite their commits with signed versions. Make sure you understand GPG and the benefits of signing things before adopting this as part of your standard workflow.
 
-## 7. Validating the certificates
+### Validating the certificates
 > Please check [Testing connection](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/3.1.full-video.v2.mp4)  video for reference
 
-Use the following command to verify the certificates by testing the connection.
+- Use the following command to verify the certificates by testing the connection.
 
 	```
 	curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS.key
 	```
 
-## 8. Send an onboarding/participation request to gdhcn-support@who.int which contains:
+### Send an onboarding/participation request to gdhcn-support@who.int which contains:
 - URL of the private repository created as a prerequisite
 - The GPG key exported in Step 4
   
