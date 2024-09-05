@@ -6,7 +6,7 @@ A Trust Domain consists of:
 
 At the current time, the following content profiles are recognized through the WHO's Global Digital Health Certification Network (GDHCN):
 
-{% include available_trust_domains.md %}
+{% include available_trust_domains.xml %}
 
 
 ### Digital Documentation of COVID-19 Certificates (DDCC)
