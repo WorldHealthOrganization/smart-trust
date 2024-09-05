@@ -1,8 +1,6 @@
-This repository contains the template for building [onboarding](https://github.com/WorldHealthOrganization/smart-trust/blob/main/input/pagecontent/concepts_onboarding.md) information for the Smart Trust Network Attendees. This includes CSCAs, Auth information, signing information and other relevant files for onboarding a participant.
+This repository contains the template for building [onboarding](https://github.com/WorldHealthOrganization/smart-trust/blob/main/input/pagecontent/concepts_onboarding.md) information for the Smart Trust Network Attendees. This includes CSCAs, Auth information, signing information and other relevant files for onboarding a participant. Videos guides to the steps described here are available on this [page](video_tutorial.html).
 
-
-![Onboarding Process](Onboarding%20Process.drawio.png)
-
+{% include img.html img="Onboarding%20Process.drawio.png" caption="Onboarding Process" width ="70%" %}     
 
 
 
@@ -594,5 +592,5 @@ Signing tags and commits is great, but if you decide to use this in your normal 
 ### Send an onboarding/participation request
 - Send an onboarding/participation request to gdhcn-support@who.int which contains:
     - URL of the private repository created as a prerequisite
-    - The GPG key exported in Step 4
+    - The GPG key exported in Step [1.8.6.4](concepts_onboarding_checklist.html#generate-gpg-key)
   

@@ -26,13 +26,12 @@ The GDHCN Secretariat manages the on-boarding process and applications of eligib
 
 <img src="OnboardingOverview.drawio.png" style="float:none; margin: 0px 0px 0px 0px;"/>
 
-Starting in September of 2023, participation will be opened to other eligible participants following the Full On-boarding Process (FOP).
 
-Starting in June of 2023 and running through December 2023, participation in the GDHCN will be open to current participants of the European Union (EU) Digital COVID Certificate (DCC) network following a Transitive Trust On-boarding Process (TTOP).  The TTOP is an abbreviated version of the FOP leveraging the notion of transitive trust.
 
 Please review the:
-* [Concepts](concepts.html) underpinning the description of these on-boarding processes including the general description of the Terms of Participation; and
-* [Certificate Governance](concepts_certificate_governance.html) describing the governance of public key certificates.
+* [Concepts](concepts.html) underpinning the description of these on-boarding processes including the general description of the Terms of Participation;
+* [Certificate Governance](concepts_certificate_governance.html) describing the governance of public key certificates; and
+* [Video Tutorials](video_tutorial.html) guiding videos through the onboarding process.
 
 
 #### On-boarding Application Requirements
@@ -55,13 +54,10 @@ The secretariat must handle the following tasks to establish the on-boarding pro
 
 ### On-boarding Process
 
-This section describes the steps for the Full On-boarding Process (FOP) to the GDHCN
-
-#### Period of Applicability
-The FOP has been in effect in September 2023.  
+This section describes the steps for the On-boarding Process to the GDHCN
 
 ##### Eligibility
-At launch of FOP at launch, for technical reasons, eligibility to join the GDHCN is limited to WHO Member States.
+As per the  GDHCN Administrative and Operational Framework, eligibility to join the GDHCN is limited to WHO Member States.
 
 #### Organizational Identity
 The organizational identity and contact will be established in an offline process by WHO through it's Member State country offices with appropriate contacts at ministries of health or appropriate public health agency.
