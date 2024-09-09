@@ -633,7 +633,7 @@ You should see a output like:
 ]
 ```
 4) Test the other Trustlist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication…)
-5) Create an Document Signer Certificate and sign it by the SCA [Refer](#certification-preparation-for-prod)
+5) Create an Document Signer Certificate and sign it by the SCA [Refer](#certification-preparation-for-prod) and [DSC generation example](#dsc-generation-example)
 6) Create an CMS Package with the following Command:
     Note: Step 5 and 6 could be achived through two menthod commandline [Commandline reference](#dsc-generation-example)
  and script respectively .
