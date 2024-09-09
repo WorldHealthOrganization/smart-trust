@@ -246,6 +246,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
     ```
 	openssl x509 -req -in DSC01csr.pem -CA CAcert.pem -CAkey CAprivkey.key -CAcreateserial -days 730 -extensions ext -extfile DSC.conf -out DSCcert.pem
 	```
+  **Important Recommendations for Prod**: Please replace CAcert.pem and CAprivkey.key with signing material from an officially Trusted Certification Authority instead using your own self-signed one.    
 
 **TNP<sub>UP</sub> generation example**
 
