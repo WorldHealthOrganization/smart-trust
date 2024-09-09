@@ -675,13 +675,14 @@ An optional third argument can be provided to specify the purpose of the DSC (e.
 ```
 **How to run upload.sh script:**
 
-./upload_dsc.sh: Replace this with the actual name of your script.
+**- ./upload_dsc.sh:** Replace this with the actual name of your script.
 
-/path/to/subdir: Path to the directory containing UP.pem and UP.key.
+**- /path/to/subdir:** Path to the directory containing UP.pem and UP.key.
 
-/path/to/DSC_dir: Path to the directory containing the DSC files (DSC.pem, DSC.key).
+**- /path/to/DSC_dir:** Path to the directory containing the DSC files (DSC.pem, DSC.key).
 
-DCC: The domain name to be used. If omitted, the script will default to DCC.
+**DCC:** The domain name to be used. If omitted, the script will default to DCC.
+
 ```
 ./upload_dsc.sh /path/to/subdir-up_pem_key  /path/to/DSC_dir [DCC]
 ```
@@ -702,6 +703,10 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 
 Note: Some versions of curl don’t attach the client certificates automatically. This can be checked via curl --version Ensure that the used version is linked to OpenSSL. Especially under Windows (https://curl.se/windows/):
 
+**Working Setup**
+![image](https://github.com/user-attachments/assets/b55d083f-dccb-4547-af48-bbb7cb60d681)
+**Non-Working Setup**
+![image](https://github.com/user-attachments/assets/0f149617-d5f8-4f1b-bb65-37a073d4c146)
 
 ## Steps to Obtain and Use a CA-Signed Certificate
 
