@@ -594,26 +594,28 @@ Signing tags and commits is great, but if you decide to use this in your normal 
 ### Validating the certificates
 > Please check [Testing connection](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/3.1.full-video.v2.mp4)  video for reference
 
-- Use the following command to verify the certificates by testing the connection.
+- **Use the following command to verify the certificates by testing the connection**.
 
 	```
 	curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS.key
 	```
 
 ### Send an onboarding/participation request
+
 - Send an onboarding/participation request to gdhcn-support@who.int which contains:
     - URL of the private repository created as a prerequisite
     - The GPG key exported in Step [1.8.6.4](#generate-gpg-key)
-
+  
 Once you recieve confirmation on sucesfull onboarding from TNG Support Team ( gdhcn-support@who.int) 
 
-1. After onboarding in the DEV/UAT/PROD Environment, check the connectivity with the Trust Network Gateway using its API. This can be acheived with following command:
-
-TNG-WHO Endpoints:
+**TNG-WHO Endpoints:**
 -	PRD:	 https://tng.who.int
 -	UAT:	 https://tng-uat.who.int
 -	DEV:	 https://tng-dev.who.int
 
+
+
+1. After onboarding in the DEV/UAT/PROD Environment, check the connectivity with the Trust Network Gateway using its [API](https://smart.who.int/trust/openapi/). This can be acheived with following command:
 
 ```
 curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS_key.pem
