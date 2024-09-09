@@ -607,7 +607,7 @@ Signing tags and commits is great, but if you decide to use this in your normal 
 
 Once you recieve confirmation on sucesfull onboarding from TNG Support Team ( gdhcn-support@who.int) 
 
-After onboarding in the DEV/UAT/PROD Environment, check the connectivity with the Trust Network Gateway using its API. This can be acheived with following command:
+1. After onboarding in the DEV/UAT/PROD Environment, check the connectivity with the Trust Network Gateway using its API. This can be acheived with following command:
 
 TNG-WHO Endpoints:
 -	PRD:	 https://tng.who.int
@@ -633,10 +633,10 @@ You should see a output like:
 }
 ]
 ```
-4) Test the other Trustlist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication…)
-5) Create an Document Signer Certificate and sign it by the SCA [Refer](#certification-preparation-for-prod) and [DSC generation example](#dsc-generation-example)
-6) Create an CMS Package with the following Command:
-    Note: Step 5 and 6 could be achived through two menthod, commandlline and script respectively .
+2) Test the other Trustlist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication…)
+3) Create an Document Signer Certificate and sign it by the SCA [Refer](#certification-preparation-for-prod) and [DSC generation example](#dsc-generation-example)
+4) Create an CMS Package with the following Command:
+    Note: Step 3 and 4 could be achived through two menthod, commandlline and script respectively .
 
 **Method 1 - Commandline .**
 ```
@@ -684,16 +684,16 @@ DCC: The domain name to be used. If omitted, the script will default to DCC.
 ./upload_dsc.sh /path/to/subdir-up_pem_key  /path/to/DSC_dir [DCC]
 ```
 
-7) Check DSC is already exist before upload CMS package
+5) Check DSC is already exist before upload CMS package
 ```   
 curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 ```
-9) Upload the CMS Package to the Gateway
+6) Upload the CMS Package to the Gateway
 ```    
 curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-dev.who.int/signerCertificate
 
 ```
-11) Download the Trustlist again, and check if your DSC is available.
+7) Download the Trustlist again, and check if your DSC is available.
 ```   
 curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 ```    
