@@ -202,6 +202,8 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 	```
 
 - *Certificate generation*: Open a command line prompt in the folder where the sca.conf is located and use the following OpenSSL command to create the private key (CAprivkey.key) and the certificate (CAcert.pem):
+- 
+  **For Prod it's recommended to use** [Trusted CA issued Certificate](#steps-to-obtain-and-use-a-ca-signed-certificate) only. As below command for self-siged certificate generation as it's usually only recommened for **DEV/UAT** enviornment.
 	```
 	openssl req -x509 -new -days 1461 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout CAprivkey.key -nodes -out CAcert.pem -config sca.conf
 	```
