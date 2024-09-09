@@ -595,5 +595,6 @@ Signing tags and commits is great, but if you decide to use this in your normal 
 ### Send an onboarding/participation request
 - Send an onboarding/participation request to gdhcn-support@who.int which contains:
     - URL of the private repository created as a prerequisite
-    - The GPG key exported in Step [1.8.6.4](concepts_onboarding_checklist.html#generate-gpg-key)
+    - The GPG key exported in Step [1.8.6.4](#generate-gpg-key)
+
   
