@@ -673,7 +673,7 @@ An optional third argument can be provided to specify the purpose of the DSC (e.
 ./script_name.sh DN_template.cnf directory_of_SCA_files [test/vax/rec-purpose}
 
 ```
-**How to run upload.sh script:**
+**How to run upload.sh script:** [upload_dsc.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/upload_dsc.sh)
 
 **- ./upload_dsc.sh:** Replace this with the actual name of your script.
 
