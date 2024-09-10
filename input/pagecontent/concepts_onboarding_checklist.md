@@ -157,11 +157,9 @@ Windows platform you can use  [gen_all_certs.ps1](https://github.com/WorldHealth
 Copy the generated certificates to the respective folders and change the file names to match the naming convention. For the case of self-signed TLS certificates, the CA.pem is just a copy of the TLS.pem (check to have keyCertSign in the keyUsage). The CA.pem should exist, since it is used to verify the TLS client certificate when connecting to the TNG application.
 Files to be copied in respective folders are as follows:
 - SCA.pem -> onboarding/DCC/SCA
-	- UP.pem -> onboarding/DCC/UP
-
-  	- CA.pem -> onboarding/DCC/TLS
-  	
-	- TLS.pem -> onboarding/DCC/TLS
+- UP.pem -> onboarding/DCC/UP
+- CA.pem -> onboarding/DCC/TLS
+- TLS.pem -> onboarding/DCC/TLS
 
 >Note: On DEV and UAT environment, if the files are generated using a script, delete the generated folder before committing the files.
 	
@@ -477,19 +475,25 @@ An optional third argument can be provided to specify the purpose of the DSC (e.
 ```
 
 - Check DSC is already exist before upload CMS package
+
 ```   
 curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 ```
+
 - Upload the CMS Package to the Gateway
+
 ```    
 curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-dev.who.int/signerCertificate
-
 ```
+
 - Download the Trustlist again, and check if your DSC is available.
+
 ```   
 curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
-```    
+```   
+
 > Note: Some versions of curl don’t attach the client certificates automatically. This can be checked via curl --version Ensure that the used version is linked to OpenSSL. Especially under Windows (https://curl.se/windows/):
+
 
 **Working Setup**
 
