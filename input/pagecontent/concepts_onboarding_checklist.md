@@ -496,11 +496,13 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 
 **Working Setup**
 
-![image](https://github.com/user-attachments/assets/b55d083f-dccb-4547-af48-bbb7cb60d681)
+{% include img.html img="https://github.com/user-attachments/assets/b55d083f-dccb-4547-af48-bbb7cb60d681" caption="Working Setup" width ="60%" %}     
+
 
 **Non-Working Setup**
 
-![image](https://github.com/user-attachments/assets/0f149617-d5f8-4f1b-bb65-37a073d4c146)
+
+{% include img.html img="https://github.com/user-attachments/assets/0f149617-d5f8-4f1b-bb65-37a073d4c146" caption="Non-working setup" width ="60%" %}     
 
 
 
