@@ -109,19 +109,15 @@ This repository contains the template for building [onboarding](https://github.c
 - Click on Add GPG Key
 
 ### Create Certificates
-- Fill in content for your country
-	>   for DEV and UAT environments you may use the conf files and the  [certgen bash script](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh)  as a guideline according to the  [Certificate Preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md)
 	
 #### Certificate Preparation for DEV and UAT
 
 > Disclaimer: The script generates self-signed certificates not intended to be used on production environments.
-	
+>   for DEV and UAT environments you may use the conf files and the  [certgen bash script](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh)  as a guideline according to the  [Certificate Preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md)
+
 - You must adapt the following default certificate parameter of [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file which will used  in gen_all_certs.sh to your needs:
   
-  #Configuration Template for Certificate Generation
-  
-  #Modify for your own needs
-  
+- Configuration Template for Certificate Generation, Modify for your own needs
 
 	```
  	export OSSL_COUNTRY_NAME="XC"
@@ -150,21 +146,24 @@ This repository contains the template for building [onboarding](https://github.c
 
 Windows platform you can use  [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1)  instead. Please note that you need to have  [OpenSSL installed](https://slproweb.com/products/Win32OpenSSL.html)  (e.g. Win64 OpenSSL v3.3.0 Light) and added to your PATH environment variable. Also you may need allow the execution by setting an execution policy.
 
+
 	```
 	Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
 	```	
 
 **Prepare Folders**
 
-**Note**: keep your private keys safe and secure. Do not share them with anyone.
+> Note: keep your private keys safe and secure. Do not share them with anyone.
 Copy the generated certificates to the respective folders and change the file names to match the naming convention. For the case of self-signed TLS certificates, the CA.pem is just a copy of the TLS.pem (check to have keyCertSign in the keyUsage). The CA.pem should exist, since it is used to verify the TLS client certificate when connecting to the TNG application.
 Files to be copied in respective folders are as follows:
 - SCA.pem -> onboarding/DCC/SCA
-  	- UP.pem -> onboarding/DCC/UP
-  	- CA.pem -> onboarding/DCC/TLS
-  	- TLS.pem -> onboarding/DCC/TLS
+	- UP.pem -> onboarding/DCC/UP
 
-**Note** On DEV and UAT environment, if the files are generated using a script, delete the generated folder before committing the files.
+  	- CA.pem -> onboarding/DCC/TLS
+  	
+	- TLS.pem -> onboarding/DCC/TLS
+
+>Note: On DEV and UAT environment, if the files are generated using a script, delete the generated folder before committing the files.
 	
 
 #### Certification Preparation for Prod
@@ -176,7 +175,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 
 **Elliptic Curve Public Key Certificates (ECDSA with NIST-p-256)**
 
-**SCA certificate (TNP<sub>SCA</sub>) generation example**
+##### SCA certificate (TNP<sub>SCA</sub>) generation example
 > Please check [SCA Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.SCA.v2.mp4) video  for reference
 
 - *sca.conf*: Create a new file called sca.conf and replace the dn entries with your jurisdiction’s details.
@@ -202,12 +201,12 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 	```
 
 - *Certificate generation*: Open a command line prompt in the folder where the sca.conf is located and use the following OpenSSL command to create the private key (CAprivkey.key) and the certificate (CAcert.pem):
-- 
-  **For Prod it's recommended to use** [Trusted CA issued Certificate](#steps-to-obtain-and-use-a-ca-signed-certificate) only. As below command for self-siged certificate generation as it's usually only recommened for **DEV/UAT** enviornment.
+
+- **For Prod it's recommended to use** [Trusted CA issued Certificate](#steps-to-obtain-and-use-a-ca-signed-certificate) only. As below command for self-signed certificate generation as it's usually only recommended for **DEV/UAT** environment.
 	```
 	openssl req -x509 -new -days 1461 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout CAprivkey.key -nodes -out CAcert.pem -config sca.conf
 	```
-### DSC generation example
+##### DSC generation example
 **DSC generation example**
 	Document Signer Certificates (DSCs) must be signed by the SCA. Hence, you have to create the SCA certificate (with the corresponding private key) before you can issue DSCs.
 
@@ -227,6 +226,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 - It is recommended that a SCA provides certificate revocation lists. Therefore, replace the crlDistributionPoints URI with the information for your jurisdiction.
 
 - The extendedKeyUsage field is optional and can be used to further restrict the DSC certificate as follows:
+
     **Field** &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; **Value**\
     extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.1 for Test Issuers\
     extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.2 for Vacination Issuers\
@@ -246,9 +246,9 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
     ```
 	openssl x509 -req -in DSC01csr.pem -CA CAcert.pem -CAkey CAprivkey.key -CAcreateserial -days 730 -extensions ext -extfile DSC.conf -out DSCcert.pem
 	```
-  **Important Recommendations for Prod**: Please replace CAcert.pem and CAprivkey.key with signing material from an officially Trusted Certification Authority instead using your own self-signed one.    
+- **Important Recommendations for Prod**: Please replace CAcert.pem and CAprivkey.key with signing material from an officially Trusted Certification Authority instead using your own self-signed one.    
 
-**TNP<sub>UP</sub> generation example**
+##### TNP<sub>UP</sub> generation example
 
 - *uploadCert.conf*
 > Please check [UP Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.UP.v2.mp4)  video for reference
@@ -280,7 +280,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 	openssl req -x509 -new -days 365 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout TNP_UP.key -nodes -out TNP_UP.pem -config uploadCert.conf
 	```
 
-**TNP<sub>TLS</sub> generation example**
+##### TNP<sub>TLS</sub> generation example
 
 - *TLSClient.conf*
 > Please check  [TLS Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.TLS.v2.mp4) video for reference 
@@ -306,7 +306,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 	extendedKeyUsage = clientAuth
 	```
 
-**NOTE** :Beware that self-signed certificates should also contain the key usage Certificate signing (keyCertSign), so that the (self) signature of the certificate can be verified.
+> Note :Beware that self-signed certificates should also contain the key usage Certificate signing (keyCertSign), so that the (self) signature of the certificate can be verified.
 
     ```
     plaintext
@@ -326,7 +326,180 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 In case you want to use RSA certificates you can still use the configuration files provided above. During the CSR/certificate creation, replace the `-newkey ec:<(openssl ecparam -name prime256v1)` with `-newkey rsa:4096` for a 4096 Bit RSA key.  
 Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use RSA as your document signing algorithm, please create either a 2048 bit RSA key or at maximum a 3072 bit RSA key due to the space limitations on the QR codes.
 
-**Appendix A: Further example configuration files**
+### Provide
+
+> Please check  [Signing (tag) certificates](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.4.full-video.v2.mp4) video for reference
+- Finally commit push changes and make a signed tag for the version you want to take into use, by following the steps below:
+
+- List all the GPG keys available on your system
+
+	```
+	gpg --list-key
+	```
+- Configure the signing key to be used globally for Git commits and tag
+	
+	```
+	git config --global user.signingkey A715A10BB59020ACCDCDFC4C620C4824F921A7F4
+	```
+
+- Retrieve the current GPG signing key configured for Git
+	```
+	git config --get user.signingkey
+	```
+
+- Configures the global Git username and email
+	```
+	git config --global user.name "Your Git UserName"
+	
+	git config --global user.email "Your email Id"
+	```
+- Stage all changes for the next commit
+	```
+	git add .
+	```
+- Create a signed Git commit with a commit message
+	```
+	git commit -sm "add new files to commit"
+	```
+
+- Create a signed Git tag with a message
+	```
+	git tag -s v1.01 -m 'my signed 1.9 tag'
+	```
+
+- Displays the details of a specific tag
+	
+	```
+	git show v1.8
+	```
+
+- Pushes all the local tags to the remote repository
+	```
+	git push --tags 
+	```
+
+**Everyone Must Sign - Always a good idea**
+Signing tags and commits is great, but if you decide to use this in your normal workflow, you’ll have to make sure that everyone on your team understands how to do so. This can be achieved by asking everyone working with the repository to run git config --local commit.gpgsign true to automatically have all of their commits in the repository signed by default. If you don’t, you’ll end up spending a lot of time helping people figure out how to rewrite their commits with signed versions. Make sure you understand GPG and the benefits of signing things before adopting this as part of your standard workflow.
+
+### Send an onboarding/participation request
+
+- Send an onboarding/participation request to gdhcn-support@who.int which contains:
+    - URL of the private repository created as a prerequisite
+    - The GPG key exported in Step [1.8.6.4](#generate-gpg-key)
+  
+### Validate the connection
+- Once the confirmation of successful onboarding is received from the TNG Support Team ( gdhcn-support@who.int), please do the following 
+
+**TNG-WHO Endpoints:**
+-	PRD:	 https://tng.who.int
+-	UAT:	 https://tng-uat.who.int
+-	DEV:	 https://tng-dev.who.int
+
+
+
+- After onboarding in the DEV/UAT/PROD Environment, check the connectivity with the Trust Network Gateway using its [API](https://smart.who.int/trust/openapi/). This can be achieved with following command:
+
+```
+curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS_key.pem
+```
+You should see a output like:
+
+```
+[
+{
+    "kid": "+jrpHSqdqZY=",
+    "timestamp": "2023-05-25T07:55:21Z",
+    "country": "XC",
+    "certificateType": "UPLOAD",
+    "thumbprint": "fa3ae91d...",
+    "signature": "MIAGCSqGSIb3D...",
+    "rawData": "MIIErTCCA5WgAwIBAgII..."
+}
+]
+```
+- Test the other Trustlist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication…)
+
+### Upload CMS Package
+- Create an Document Signer Certificate and sign it by the SCA [Refer](#certification-preparation-for-prod) and [DSC generation example](#dsc-generation-example)
+
+- Create an CMS Package with the following Command:
+> Note: Step 3 and 4 could be achieved through two method, commandline and script respectively .
+
+**Method 1 - Commandline .**
+```
+openssl x509 -outform der -in cert.pem -out cert.der
+openssl cms -sign -nodetach -in cert.der -signer signing.crt -inkey signing.key -out signed.der -outform DER -binary
+openssl base64 -in signed.der -out cms.b64 -e -A
+
+```
+> Note: cert.der is your DSC, signing.crt is the TNP<sub>UP</sub>.
+
+**Method 2 - Scripts**
+
+The DSC generation and upload of  CMS package to TNG Gateway  could be achieved through the below mentioned scripts.
+For DEV and UAT environments you may use script. 
+
+[Generate DSCs](https://github.com/WorldHealthOrganization/tng-participant-template/tree/main/scripts/certgen#generate-dscs)
+
+[Upload DSCs](https://github.com/WorldHealthOrganization/tng-participant-template/tree/main/scripts/certgen#upload-dscs0)
+
+The Distinguished Name ( DN) configuration file while will parse as source  [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) is an example.
+
+Please replace with your actual OSSL_COUNTRY_NAME, OSSL_STATE_NAME etc parameters accordingly of DN_template.cnf file.
+
+The script expects at least two arguments:
+A configuration file (DN_template.cnf) that contains the Distinguished Name (DN) template.
+A subdirectory where the SCA (Signing Certificate Authority) PEM and KEY files are located.
+An optional third argument can be provided to specify the purpose of the DSC (e.g., test, vax, rec). If this argument is not provided, the DSC will be generated for all purposes.
+
+**How to to run DSC Generate Script** [gen_dsh.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_dsc.sh)
+
+``` 
+./script_name.sh DN_template.cnf directory_of_SCA_files [test/vax/rec-purpose]
+
+```
+**How to run upload.sh script:** [upload_dsc.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/upload_dsc.sh)
+
+**- ./upload_dsc.sh:** Replace this with the actual name of your script.
+
+**- /path/to/subdir:** Path to the directory containing UP.pem and UP.key.
+
+**- /path/to/DSC_dir:** Path to the directory containing the DSC files (DSC.pem, DSC.key).
+
+**DCC:** The domain name to be used. If omitted, the script will default to DCC.
+
+```
+./upload_dsc.sh /path/to/subdir-up_pem_key  /path/to/DSC_dir [DCC]
+```
+
+- Check DSC is already exist before upload CMS package
+```   
+curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
+```
+- Upload the CMS Package to the Gateway
+```    
+curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-dev.who.int/signerCertificate
+
+```
+- Download the Trustlist again, and check if your DSC is available.
+```   
+curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
+```    
+> Note: Some versions of curl don’t attach the client certificates automatically. This can be checked via curl --version Ensure that the used version is linked to OpenSSL. Especially under Windows (https://curl.se/windows/):
+
+**Working Setup**
+
+![image](https://github.com/user-attachments/assets/b55d083f-dccb-4547-af48-bbb7cb60d681)
+
+**Non-Working Setup**
+
+![image](https://github.com/user-attachments/assets/0f149617-d5f8-4f1b-bb65-37a073d4c146)
+
+
+
+### Appendix
+
+#### Further example configuration files
 The following configuration files have been provided during the alignment on the [certificate governance](https://worldhealthorganization.github.io/smart-trust/concepts_certificate_governance.html). The configuration files contain additional fields that a Trust Network Participant might want to include and use. The config-files are not tested with the OpenSSL commands provided above.
 
 - *SCA Conf*
@@ -401,21 +574,37 @@ The following configuration files have been provided during the alignment on the
 	notAfter                = IMPLICIT:1,GENERALIZEDTIME:$ENV::DS_PRIV_KEY_END
 	```
 
-**Tagging for taking into use**
+#### Steps to Obtain and Use a CA-Signed Certificate
 
-[](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md#tagging-for-taking-into-use)
+- Generate a Certificate Signing Request (CSR)
+To begin, generate a CSR using the following OpenSSL command. This request will include a new private key and a configuration file:
 
-- Finally commit push changes and make a signed tag for the version you want to take into use.
+```
+openssl req -new -nodes -newkey ec:<(openssl ecparam -name prime256v1) -keyout CAprivkey.key -out CAreq.csr -config sca.conf
+```
 
-	```
-	git add .
-	git commit -m "feat(cert): update certificates for onboarding"
-	GIT_TRACE=1 git tag -s v0.0.1 -m 'onboardingRequest'
-	git push --tags
-	```
 
-### Signing Your Work
-> Please check  [Signing (tag) certificates](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.4.full-video.v2.mp4) video for reference
+**CAprivkey.key:** This file contains the private key.
+
+**CAreq.csr:** This file contains the Certificate Signing Request.
+
+**sca.conf:** This is the OpenSSL configuration file used during the CSR generation.
+
+- Submit the CSR to a Public Certificate Authority (CA):
+Submit the generated CAreq.csr file to the public CA of your choice. The CA will use this CSR to issue a certificate. Upon approval, the CA will provide you with:
+
+- Submit CSR to the Public CA:
+Submit the generated CAreq.csr file to the public CA of your choice. They will use the CSR to issue a certificate. The CA will provide you with the signed certificate and possibly a certificate chain or intermediate certificates.
+
+- Use the CA-Signed Certificate:
+Once you receive the CA-signed certificate, you will use it instead of generating a new self-signed certificate. Here’s how you can replace the placeholders with the signed certificate:
+cp signed_CA_cert.pem ${subdir}/CAcert.pem 
+cp CAprivkey.key ${subdir}/CAprivkey.key
+
+#### More information about Git commit, signing and tagging commands
+
+
+**Signing Your Work**
 
 - Git is cryptographically secure, but it’s not foolproof. If you’re taking work from others on the internet and want to verify that commits are actually from a trusted source, Git has a few ways to sign and verify work using GPG.
 
@@ -444,7 +633,7 @@ The following configuration files have been provided during the alignment on the
 
 - Now Git will use your key by default to sign tags and commits if you want.
 
-### Signing Tags
+**Signing Tags**
 - If you have a GPG private key set up, you can now use it to sign new tags. All you have to do is use -s instead of -a:
 
 	```
@@ -483,7 +672,7 @@ The following configuration files have been provided during the alignment on the
 	    Change version number
 	```
 
-### Verifying Tags
+**Verifying Tags**
 - To verify a signed tag, you use git tag -v <tag-name>. This command uses GPG to verify the signature. You need the signer’s public key in your keyring for this to work properly:
 
 
@@ -511,7 +700,7 @@ The following configuration files have been provided during the alignment on the
 	error: could not verify the tag 'v1.4.2.1'
 	```
 
-### Signing Commits
+**Signing Commits**
 - In more recent versions of Git (v1.7.9 and above), you can now also sign individual commits. If you’re interested in signing commits directly instead of just the tags, all you need to do is add a -S to your git commit command.
 
 	```
@@ -587,150 +776,3 @@ The following configuration files have been provided during the alignment on the
 	 README | 2 ++
 	 1 file changed, 2 insertions(+)
 	```
-
-**Everyone Must Sign - Always a good idea**
-Signing tags and commits is great, but if you decide to use this in your normal workflow, you’ll have to make sure that everyone on your team understands how to do so. This can be achieved by asking everyone working with the repository to run git config --local commit.gpgsign true to automatically have all of their commits in the repository signed by default. If you don’t, you’ll end up spending a lot of time helping people figure out how to rewrite their commits with signed versions. Make sure you understand GPG and the benefits of signing things before adopting this as part of your standard workflow.
-
-### Validating the certificates
-> Please check [Testing connection](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/3.1.full-video.v2.mp4)  video for reference
-
-- **Use the following command to verify the certificates by testing the connection**.
-
-	```
-	curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS.key
-	```
-
-### Send an onboarding/participation request
-
-- Send an onboarding/participation request to gdhcn-support@who.int which contains:
-    - URL of the private repository created as a prerequisite
-    - The GPG key exported in Step [1.8.6.4](#generate-gpg-key)
-  
-Once you recieve confirmation on sucesfull onboarding from TNG Support Team ( gdhcn-support@who.int) 
-
-**TNG-WHO Endpoints:**
--	PRD:	 https://tng.who.int
--	UAT:	 https://tng-uat.who.int
--	DEV:	 https://tng-dev.who.int
-
-
-
-1. After onboarding in the DEV/UAT/PROD Environment, check the connectivity with the Trust Network Gateway using its [API](https://smart.who.int/trust/openapi/). This can be acheived with following command:
-
-```
-curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS_key.pem
-```
-You should see a output like:
-
-```
-[
-{
-    "kid": "+jrpHSqdqZY=",
-    "timestamp": "2023-05-25T07:55:21Z",
-    "country": "XC",
-    "certificateType": "UPLOAD",
-    "thumbprint": "fa3ae91d...",
-    "signature": "MIAGCSqGSIb3D...",
-    "rawData": "MIIErTCCA5WgAwIBAgII..."
-}
-]
-```
-2) Test the other Trustlist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication…)
-3) Create an Document Signer Certificate and sign it by the SCA [Refer](#certification-preparation-for-prod) and [DSC generation example](#dsc-generation-example)
-4) Create an CMS Package with the following Command:
-    Note: Step 3 and 4 could be achived through two menthod, commandlline and script respectively .
-
-**Method 1 - Commandline .**
-```
-openssl x509 -outform der -in cert.pem -out cert.der
-openssl cms -sign -nodetach -in cert.der -signer signing.crt -inkey signing.key -out signed.der -outform DER -binary
-openssl base64 -in signed.der -out cms.b64 -e -A
-
-```
-**Note**: cert.der is your DSC, signing.crt is the TNPUP.
-
-**Method 2 - Scripts**
-
-The DSC generation and upload of  CMS package to TNG Gateway  could be achieved through the below mentioned scripts.
-For DEV and UAT environments you may use script. 
-
-[Generate DSCs](https://github.com/WorldHealthOrganization/tng-participant-template/tree/main/scripts/certgen#generate-dscs)
-
-[Upload DSCs](https://github.com/WorldHealthOrganization/tng-participant-template/tree/main/scripts/certgen#upload-dscs0)
-
-The Distinguised Nmae ( DN) configuration file while will parse as source  [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) is an example.
-
-Please replace with your actual OSSL_COUNTRY_NAME, OSSL_STATE_NAME etc parameters accordingly of 	DN_template.cnf file.
-
-The script expects at least two arguments:
-A configuration file (DN_template.cnf) that contains the Distinguished Name (DN) template.
-A subdirectory where the SCA (Signing Certificate Authority) PEM and KEY files are located.
-An optional third argument can be provided to specify the purpose of the DSC (e.g., test, vax, rec). If this argument is not provided, the DSC will be generated for all purposes.
-
-**Howto to run DSC Generate Script** [gen_dsh.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_dsc.sh)
-
-``` 
-./script_name.sh DN_template.cnf directory_of_SCA_files [test/vax/rec-purpose}
-
-```
-**How to run upload.sh script:** [upload_dsc.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/upload_dsc.sh)
-
-**- ./upload_dsc.sh:** Replace this with the actual name of your script.
-
-**- /path/to/subdir:** Path to the directory containing UP.pem and UP.key.
-
-**- /path/to/DSC_dir:** Path to the directory containing the DSC files (DSC.pem, DSC.key).
-
-**DCC:** The domain name to be used. If omitted, the script will default to DCC.
-
-```
-./upload_dsc.sh /path/to/subdir-up_pem_key  /path/to/DSC_dir [DCC]
-```
-
-5) Check DSC is already exist before upload CMS package
-```   
-curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
-```
-6) Upload the CMS Package to the Gateway
-```    
-curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-dev.who.int/signerCertificate
-
-```
-7) Download the Trustlist again, and check if your DSC is available.
-```   
-curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
-```    
-
-Note: Some versions of curl don’t attach the client certificates automatically. This can be checked via curl --version Ensure that the used version is linked to OpenSSL. Especially under Windows (https://curl.se/windows/):
-
-**Working Setup**
-![image](https://github.com/user-attachments/assets/b55d083f-dccb-4547-af48-bbb7cb60d681)
-**Non-Working Setup**
-![image](https://github.com/user-attachments/assets/0f149617-d5f8-4f1b-bb65-37a073d4c146)
-
-## Steps to Obtain and Use a CA-Signed Certificate
-
-**1. Generate a Certificate Signing Request (CSR)**
-To begin, generate a CSR using the following OpenSSL command. This request will include a new private key and a configuration file:
-
-```
-openssl req -new -nodes -newkey ec:<(openssl ecparam -name prime256v1) -keyout CAprivkey.key -out CAreq.csr -config sca.conf
-```
-
-
-**CAprivkey.key:** This file contains the private key.
-C**Areq.csr:** This file contains the Certificate Signing Request.
-**sca.conf:** This is the OpenSSL configuration file used during the CSR generation.
-
-**2. Submit the CSR to a Public Certificate Authority (CA)**
-Submit the generated CAreq.csr file to the public CA of your choice. The CA will use this CSR to issue a certificate. Upon approval, the CA will provide you with:
-
-**2. Submit CSR to the Public CA**
-Submit the generated CAreq.csr file to the public CA of your choice. They will use the CSR to issue a certificate. The CA will provide you with the signed certificate and possibly a certificate chain or intermediate certificates.
-
-**3. Use the CA-Signed Certificate**
-Once you receive the CA-signed certificate, you will use it instead of generating a new self-signed certificate. Here’s how you can replace the placeholders with the signed certificate:
-cp signed_CA_cert.pem ${subdir}/CAcert.pem 
-cp CAprivkey.key ${subdir}/CAprivkey.key
-
-
