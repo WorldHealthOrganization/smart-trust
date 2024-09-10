@@ -329,7 +329,8 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 ### Provide
 
 > Please check  [Signing (tag) certificates](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.4.full-video.v2.mp4) video for reference
-> Git Commands for Configuring, Committing, and Pushing Signed Commits are also available [here](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md#tagging-for-taking-into-use)
+
+- **Git Commands for Configuring, Committing, and Pushing Signed Commits** are also available [here](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md#tagging-for-taking-into-use)
 
 - Finally commit push changes and make a signed tag for the version you want to take into use, by following the steps below:
 
