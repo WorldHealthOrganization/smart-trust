@@ -223,7 +223,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 
 - It is recommended that a SCA provides certificate revocation lists. Therefore, replace the crlDistributionPoints URI with the information for your jurisdiction.
 
-- The extendedKeyUsage field is optional and can be used to further restrict the DSC certificate as follows:
+- The extendedKeyUsage field is optional, for Covid certificates the below values are recommend to be used to further restrict the DSC certificate as follows:
 
     **Field** &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; **Value**\
     extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.1 for Test Issuers\
