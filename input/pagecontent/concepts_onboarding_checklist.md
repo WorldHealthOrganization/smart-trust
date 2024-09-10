@@ -146,7 +146,6 @@ This repository contains the template for building [onboarding](https://github.c
 
 Windows platform you can use  [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1)  instead. Please note that you need to have  [OpenSSL installed](https://slproweb.com/products/Win32OpenSSL.html)  (e.g. Win64 OpenSSL v3.3.0 Light) and added to your PATH environment variable. Also you may need allow the execution by setting an execution policy.
 
-
 	```
 	Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
 	```	
