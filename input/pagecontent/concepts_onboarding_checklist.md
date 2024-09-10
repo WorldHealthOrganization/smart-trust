@@ -329,6 +329,8 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 ### Provide
 
 > Please check  [Signing (tag) certificates](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.4.full-video.v2.mp4) video for reference
+> Git Commands for Configuring, Committing, and Pushing Signed Commits are also available [here](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md#tagging-for-taking-into-use)
+
 - Finally commit push changes and make a signed tag for the version you want to take into use, by following the steps below:
 
 - List all the GPG keys available on your system
@@ -377,6 +379,7 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	```
 	git push --tags 
 	```
+- For more detailed git commands please review [Appendix](#more-information-about-git-commit-signing-and-tagging-commands)
 
 **Everyone Must Sign - Always a good idea**
 Signing tags and commits is great, but if you decide to use this in your normal workflow, you’ll have to make sure that everyone on your team understands how to do so. This can be achieved by asking everyone working with the repository to run git config --local commit.gpgsign true to automatically have all of their commits in the repository signed by default. If you don’t, you’ll end up spending a lot of time helping people figure out how to rewrite their commits with signed versions. Make sure you understand GPG and the benefits of signing things before adopting this as part of your standard workflow.
