@@ -380,7 +380,7 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	```
 	git add .
 	```
-- Create a signed Git commit with a commit message
+- Create a signed Git commit with a commit message,
 	```
 	git commit -sm "added all certificates files"
 	```
