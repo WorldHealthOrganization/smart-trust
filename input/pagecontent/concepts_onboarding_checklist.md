@@ -117,8 +117,8 @@ This repository contains the template for building [onboarding](https://github.c
 
 - You must adapt the following default certificate parameter of [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file which will used  in gen_all_certs.sh to your needs:
   
-- Configuration Template for Certificate Generation, Modify for your own needs in DN_template.cnf file as it will 
-  used argumnet while running the script "gen_all_certs.sh".
+- Configuration Template for Certificate Generation, Modify for your own needs in DN_template.cnf file as it will be 
+  used as argumnet while running the script "gen_all_certs.sh".
 
 	```
  	export OSSL_COUNTRY_NAME="XC"
@@ -132,7 +132,7 @@ This repository contains the template for building [onboarding](https://github.c
 	
 - Then execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
 - While execution of the "gen_all_certs.sh" script, Please provide script agrument "DN_template.cnf" file  
-  which conisit of county related info to generate all required certificates (TLS,SCA,UP)
+  which consists of county related information to generate all required certificates (TLS,SCA,UP)
   
   
 
