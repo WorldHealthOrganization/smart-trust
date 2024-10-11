@@ -131,8 +131,9 @@ This repository contains the template for building [onboarding](https://github.c
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 	
 - Then execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
-- While execution of the "gen_all_certs.sh" script, Please provie script agrument "DN_template.cnf" file  which  
-  conisit of required county info to generate all required certificates (TLS,SCA,UP)
+- While execution of the "gen_all_certs.sh" script, Please provide script agrument "DN_template.cnf" file  
+  which conisit of county related info to generate all required certificates (TLS,SCA,UP)
+  
   
 
 
@@ -140,10 +141,8 @@ This repository contains the template for building [onboarding](https://github.c
 	For Mac/Unix
 	cd scripts/certgen
 	./gen_all_certs.sh DN_template.cnf	   
-           
-        zsh ./gen_all_certs.sh DN_template.cnf      ## If you are using Ubuntu OS
+ 	zsh ./gen_all_certs.sh DN_template.cnf      ## If you are using Ubuntu OS
         
-
 	For Windows:
 	cd scripts/certgen
 	./gen_all_certs.ps1
@@ -383,7 +382,7 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	```
 - Create a signed Git commit with a commit message
 	```
-	git commit -sm "add new files to commit"
+	git commit -sm "added all certificates files"
 	```
 
 - Create a signed Git tag with a message
@@ -516,6 +515,8 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 ```   
 
 > Note: Some versions of curl don’t attach the client certificates automatically. This can be checked via curl --version Ensure that the used version is linked to OpenSSL. Especially under Windows (https://curl.se/windows/):
+> 
+> **Curl verson on Unix/Mac**: We strongly recommend updating curl and nss to newer latest versions for full compatibility with modern cryptographic standards.The outdated version of curl or nss and may not support modern SSL/TLS protocols or elliptic curve cryptography (ECC) cipher suites properly.
 
 
 
