@@ -132,7 +132,7 @@ This repository contains the template for building [onboarding](https://github.c
 	
 - Then execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
 - While execution of the "gen_all_certs.sh" script, Please provide script argument "DN_template.cnf" file  
-  which consists of county related information to generate all required certificates (TLS,SCA,UP)
+  which consists of country related information to generate all required certificates (TLS,SCA,UP)
   
   
 
