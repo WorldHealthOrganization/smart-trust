@@ -117,7 +117,8 @@ This repository contains the template for building [onboarding](https://github.c
 
 - You must adapt the following default certificate parameter of [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file which will used  in gen_all_certs.sh to your needs:
   
-- Configuration Template for Certificate Generation, Modify for your own needs
+- Configuration Template for Certificate Generation, Modify for your own needs in DN_template.cnf file as it will be 
+  used as argument while running the script "gen_all_certs.sh".
 
 	```
  	export OSSL_COUNTRY_NAME="XC"
@@ -130,13 +131,18 @@ This repository contains the template for building [onboarding](https://github.c
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 	
 - Then execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
+- While execution of the "gen_all_certs.sh" script, Please provide script argument "DN_template.cnf" file  
+  which consists of country related information to generate all required certificates (TLS,SCA,UP)
+  
+  
 
 
 	```
-	For Mac
+	For Mac/Unix
 	cd scripts/certgen
-	./gen_all_certs.sh
-
+	./gen_all_certs.sh DN_template.cnf	   
+ 	zsh ./gen_all_certs.sh DN_template.cnf      ## If you are using Ubuntu OS
+        
 	For Windows:
 	cd scripts/certgen
 	./gen_all_certs.ps1
@@ -226,7 +232,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 
     **Field** &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; **Value**\
     extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.1 for Test Issuers\
-    extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.2 for Vacination Issuers\
+    extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.2 for Vaccination Issuers\
     extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.3 for Recovery Issuers\
 - The above example contains all three extended key usages.
 
@@ -236,7 +242,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 	openssl req -newkey ec:<(openssl ecparam -name prime256v1) -keyout DSC01privkey.key -nodes -out DSC01csr.pem
 	```
 
-- If needed, you can repeat this procedure to create multiple CSRs for different DSCs (on different machines). When prompted, enter the necessary information (e.g. C= your jurisdiction (MUST), O = your Organisation (OPTIONAL), CN = non-empty and unique CN (MUST), …).
+- If needed, you can repeat this procedure to create multiple CSRs for different DSCs (on different machines). When prompted, enter the necessary information (e.g. C= your jurisdiction (MUST), O = your Organization (OPTIONAL), CN = non-empty and unique CN (MUST), …).
 
 - *Issue the certificate*: Copy the CSR (DSC01csr.pem) to the folder where the private key of your CA is located. Open a command prompt and use the following command to issue the DSC (DSCcert.pem):
 	
@@ -336,11 +342,28 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	```
 	gpg --list-key
 	```
+ 
+ 	```
+  	Output
+	gpg --list-key
+	/home/test/.gnupg/pubring.kbx
+	-----------------------------
+	
+	pub   rsa4096 2024-09-19 [SC]
+	      CD822874C7862BA4BB6B950E40CC62009D9A00B0
+	uid           [ultimate] Test User1 (This GPG Key is for XXC test Country) <youruser@yourdomain.com>
+	sub   rsa4096 2024-09-19 [E]
+  	```
+	**Note**: The PUB ID in above output is CD822874C7862BA4BB6B950E40CC62009D9A00B0 , In your case you need to 
+        replace with << replace with your Pub ID >> with your actual GPG public key ID to configure Git to use a GPG 
+        key for signing commits or tags in next command.
+       
 - Configure the signing key to be used globally for Git commits and tag
 	
 	```
-	git config --global user.signingkey A715A10BB59020ACCDCDFC4C620C4824F921A7F4
+	git config --global user.signingkey << replace with your Pub ID >>
 	```
+        
 
 - Retrieve the current GPG signing key configured for Git
 	```
@@ -357,20 +380,20 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	```
 	git add .
 	```
-- Create a signed Git commit with a commit message
+- Create a signed Git commit with a commit message,
 	```
-	git commit -sm "add new files to commit"
+	git commit -sm "added all certificates files"
 	```
 
 - Create a signed Git tag with a message
 	```
-	git tag -s v1.01 -m 'my signed 1.9 tag'
+	git tag -s v1.2 -m 'my signed 1.2 tag'
 	```
 
 - Displays the details of a specific tag
 	
 	```
-	git show v1.8
+	git show v1.2
 	```
 
 - Pushes all the local tags to the remote repository
@@ -492,6 +515,8 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 ```   
 
 > Note: Some versions of curl don’t attach the client certificates automatically. This can be checked via curl --version Ensure that the used version is linked to OpenSSL. Especially under Windows (https://curl.se/windows/):
+> 
+> **Curl verson on Unix/Mac**: We strongly recommend updating curl and nss to newer latest versions for full compatibility with modern cryptographic standards.The outdated version of curl or nss and may not support modern SSL/TLS protocols or elliptic curve cryptography (ECC) cipher suites properly.
 
 
 
