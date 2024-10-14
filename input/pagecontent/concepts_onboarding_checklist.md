@@ -131,7 +131,7 @@ This repository contains the template for building [onboarding](https://github.c
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 	
 - Then execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
-- While execution of the "gen_all_certs.sh" script, Please provide script agrument "DN_template.cnf" file  
+- While execution of the "gen_all_certs.sh" script, Please provide script argument "DN_template.cnf" file  
   which consists of county related information to generate all required certificates (TLS,SCA,UP)
   
   
@@ -232,7 +232,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 
     **Field** &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; **Value**\
     extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.1 for Test Issuers\
-    extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.2 for Vacination Issuers\
+    extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.2 for Vaccination Issuers\
     extendedKeyUsage &emsp; 1.3.6.1.4.1.1847.2021.1.3 for Recovery Issuers\
 - The above example contains all three extended key usages.
 
@@ -242,7 +242,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 	openssl req -newkey ec:<(openssl ecparam -name prime256v1) -keyout DSC01privkey.key -nodes -out DSC01csr.pem
 	```
 
-- If needed, you can repeat this procedure to create multiple CSRs for different DSCs (on different machines). When prompted, enter the necessary information (e.g. C= your jurisdiction (MUST), O = your Organisation (OPTIONAL), CN = non-empty and unique CN (MUST), …).
+- If needed, you can repeat this procedure to create multiple CSRs for different DSCs (on different machines). When prompted, enter the necessary information (e.g. C= your jurisdiction (MUST), O = your Organization (OPTIONAL), CN = non-empty and unique CN (MUST), …).
 
 - *Issue the certificate*: Copy the CSR (DSC01csr.pem) to the folder where the private key of your CA is located. Open a command prompt and use the following command to issue the DSC (DSCcert.pem):
 	
