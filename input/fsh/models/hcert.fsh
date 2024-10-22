@@ -1,7 +1,8 @@
 Alias: $IPS = http://hl7.org/fhir/uv/ips/StructureDefinition/Bundle-uv-ips
 Alias: $HCertDCC = http://smart.who.int/ddcc/StructureDefinition/HCertDCC
-Alias: $DDCCVS = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSet.VS
-Alias: $DDCCTR = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSet.TR
+Alias: $DDCCVS = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetVS
+Alias: $DDCCTR = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetTR
+Alias: $DVC = http://smart.who.int/icvp/StructureDefinition/DVCPayload
 
 Logical:        HCert
 Title:          "Health Certificate"
@@ -27,5 +28,5 @@ Description:    "Logical Model for the HCERT"
 * 3 0..* $DDCCVS "Vaccination Core Data Set claim" "DDCC Vaccination claim (PROPOSED)"
 * 4 0..* $DDCCTR "Test Result Core Data Set claim" "DDCC Test Result claim (PROPOSED)"
 * 5 0..* SmartHealthLink "SMART Health Link claim" "SMART Health Link"
-//* 6 0..* $IPS "IPS" "IPS Bundle (EXAMPLE)"
+* -6 0..* $DVC "DVC" "Digital Vaccination Certificate (Proposed)"
 
