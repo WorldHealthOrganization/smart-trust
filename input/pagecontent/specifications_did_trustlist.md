@@ -3,35 +3,35 @@
 This specification describes the publication of Global Digital Health Certification Network (GDHCN) key material as Decentralized Identifier (DID) documents. DIDs are specified by the [W3C DID Core Specification](https://www.w3.org/TR/did-core/).
 A key to real interoperability among existing trust networks is to find alignment on trust list formats.
 
-| Version | Status   | Description                                                   |
-|---------|----------|---------------------------------------------------------------|
-| 2.0.0   | Draft    | 2.0.0 is in pre-released state for verification and feedback. |
-| 1.0.0   | Released | 1.0.0 is deprecated and will be replaced by version 2.0.0     |
+| Version | Status   | Description                                                  |
+|---------|----------|--------------------------------------------------------------|
+| 2.0   | Draft    | 2.0 is in pre-released state for verification and feedback. |
+| 1.0.0   | Released | 1.0.0 is deprecated and will be replaced by version 2.0     |
 
-#### Trustlists 2.0.0
+#### Trustlists 2.0
 
-Version 2.0.0 introduces two variants of the trust lists - embedded and by reference.
+Version 2.0 introduces two variants of the trust lists - embedded and by reference.
 
 The embedded type of trustlist carries the key material directly within the DID documents' verificationMethod property and supports immediate verification.
 The reference type lists references to other DID documents, which contain the actual key material. This helps to keep the main trustlist documents concise and easier to manage and supports the dynamic discovery of actual key material.
 The root trustlist contains all keys available on the TNG or the respective entrypoint for DID references.
 
-| Trustlist           | URL                                                                                                            |
-|---------------------|----------------------------------------------------------------------------------------------------------------|
-| Embedded Trustlist  | [https://tng-cdn.who.int/v2.0.0/trustlist/did.json](https://tng-cdn.who.int/v2.0.0/trustlist/did.json)         |
-| Reference Trustlist | [https://tng-cdn.who.int/v2.0.0/trustlist-ref/did.json](https://tng-cdn.who.int/v2.0.0/trustlist-ref/did.json) |
+| Trustlist           | URL                                                                                                          |
+|---------------------|--------------------------------------------------------------------------------------------------------------|
+| Embedded Trustlist  | [https://tng-cdn.who.int/v2.0/trustlist/did.json](https://tng-cdn.who.int/v2.0/trustlist/did.json)         |
+| Reference Trustlist | [https://tng-cdn.who.int/v2.0/trustlist-ref/did.json](https://tng-cdn.who.int/v2.0/trustlist-ref/did.json) |
 
-Version 2.0.0 also introduced substructures for DID documents, to support more fine grained resolution of key material. 
+Version 2.0 also introduced substructures for DID documents, to support more fine grained resolution of key material. 
 
 ##### Path Structure for filtering
 
 To support more fine grained resolution of key material, the following path structure is applied:
 
-* tng-cdn.who.int/v2.0.0/trustlist/<DOMAIN>/<PARTICIPANT_CODE> matches all key usages (DSC, SCA, etc) for a specific domain or participant code
-* tng-cdn.who.int/v2.0.0/trustlist/<DOMAIN>/<PARTICIPANT_CODE>/<USAGE> matches all keys for a specific usage for a specific domain or participant code
-* tng-cdn.who.int//v2.0.0/trustlist/-/<PARTICIPANT_CODE> matches all domains for a specific participant for all usage codes
-* tng-cdn.who.int//v2.0.0/trustlist/-/<PARTICIPANT_CODE>/<USAGE> matches all domains for a specific participant and usage code
-* tng-cdn.who.int//v2.0.0/trustlist/<DOMAIN>/-/<USAGE> matches all participants for a specific domain
+* tng-cdn.who.int/v2.0/trustlist/<DOMAIN>/<PARTICIPANT_CODE> matches all key usages (DSC, SCA, etc) for a specific domain or participant code
+* tng-cdn.who.int/v2.0/trustlist/<DOMAIN>/<PARTICIPANT_CODE>/<USAGE> matches all keys for a specific usage for a specific domain or participant code
+* tng-cdn.who.int/v2.0/trustlist/-/<PARTICIPANT_CODE> matches all domains for a specific participant for all usage codes
+* tng-cdn.who.int/v2.0/trustlist/-/<PARTICIPANT_CODE>/<USAGE> matches all domains for a specific participant and usage code
+* tng-cdn.who.int/v2.0/trustlist/<DOMAIN>/-/<USAGE> matches all participants for a specific domain
 
 Note that "-" character is used as a wildcard.
 
