@@ -130,6 +130,8 @@ This repository contains the template for building [onboarding](https://github.c
  **Windows PowerShell Script** [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1)
  
 Here’s how you would set those environment variables in Windows PowerShell. The Windos PowerShell script is [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1)
+
+**Note**: You can either modify **gen_all_certs.ps1** directly or set environment variables for your current PowerShell session as mentioned in the steps below.
   
 1.Open PowerShell on your Windows machine.
 
