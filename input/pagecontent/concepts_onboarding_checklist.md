@@ -95,7 +95,7 @@ This repository contains the template for building [onboarding](https://github.c
 	``` 
 	Shell
 
-	gpg --armor --export 3AA5C34371567BD2
+	gpg --armor --export << replace you actual GPG key ID >>
 	# Prints the GPG key ID, in ASCII armor format
 	```
 - Copy your GPG key, beginning with -----BEGIN PGP PUBLIC KEY BLOCK----- and ending with -----END PGP PUBLIC KEY BLOCK-----.
@@ -118,7 +118,7 @@ This repository contains the template for building [onboarding](https://github.c
 - You must adapt the following default certificate parameter of [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file which will used  in gen_all_certs.sh to your needs:
   
 - Configuration Template for Certificate Generation, Modify for your own needs in DN_template.cnf file as it will be 
-  used as argument while running the script "gen_all_certs.sh".
+  used as argument while running the shell script "gen_all_certs.sh".
 
 	```
  	export OSSL_COUNTRY_NAME="XC"
@@ -127,6 +127,26 @@ This repository contains the template for building [onboarding](https://github.c
 	export OSSL_ORGANIZATION_NAME="WHO"
 	export OSSL_ORGANIZATIONAL_UNIT_NAME="R&D"
 	```
+ **Windows PowerShell Script** [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1)
+ 
+Here’s how you would set those environment variables in Windows PowerShell. The Windos PowerShell script is [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1)
+  
+1.Open PowerShell on your Windows machine.
+
+2.Paste the below code into the PowerShell window.
+
+3.These variables will now be available as environment variables for the current PowerShell session.
+ 
+ 	```
+  	$env:OSSL_COUNTRY_NAME="XC"
+	$env:OSSL_STATE_NAME="Test State"
+	$env:OSSL_LOCALITY_NAME="TEST"
+	$env:OSSL_ORGANIZATION_NAME="WHO"
+	$env:OSSL_ORGANIZATIONAL_UNIT_NAME="RND"
+ 	```
+ 
+  	
+ 	
 
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 	
