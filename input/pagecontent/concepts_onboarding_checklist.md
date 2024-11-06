@@ -132,6 +132,8 @@ This repository contains the template for building [onboarding](https://github.c
 	export OSSL_ORGANIZATION_NAME="WHO"
 	export OSSL_ORGANIZATIONAL_UNIT_NAME="R&D"
 	```
+> Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
+> 
 **If your Operating Systems is Windows**
 
 For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script. You can modify the environment variables directly within the script or set them in your current PowerShell session:
@@ -149,32 +151,29 @@ For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganizat
  	```
  
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
-	
-- Then execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
-- While execution of the "gen_all_certs.sh" script, Please provide script argument "DN_template.cnf" file  
-  which consists of country related information to generate all required certificates (TLS,SCA,UP)
-  
-  
 
-
-	```
-	For Mac/Unix
-	cd scripts/certgen
-	./gen_all_certs.sh DN_template.cnf	   
- 	zsh ./gen_all_certs.sh DN_template.cnf      ## If you are using Ubuntu OS
-        
-	For Windows:
-	cd scripts/certgen
-	./gen_all_certs.ps1
-	```
-
-**Execution On Windows**
-
-Windows platform you can use  [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1)  instead. Please note that you need to have  [OpenSSL installed](https://slproweb.com/products/Win32OpenSSL.html)  (e.g. Win64 OpenSSL v3.3.0 Light) and added to your PATH environment variable. Also you may need allow the execution by setting an execution policy.
+Please note that you need to have  [OpenSSL installed](https://slproweb.com/products/Win32OpenSSL.html)  (e.g. Win64 OpenSSL v3.3.0 Light) and added to your PATH environment variable. Also you may need allow the execution by setting an execution policy.
 
 	```
 	Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
 	```	
+**How to Run Script**
+- Once you execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
+- **Notes**: While execution of "gen_all_certs.sh" script on **Unix/Linux Operating System,** Please provide script argument "DN_template.cnf" file which consists of country related information to generate all required certificates (TLS,SCA,UP)
+  
+  
+
+	```
+	**For Mac/Unix**
+	cd scripts/certgen
+	./gen_all_certs.sh DN_template.cnf	   
+ 	zsh ./gen_all_certs.sh DN_template.cnf      ## If you are using Ubuntu OS
+        
+	**For Windows:**
+	cd scripts/certgen
+	./gen_all_certs.ps1
+	```
+This setup generates all required certificates (TLS, SCA, UP) and keys in a timestamped subfolder, based on the configuration specified in DN_template.cnf for Unix/Linux and the environment variables set in the current PowerShell session for Windows.
 
 **Prepare Folders**
 
