@@ -134,7 +134,7 @@ This repository contains the template for building [onboarding](https://github.c
 	```
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 > 
-**If your Operating Systems is Windows**
+**If your Operating Systems is Windows:**
 
 For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script. You can modify the environment variables directly within the script or set them in your current PowerShell session:
 
@@ -157,7 +157,7 @@ Please note that you need to have  [OpenSSL installed](https://slproweb.com/prod
 	```
 	Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
 	```	
-**How to Run Script**
+**How to Run Script :**
 - Once you execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
 - **Notes**: While execution of "gen_all_certs.sh" script on **Unix/Linux Operating System,** Please provide script argument "DN_template.cnf" file which consists of country related information to generate all required certificates (TLS,SCA,UP)
   
