@@ -112,13 +112,18 @@ This repository contains the template for building [onboarding](https://github.c
 	
 #### Certificate Preparation for DEV and UAT
 
-> Disclaimer: The script generates self-signed certificates not intended to be used on production environments.
->   for DEV and UAT environments you may use the conf files and the  [certgen bash script](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh)  as a guideline according to the  [Certificate Preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md)
-
-- You must adapt the following default certificate parameter of [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file which will used  in gen_all_certs.sh to your needs:
-  
-- Configuration Template for Certificate Generation, Modify for your own needs in DN_template.cnf file as it will be 
-  used as argument while running the shell script "gen_all_certs.sh".
+> **Disclaimer**: This script is designed to create self-signed certificates solely for non-production environments, such as DEV and UAT, not intended to be used on production environments. To use it, **choose the appropriate script for your operating system**:
+> 
+>**Unix/Linux:**	Use the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) bash script.
+> 
+>**Windows:**		Use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script.
+> 
+> These scripts, along with the provided configuration files, serve as guidelines for [certificate preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md) .
+> 
+**If your Operating Sysems is Unix/Linux:**
+>  
+- To customize certificate parameters, update the [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file, which will be used by the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) script.
+- Modify the following default certificate parameters as needed:
 
 	```
  	export OSSL_COUNTRY_NAME="XC"
@@ -127,18 +132,14 @@ This repository contains the template for building [onboarding](https://github.c
 	export OSSL_ORGANIZATION_NAME="WHO"
 	export OSSL_ORGANIZATIONAL_UNIT_NAME="R&D"
 	```
- **Windows PowerShell Script** [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1)
- 
-Here’s how you would set those environment variables in Windows PowerShell. The Windos PowerShell script is [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1)
+**If your Operating Systems is Windows**
 
-**Note**: You can either modify **gen_all_certs.ps1** directly or set environment variables for your current PowerShell session as mentioned in the steps below.
-  
+For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script. You can modify the environment variables directly within the script or set them in your current PowerShell session:
+
 1.Open PowerShell on your Windows machine.
 
-2.Paste the below code into the PowerShell window.
+2.Set the required environment variables.
 
-3.These variables will now be available as environment variables for the current PowerShell session.
- 
  	```
   	$env:OSSL_COUNTRY_NAME="XC"
 	$env:OSSL_STATE_NAME="Test State"
@@ -147,9 +148,6 @@ Here’s how you would set those environment variables in Windows PowerShell. Th
 	$env:OSSL_ORGANIZATIONAL_UNIT_NAME="RND"
  	```
  
-  	
- 	
-
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 	
 - Then execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
