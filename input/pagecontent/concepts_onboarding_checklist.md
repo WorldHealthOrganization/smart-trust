@@ -162,7 +162,8 @@ Refer to the [onboarding documentation](https://github.com/WorldHealthOrganizati
 
 > **Disclaimer**: This script is designed to create self-signed certificates solely for non-production environments, such as DEV and UAT, not intended to be used on production environments. To use it, **choose the appropriate script for your operating system**:
 > 
->**Unix/Linux:**	Use the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) bash script on [Linux/Unix/MAC](#if-your-operating-systems-is-unixlinuxmac) operating system.
+>**Unix/Linux:**	Use the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) bash script on [Linux/Unix/Mac OS](#if-your-operating-systems-is-unixlinuxmac) operating system.
+>  operating system.
 > 
 >**Windows:**		Use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script on [Windows](#if-your-operating-system-is-windows) operating system.
 > 
