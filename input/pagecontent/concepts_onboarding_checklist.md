@@ -164,7 +164,7 @@ Refer to the [onboarding documentation](https://github.com/WorldHealthOrganizati
 > 
 >**Unix/Linux:**	Use the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) bash script on [Linux/Unix/Mac](#if-your-operating-systems-is-unixlinuxmac) operating system.
 > 
->**Windows:**		Use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script on [Windows](#if-your-operating-system-is-windows) operating system.
+>**Windows:**		Use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script on [Windows](#if-your-operating-systems-is-windows) operating system.
 > 
 > These scripts, along with the provided configuration files, serve as guidelines for [certificate preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md) .
 > 
@@ -179,7 +179,7 @@ Refer to the [onboarding documentation](https://github.com/WorldHealthOrganizati
 	export OSSL_LOCALITY_NAME="TEST"
 	export OSSL_ORGANIZATION_NAME="WHO"
 	export OSSL_ORGANIZATIONAL_UNIT_NAME="R&D"
-        export OSSL_COMMON_NAME="NationXC_TNP"
+ 	export OSSL_COMMON_NAME="NationXC_TNP"
 	```
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 > 
