@@ -163,13 +163,12 @@ Refer to the [onboarding documentation](https://github.com/WorldHealthOrganizati
 > **Disclaimer**: This script is designed to create self-signed certificates solely for non-production environments, such as DEV and UAT, not intended to be used on production environments. To use it, **choose the appropriate script for your operating system**:
 > 
 >**Unix/Linux:**	Use the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) bash script on [Linux/Unix/Mac OS](#if-your-operating-systems-is-unixlinuxmac) operating system.
->  operating system.
 > 
 >**Windows:**		Use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script on [Windows](#if-your-operating-system-is-windows) operating system.
 > 
 > These scripts, along with the provided configuration files, serve as guidelines for [certificate preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md) .
 > 
-**If your Operating Systems is Unix/Linux/Mac**
+#### If your Operating Systems is Unix/Linux/Mac
 >  
 - To customize certificate parameters, update the [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file, which will be used by the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) script.
 - Modify the following default certificate parameters as needed:
@@ -183,7 +182,7 @@ Refer to the [onboarding documentation](https://github.com/WorldHealthOrganizati
 	```
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 > 
-**If your Operating Systems is Windows**
+#### If your Operating Systems is Windows
 
 For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script. You can modify the environment variables directly within the script or set them in your current PowerShell session:
 
