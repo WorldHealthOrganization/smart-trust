@@ -2,6 +2,7 @@ This repository contains the template for building [onboarding](https://github.c
 
 {% include img.html img="Onboarding%20Process.drawio.png" caption="Onboarding Process" width ="60%" %}     
 ### Prerequisites for Onboarding
+> **Save For Later:** Be sure to securely save items like **GPG Keys, Secrets, GitHub usernames**, and **other configurations** as they will be needed in upcoming steps.
 
 Before beginning the onboarding process, please ensure the following tools, permissions, and environment configurations are in place. This checklist is crucial for a seamless setup experience.
 
@@ -42,13 +43,11 @@ Before beginning the onboarding process, please ensure the following tools, perm
    - **OS Compatibility**: These instructions are applicable for major operating systems (Linux, macOS, Windows). Check OS-specific installation guidelines if needed.
 
 8. **Environment Configuration**
-   - **Scripting Language**: If there are any scripts in the onboarding process, ensure the appropriate language interpreter (e.g., **Python** for Python scripts) is installed and configured.
    - **Environment Variables**: Set any required environment variables as specified in the onboarding documentation. These might include variables for API keys, tokens, or paths.
 
 9. **Additional Resources and Documentation**
    - Familiarize yourself with any supplementary documentation provided, including **API references**, **security guidelines**, and **data handling policies** as needed for the onboarding process.
 
-Refer to the [onboarding documentation](https://github.com/WorldHealthOrganization/smart-trust/blob/onboarding_checklist_enhancement/input/pagecontent/concepts_onboarding_checklist.md) for step-by-step instructions and further setup details.
 
 
 
@@ -61,6 +60,7 @@ Refer to the [onboarding documentation](https://github.com/WorldHealthOrganizati
 - Click on New
 - Enter Repository name, follow the convention, it has to contain the ISO 3 letter. All the rest is optional
 - Click on Create Repository
+> **Save For Later:** Be sure to securely save items like **GitHub usernames**, and **Repository Name, URL** as they will be needed in upcoming steps.
 
  
 **Create PAT (Personal Access Token) for Github account if not created already**
@@ -69,6 +69,7 @@ Refer to the [onboarding documentation](https://github.com/WorldHealthOrganizati
 - Click on Generate New Token button (Generate New Token classic)
 - Use Authentication code
 - Add Note, Expiration, 'Repo' as a scope and click ‘Generate Token’
+> **Save For Later:** Be sure to securely save the **GitHub PAT (Personal Access Token)**, as it will be needed in upcoming steps.
 
 ### Local Repository
 
@@ -99,7 +100,7 @@ Refer to the [onboarding documentation](https://github.com/WorldHealthOrganizati
 - Open Git Bash
 - Generate a GPG key pair. Since there are multiple versions of GPG, you may need to consult the relevant man page to find the appropriate key generation command
 - If you are on version 2.1.17 or greater, paste the text below to generate a GPG key pair.
-	
+
 
 	```
 	Shell
@@ -146,6 +147,7 @@ Refer to the [onboarding documentation](https://github.com/WorldHealthOrganizati
 	gpg --armor --export << replace you actual GPG key ID >>
 	# Prints the GPG key ID, in ASCII armor format
 	```
+ > **Save For Later:** Be sure to securely save the **GPG Key**, as it will be needed in upcoming steps.	
 - Copy your GPG key, beginning with -----BEGIN PGP PUBLIC KEY BLOCK----- and ending with -----END PGP PUBLIC KEY BLOCK-----.
 - Add the GPG key to your GitHub account.
 	> Please check [Adding GPG key to repository](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.3.full-video.v2.mp4)  video for reference
