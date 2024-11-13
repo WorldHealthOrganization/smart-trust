@@ -169,7 +169,7 @@ Refer to the [onboarding documentation](https://github.com/WorldHealthOrganizati
 > 
 > These scripts, along with the provided configuration files, serve as guidelines for [certificate preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md) .
 > 
-**If your Operating Systems is Unix/Linux/Mac:**
+**If your Operating Systems is Unix/Linux/Mac**
 >  
 - To customize certificate parameters, update the [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file, which will be used by the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) script.
 - Modify the following default certificate parameters as needed:
@@ -183,7 +183,7 @@ Refer to the [onboarding documentation](https://github.com/WorldHealthOrganizati
 	```
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 > 
-**If your Operating Systems is Windows:**
+**If your Operating Systems is Windows**
 
 For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script. You can modify the environment variables directly within the script or set them in your current PowerShell session:
 
