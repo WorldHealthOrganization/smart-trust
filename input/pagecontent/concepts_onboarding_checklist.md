@@ -162,7 +162,7 @@ Refer to the [onboarding documentation](https://github.com/WorldHealthOrganizati
 
 > **Disclaimer**: This script is designed to create self-signed certificates solely for non-production environments, such as DEV and UAT, not intended to be used on production environments. To use it, **choose the appropriate script for your operating system**:
 > 
->**Unix/Linux:**	Use the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) bash script on [Linux/Unix/Mac OS](#if-your-operating-systems-is-unixlinuxmac) operating system.
+>**Unix/Linux:**	Use the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) bash script on [Linux/Unix/Mac](#if-your-operating-systems-is-unixlinuxmac) operating system.
 > 
 >**Windows:**		Use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script on [Windows](#if-your-operating-system-is-windows) operating system.
 > 
@@ -179,6 +179,7 @@ Refer to the [onboarding documentation](https://github.com/WorldHealthOrganizati
 	export OSSL_LOCALITY_NAME="TEST"
 	export OSSL_ORGANIZATION_NAME="WHO"
 	export OSSL_ORGANIZATIONAL_UNIT_NAME="R&D"
+        export OSSL_COMMON_NAME="NationXC_TNP"
 	```
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 > 
@@ -196,7 +197,7 @@ For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganizat
 	$env:OSSL_LOCALITY_NAME="TEST"
 	$env:OSSL_ORGANIZATION_NAME="WHO"
 	$env:OSSL_ORGANIZATIONAL_UNIT_NAME="RND"
-        $env:OSSL_COMMON_NAME="NationXC_TNP"
+	$env:OSSL_COMMON_NAME="NationXC_TNP"
  	```
  
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
