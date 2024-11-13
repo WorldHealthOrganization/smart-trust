@@ -1,6 +1,54 @@
 This repository contains the template for building [onboarding](https://github.com/WorldHealthOrganization/smart-trust/blob/main/input/pagecontent/concepts_onboarding.md) information for the Smart Trust Network Attendees. This includes CSCAs, Auth information, signing information and other relevant files for onboarding a participant. Videos guides to the steps described here are available on this [page](video_tutorial.html).
 
 {% include img.html img="Onboarding%20Process.drawio.png" caption="Onboarding Process" width ="60%" %}     
+### Prerequisites for Onboarding
+
+Before beginning the onboarding process, please ensure the following tools, permissions, and environment configurations are in place. This checklist is crucial for a seamless setup experience.
+
+1. **GitHub Account**
+   - Ensure you have an active **GitHub account** with access to the relevant repositories.
+   - **Permissions**: Confirm the necessary repository permissions (read/write access if required for pushing commits).
+
+
+2. **OpenSSL**
+   - Required for generating and managing digital certificates.
+   - **Minimum Version**: 1.1.1 or higher.
+   - Verify installation with `openssl version`.
+   - **Path Configuration**: Ensure OpenSSL is correctly added to the system path for command-line access.
+   - [Download OpenSSL](https://www.openssl.org/source/)
+
+3. **cURL**
+   - Necessary for command-line data transfers, especially useful for API requests.
+   - **Minimum Version**: 7.68.0 or higher.
+   - Verify with `curl --version`.
+   - [Download cURL](https://curl.se/download.html)
+
+4. **Git**
+   - Essential for version control and interacting with GitHub repositories.
+   - **Minimum Version**: 2.28.0 or higher (this version or newer is recommended for improved configuration capabilities).
+   - Confirm installation with `git --version`.
+   - [Download Git](https://git-scm.com/downloads)
+
+5. **Text Editor or IDE** (Optional)
+   - Use a reliable text editor or IDE such as **Visual Studio Code**, **Sublime Text**, or **Notepad++** for editing files.
+   - **Extensions**: If using VS Code, consider adding extensions for **Markdown** and **GitHub integration** to ease editing and committing changes.
+   - [Download Visual Studio Code](https://code.visualstudio.com/)
+6. **Network and Firewall Permissions**
+   - **Network Access**: Ensure network settings allow access to GitHub and other required external resources (e.g., API endpoints).
+   - **Firewall Permissions**: Verify firewall permissions to avoid connectivity issues during cloning or pushing repositories.
+
+7. **CLI Tools and Path Configuration**
+   - Confirm that all tools (e.g., `openssl`, `curl`, `git`) are available in the **system PATH** for easy command-line access.
+   - **OS Compatibility**: These instructions are applicable for major operating systems (Linux, macOS, Windows). Check OS-specific installation guidelines if needed.
+
+8. **Environment Configuration**
+   - **Scripting Language**: If there are any scripts in the onboarding process, ensure the appropriate language interpreter (e.g., **Python** for Python scripts) is installed and configured.
+   - **Environment Variables**: Set any required environment variables as specified in the onboarding documentation. These might include variables for API keys, tokens, or paths.
+
+9. **Additional Resources and Documentation**
+   - Familiarize yourself with any supplementary documentation provided, including **API references**, **security guidelines**, and **data handling policies** as needed for the onboarding process.
+
+Refer to the [onboarding documentation](https://github.com/WorldHealthOrganization/smart-trust/blob/onboarding_checklist_enhancement/input/pagecontent/concepts_onboarding_checklist.md) for step-by-step instructions and further setup details.
 
 
 
@@ -114,13 +162,13 @@ This repository contains the template for building [onboarding](https://github.c
 
 > **Disclaimer**: This script is designed to create self-signed certificates solely for non-production environments, such as DEV and UAT, not intended to be used on production environments. To use it, **choose the appropriate script for your operating system**:
 > 
->**Unix/Linux:**	Use the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) bash script.
+>**Unix/Linux:**	Use the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) bash script on [Linux/Unix/MAC](#if-your-operating-systems-is-unixlinuxmac) operating system.
 > 
->**Windows:**		Use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script.
+>**Windows:**		Use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script on [Windows](#if-your-operating-system-is-windows) operating system.
 > 
 > These scripts, along with the provided configuration files, serve as guidelines for [certificate preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md) .
 > 
-**If your Operating Sysems is Unix/Linux:**
+**If your Operating Systems is Unix/Linux/Mac:**
 >  
 - To customize certificate parameters, update the [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file, which will be used by the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) script.
 - Modify the following default certificate parameters as needed:
@@ -148,6 +196,7 @@ For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganizat
 	$env:OSSL_LOCALITY_NAME="TEST"
 	$env:OSSL_ORGANIZATION_NAME="WHO"
 	$env:OSSL_ORGANIZATIONAL_UNIT_NAME="RND"
+        $env:OSSL_COMMON_NAME="NationXC_TNP"
  	```
  
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
@@ -164,7 +213,7 @@ Please note that you need to have  [OpenSSL installed](https://slproweb.com/prod
   
 
 	```
-	**For Mac/Unix**
+	**For Mac/Linux/Unix**
 	cd scripts/certgen
 	./gen_all_certs.sh DN_template.cnf	   
  	zsh ./gen_all_certs.sh DN_template.cnf      ## If you are using Ubuntu OS
