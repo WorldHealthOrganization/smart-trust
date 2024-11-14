@@ -2,54 +2,25 @@ This repository contains the template for building [onboarding](https://github.c
 
 {% include img.html img="Onboarding%20Process.drawio.png" caption="Onboarding Process" width ="60%" %}     
 ### Prerequisites for Onboarding
-> **Save For Later:** Be sure to securely save items like **GPG Keys, Secrets, GitHub usernames**, and **other configurations** as they will be needed in upcoming steps.
 
 Before beginning the onboarding process, please ensure the following tools, permissions, and environment configurations are in place. This checklist is crucial for a seamless setup experience.
 
-1. **GitHub Account**
-   - Ensure you have an active **GitHub account** with access to the relevant repositories.
-   - **Permissions**: Confirm the necessary repository permissions (read/write access if required for pushing commits).
+| **Tools/Requirement**            | **Description**                                                                                                                                                                                                                              |
+|---------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **GitHub Account**              | - Ensure you have an active GitHub account with access to the relevant repositories.<br>- **Permissions**: Confirm the necessary repository permissions (read/write access if required for pushing commits).                              |
+| **OpenSSL**                     | - Required for generating and managing digital certificates.<br>- **Minimum Version**: 1.1.1 or higher.<br>- **Verify**: `openssl version`.<br>- **Path Configuration**: Ensure OpenSSL is correctly added to the system path.<br>- [Download OpenSSL](https://www.openssl.org/source/) |
+| **cURL**                        | - Necessary for command-line data transfers, especially useful for API requests.<br>- **Minimum Version**: 7.68.0 or higher.<br>- **Verify**: `curl --version`.<br>- [Download cURL](https://curl.se/download.html)                      |
+| **Git**                         | - Essential for version control and interacting with GitHub repositories.<br>- **Minimum Version**: 2.28.0 or higher (recommended for improved configuration capabilities).<br>- **Verify**: `git --version`.<br>- [Download Git](https://git-scm.com/downloads) |
+| **Text Editor or IDE (Optional)** | - Use a reliable text editor or IDE such as **Visual Studio Code**, **Sublime Text**, or **Notepad++** for editing files.<br>- **Extensions**: If using VS Code, consider adding extensions for Markdown and GitHub integration.<br>- [Download Visual Studio Code](https://code.visualstudio.com/) |
+| **Network and Firewall Permissions** | - **Network Access**: Ensure network settings allow access to GitHub and other required external resources (e.g., API endpoints).<br>- **Firewall Permissions**: Verify firewall permissions to avoid connectivity issues. |
+| **CLI Tools and Path Configuration** | - Confirm that all tools (e.g., `openssl`, `curl`, `git`) are available in the **system PATH** for easy command-line access.<br>- **OS Compatibility**: These instructions are applicable for Linux, macOS, and Windows. |
+| **Environment Configuration**   | - **Scripting Language**: Ensure the appropriate language interpreter (e.g., **Python** for Python scripts) is installed and configured.<br>- **Environment Variables**: Set required environment variables (e.g., API keys, tokens, or paths) as specified. |
+| **Additional Resources and Documentation** | - Familiarize yourself with supplementary documentation, including API references, security guidelines, and data handling policies needed for the onboarding process.                             |
+
+> **Save For Later:** Be sure to securely save items like **GPG Keys, Secrets, GitHub usernames, GitHub Repository URL, GitHub PAT (Personal Access Token)**, and **other configurations** as they will be needed in upcoming steps.
 
 
-2. **OpenSSL**
-   - Required for generating and managing digital certificates.
-   - **Minimum Version**: 1.1.1 or higher.
-   - Verify installation with `openssl version`.
-   - **Path Configuration**: Ensure OpenSSL is correctly added to the system path for command-line access.
-   - [Download OpenSSL](https://www.openssl.org/source/)
-
-3. **cURL**
-   - Necessary for command-line data transfers, especially useful for API requests.
-   - **Minimum Version**: 7.68.0 or higher.
-   - Verify with `curl --version`.
-   - [Download cURL](https://curl.se/download.html)
-
-4. **Git**
-   - Essential for version control and interacting with GitHub repositories.
-   - **Minimum Version**: 2.28.0 or higher (this version or newer is recommended for improved configuration capabilities).
-   - Confirm installation with `git --version`.
-   - [Download Git](https://git-scm.com/downloads)
-
-5. **Text Editor or IDE** (Optional)
-   - Use a reliable text editor or IDE such as **Visual Studio Code**, **Sublime Text**, or **Notepad++** for editing files.
-   - **Extensions**: If using VS Code, consider adding extensions for **Markdown** and **GitHub integration** to ease editing and committing changes.
-   - [Download Visual Studio Code](https://code.visualstudio.com/)
-6. **Network and Firewall Permissions**
-   - **Network Access**: Ensure network settings allow access to GitHub and other required external resources (e.g., API endpoints).
-   - **Firewall Permissions**: Verify firewall permissions to avoid connectivity issues during cloning or pushing repositories.
-
-7. **CLI Tools and Path Configuration**
-   - Confirm that all tools (e.g., `openssl`, `curl`, `git`) are available in the **system PATH** for easy command-line access.
-   - **OS Compatibility**: These instructions are applicable for major operating systems (Linux, macOS, Windows). Check OS-specific installation guidelines if needed.
-
-8. **Environment Configuration**
-   - **Environment Variables**: Set any required environment variables as specified in the onboarding documentation. These might include variables for API keys, tokens, or paths.
-
-9. **Additional Resources and Documentation**
-   - Familiarize yourself with any supplementary documentation provided, including **API references**, **security guidelines**, and **data handling policies** as needed for the onboarding process.
-
-
-
+### Steps to Follow:
 
 ### Git Repository
 
