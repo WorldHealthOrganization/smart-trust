@@ -5,15 +5,15 @@ This repository contains the template for building [onboarding](https://github.c
 
 Before beginning the onboarding process, please ensure the following tools, permissions, and environment configurations are in place. This checklist is crucial for a seamless setup experience.
 
-<div style="width: 100%; height: 500px; overflow: auto;">
+<div style="width: 100%; height: 500px; overflow: scroll;">
   <table border="1" class="dataframe table table-striped table-bordered">
     <thead style="position: sticky; top: 0; z-index: 100; background-color: white;">
-      <tr>
+      <tr style="text-align: left;">
         <th>Tools/Requirement</th>
         <th>Description</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody style="text-align: left; vertical-align: top;">
       <tr>
         <td><strong>GitHub Account</strong></td>
         <td>
