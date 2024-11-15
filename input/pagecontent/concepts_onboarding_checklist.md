@@ -212,11 +212,12 @@ Before beginning the onboarding process, please ensure the following tools, perm
 >**Windows:**		Use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script on [Windows](#if-your-operating-systems-is-windows) operating system.
 > 
 > These scripts, along with the provided configuration files, serve as guidelines for [certificate preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md) .
-> 
+
+
 #### If your Operating Systems is Unix/Linux/Mac
 >  
 - To customize certificate parameters, update the [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file, which will be used by the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) script.
-- Modify the following default certificate parameters as needed:
+- Modify the following default certificate parameters as needed:                 	q 	
 
 	```
  	export OSSL_COUNTRY_NAME="XC"
@@ -226,10 +227,12 @@ Before beginning the onboarding process, please ensure the following tools, perm
 	export OSSL_ORGANIZATIONAL_UNIT_NAME="R&D"
  	export OSSL_COMMON_NAME="NationXC_TNP"
 	```
-> Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 > 
-#### If your Operating Systems is Windows
+> Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 
+
+#### If your Operating Systems is Windows
+>
 For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script. You can modify the environment variables directly within the script or set them in your current PowerShell session:
 
 1.Open PowerShell on your Windows machine.
@@ -244,15 +247,17 @@ For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganizat
 	$env:OSSL_ORGANIZATIONAL_UNIT_NAME="RND"
 	$env:OSSL_COMMON_NAME="NationXC_TNP"
  	```
- 
+  
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 
 Please note that you need to have  [OpenSSL installed](https://slproweb.com/products/Win32OpenSSL.html)  (e.g. Win64 OpenSSL v3.3.0 Light) and added to your PATH environment variable. Also you may need allow the execution by setting an execution policy.
 
 	```
 	Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
-	```	
+	```
+ 
 **How to Run Script :**
+
 - Once you execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
 - **Notes**: While execution of "gen_all_certs.sh" script on **Unix/Linux Operating System,** Please provide script argument "DN_template.cnf" file which consists of country related information to generate all required certificates (TLS,SCA,UP)
   
@@ -268,6 +273,8 @@ Please note that you need to have  [OpenSSL installed](https://slproweb.com/prod
 	cd scripts/certgen
 	./gen_all_certs.ps1
 	```
+
+ 
 This setup generates all required certificates (TLS, SCA, UP) and keys in a timestamped subfolder, based on the configuration specified in DN_template.cnf for Unix/Linux and the environment variables set in the current PowerShell session for Windows.
 
 **Prepare Folders**
