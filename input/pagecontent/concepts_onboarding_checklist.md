@@ -211,13 +211,15 @@ Before beginning the onboarding process, please ensure the following tools, perm
 > 
 >**Windows:**		Use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script on [Windows](#if-your-operating-systems-is-windows) operating system.
 > 
-> These scripts, along with the provided configuration files, serve as guidelines for [certificate preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md) .
+
+These scripts, along with the provided configuration files, serve as guidelines for [certificate preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md) .
 
 
 #### If your Operating Systems is Unix/Linux/Mac
->  
+>
 - To customize certificate parameters, update the [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file, which will be used by the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) script.
-- Modify the following default certificate parameters as needed:                 	q 	
+- Modify the following default certificate parameters as needed:
+  
 
 	```
  	export OSSL_COUNTRY_NAME="XC"
@@ -227,7 +229,7 @@ Before beginning the onboarding process, please ensure the following tools, perm
 	export OSSL_ORGANIZATIONAL_UNIT_NAME="R&D"
  	export OSSL_COMMON_NAME="NationXC_TNP"
 	```
-> 
+
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 
 
@@ -240,7 +242,7 @@ For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganizat
 2.Set the required environment variables.
 
  	```
-  	$env:OSSL_COUNTRY_NAME="XC"
+        $env:OSSL_COUNTRY_NAME="XC"
 	$env:OSSL_STATE_NAME="Test State"
 	$env:OSSL_LOCALITY_NAME="TEST"
 	$env:OSSL_ORGANIZATION_NAME="WHO"
@@ -249,6 +251,7 @@ For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganizat
  	```
   
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
+
 
 Please note that you need to have  [OpenSSL installed](https://slproweb.com/products/Win32OpenSSL.html)  (e.g. Win64 OpenSSL v3.3.0 Light) and added to your PATH environment variable. Also you may need allow the execution by setting an execution policy.
 
@@ -280,6 +283,7 @@ This setup generates all required certificates (TLS, SCA, UP) and keys in a time
 **Prepare Folders**
 
 > Note: keep your private keys safe and secure. Do not share them with anyone.
+
 Copy the generated certificates to the respective folders and change the file names to match the naming convention. For the case of self-signed TLS certificates, the CA.pem is just a copy of the TLS.pem (check to have keyCertSign in the keyUsage). The CA.pem should exist, since it is used to verify the TLS client certificate when connecting to the TNG application.
 Files to be copied in respective folders are as follows:
 - SCA.pem -> onboarding/DCC/SCA
