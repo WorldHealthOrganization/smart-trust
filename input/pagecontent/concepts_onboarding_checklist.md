@@ -78,7 +78,7 @@ Before beginning the onboarding process, please ensure the following tools, perm
         </td>
       </tr>
       <tr>
-        <td><strong>testn</strong></td>
+        <td><strong>Additional Resources and Documentation</strong></td>
         <td>
           - Familiarize yourself with supplementary documentation, including API references, security guidelines, and data handling policies needed for the onboarding process.
         </td>
@@ -86,6 +86,7 @@ Before beginning the onboarding process, please ensure the following tools, perm
     </tbody>
   </table>
 </div>
+
 
 > **Save For Later:** Be sure to securely save items like **GPG Keys, Secrets, GitHub usernames, GitHub Repository URL, GitHub PAT (Personal Access Token)**, and **other configurations** as they will be needed in upcoming steps.
 
@@ -101,6 +102,7 @@ Before beginning the onboarding process, please ensure the following tools, perm
 - Click on New
 - Enter Repository name, follow the convention, it has to contain the ISO 3 letter. All the rest is optional
 - Click on Create Repository
+
 > **Save For Later:** Be sure to securely save items like **GitHub usernames**, and **Repository Name, URL** as they will be needed in upcoming steps.
 
  
