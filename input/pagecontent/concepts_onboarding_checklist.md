@@ -218,7 +218,8 @@ These scripts, along with the provided configuration files, serve as guidelines 
 #### If your Operating Systems is Unix/Linux/Mac
 >
 - To customize certificate parameters, update the [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file, which will be used by the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) script.
-- Modify the following default certificate parameters as needed:
+- Modify the following default certificate parameters as needed.
+
   
 	```
  	export OSSL_COUNTRY_NAME="XC"
@@ -242,18 +243,15 @@ For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganizat
 2.Set the required environment variables.
 
 
- 	```
- 	$env:OSSL_COUNTRY_NAME="XC"
-	$env:OSSL_STATE_NAME="Test State"
-	$env:OSSL_LOCALITY_NAME="TEST"
-	$env:OSSL_ORGANIZATION_NAME="WHO"
-	$env:OSSL_ORGANIZATIONAL_UNIT_NAME="RND"
-	$env:OSSL_COMMON_NAME="NationXC_TNP"
- 	```
-  
+	```
+	$env:OSSL_COUNTRY_NAME="XC"
+ 	$env:OSSL_STATE_NAME="Test State"
+  	$env:OSSL_LOCALITY_NAME="TEST"
+   	$env:OSSL_ORGANIZATION_NAME="WHO"
+    	$env:OSSL_ORGANIZATIONAL_UNIT_NAME="RND"
+     	$env:OSSL_COMMON_NAME="NationXC_TNP"
+	```
 
-
-  
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 
 
