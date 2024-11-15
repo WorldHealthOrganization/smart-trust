@@ -78,7 +78,7 @@ Before beginning the onboarding process, please ensure the following tools, perm
         </td>
       </tr>
       <tr>
-        <td><strong>Additional Resources and Documentation</strong></td>
+        <td><strong>testn</strong></td>
         <td>
           - Familiarize yourself with supplementary documentation, including API references, security guidelines, and data handling policies needed for the onboarding process.
         </td>
