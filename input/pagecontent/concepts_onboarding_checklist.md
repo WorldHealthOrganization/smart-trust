@@ -112,6 +112,7 @@ Before beginning the onboarding process, please ensure the following tools, perm
 - Click on Generate New Token button (Generate New Token classic)
 - Use Authentication code
 - Add Note, Expiration, 'Repo' as a scope and click ‘Generate Token’
+  
 > **Save For Later:** Be sure to securely save the **GitHub PAT (Personal Access Token)**, as it will be needed in upcoming steps.
 
 ### Local Repository
@@ -465,7 +466,7 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	```
  
  	```
-  	Output
+  **OutPut**
 	gpg --list-key
 	/home/test/.gnupg/pubring.kbx
 	-----------------------------
@@ -475,6 +476,7 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	uid           [ultimate] Test User1 (This GPG Key is for XXC test Country) <youruser@yourdomain.com>
 	sub   rsa4096 2024-09-19 [E]
   	```
+  
 	**Note**: The PUB ID in above output is CD822874C7862BA4BB6B950E40CC62009D9A00B0 , In your case you need to 
         replace with << replace with your Pub ID >> with your actual GPG public key ID to configure Git to use a GPG 
         key for signing commits or tags in next command.
@@ -637,7 +639,7 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 
 > Note: Some versions of curl don’t attach the client certificates automatically. This can be checked via curl --version Ensure that the used version is linked to OpenSSL. Especially under Windows (https://curl.se/windows/):
 > 
-> **Curl verson on Unix/Mac**: We strongly recommend updating curl and nss to newer latest versions for full compatibility with modern cryptographic standards.The outdated version of curl or nss and may not support modern SSL/TLS protocols or elliptic curve cryptography (ECC) cipher suites properly.
+> **Curl version on Unix/Mac**: We strongly recommend updating curl and nss to newer latest versions for full compatibility with modern cryptographic standards.The outdated version of curl or nss and may not support modern SSL/TLS protocols or elliptic curve cryptography (ECC) cipher suites properly.
 
 
 
