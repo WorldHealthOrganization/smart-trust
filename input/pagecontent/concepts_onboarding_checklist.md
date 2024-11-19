@@ -466,17 +466,17 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	```
  
 	```
- 	OutPut
+	OutPut
 	  
 	gpg --list-key
 	/home/test/.gnupg/pubring.kbx
 	-----------------------------
 	
 	pub   rsa4096 2024-09-19 [SC]
-	      CD822874C7862BA4BB6B950E40CC62009D9A00B0
+	CD822874C7862BA4BB6B950E40CC62009D9A00B0
 	uid           [ultimate] Test User1 (This GPG Key is for XXC test Country) <youruser@yourdomain.com>
 	sub   rsa4096 2024-09-19 [E]
- 	```
+	```
   
 	**Note**: The PUB ID in above output is CD822874C7862BA4BB6B950E40CC62009D9A00B0 , In your case you need to 
         replace with << replace with your Pub ID >> with your actual GPG public key ID to configure Git to use a GPG 
