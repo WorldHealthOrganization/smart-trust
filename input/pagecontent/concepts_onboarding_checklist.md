@@ -548,7 +548,7 @@ Signing tags and commits is great, but if you decide to use this in your normal 
 - After onboarding in the DEV/UAT/PROD Environment, check the connectivity with the Trust Network Gateway using its [API](https://smart.who.int/trust/openapi/). This can be achieved with following command:
 
 ```
-curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS_key.pem
+curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS.key
 ```
 You should see a output like:
 
@@ -629,7 +629,7 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 - Upload the CMS Package to the Gateway
 
 ```    
-curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-dev.who.int/signerCertificate
+curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS.key --data @cms.b64 https://tng-dev.who.int/signerCertificate
 ```
 
 - Download the Trustlist again, and check if your DSC is available.
