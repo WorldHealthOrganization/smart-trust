@@ -261,7 +261,7 @@ Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
 **How to Run Script :**
 
 - Once you execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
-- **Notes**: While execution of "gen_all_certs.sh" script on **Unix/Linux Operating System,** Please provide script argument "DN_template.cnf" file which consists of country related information to generate all required certificates (TLS,SCA,UP)
+- **Notes**: While execution of "gen_all_certs.sh" script on **Unix/Linux/Mac Operating System,** Please provide script argument "DN_template.cnf" file which consists of country related information to generate all required certificates (TLS,SCA,UP)
   
 ```
 **For Mac/Linux/Unix**
