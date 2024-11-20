@@ -533,7 +533,7 @@ Signing tags and commits is great, but if you decide to use this in your normal 
 
 - Send an onboarding/participation request to gdhcn-support@who.int which contains:
     - URL of the private repository created as a prerequisite
-    - The GPG key exported in Step [1.8.6.4](#generate-gpg-key)
+    - The GPG key ( Beginning with -----BEGIN PGP PUBLIC KEY BLOCK----- and ending with -----END PGP PUBLIC KEY BLOCK-----) exported in Step [1.8.6.4](#generate-gpg-key)
   
 ### Validate the connection
 - Once the confirmation of successful onboarding is received from the TNG Support Team ( gdhcn-support@who.int), please do the following 
