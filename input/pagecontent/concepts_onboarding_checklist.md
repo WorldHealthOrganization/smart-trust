@@ -1,7 +1,7 @@
 This repository contains the template for building [onboarding](https://github.com/WorldHealthOrganization/smart-trust/blob/main/input/pagecontent/concepts_onboarding.md) information for the Smart Trust Network Attendees. This includes CSCAs, Auth information, signing information and other relevant files for onboarding a participant. Videos guides to the steps described here are available on this [page](video_tutorial.html).
 
 {% include img.html img="Onboarding%20Process.drawio.png" caption="Onboarding Process" width ="60%" %}     
-# Prerequisites for Onboarding
+**Prerequisites for Onboarding**
 
 Before beginning the onboarding process, please ensure the following tools, permissions, and environment configurations are in place. This checklist is crucial for a seamless setup experience.
 
@@ -91,7 +91,7 @@ Before beginning the onboarding process, please ensure the following tools, perm
 > **Save For Later:** Be sure to securely save items like **GPG Keys, Secrets, GitHub usernames, GitHub Repository URL, GitHub PAT (Personal Access Token)**, and **other configurations** as they will be needed in upcoming steps.
 
 
-### Steps to Follow:
+**Steps to Be Followed by Participant Country:**
 
 ### Git Repository
 
