@@ -1,8 +1,97 @@
 This repository contains the template for building [onboarding](https://github.com/WorldHealthOrganization/smart-trust/blob/main/input/pagecontent/concepts_onboarding.md) information for the Smart Trust Network Attendees. This includes CSCAs, Auth information, signing information and other relevant files for onboarding a participant. Videos guides to the steps described here are available on this [page](video_tutorial.html).
 
 {% include img.html img="Onboarding%20Process.drawio.png" caption="Onboarding Process" width ="60%" %}     
+**Prerequisites for Onboarding**
+
+Before beginning the onboarding process, please ensure the following tools, permissions, and environment configurations are in place. This checklist is crucial for a seamless setup experience.
+
+<div style="width: 100%; height: 500px; overflow: scroll;">
+  <table border="1" class="dataframe table table-striped table-bordered">
+    <thead style="position: sticky; top: 0; z-index: 100; background-color: white;">
+      <tr style="text-align: left;">
+        <th>Tools/Requirement</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody style="text-align: left; vertical-align: top;">
+      <tr>
+        <td><strong>GitHub Account</strong></td>
+        <td>
+          - Ensure you have an active GitHub account with access to the relevant repositories.<br>
+          - <strong>Permissions</strong>: Confirm the necessary repository permissions (read/write access if required for pushing commits).
+        </td>
+      </tr>
+      <tr>
+        <td><strong>OpenSSL</strong></td>
+        <td>
+          - Required for generating and managing digital certificates.<br>
+          - <strong>Minimum Version</strong>: 1.1.1 or higher.<br>
+          - <strong>Verify</strong>: <code>openssl version</code>.<br>
+          - <strong>Path Configuration</strong>: Ensure OpenSSL is correctly added to the system path.<br>
+          - <a href="https://www.openssl.org/source/">Download OpenSSL</a>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>cURL</strong></td>
+        <td>
+          - Necessary for command-line data transfers, especially useful for API requests.<br>
+          - <strong>Minimum Version</strong>: 7.68.0 or higher.<br>
+          - <strong>Verify</strong>: <code>curl --version</code>.<br>
+          - <a href="https://curl.se/download.html">Download cURL</a>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Git</strong></td>
+        <td>
+          - Essential for version control and interacting with GitHub repositories.<br>
+          - <strong>Minimum Version</strong>: 2.28.0 or higher (recommended for improved configuration capabilities).<br>
+          - <strong>Verify</strong>: <code>git --version</code>.<br>
+          - <a href="https://git-scm.com/downloads">Download Git</a>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Text Editor or IDE (Optional)</strong></td>
+        <td>
+          - Use a reliable text editor or IDE such as <strong>Visual Studio Code</strong>, <strong>Sublime Text</strong>, or <strong>Notepad++</strong> for editing files.<br>
+          - <strong>Extensions</strong>: If using VS Code, consider adding extensions for Markdown and GitHub integration.<br>
+          - <a href="https://code.visualstudio.com/">Download Visual Studio Code</a>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Network and Firewall Permissions</strong></td>
+        <td>
+          - <strong>Network Access</strong>: Ensure network settings allow access to GitHub and other required external resources (e.g., API endpoints).<br>
+          - <strong>Firewall Permissions</strong>: Verify firewall permissions to avoid connectivity issues.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>CLI Tools and Path Configuration</strong></td>
+        <td>
+          - Confirm that all tools (e.g., <code>openssl</code>, <code>curl</code>, <code>git</code>) are available in the <strong>system PATH</strong> for easy command-line access.<br>
+          - <strong>OS Compatibility</strong>: These instructions are applicable for Linux, macOS, and Windows.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Environment Configuration</strong></td>
+        <td>
+          - <strong>Environment Variables</strong>: Set required environment variables (e.g., API keys, tokens, or paths) as specified.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Additional Resources and Documentation</strong></td>
+        <td>
+          - Familiarize yourself with supplementary documentation, including API references, security guidelines, and data handling policies needed for the onboarding process.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 
+> **Save For Later:** Be sure to securely save items like **GPG Keys, Secrets, GitHub usernames, GitHub Repository URL, GitHub PAT (Personal Access Token)**, and **other configurations** as they will be needed in upcoming steps.
+
+
+**Steps to Be Followed by Participant Country:**
 
 ### Git Repository
 
@@ -14,6 +103,8 @@ This repository contains the template for building [onboarding](https://github.c
 - Enter Repository name, follow the convention, it has to contain the ISO 3 letter. All the rest is optional
 - Click on Create Repository
 
+> **Save For Later:** Be sure to securely save items like **GitHub usernames**, and **Repository Name, URL** as they will be needed in upcoming steps.
+
  
 **Create PAT (Personal Access Token) for Github account if not created already**
 - Go to Github profile -> Settings
@@ -21,6 +112,8 @@ This repository contains the template for building [onboarding](https://github.c
 - Click on Generate New Token button (Generate New Token classic)
 - Use Authentication code
 - Add Note, Expiration, 'Repo' as a scope and click ‘Generate Token’
+  
+> **Save For Later:** Be sure to securely save the **GitHub PAT (Personal Access Token)**, as it will be needed in upcoming steps.
 
 ### Local Repository
 
@@ -51,7 +144,7 @@ This repository contains the template for building [onboarding](https://github.c
 - Open Git Bash
 - Generate a GPG key pair. Since there are multiple versions of GPG, you may need to consult the relevant man page to find the appropriate key generation command
 - If you are on version 2.1.17 or greater, paste the text below to generate a GPG key pair.
-	
+
 
 	```
 	Shell
@@ -95,9 +188,10 @@ This repository contains the template for building [onboarding](https://github.c
 	``` 
 	Shell
 
-	gpg --armor --export 3AA5C34371567BD2
+	gpg --armor --export << replace with your actual GPG key ID >>
 	# Prints the GPG key ID, in ASCII armor format
 	```
+ > **Save For Later:** Be sure to securely save the **GPG Key**, as it will be needed in upcoming steps.	
 - Copy your GPG key, beginning with -----BEGIN PGP PUBLIC KEY BLOCK----- and ending with -----END PGP PUBLIC KEY BLOCK-----.
 - Add the GPG key to your GitHub account.
 	> Please check [Adding GPG key to repository](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.3.full-video.v2.mp4)  video for reference
@@ -112,53 +206,81 @@ This repository contains the template for building [onboarding](https://github.c
 	
 #### Certificate Preparation for DEV and UAT
 
-> Disclaimer: The script generates self-signed certificates not intended to be used on production environments.
->   for DEV and UAT environments you may use the conf files and the  [certgen bash script](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh)  as a guideline according to the  [Certificate Preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md)
+> **Disclaimer**: This script is designed to create self-signed certificates solely for non-production environments, such as DEV and UAT, not intended to be used on production environments. To use it, **choose the appropriate script for your operating system**:
+> 
+>**Unix/Linux:**	Use the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) bash script on [Linux/Unix/Mac](#if-your-operating-systems-is-unixlinuxmac) operating system.
+> 
+>**Windows:**		Use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script on [Windows](#if-your-operating-systems-is-windows) operating system.
+> 
 
-- You must adapt the following default certificate parameter of [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file which will used  in gen_all_certs.sh to your needs:
+These scripts, along with the provided configuration files, serve as guidelines for [certificate preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md) .
+
+
+#### If your Operating Systems is Unix/Linux/Mac
+>
+- To customize certificate parameters, update the [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file, which will be used by the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) script.
+- Modify the following default certificate parameters as needed.
   
-- Configuration Template for Certificate Generation, Modify for your own needs in DN_template.cnf file as it will be 
-  used as argument while running the script "gen_all_certs.sh".
-
-	```
- 	export OSSL_COUNTRY_NAME="XC"
-	export OSSL_STATE_NAME="Test State"
-	export OSSL_LOCALITY_NAME="TEST"
-	export OSSL_ORGANIZATION_NAME="WHO"
-	export OSSL_ORGANIZATIONAL_UNIT_NAME="R&D"
-	```
-
+```
+export OSSL_COUNTRY_NAME="XC"
+export OSSL_STATE_NAME="Test State"
+export OSSL_LOCALITY_NAME="TEST"
+export OSSL_ORGANIZATION_NAME="WHO"
+export OSSL_ORGANIZATIONAL_UNIT_NAME="R&D"
+export OSSL_COMMON_NAME="NationXC_TNP
+```
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
-	
-- Then execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
-- While execution of the "gen_all_certs.sh" script, Please provide script argument "DN_template.cnf" file  
-  which consists of country related information to generate all required certificates (TLS,SCA,UP)
-  
-  
 
 
-	```
-	For Mac/Unix
-	cd scripts/certgen
-	./gen_all_certs.sh DN_template.cnf	   
- 	zsh ./gen_all_certs.sh DN_template.cnf      ## If you are using Ubuntu OS
+#### If your Operating Systems is Windows
+>
+For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script. You can modify the environment variables directly within the script or set them in your current PowerShell session:
+
+1.Open PowerShell on your Windows machine.
+
+2.Set the required environment variables.
+
+```
+$env:OSSL_COUNTRY_NAME="XC"
+$env:OSSL_STATE_NAME="Test State"
+$env:OSSL_LOCALITY_NAME="TEST"
+$env:OSSL_ORGANIZATION_NAME="WHO"
+$env:OSSL_ORGANIZATIONAL_UNIT_NAME="RND"
+$env:OSSL_COMMON_NAME="NationXC_TNP"
+```
+ 
+> Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
+
+
+Please note that you need to have  [OpenSSL installed](https://slproweb.com/products/Win32OpenSSL.html)  (e.g. Win64 OpenSSL v3.3.0 Light) and added to your PATH environment variable. Also you may need allow the execution by setting an execution policy.
+
+```
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
+```
+ 
+**How to Run Script :**
+
+- Once you execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
+- **Notes**: While execution of "gen_all_certs.sh" script on **Unix/Linux/Mac Operating System,** Please provide script argument "DN_template.cnf" file which consists of country related information to generate all required certificates (TLS,SCA,UP)
+  
+```
+**For Mac/Linux/Unix**
+cd scripts/certgen
+./gen_all_certs.sh DN_template.cnf	    ## Provide DN_template.cnf file as a script argument.
+zsh ./gen_all_certs.sh DN_template.cnf      ## Use this if you are using Zsh on your Ubuntu system.
         
-	For Windows:
-	cd scripts/certgen
-	./gen_all_certs.ps1
-	```
+**For Windows:**
+cd scripts/certgen
+./gen_all_certs.ps1
+```
 
-**Execution On Windows**
-
-Windows platform you can use  [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1)  instead. Please note that you need to have  [OpenSSL installed](https://slproweb.com/products/Win32OpenSSL.html)  (e.g. Win64 OpenSSL v3.3.0 Light) and added to your PATH environment variable. Also you may need allow the execution by setting an execution policy.
-
-	```
-	Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
-	```	
+ 
+This setup generates all required certificates (TLS, SCA, UP) and keys in a timestamped subfolder, based on the configuration specified in DN_template.cnf for Unix/Linux and the environment variables set in the current PowerShell session for Windows.
 
 **Prepare Folders**
 
 > Note: keep your private keys safe and secure. Do not share them with anyone.
+
 Copy the generated certificates to the respective folders and change the file names to match the naming convention. For the case of self-signed TLS certificates, the CA.pem is just a copy of the TLS.pem (check to have keyCertSign in the keyUsage). The CA.pem should exist, since it is used to verify the TLS client certificate when connecting to the TNG application.
 Files to be copied in respective folders are as follows:
 - SCA.pem -> onboarding/DCC/SCA
@@ -343,17 +465,19 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	gpg --list-key
 	```
  
- 	```
-  	Output
+	```
+	OutPut
+	  
 	gpg --list-key
 	/home/test/.gnupg/pubring.kbx
 	-----------------------------
 	
 	pub   rsa4096 2024-09-19 [SC]
-	      CD822874C7862BA4BB6B950E40CC62009D9A00B0
+	CD822874C7862BA4BB6B950E40CC62009D9A00B0
 	uid           [ultimate] Test User1 (This GPG Key is for XXC test Country) <youruser@yourdomain.com>
 	sub   rsa4096 2024-09-19 [E]
-  	```
+	```
+  
 	**Note**: The PUB ID in above output is CD822874C7862BA4BB6B950E40CC62009D9A00B0 , In your case you need to 
         replace with << replace with your Pub ID >> with your actual GPG public key ID to configure Git to use a GPG 
         key for signing commits or tags in next command.
@@ -409,7 +533,7 @@ Signing tags and commits is great, but if you decide to use this in your normal 
 
 - Send an onboarding/participation request to gdhcn-support@who.int which contains:
     - URL of the private repository created as a prerequisite
-    - The GPG key exported in Step [1.8.6.4](#generate-gpg-key)
+    - The GPG key ( Beginning with -----BEGIN PGP PUBLIC KEY BLOCK----- and ending with -----END PGP PUBLIC KEY BLOCK-----) exported in Step [1.8.6.4](#generate-gpg-key)
   
 ### Validate the connection
 - Once the confirmation of successful onboarding is received from the TNG Support Team ( gdhcn-support@who.int), please do the following 
@@ -424,7 +548,7 @@ Signing tags and commits is great, but if you decide to use this in your normal 
 - After onboarding in the DEV/UAT/PROD Environment, check the connectivity with the Trust Network Gateway using its [API](https://smart.who.int/trust/openapi/). This can be achieved with following command:
 
 ```
-curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS_key.pem
+curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS.key
 ```
 You should see a output like:
 
@@ -505,7 +629,7 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 - Upload the CMS Package to the Gateway
 
 ```    
-curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS_key.pem --data @cms.b64 https://tng-dev.who.int/signerCertificate
+curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS.key --data @cms.b64 https://tng-dev.who.int/signerCertificate
 ```
 
 - Download the Trustlist again, and check if your DSC is available.
@@ -516,7 +640,7 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 
 > Note: Some versions of curl don’t attach the client certificates automatically. This can be checked via curl --version Ensure that the used version is linked to OpenSSL. Especially under Windows (https://curl.se/windows/):
 > 
-> **Curl verson on Unix/Mac**: We strongly recommend updating curl and nss to newer latest versions for full compatibility with modern cryptographic standards.The outdated version of curl or nss and may not support modern SSL/TLS protocols or elliptic curve cryptography (ECC) cipher suites properly.
+> **Curl version on Unix/Mac**: We strongly recommend updating curl and nss to newer latest versions for full compatibility with modern cryptographic standards.The outdated version of curl or nss and may not support modern SSL/TLS protocols or elliptic curve cryptography (ECC) cipher suites properly.
 
 
 
