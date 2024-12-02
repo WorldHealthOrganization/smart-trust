@@ -298,7 +298,7 @@ This guide follows the certificate templates defined in the certificate governan
 **For production, It is strongly recommended to use certificates signed by a trusted Certificate Authority (CA)**.
 This is just an example reference on how to use a Trusted CA certificate in a production environment. You should refer to the specific procedures provided by the public Trusted Certificate Authority (CA) of your choice for accurate and detailed instructions [Reference- Recommendation to use Trusted Public CA Certificate in Prod](#steps-to-obtain-and-use-a-ca-signed-certificate)
 
-**Elliptic Curve Public Key Certificates (ECDSA with NIST-p-256)**
+**Elliptic Curve Public Key Certificates (ECDSA with SHA-256, ECDSA with SHA-384, RSASSA-PSS, DSA with SHA-256, Legacy: SHA-256 with RSA Encryption)**
 
 ##### SCA certificate (TNP<sub>SCA</sub>) generation example
 > Please check [SCA Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.SCA.v2.mp4) video  for reference
