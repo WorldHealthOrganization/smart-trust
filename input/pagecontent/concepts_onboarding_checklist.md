@@ -508,6 +508,10 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	```
 	git commit -sm "added all certificates files"
 	```
+ - Push changes to the main branch.
+	```
+	git push origin main
+	```
 
 - Create a signed Git tag with a message
 	```
