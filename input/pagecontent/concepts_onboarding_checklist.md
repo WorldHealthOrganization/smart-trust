@@ -258,7 +258,7 @@ Please note that you need to have  [OpenSSL installed](https://slproweb.com/prod
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
 ```
  
-**How to Run Script :**
+#### How to Run Script :
 
 - Once you execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
 - **Notes**: While execution of "gen_all_certs.sh" script on **Unix/Linux/Mac Operating System,** Please provide script argument "DN_template.cnf" file which consists of country related information to generate all required certificates (TLS,SCA,UP)
@@ -277,7 +277,7 @@ cd scripts/certgen
  
 This setup generates all required certificates (TLS, SCA, UP) and keys in a timestamped subfolder, based on the configuration specified in DN_template.cnf for Unix/Linux and the environment variables set in the current PowerShell session for Windows.
 
-**Prepare Folders**
+#### Prepare Folders
 
 > Note: keep your private keys safe and secure. Do not share them with anyone.
 
