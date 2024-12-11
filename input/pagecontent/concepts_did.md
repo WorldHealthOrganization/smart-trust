@@ -40,11 +40,11 @@ There are "root" trust list contains all keys available on the TNG (either embed
 for the embedded and reference lists respectively 
 
 Additionally there are trust lists generated which you can filter by one or more of the Domain, the Paricipant Code or the Key Usage.   The URLs follow the following DID Path Structure:
-* tng-cdn.who.int/v2.0.0/trustlist/<DOMAIN>/<PARTICIPANT_CODE> matches all key usages (DSC, SCA, etc) for a specific domain or participant code
-* tng-cdn.who.int/v2.0.0/trustlist/<DOMAIN>/<PARTICIPANT_CODE>/<USAGE> matches all keys for a specific usage for a specific domain or participant code
-* tng-cdn.who.int/v2.0.0/trustlist/-/<PARTICIPANT_CODE> matches all domains for a specific participant for all usage codes
-* tng-cdn.who.int/v2.0.0/trustlist/-/<PARTICIPANT_CODE>/<USAGE> matches all domains for a specific participant and usage code
-* tng-cdn.who.int/v2.0.0/trustlist/<DOMAIN>/-/<USAGE> matches all participants for a specific domain
+* tng-cdn.who.int/v2/trustlist/<DOMAIN>/<PARTICIPANT_CODE> matches all key usages (DSC, SCA, etc) for a specific domain or participant code
+* tng-cdn.who.int/v2/trustlist/<DOMAIN>/<PARTICIPANT_CODE>/<USAGE> matches all keys for a specific usage for a specific domain or participant code
+* tng-cdn.who.int/v2/trustlist/-/<PARTICIPANT_CODE> matches all domains for a specific participant for all usage codes
+* tng-cdn.who.int/v2/trustlist/-/<PARTICIPANT_CODE>/<USAGE> matches all domains for a specific participant and usage code
+* tng-cdn.who.int/v2/trustlist/<DOMAIN>/-/<USAGE> matches all participants for a specific domain
 
 DEV and UAT versions of the DID trust lists are available under tng-cdn-dev.who.int and tng-cdn-uat.who.int following the same DID Path Structure.
 
