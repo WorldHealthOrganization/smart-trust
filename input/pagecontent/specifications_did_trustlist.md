@@ -8,7 +8,7 @@ A key to real interoperability among existing trust networks is to find alignmen
 
 | Version | Status   | Description                                                                                                                                                         |
 |---------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 2.0.0   | Draft    | 2.0.0 is in pre-released state for verification and feedback. On technical level in the API "v2" is used to address DID documents following version 2 specification |
+| 2.0.0   | Draft    | 2.0.0 is in pre-released state for verification and feedback. On technical level in the API "v2" is used to address DID documents following version two specification |
 | 1.0.0   | Released | 1.0.0 is deprecated and will be replaced by version 2.0.0                                                                                                           |
 
 #### Trustlists 2.0.0
@@ -31,17 +31,17 @@ This helps to keep the main trustlist documents concise and supports dynamic dis
 
 ##### DID trustlists structure
 
-Version 2.0.0 introduces a hierarchival structure for DID documents, to support more fine grained resolution and discovery of key material.
+Version 2.0.0 introduces a hierarchical structure for DID documents, to support more fine grained resolution and discovery of key material.
 It distinguishes the levels **root**, **domain**, **participant**, and **key usage type**.
 
-Note: **domain** is one of the supported trust domains, **participant** is currently represented as ISO-3166 alpha-3 country code and **key uasge type** is the certifcate type SCA or DSC.
+Note: **domain** is one of the supported trust domains, **participant** is currently represented as ISO-3166 alpha-3 country code and **key usage type** is the certifcate type SCA or DSC.
 
-| Level          | Description                                                                                                                    |
-|----------------|--------------------------------------------------------------------------------------------------------------------------------|
-| root           | contains all trusted key material or trusted DID references of GDHCN                                                           |
-| domain         | contains trusted key material or DID references of GDHCN for a supported trust domain                                          |
-| participant    | contains trusted key material or DID references of GDHCN for a trusted participant  |
-| key usage type | contains trusted key material or DID references of a supported usage type like DSC or SCA                                      |
+| Level          | Description                                                                                       |
+|----------------|---------------------------------------------------------------------------------------------------|
+| root           | contains all trusted key material or trusted DID references of GDHCN                              |
+| domain         | contains trusted key material or DID references of GDHCN for a supported trust domain             |
+| participant    | contains trusted key material or DID references of GDHCN for a trusted participant                |
+| key usage type | contains trusted key material or DID references of a supported usage type like DSC or SCA or both |
 
 
 The levels are organized hierarchically so that they function as filters following an AND logic operation when resolving or discovering key material.
@@ -56,6 +56,7 @@ The following examples outline the expected behavior of embedded trustlist:
 * tng-cdn.who.int/v2/trustlist/-/{{PARTICIPANT_CODE}}/did.json matches key material or references for all domains for a specific participant without filtering the key usage types.
 * tng-cdn.who.int/v2/trustlist/-/{{PARTICIPANT_CODE}}/{{USAGE}}/did.json matches keys or references in all domains for a specific participant and specific key usage type.
 * tng-cdn.who.int/v2/trustlist/{{DOMAIN}}/-/{{USAGE}}/did.json matches keys for all participants of a specific domain filtered by there key usage type.
+* tng-cdn-who.int/v2/trustlist/-/- matches key material for all domains and all participants without filtering a specific usage type so the did.json may contain SCA and DSC keys.
 
 And the following examples outline the expected behavior of reference type trustlist:
 
