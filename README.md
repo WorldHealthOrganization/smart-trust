@@ -16,7 +16,10 @@ This ImplementationGuide is published in the following locations:
  
   
 Continuous Build:  __https://worldhealthorganization.github.io/smart-trust__  
-Canonical / permanent URL: __https://smart.who.int/trust__  
+Canonical / permanent URL: __https://smart.who.int/trust__
+
+**On-boarding Checklist**: __[https://smart.who.int/trust/concepts_onboarding_checklist.html](https://smart.who.int/trust/concepts_onboarding_checklist.html)__
+
 <br/>
 ### Issues
 Issues and change requests are managed here:  
