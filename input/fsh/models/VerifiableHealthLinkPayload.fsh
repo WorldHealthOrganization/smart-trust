@@ -12,4 +12,4 @@ This logical model was extends the Smart Health Link Payload
 * ^status = #draft
 
 * type 1..1 code "classifying type code" "Classifying type code to distinguish between SHL and VHL"
-* type from VHL_TYPE
+* type from HL_TYPE

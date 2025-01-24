@@ -5,4 +5,4 @@ Alias: $SGTransactionDef = http://smart.who.int/base/StructureDefinition/SGTrans
 
 Alias: $TrustTrans = http://smart.who.int/ips-pilgrimage/CodeSystem/WHO.TRUST.TRANSACTION
 Alias: $TrustActor = http://smart.who.int/ips-pilgrimage/CodeSystem/WHO.TRUST.ACTOR
-Alias: $VhlType = http://smart.who.int/trust/CodeSystem/VHL.TYPE
+Alias: $HlType = http://smart.who.int/trust/CodeSystem/HL.TYPE

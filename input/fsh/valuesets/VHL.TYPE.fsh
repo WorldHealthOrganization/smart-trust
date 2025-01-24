@@ -1,10 +1,10 @@
-ValueSet:     VHL.TYPE
-Title:        "VHL.TYPE ValueSet "
-Description:  "ValueSet of VHL Type Codes"
+ValueSet:     HL.TYPE
+Title:        "HL.TYPE ValueSet "
+Description:  "ValueSet of HL Type Codes"
 
 * ^status = #active
 * ^experimental = true
-* ^name = "VHL_TYPE"
+* ^name = "HL_TYPE"
 
-* include codes from system $VhlType
+* include codes from system $HlType
 
