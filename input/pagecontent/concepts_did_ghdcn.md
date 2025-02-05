@@ -1,4 +1,4 @@
-### DID Trustlists
+### GDHCN Trustlists
 
 This specification describes the publication of Global Digital Health Certification Network (GDHCN) key material as Decentralized Identifier (DID) documents. 
 DIDs are specified by the [W3C DID Core Specification](https://www.w3.org/TR/did-core/).
