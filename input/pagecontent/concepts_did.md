@@ -1,5 +1,5 @@
 
-Utilization of Decentralized Identifiers Documents as profiled by WHO during the G20-Indonesia feasibility test for a federated PKI.
+
 
 #### Requirements
 The common trust list specification defines the lowest common denominator format that can interoperate between all included specifications and can support the minimal required features from each specification. This includes considering the minimum security requirements that satisfy each of the specifications. It was designed taking into account the following tenets:
