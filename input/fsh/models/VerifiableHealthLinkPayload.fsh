@@ -3,8 +3,7 @@ Parent: 	HealthLinkPayload
 Title: 		"Verifiable Health Link Payload (DRAFT)"
 Description:	"Verifiable Health Link Payload (DRAFT)
 
-This logical model was extends the Smart Health Link Payload
-
+This logical model constrains the Health Link Payload for a Verifiable Health Link
 "
 
 * ^url = "http://smart.who.int/trust/StructureDefinition/VerifiableHealthLinkPayload"
