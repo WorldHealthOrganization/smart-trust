@@ -1,5 +1,5 @@
 Logical: 	VerifiableHealthLinkPayload
-Parent: SmartHealthLinkPayload
+Parent: 	HealthLinkPayload
 Title: 		"Verifiable Health Link Payload (DRAFT)"
 Description:	"Verifiable Health Link Payload (DRAFT)
 
@@ -11,5 +11,14 @@ This logical model was extends the Smart Health Link Payload
 * ^version = "RC2"
 * ^status = #draft
 
-* type 1..1 code "classifying type code" "Classifying type code to distinguish between SHL and VHL"
-* type from HL_TYPE
+* type 1..1
+* type obeys is-a-verifiable-health-link
+
+
+Invariant: is-a-verifiable-health-link
+Description: "The Health Link type is is a verifiable health link"
+Severity: #error
+Expression: "type = 'vhl'"
+
+
+
