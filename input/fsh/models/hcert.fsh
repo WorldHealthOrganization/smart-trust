@@ -10,7 +10,7 @@ Description:    "Logical Model for the HCERT"
 
 //Description:    """Logical Model for the HCERT
 //
-// The full data structure and encoding mechanisms for HCERT are defined here: [Electronic Health Certificate Specification](/smart-trust/hcert_spec.html)
+// The full data structure and encoding mechanisms for HCERT are defined here: [Electronic Health Certificate Specification](http://smart.who.int/trust/hcert_spec.html)
 //
 // An HCERT is claim -260 within the [CBOR Web Token (CWT) Claim](https://www.rfc-editor.org/rfc/rfc8392.html).
 //
