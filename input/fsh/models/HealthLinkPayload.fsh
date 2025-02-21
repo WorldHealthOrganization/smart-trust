@@ -2,10 +2,10 @@ Logical: 	HealthLinkPayload
 Title: 		"Health Link Payload (DRAFT)"
 Description:	"Health Link Payload (DRAFT)
 
-A [[ Health Link]] is generated from this payload according to the algorithm documented here <https://docs.smarthealthit.org/smart-health-links/spec#example-shlink-generation>.
+A Health Link URI is generated from this payload according to the algorithm documented [here](https://build.fhir.org/ig/HL7/smart-health-cards-and-links/links-specification.html#smart-health-links-sharing-application-generates-a-smart-health-link-uri)
 
 "
-* ^url = "http://smart.who.int/trust/StructureDefinition/HealthLinkPayload"
+* ^url = "http://hl7.org/fhir/uv/smart-health-cards-and-links/StructureDefinition/HealthLinkPayload"
 * ^version = "RC2"
 * ^status = #draft
 *  url 1..1 string "url" "Manifest URL for this Health Link"
@@ -17,5 +17,5 @@ A [[ Health Link]] is generated from this payload according to the algorithm doc
   U Indicates the Health Link's url resolves to a single encrypted file accessible via GET, bypassing the manifest. SHALL NOT be used in combination with P."
 * label 0..1 string "Optional. String no longer than 80 characters that provides a short description of the data behind the Health Link."
 * v 0..1 string "Optional. Integer representing the Health Links protocol version this Health Link conforms to. MAY be omitted when the default value (1) applies."
-* type 0..1 code "Classifying type code to distinguish different types of health links.  If not present then the assumed value is #shl corresponding to a Smart Health Link."
-* type from HL_TYPE (preferred)
+* type 0..1 code "Classifying type code to distinguish different types of health links.  If not present then the Health Link is a SMART Health Link."
+
