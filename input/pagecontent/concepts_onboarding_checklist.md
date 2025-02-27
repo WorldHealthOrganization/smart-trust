@@ -98,6 +98,11 @@ Before beginning the onboarding process, please ensure the following tools, perm
 **Create a private git repository on github. One for each Environment (DEV, UAT, PROD)**
 
 > Please check [Create private repository](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.1.and2.3.full-video.v2.mp4) video for reference
+
+<video width="60%"  controls>
+  <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.1.and2.3.full-video.v2.mp4" type="video/mp4">
+</video>
+
 - From Github profile, go to repositories
 - Click on New
 - Enter Repository name, follow the convention, it has to contain the ISO 3 letter. All the rest is optional
@@ -129,12 +134,17 @@ Before beginning the onboarding process, please ensure the following tools, perm
 
 ### Invite tng-bot
 - Add tng-bot to new repository
-	> Please check [Invite tng-bot to private repository](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.2.full-video.v2.mp4) video for reference
+	> Please check [Invite tng-bot to private repository](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.2.full-video.v2.mp4) video for reference	
 - Go to Repository -> Settings
 - Go to Collaborators
 - Authenticate
 - Click on Add people
 - Add tng-bot for Prod and tng-bot-dev for dev and UAT
+
+<video width="60%"  controls>
+  <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.2.full-video.v2.mp4" type="video/mp4">
+</video>
+
 
 ### Generate GPG Key
 - Create GPG Keys for responsible persons for each environment
@@ -143,6 +153,9 @@ Before beginning the onboarding process, please ensure the following tools, perm
 - Download and install the GPG command line tools for your operating system. We generally recommend installing the latest version for your operating system.
 - Open Git Bash
 - Generate a GPG key pair. Since there are multiple versions of GPG, you may need to consult the relevant man page to find the appropriate key generation command
+<video width="60%"  controls>
+  <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.2.full-video.v2.mp4" type="video/mp4">
+</video>
 - If you are on version 2.1.17 or greater, paste the text below to generate a GPG key pair.
 
 
@@ -201,6 +214,11 @@ Before beginning the onboarding process, please ensure the following tools, perm
 - Click on New GPG Key
 - Add Title. Add key copied in last step
 - Click on Add GPG Key
+
+
+<video width="60%"  controls>
+  <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.3.full-video.v2.mp4" type="video/mp4">
+</video>
 
 ### Create Certificates
 	
@@ -336,6 +354,11 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 	```
 	openssl req -x509 -new -days 1461 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout CAprivkey.key -nodes -out CAcert.pem -config sca.conf
 	```
+	
+<video width="60%"  controls>
+  <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.SCA.v2.mp4" type="video/mp4">
+</video>
+
 ##### DSC generation example
 **DSC generation example**
 	Document Signer Certificates (DSCs) must be signed by the SCA. Hence, you have to create the SCA certificate (with the corresponding private key) before you can issue DSCs.
@@ -378,6 +401,10 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 	```
 - **Important Recommendations for Prod**: Please replace CAcert.pem and CAprivkey.key with signing material from an officially Trusted Certification Authority instead using your own self-signed one.    
 
+<video width="60%"  controls>
+  <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/3.2.and3.3.full-video.v2.mp4" type="video/mp4">
+</video>
+
 ##### TNP<sub>UP</sub> generation example
 
 - *uploadCert.conf*
@@ -409,6 +436,9 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
     plaintext
 	openssl req -x509 -new -days 365 -newkey ec:<(openssl ecparam -name prime256v1) -extensions ext -keyout TNP_UP.key -nodes -out TNP_UP.pem -config uploadCert.conf
 	```
+<video width="60%"  controls>
+  <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.UP.v2.mp4" type="video/mp4">
+</video>
 
 ##### TNP<sub>TLS</sub> generation example
 
@@ -455,6 +485,9 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 **RSA Public Key Certificates**
 In case you want to use RSA certificates you can still use the configuration files provided above. During the CSR/certificate creation, replace the `-newkey ec:<(openssl ecparam -name prime256v1)` with `-newkey rsa:4096` for a 4096 Bit RSA key.  
 Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use RSA as your document signing algorithm, please create either a 2048 bit RSA key or at maximum a 3072 bit RSA key due to the space limitations on the QR codes.
+<video width="60%"  controls>
+  <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.TLS.v2.mp4" type="video/mp4">
+</video>
 
 ### Provide
 
@@ -535,6 +568,11 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 	```
 - For more detailed git commands please review [Appendix](#more-information-about-git-commit-signing-and-tagging-commands)
 
+
+<video width="60%"  controls>
+  <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.4.full-video.v2.mp4" type="video/mp4">
+</video>
+
 **Everyone Must Sign - Always a good idea**
 Signing tags and commits is great, but if you decide to use this in your normal workflow, you’ll have to make sure that everyone on your team understands how to do so. This can be achieved by asking everyone working with the repository to run git config --local commit.gpgsign true to automatically have all of their commits in the repository signed by default. If you don’t, you’ll end up spending a lot of time helping people figure out how to rewrite their commits with signed versions. Make sure you understand GPG and the benefits of signing things before adopting this as part of your standard workflow.
 
@@ -548,7 +586,7 @@ Signing tags and commits is great, but if you decide to use this in your normal 
 - Once the confirmation of successful onboarding is received from the TNG Support Team ( gdhcn-support@who.int), please do the following 
 
 **TNG-WHO Endpoints:**
--	PRD:	 https://tng.who.int
+-	PROD:	 https://tng.who.int
 -	UAT:	 https://tng-uat.who.int
 -	DEV:	 https://tng-dev.who.int
 

@@ -1,12 +1,13 @@
-### Trust Domains
+
 A Trust Domain consists of:
 *	Defined use cases and business processes related to the utilization of Verifiable Digital Health Certificates; These Verifiable Digital Health Certificates may be issued or verified through Trusted Services that are enabled by Trust Network Participants of the Digital Health Trust Network.
 *	the open, interoperable technical specifications that identify or define the applicable Trusted Services and Verifiable Digital Health Certificates; and
 *	a set of policy and regulatory standards describing expected behavior of GDHCN Participants in relation to operation of the Trusted Services and utilization of Verifiable Digital Health Certificates (e.g. data minimization, privacy, scope of use).
 
-At the current time, the following content profiles are recognized through the WHO's Global Digital Health Certification Network (GDHCN):
 
-{% include available_trust_domains.xml %}
+  <p>The codes for the GDHCN Trust Domains are contained in the <a href="ValueSet-WHO.TRUST.DOMAIN.html">GDHCN Trust Domain Value Set</a>.
+  </p>
+
 
 
 ### Digital Documentation of COVID-19 Certificates (DDCC)

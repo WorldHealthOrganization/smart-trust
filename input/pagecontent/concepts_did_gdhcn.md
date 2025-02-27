@@ -40,7 +40,7 @@ This helps to keep the main trustlist documents concise and supports dynamic dis
 Version 2.0.0 introduces a hierarchical structure for DID documents, to support more fine grained resolution and discovery of key material.
 It distinguishes the levels **root**, **$domain**, **$participant**, and key **$usage**  type.
 
-Note: **$domain** is one of the codes in the [GDHCN Trust Domains Valuet](ValueSet-WHO.TRUST.DOMAIN.html) , **$participant** is currently represented as ISO-3166 alpha-3 country code and key **$usage** type is one of the codes in the [Key Usage Value Set](CodeSystem-WHO.TRUST.KEYUSAGE.html) .
+Note: **$domain** is one of the codes in the [GDHCN Trust Domain Valuet](ValueSet-WHO.TRUST.DOMAIN.html) , **$participant** is currently represented as ISO-3166 alpha-3 country code and key **$usage** type is one of the codes in the [Key Usage Value Set](CodeSystem-WHO.TRUST.KEYUSAGE.html) .
 
 | Level          | Description                                                                                       |
 |----------------|---------------------------------------------------------------------------------------------------|
