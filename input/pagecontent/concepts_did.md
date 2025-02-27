@@ -29,54 +29,6 @@ The DID Document itself can be signed with addition of a ‘proof’ block conta
 For more information regarding the DID Document format for a Trust List specification, see [WHO DDCC Trust List Specification documentation](https://github.com/WorldHealthOrganization/ddcc-trust/blob/main/TrustListSpecification.md#leading-contender-did-document). For an example of a signed DID Document, see [Appendix A](https://github.com/WorldHealthOrganization/ddcc-trust/blob/main/TrustListSpecification.md#appendix-a-signed-did-document-for-x509-enabled-trust-lists-of-leaf-keys) of the documentation.
 
 #### DID Document v2.0
-In version 2.0 of the WHO GDHCN DID publication specification, multiple DID files are created depending on your key needs. 
+In [version 2.0 of the WHO GDHCN DID](concepts_did_gdhcn.html) publication specification, multiple DID files are created depending on your key needs.  
 
-
-There are types  trust lists - embedded and by reference.  The embedded trust list contains all key material.  The reference trust list contains reference to keys.   
-
-There are "root" trust list contains all keys available on the TNG (either embedded or by reference).
-* https://tng-cdn.who.int/v2.0.0/trustlist/did.json
-* https://tng-cdn.who.int/v2.0.0/trustlist-ref/did.json
-for the embedded and reference lists respectively 
-
-Additionally there are trust lists generated which you can filter by one or more of the Domain, the Paricipant Code or the Key Usage.   The URLs follow the following DID Path Structure:
-* tng-cdn.who.int/v2/trustlist/<DOMAIN>/<PARTICIPANT_CODE> matches all key usages (DSC, SCA, etc) for a specific domain or participant code
-* tng-cdn.who.int/v2/trustlist/<DOMAIN>/<PARTICIPANT_CODE>/<USAGE> matches all keys for a specific usage for a specific domain or participant code
-* tng-cdn.who.int/v2/trustlist/-/<PARTICIPANT_CODE> matches all domains for a specific participant for all usage codes
-* tng-cdn.who.int/v2/trustlist/-/<PARTICIPANT_CODE>/<USAGE> matches all domains for a specific participant and usage code
-* tng-cdn.who.int/v2/trustlist/<DOMAIN>/-/<USAGE> matches all participants for a specific domain
-
-DEV and UAT versions of the DID trust lists are available under tng-cdn-dev.who.int and tng-cdn-uat.who.int following the same DID Path Structure.
-
-
-Repository Folder structure (under a version folder):
-
-* trustlist  
-  * did.json contains all keys embedded  
-  * DDCC  
-    * did.json contains all keys for DDCC domain embedded  
-    * FRA  
-      * did.json contains all keys for France for DDCC Domain embedded  
-      * DSC  
-        * did.json contains DSCs for France for DDCC Domain  
-      * SCA  
-        * did.json contains DSCs for France for DDCC Domain  
-    * IND  
-      * did.json contains all keys for Indonesia for DDCC Domain  
-  * PH4H   
-    * did.json contains all keys for IPS domain embedded  
-    * FRA   
-      * did.json contains all keys for France for IPS Domain embedded  
-      * DSC  
-        * did.json contains DSCs for France for IPS Domain  
-      * SCA  
-        * did.json contains DSCs for France for IPS Domain  
-  * \-  
-    * FRA  
-      * did.json contains all keys for France for all domains embedded  
-    * IND  
-      * did.json contains all keys for Indonesia for all domain embedded
-* trustlist-ref  
-  * contains all keys by reference  
-  * \<same structure as above\>
 
