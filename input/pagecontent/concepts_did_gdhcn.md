@@ -13,19 +13,20 @@ A key to real interoperability among existing trust networks is to find alignmen
 
 #### Trustlists 2.0.0
 
-Version 2.0.0 introduces two variants of the trust lists - embedded and by reference.
+Version 2.0.0 introduces two **variant**s of the trust lists - embedded and by reference.
 
 <img src="did-trustlist-types.png" alt="Types of DID trustlists" style="width:300px; float:none; margin: 0px 0px 0px 0px;"/>
 
+For each of development, user-acceptence testing and product environments there is a trust list according to the following table:
 
-|  Environment   |    Trustlist           | URL                                                                                                          |
+|  Environment   |      Variant         | URL                                                                                                          |
 |---------------------|--------------------------------------------------------------------------------------------------------------|
-|  Development   | | Embedded Trustlist  | [https://tng-cdn-dev.who.int/v2/trustlist/did.json](https://tng-cdn-uat.who.int/v2/trustlist/did.json)         |
-|                | Reference Trustlist | [https://tng-cdn-dev.who.int/v2/trustlist-ref/did.json](https://tng-cdn-uat.who.int/v2/trustlist-ref/did.json) |
-|  User Acceptance Testing   | | Embedded Trustlist  | [https://tng-cdn-uat.who.int/v2/trustlist/did.json](https://tng-cdn-uat.who.int/v2/trustlist/did.json)         |
-|                | Reference Trustlist | [https://tng-cdn-uat.who.int/v2/trustlist-ref/did.json](https://tng-cdn-uat.who.int/v2/trustlist-ref/did.json) |
-|  Production   | | Embedded Trustlist  | [https://tng-cdn-uat.who.int/v2/trustlist/did.json](https://tng-cdn.who.int/v2/trustlist/did.json)         |
-|                | Reference Trustlist | [https://tng-cdn.who.int/v2/trustlist-ref/did.json](https://tng-cdn.who.int/v2/trustlist-ref/did.json) |
+|  Development   |  Embedded    | [https://tng-cdn-dev.who.int/v2/trustlist/did.json](https://tng-cdn-uat.who.int/v2/trustlist/did.json)         |
+|                | Reference  | [https://tng-cdn-dev.who.int/v2/trustlist-ref/did.json](https://tng-cdn-uat.who.int/v2/trustlist-ref/did.json) |
+|  User Acceptance Testing   |  Embedded   | [https://tng-cdn-uat.who.int/v2/trustlist/did.json](https://tng-cdn-uat.who.int/v2/trustlist/did.json)         |
+|                | Reference  | [https://tng-cdn-uat.who.int/v2/trustlist-ref/did.json](https://tng-cdn-uat.who.int/v2/trustlist-ref/did.json) |
+|  Production   |  Embedded   | [https://tng-cdn-uat.who.int/v2/trustlist/did.json](https://tng-cdn.who.int/v2/trustlist/did.json)         |
+|                | Reference  | [https://tng-cdn.who.int/v2/trustlist-ref/did.json](https://tng-cdn.who.int/v2/trustlist-ref/did.json) |
 
 The embedded type of trustlist carries the key material directly within the DID documents' verificationMethod property and supports immediate verification.
 On the root level it contains all keys imported from the trust network gateway (TNG).
