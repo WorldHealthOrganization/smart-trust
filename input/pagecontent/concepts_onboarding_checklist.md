@@ -585,11 +585,15 @@ Signing tags and commits is great, but if you decide to use this in your normal 
 ### Validate the connection
 - Once the confirmation of successful onboarding is received from the TNG Support Team ( gdhcn-support@who.int), please do the following 
 
-**TNG-WHO Endpoints:**
--	PROD:	 https://tng.who.int
--	UAT:	 https://tng-uat.who.int
--	DEV:	 https://tng-dev.who.int
 
+
+THe following are the endpoints for the [Trust Network Gateway](concepts.html#trust-network-gateway-tng) for each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s:
+
+| Environment | URL |
+|-------------|-----|
+| PROD |	 https://tng.who.int |
+| UAT |	 https://tng-uat.who.int |
+| DEV |	 https://tng-dev.who.int |
 
 
 - After onboarding in the DEV/UAT/PROD Environment, check the connectivity with the Trust Network Gateway using its [API](https://smart.who.int/trust/openapi/). This can be achieved with following command:
