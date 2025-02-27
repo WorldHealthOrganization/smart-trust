@@ -4,6 +4,7 @@ Alias: $DDCCVS = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetVS
 Alias: $DDCCTR = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetTR
 Alias: $DVC = http://smart.who.int/icvp/StructureDefinition/DVCPayload
 
+
 Logical:        HCert
 Title:          "Health Certificate"
 Description:    "Logical Model for the HCERT"
@@ -27,6 +28,6 @@ Description:    "Logical Model for the HCERT"
 //* 2 0..* $RACSEL_DDVC "RACSEL Vaccination Certficate Data Set claim" "RACSEL Vaccination Certificate (PROPOSED)" 
 * 3 0..* $DDCCVS "Vaccination Core Data Set claim" "DDCC Vaccination claim (PROPOSED)"
 * 4 0..* $DDCCTR "Test Result Core Data Set claim" "DDCC Test Result claim (PROPOSED)"
-* 5 0..* SmartHealthLink "SMART Health Link claim" "SMART Health Link"
+* 5 0..* string "URI" "URI of the Smart Health Link.  Of the form 'shlink:/eyJ1cmwiOiJodHRwczovL2Vo....' "
 * -6 0..* $DVC "DVC" "Digital Vaccination Certificate (Proposed)"
 
