@@ -61,9 +61,9 @@ The following examples outline the expected behavior of embedded trustlist:
 And the following examples outline the expected behavior of reference type trustlist:
 
 * tng-cdn.who.int/v2/trustlist-ref/did.json contains all DID document references of the next sub-level as DID id.
-* tng-cdn.who.int/v2/trustlist-ref/{{DOMAIN}}/did.json contains all **participant** level DID document references as DID id for the given **domain**.
-* tng-cdn.who.int/v2/trustlist-ref/{{DOMAIN}}/{{PARTICIPANT}}/did.json contains all **key usage type** level DID document references as DID id for the selected **domain** and **participant**.
-* tng-cdn.who.int/v2/trustlist-ref/{{DOMAIN}}/{{PARTICIPANT}}/{{USAGE}}/did.json contains a **reference to the embedded trustlist** that correlates to the selected **domain**, **participant** and **key usage type** and that contains the key material.
+* tng-cdn.who.int/v2/trustlist-ref/**$domain**/did.json contains all **$participant** level DID document references as DID id for the given **$domain**.
+* tng-cdn.who.int/v2/trustlist-ref/**$domain**/**$partcipant**/did.json contains all key **$usage** type level DID document references as DID id for the selected **$domain** and **$participant**.
+* tng-cdn.who.int/v2/trustlist-ref/**$domain**/**$participant**/**$usage**/did.json contains a reference to a DID the embedded trustlist that correlates to the selected **$domain**, **$participant** and key **$usage** and that contains the key material.
 
 Note: all levels of the reference type trustlist may contain additional DID references linking trusted external DID documents.
 
@@ -74,7 +74,7 @@ The [did trustlists structure diagram](https://smart.who.int/trust/did-trustlist
 
 ##### Example DID documents
 
-Reference type DID document linking the embedded trustlist for **domain**: DCC, **participant**: XXA and **key usage type**: DSC.
+Reference type DID document linking the embedded trustlist for **$domain**: DCC, **$participant**: XXA and key **$usage** type: DSC.
 
 ```js
 {
@@ -98,7 +98,7 @@ Reference type DID document linking the embedded trustlist for **domain**: DCC, 
 }
 ```
 
-Embedded trustlist for **domain**: DCC, **participant**: XXA and **key usage type**: DSC with key matrial:
+Embedded trustlist for **$domain**: DCC, **$participant**: XXA and key **$usage** type: DSC with key matrial:
 
 ```js
 {
