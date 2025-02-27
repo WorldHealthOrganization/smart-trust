@@ -50,20 +50,20 @@ This allows to omit filtering on the respective level effectively matching all c
 
 The following examples outline the expected behavior of embedded trustlist: 
 
-* tng-cdn.who.int/v2/trustlist/did.json matches all keys for all domains, participants and key usage types.
-* tng-cdn.who.int/v2/trustlist/{{DOMAIN}}/{{PARTICIPANT_CODE}}/did.json matches all keys (DSC, SCA) for a specific domain AND participant.
-* tng-cdn.who.int/v2/trustlist/{{DOMAIN}}/{{PARTICIPANT_CODE}}/{{USAGE}}/did.json matches all keys for a specific key usage type for a given domain AND participant.
-* tng-cdn.who.int/v2/trustlist/-/{{PARTICIPANT_CODE}}/did.json matches key material or references for all domains for a specific participant without filtering the key usage types.
-* tng-cdn.who.int/v2/trustlist/-/{{PARTICIPANT_CODE}}/{{USAGE}}/did.json matches keys or references in all domains for a specific participant and specific key usage type.
-* tng-cdn.who.int/v2/trustlist/{{DOMAIN}}/-/{{USAGE}}/did.json matches keys for all participants of a specific domain filtered by there key usage type.
-* tng-cdn-who.int/v2/trustlist/-/- matches key material for all domains and all participants without filtering a specific usage type so the did.json may contain SCA and DSC keys.
+* tng-cdn.who.int/v2/trustlist/did.json matches all keys for all **$domain**s, **$participant**s and key **$usage** types.
+* tng-cdn.who.int/v2/trustlist/**$domain**/**$participant**/did.json matches all keys (DSC, SCA) for a specific **$domain** AND **$participant**.
+* tng-cdn.who.int/v2/trustlist/**$domain**/**$participant**/**$usage**/did.json matches all keys for a specific key **$usage** type for a given **$domain** AND **$participant**.
+* tng-cdn.who.int/v2/trustlist/-/{{PARTICIPANT_CODE}}/did.json matches key material or references for all **$domain**s for a specific **$participant** without filtering the key usage types.
+* tng-cdn.who.int/v2/trustlist/-/**$participant**/**$usage**/did.json matches keys or references in all **$domain**s for a specific **$participant** and specific key **$usage** type.
+* tng-cdn.who.int/v2/trustlist/**$domain**/-/**$usage**/did.json matches keys for all **$participant**s of a specific **$domain** filtered by there key **$usage** type.
+* tng-cdn-who.int/v2/trustlist/-/- matches key material for all **$domain**s and all **$participant**s without filtering a specific **$usage** type so the did.json may contain SCA and DSC keys.
 
 And the following examples outline the expected behavior of reference type trustlist:
 
 * tng-cdn.who.int/v2/trustlist-ref/did.json contains all DID document references of the next sub-level as DID id.
 * tng-cdn.who.int/v2/trustlist-ref/**$domain**/did.json contains all **$participant** level DID document references as DID id for the given **$domain**.
 * tng-cdn.who.int/v2/trustlist-ref/**$domain**/**$partcipant**/did.json contains all key **$usage** type level DID document references as DID id for the selected **$domain** and **$participant**.
-* tng-cdn.who.int/v2/trustlist-ref/**$domain**/**$participant**/**$usage**/did.json contains a reference to a DID the embedded trustlist that correlates to the selected **$domain**, **$participant** and key **$usage** and that contains the key material.
+* tng-cdn.who.int/v2/trustlist-ref/**$domain**/**$participant**/**$usage**/did.json contains a reference to a DID the embedded trustlist that correlates to the selected **$domain**, **$participant** and key **$usage** type and that contains the key material.
 
 Note: all levels of the reference type trustlist may contain additional DID references linking trusted external DID documents.
 
