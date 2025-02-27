@@ -158,4 +158,4 @@ The trustlists are maintained using GitHub and published via GitHub pages.
 
 #### Trustlist Specification 1.0.0
 
-[Initial specification](https://github.com/WorldHealthOrganization/ddcc-trust/blob/main/TrustListSpecification.md#leading-contender-did-document)
+[Initial specification](concepts_did.html) is deprecated.
