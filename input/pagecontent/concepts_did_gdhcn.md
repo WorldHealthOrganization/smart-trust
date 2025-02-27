@@ -17,10 +17,15 @@ Version 2.0.0 introduces two variants of the trust lists - embedded and by refer
 
 <img src="did-trustlist-types.png" alt="Types of DID trustlists" style="width:300px; float:none; margin: 0px 0px 0px 0px;"/>
 
-| Trustlist           | URL                                                                                                          |
+
+|  Environment   |    Trustlist           | URL                                                                                                          |
 |---------------------|--------------------------------------------------------------------------------------------------------------|
-| Embedded Trustlist  | [https://tng-cdn.who.int/v2/trustlist/did.json](https://tng-cdn.who.int/v2/trustlist/did.json)         |
-| Reference Trustlist | [https://tng-cdn.who.int/v2/trustlist-ref/did.json](https://tng-cdn.who.int/v2/trustlist-ref/did.json) |
+|  Development   | | Embedded Trustlist  | [https://tng-cdn-dev.who.int/v2/trustlist/did.json](https://tng-cdn-uat.who.int/v2/trustlist/did.json)         |
+|                | Reference Trustlist | [https://tng-cdn-dev.who.int/v2/trustlist-ref/did.json](https://tng-cdn-uat.who.int/v2/trustlist-ref/did.json) |
+|  User Acceptance Testing   | | Embedded Trustlist  | [https://tng-cdn-uat.who.int/v2/trustlist/did.json](https://tng-cdn-uat.who.int/v2/trustlist/did.json)         |
+|                | Reference Trustlist | [https://tng-cdn-uat.who.int/v2/trustlist-ref/did.json](https://tng-cdn-uat.who.int/v2/trustlist-ref/did.json) |
+|  Production   | | Embedded Trustlist  | [https://tng-cdn-uat.who.int/v2/trustlist/did.json](https://tng-cdn.who.int/v2/trustlist/did.json)         |
+|                | Reference Trustlist | [https://tng-cdn.who.int/v2/trustlist-ref/did.json](https://tng-cdn.who.int/v2/trustlist-ref/did.json) |
 
 The embedded type of trustlist carries the key material directly within the DID documents' verificationMethod property and supports immediate verification.
 On the root level it contains all keys imported from the trust network gateway (TNG).
@@ -32,9 +37,9 @@ This helps to keep the main trustlist documents concise and supports dynamic dis
 ##### DID trustlists structure
 
 Version 2.0.0 introduces a hierarchical structure for DID documents, to support more fine grained resolution and discovery of key material.
-It distinguishes the levels **root**, **domain**, **participant**, and **key usage type**.
+It distinguishes the levels **$root**, **$domain**, **$participant**, and key **$usage**  type.
 
-Note: **domain** is one of the supported trust domains, **participant** is currently represented as ISO-3166 alpha-3 country code and **key usage type** is the certifcate type SCA or DSC.
+Note: **$domain** is one of the codes in the [GDHCN Trust Domains Valuet](ValueSet-WHO.TRUST.DOMAIN.html) , **$participant** is currently represented as ISO-3166 alpha-3 country code and key **$usage** type is one of the codes in the [Key Usage Value Set](CodeSystem-WHO.TRUST.KEYUSAGE.html) .
 
 | Level          | Description                                                                                       |
 |----------------|---------------------------------------------------------------------------------------------------|
