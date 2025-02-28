@@ -2,14 +2,23 @@
 
 The following describes the active services and endpoints for the GDHCN Trust Network Gateway.
 
-### Trust Domains
+### Operational Metadata
+#### Trust Domains
 
 The list of active trust domains is maintained in the [GDHCN Trust Domain Value Set](ValueSet-WHO.TRUST.DOMAIN.html).
 
 
-### Key Usage Codes
+#### Key Usage Codes
 
-The list of key usage codes is maintained in the [Key Usage Value Set](ValueSet-WHO.TRUST.KEYUSAGE.html).
+The list of key usage codes is maintained in the [GDHCN Key Usage Value Set](ValueSet-WHO.TRUST.KEYUSAGE.html).
+
+
+#### Participants
+
+The list of onboarded Trust Network Participants is availabe in the  [GDHCN Participants Value Set](ValueSet-Participants.html).
+
+
+## Endpoints
 
 ### Trustlist Distribution Endpoints
 
@@ -26,7 +35,7 @@ THe following are the endpoints for the [GDHCN DID Trust List](concepts_did_gdhc
 
 
 
-### Trust Network Gateway 
+#### Trust Network Gateway 
 
 
 THe following are the endpoints for the [Trust Network Gateway](concepts.html#trust-network-gateway-tng) for each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s:
@@ -39,7 +48,8 @@ THe following are the endpoints for the [Trust Network Gateway](concepts.html#tr
 
 
 
-### Public-Key Status Dashboards
+
+### Status Monitoring Dashboards
 
 The following dashboards reflect the realtime status of key materials for each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s:
 
