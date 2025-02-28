@@ -5,7 +5,7 @@ Alias: $SGTransactionDef = http://smart.who.int/base/StructureDefinition/SGTrans
 Alias: $TrustTrans = http://smart.who.int/ips-pilgrimage/CodeSystem/WHO.TRUST.TRANSACTION
 Alias: $TrustActor = http://smart.who.int/ips-pilgrimage/CodeSystem/WHO.TRUST.ACTOR
 
-Alias: $Participants = http://smart.who.int/ips-pilgrimage/CodeSystem/Participants
+Alias: $Participants = http://smart.who.int/trust/CodeSystem/Participants
 
 
 
