@@ -13,6 +13,7 @@ Description:  "ValueSet of GDHCN Trust Network Participants"
 // execute the following on tng-participants-prod repo:
 //    gfind  . -type d -name '[A-Z][A-Z][A-Z]' -maxdepth 1   -printf "* \$ISO31663#%P\n"
 
+
 * $ISO31663#BRA
 * $ISO31663#SVN
 * $ISO31663#OMN
@@ -41,7 +42,6 @@ Description:  "ValueSet of GDHCN Trust Network Participants"
 * $ISO31663#XXO
 * $ISO31663#NLD
 * $ISO31663#EST
-* $ISO31663#WHO
 * $ISO31663#BEN
 * $ISO31663#SGP
 * $ISO31663#ISL
