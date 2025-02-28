@@ -20,3 +20,39 @@ Usage: #definition
 * publisher = "WHO"
 * type = $actorType#system
 
+
+
+Instance: Holder
+InstanceOf: $SGActor
+Usage: #definition
+* name = "Holder"
+* title = "Holder"
+* description = "Holder of a Verifiable Digital Health Certificate"
+* status = $pubStatus#active
+* experimental = true
+* publisher = "WHO"
+* type = $actorType#person
+
+Instance: Issuer
+InstanceOf: $SGActor
+Usage: #definition
+* name = "Issuer"
+* title = "Issuer"
+* description = "Issuer of a Verifiable Digital Health Certificate"
+* status = $pubStatus#active
+* experimental = true
+* publisher = "WHO"
+* type = $actorType#system
+
+
+Instance: Receiver
+InstanceOf: $SGActor
+Usage: #definition
+* name = "Receiver"
+* title = "Receiver"
+* description = "Receiver (or Verifier) of a Verifiable Digital Health Certificate"
+* status = $pubStatus#active
+* experimental = true
+* publisher = "WHO"
+* type = $actorType#system
+
