@@ -43,7 +43,7 @@ Usage: #definition
 * experimental = true
 * publisher = "WHO"
 * type = $actorType#system
-
+* derivedFrom = Canonical(TrustNetworkParticipant)
 
 Instance: Receiver
 InstanceOf: $SGActor
@@ -55,4 +55,4 @@ Usage: #definition
 * experimental = true
 * publisher = "WHO"
 * type = $actorType#system
-
+* derivedFrom = Canonical(TrustNetworkParticipant)

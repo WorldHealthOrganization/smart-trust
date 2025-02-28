@@ -1,4 +1,64 @@
 
+Instance:   request-vdhc
+InstanceOf: Requirements
+Usage: #definition
+* title = "Request Verifiable Digital Health Certificate"
+* status = $pubStatus#active
+* publisher = "WHO"
+* description = "Request a Verifiable Digital Health Certificate from an Issuer"
+* actor[+] = Canonical(Holder)
+
+
+Instance:   issue-vdhc
+InstanceOf: Requirements
+Usage: #definition
+* title = "Issue Verifiable Digital Health Certificate"
+* status = $pubStatus#active
+* publisher = "WHO"
+* description = "Issue a Verifiable Digital Health Certificate to a Holder"
+* actor[+] = Canonical(Issuer)
+
+Instance:   receive-vdhc
+InstanceOf: Requirements
+Usage: #definition
+* title = "Receive Verifiable Digital Health Certificate"
+* status = $pubStatus#active
+* publisher = "WHO"
+* description = "Receive a Verifiable Digital Health Certificate from an Issuer"
+* actor[+] = Canonical(Holder)
+
+Instance:   provide-vdhc
+InstanceOf: Requirements
+Usage: #definition
+* title = "Provide Verifiable Digital Health Certificate"
+* status = $pubStatus#active
+* publisher = "WHO"
+* description = "Provide a Verifiable Digital Health Certificate to a Receiver"
+* actor[+] = Canonical(Holder)
+
+
+Instance:   verify-vdhc
+InstanceOf: Requirements
+Usage: #definition
+* title = "Verify Verifiable Digital Health Certificate"
+* status = $pubStatus#active
+* publisher = "WHO"
+* description = "Verify a Verifiable Digital Health Certificate that was provided by a Holder"
+* actor[+] = Canonical(Receiver)
+
+
+Instance:   utilize-vdhc
+InstanceOf: Requirements
+Usage: #definition
+* title = "Utilize Verifiable Digital Health Certificate"
+* status = $pubStatus#active
+* publisher = "WHO"
+* description = "Utilize a Verifiable Digital Health Certificate that was provided by a Holder"
+* actor[+] = Canonical(Receiver)
+
+
+
+
 Instance:   publish-pki-material
 InstanceOf: Requirements
 Usage: #definition
@@ -7,7 +67,6 @@ Usage: #definition
 * publisher = "WHO"
 * description = "Publish trust material to a Trust Anchor"
 * actor[+] = Canonical(TrustNetworkParticipant)
-
 
 
 Instance:   receive-pki-material
