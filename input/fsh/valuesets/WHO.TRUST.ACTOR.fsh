@@ -1,6 +1,6 @@
 ValueSet:     WHO.TRUST.ACTOR
-Title:        "TRUST.ACTOR ValueSet of key usage codes "
-Description:  "ValueSet of codes for key usage codes"
+Title:        "TRUST.ACTOR ValueSet of actor codes "
+Description:  "ValueSet of codes for actor codes"
 
 * ^status = #active
 * ^experimental = true

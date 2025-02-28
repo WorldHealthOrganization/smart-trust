@@ -1,6 +1,6 @@
 ValueSet: WHO.TRUST.DOMAIN
 Title: "WHO SMART Trust Domains"
-Description: "Health credential type"
+Description: "WHO GDHCN Trust Domains"
 * ^name = "WHO_TRUST_DOMAIN"
 
 * ^experimental = false

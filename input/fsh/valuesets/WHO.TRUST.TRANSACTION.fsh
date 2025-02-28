@@ -1,6 +1,6 @@
 ValueSet:     WHO.TRUST.TRANSACTION
-Title:        "TRUST.TRANSACTION ValueSet of key usage codes "
-Description:  "ValueSet of codes for key usage codes"
+Title:        "TRUST.TRANSACTION ValueSet of transaction codes "
+Description:  "ValueSet of codes for transaction codes"
 
 * ^status = #active
 * ^experimental = true
