@@ -5,6 +5,8 @@ Alias: $SGTransactionDef = http://smart.who.int/base/StructureDefinition/SGTrans
 Alias: $TrustTrans = http://smart.who.int/ips-pilgrimage/CodeSystem/WHO.TRUST.TRANSACTION
 Alias: $TrustActor = http://smart.who.int/ips-pilgrimage/CodeSystem/WHO.TRUST.ACTOR
 
+Alias: $Participants = http://smart.who.int/ips-pilgrimage/CodeSystem/Participants
+
 
 
 Alias: $pubStatus = http://hl7.org/fhir/publication-status
@@ -15,3 +17,6 @@ Alias: $SGcode = http://smart.who.int/base/StructureDefinition/Sgcode
 Alias: $DocumentationSection = http://smart.who.int/trust-phw/CodeSystem/DocumentationSection
 Alias: $SGActor = http://smart.who.int/trust-phw/StructureDefinition/SGActor
 Alias: $SGActorExt = http://smart.who.int/trust-phw/StructureDefinition/SGActorExt
+
+
+Alias: $ISO31663 = http://hl7.org/fhir/ValueSet/iso3166-1-3
