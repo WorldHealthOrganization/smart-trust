@@ -11,8 +11,9 @@ Description:  "ValueSet of GDHCN Trust Network Participants"
 
 // To generate this list of codes
 // execute the following on tng-participants-prod repo:
-//    gfind  . -type d -name '[A-Z][A-Z][A-Z]' -maxdepth 1   -printf "* \$ISO31663#%P\n"
-
+//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z]' -printf "* \$ISO31663#%P\n"  | grep -v WHO
+//
+// in the future, will need to exclude more than just WHO as not being from the ISO set.
 
 * $ISO31663#BRA
 * $ISO31663#SVN
