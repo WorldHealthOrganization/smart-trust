@@ -14,9 +14,9 @@ Alias: $actorType = http://hl7.org/fhir/examplescenario-actor-type
 Alias: $SGcode = http://smart.who.int/base/StructureDefinition/Sgcode
 
 
-Alias: $DocumentationSection = http://smart.who.int/trust-phw/CodeSystem/DocumentationSection
-Alias: $SGActor = http://smart.who.int/trust-phw/StructureDefinition/SGActor
-Alias: $SGActorExt = http://smart.who.int/trust-phw/StructureDefinition/SGActorExt
+Alias: $DocumentationSection = http://smart.who.int/base/CodeSystem/DocumentationSection
+Alias: $SGActor = http://smart.who.int/base/StructureDefinition/SGActor
+Alias: $SGActorExt = http://smart.who.int/base/StructureDefinition/SGActorExt
 
 
 Alias: $ISO31663 = http://hl7.org/fhir/ValueSet/iso3166-1-3
