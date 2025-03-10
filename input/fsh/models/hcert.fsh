@@ -1,8 +1,9 @@
 Alias: $IPS = http://hl7.org/fhir/uv/ips/StructureDefinition/Bundle-uv-ips
 Alias: $HCertDCC = http://smart.who.int/ddcc/StructureDefinition/HCertDCC
-Alias: $DDCCVS = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSet.VS
-Alias: $DDCCTR = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSet.TR
-Alias: $SmartHealthLink = http://smart.who.int/ips-pilgrimage/StructureDefinition/SmartHealthLink
+Alias: $DDCCVS = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetVS
+Alias: $DDCCTR = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetTR
+Alias: $DVC = http://smart.who.int/icvp/StructureDefinition/DVCPayload
+
 
 Logical:        HCert
 Title:          "Health Certificate"
@@ -10,7 +11,7 @@ Description:    "Logical Model for the HCERT"
 
 //Description:    """Logical Model for the HCERT
 //
-// The full data structure and encoding mechanisms for HCERT are defined here: [Electronic Health Certificate Specification](/smart-trust/hcert_spec.html)
+// The full data structure and encoding mechanisms for HCERT are defined here: [Electronic Health Certificate Specification](http://smart.who.int/trust/hcert_spec.html)
 //
 // An HCERT is claim -260 within the [CBOR Web Token (CWT) Claim](https://www.rfc-editor.org/rfc/rfc8392.html).
 //
@@ -27,6 +28,6 @@ Description:    "Logical Model for the HCERT"
 //* 2 0..* $RACSEL_DDVC "RACSEL Vaccination Certficate Data Set claim" "RACSEL Vaccination Certificate (PROPOSED)" 
 * 3 0..* $DDCCVS "Vaccination Core Data Set claim" "DDCC Vaccination claim (PROPOSED)"
 * 4 0..* $DDCCTR "Test Result Core Data Set claim" "DDCC Test Result claim (PROPOSED)"
-* 5 0..* $SmartHealthLink "SMART Health Link claim" "SMART Health Link"
-//* 6 0..* $IPS "IPS" "IPS Bundle (EXAMPLE)"
+* 5 0..* string "URI" "URI of the Smart Health Link.  Of the form 'shlink:/eyJ1cmwiOiJodHRwczovL2Vo....' "
+* -6 0..* $DVC "DVC" "Digital Vaccination Certificate (Proposed)"
 

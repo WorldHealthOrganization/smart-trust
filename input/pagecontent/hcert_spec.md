@@ -167,7 +167,7 @@ Instead, the primary validity mechanism is the presence of the certificate on th
 
 ### 5.2 ICAO eMRTD PKI and Trust Centers
 
-TNG Participants can use a separate SCA (as per the WHO advice)(#ref) - but may also submit their existing eMRT SCA and/or DSC certificates; and may even choose to procure these from (commercial) trust centers - and submit these. However, any DSC certificate must always be signed by the SCA submitted by that country.
+GDHCN Participants can use a separate SCA (as per the WHO advice)(#ref) - but may also submit their existing eMRT SCA and/or DSC certificates; and may even choose to procure these from (commercial) trust centers - and submit these. However, any DSC certificate must always be signed by the SCA submitted by that country.
 
 ## 6. Security Considerations
 
@@ -208,21 +208,21 @@ The HCERT signature verification process necessitates the use of a public key. G
 
 Each participant is ultimately responsible for compiling their own master list and making that available to the other Participants. The aid of GDHCN's Secretariat for coordinating operational and practical matters is available. 
 
-The "GDHCN Secretariat" is a functional role; not a person or a piece of software. It is expected that the WHO’s GDHCN Gateway  will automate most of these tasks. 
+The "GDHCN Secretariat" is a functional role; not a person or a piece of software. It is expected that the WHO’s GDHCN Trust Network Gateway will automate most of these tasks. 
 
-The system consists of two layers; for each TNG Participant one or more country level certificates that each signs one or more document signing certificates that are used in day to day operations. 
+The system consists of two layers; for each GDHCN Participant one or more country level certificates that each signs one or more document signing certificates that are used in day to day operations. 
 
-The TNG Participant certificates are called Signer Certificate Authorities (SCAs) and are  self-signed certificates. Participants may have more than one (e.g., in case of regional devolution). These SCAs regularly sign the Document Signing Certificates (DSCs) used for signing HCERTs. TNG Participants will each maintain a public register of the DSC certificates kept current, communicated to the WHO’s Secretariat and published at a stable URL for bilateral exchange. TNG Participants MUST remove any revoked or stale certificates from this list. 
+The GDHCN Participant certificates are called Signer Certificate Authorities (SCAs) and are  self-signed certificates. Participants may have more than one (e.g., in case of regional devolution). These SCAs regularly sign the Document Signing Certificates (DSCs) used for signing HCERTs. GDHCN Participants will each maintain a public register of the DSC certificates kept current, communicated to the WHO’s Secretariat and published at a stable URL for bilateral exchange. GDHCN Participants MUST remove any revoked or stale certificates from this list. 
 
-The Secretariat will regularly aggregate and publish the TNG Participants DSCs, after having verified these against the list of SCA certificates (which have been conveyed and verified by other means). 
+The Secretariat will regularly aggregate and publish the GDHCN Participants DSCs, after having verified these against the list of SCA certificates (which have been conveyed and verified by other means). 
 
 The resulting list of DSC certificates then provides the aggregated set of acceptable public keys (and the corresponding `kid`s) that Verifiers can use to validate the signatures over the HCERTs. Verifiers MUST fetch and update this list regularly.
 
-TNG Participants may also bilaterally exchange SCA certificates with a number of other TNG Participants, verify these bilaterally and thus compile their own lists of SCA and DSC certificates which is specific to that TNG Participant. Verifiers may choose to rely on such a national list. 
+GDHCN Participants may also bilaterally exchange SCA certificates with a number of other GDHCN Participants, verify these bilaterally and thus compile their own lists of SCA and DSC certificates which is specific to that GDHCN Participant. Verifiers may choose to rely on such a national list. 
 
-Such TNG Participant-specific lists are expected to be adapted in the format for their own national setting. As such, the file format of this trusted list may vary, e.g., it can be a signed JWKS ([JWK set format per RFC 7517 section 5](https://tools.ietf.org/html/rfc7517#section-5)) or any other format specific to the technology used in that TNG Participant.
+Such GDHCN Participant-specific lists are expected to be adapted in the format for their own national setting. As such, the file format of this trusted list may vary, e.g., it can be a signed JWKS ([JWK set format per RFC 7517 section 5](https://tools.ietf.org/html/rfc7517#section-5)) or any other format specific to the technology used in that GDHCN Participant.
 
-For the sake of simplicity: TNG Participants may both submit their existing SCA certificates from their ICAO eMRTD systems or, as recommended by the WHO, create one specifically for this health domain. 
+For the sake of simplicity: GDHCN Participants may both submit their existing SCA certificates from their ICAO eMRTD systems or, as recommended by the WHO, create one specifically for this health domain. 
 
 ## A.1 The Key Identifier (`kid`s)
 
