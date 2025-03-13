@@ -653,6 +653,7 @@ curl -v -X POST -H "Content-Type: application/json"  --cert TLS.pem --key TLS.ke
 curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 ```
 
+
 **Method 2 - Scripts**
 
 The DSC generation and upload of  CMS package to TNG Gateway  could be achieved through the below mentioned scripts.
