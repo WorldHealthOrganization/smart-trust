@@ -633,6 +633,27 @@ openssl base64 -in signed.der -out cms.b64 -e -A
 ```
 > Note: cert.der is your DSC, signing.crt is the TNP<sub>UP</sub>.
 
+
+
+- Check DSC is already exist before upload CMS package
+
+```   
+curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
+```
+
+- Upload the CMS Package to the Gateway
+
+```    
+curl -v -X POST -H "Content-Type: application/json"  --cert TLS.pem --key TLS.key --data '{"cms": "'"$(cat cms.b64)"'", "properties": {}, "domain": "DCC"}' https://tng-dev.who.int/trustedCertificate
+```
+
+- Download the Trustlist again, and check if your DSC is available.
+
+```   
+curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
+```
+
+
 **Method 2 - Scripts**
 
 The DSC generation and upload of  CMS package to TNG Gateway  could be achieved through the below mentioned scripts.
@@ -657,7 +678,7 @@ An optional third argument can be provided to specify the purpose of the DSC (e.
 ./script_name.sh DN_template.cnf directory_of_SCA_files [test/vax/rec-purpose]
 
 ```
-**How to run upload.sh script:** [upload_dsc.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/upload_dsc.sh)
+**How to run upload_dsc.sh script to upload CMS Package:** [upload_dsc.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/upload_dsc.sh)
 
 **- ./upload_dsc.sh:** Replace this with the actual name of your script.
 
@@ -670,24 +691,12 @@ An optional third argument can be provided to specify the purpose of the DSC (e.
 ```
 ./upload_dsc.sh /path/to/subdir-up_pem_key  /path/to/DSC_dir [DCC]
 ```
-
-- Check DSC is already exist before upload CMS package
-
-```   
-curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
-```
-
-- Upload the CMS Package to the Gateway
-
-```    
-curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS.key --data @cms.b64 https://tng-dev.who.int/signerCertificate
-```
-
 - Download the Trustlist again, and check if your DSC is available.
 
 ```   
 curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
-```   
+```
+
 
 > Note: Some versions of curl don’t attach the client certificates automatically. This can be checked via curl --version Ensure that the used version is linked to OpenSSL. Especially under Windows (https://curl.se/windows/):
 > 
