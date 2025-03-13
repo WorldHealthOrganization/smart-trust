@@ -17,7 +17,7 @@ Version 2.0.0 introduces two **variant**s of the trust lists - embedded and by r
 
 <img src="did-trustlist-types.png" alt="Types of DID trustlists" style="width:300px; float:none; margin: 0px 0px 0px 0px;"/>
 
-For each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s there is a trust list according to the following table:
+For each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment**s there is a trust list according to the following table:
 
 |  Environment   |      Variant         | URL                                                                                     |
 |---------|------------|--------------------------------------------------------------------------------------------------------------|
