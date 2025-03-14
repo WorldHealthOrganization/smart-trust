@@ -38,16 +38,14 @@ This helps to keep the main trustlist documents concise and supports dynamic dis
 ##### DID trustlists structure
 
 Version 2.0.0 introduces a hierarchical structure for DID documents, to support more fine grained resolution and discovery of key material.
-It distinguishes the levels **root**, **$domain**, **$participant**, and key **$usage**  type.
-
-Note: **$domain** is one of the codes in the [GDHCN Trust Domain Valuet](ValueSet-WHO.TRUST.DOMAIN.html) , **$participant** is currently represented as ISO-3166 alpha-3 country code and key **$usage** type is one of the codes in the [Key Usage Value Set](CodeSystem-WHO.TRUST.KEYUSAGE.html) .
+These DID documents are parameterized by the following according to the levels in the following table.
 
 | Level          | Description                                                                                       |
 |----------------|---------------------------------------------------------------------------------------------------|
-| root           | contains all trusted key material or trusted DID references of GDHCN                              |
-| domain         | contains trusted key material or DID references of GDHCN for a supported trust domain             |
-| participant    | contains trusted key material or DID references of GDHCN for a trusted participant                |
-| key usage type | contains trusted key material or DID references of a supported usage type like DSC or SCA or both |
+| **root**           | A fixed parameter for all trusted key material or trusted DID references of GDHCN.                                |
+| **$domain**         | Contains trusted key material or DID references of GDHCN for a supported trust domain.   **$domain&& should be one of the codes in the [GDHCN Trust Domain Value Set](ValueSet-WHO.TRUST.DOMAIN.html).              |
+| **$participant**    | Contains trusted key material or DID references of GDHCN for a trusted participant.  **$participant** should be one of the codes in the  [GDHCN Participant Value Set](ValueSet-WHO.TRUST.PARTICIPANT.html).                  |
+| *$$*usage**  | Contains trusted key material or DID references of a supported key usage type.   **$usage** type is one of the key usages codes in the [GDHCN Key Usage Value Set](CodeSystem-WHO.TRUST.KEYUSAGE.html). |
 
 
 The levels are organized hierarchically so that they function as filters following an AND logic operation when resolving or discovering key material.
