@@ -5,5 +5,4 @@ Description: "WHO GDHCN Trust Domains"
 
 * ^experimental = false
 
-* WHO.TRUST.DOMAIN#DDCC
-* WHO.TRUST.DOMAIN#IPS-PILGRIMAGE
+* include codes from system WHO.TRUST.DOMAIN
