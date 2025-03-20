@@ -10,3 +10,4 @@ CodeSystem for GDHCN Trust Network Participants which are not already included i
 * ^status = #active
 
 * #WHO "WHO" "World Health Organization"
+* #XXO "XXO" "Test Organization"

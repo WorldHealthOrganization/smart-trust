@@ -130,9 +130,15 @@ Trust Network Participant (TNP) is an acronym used to label certificates, infras
 #### GDHCN Participant Backend System
 A GDHCN Participant's Backend System for managing the local part of information. The implementation of GDHCN Participant's Backend System is not in the scope of this document. A national backend can be also understood as a trusted party on-boarded in the Trust Network Gateway (can be a script, a proxy or a web server as well).
 
-#### Trust Network Participant - Signing Certificate Authority  (TNP<sub>SCA) 
-The SCA public key certificate of a GDHCN Participants (could be more than one).
+#### Trust Network Participant - Data Exchange Certificate Authority  (TNP<sub>DECA) 
+The DSCA public key certificate of a GDHCN Participants (could be more than one).
 
+The DECA public key certificate of a GDHCN Participants (could be more than one).
+The DECA is a certificate which acts a trust anchor in the verification of the certificate chain for the DESCs issued by a Trust Network Participant"
+
+#### Trust Network Participant - Document Signing Certificate Authority  (TNP<sub>DSCA) 
+The DSCA public key certificate of a GDHCN Participants (could be more than one).
+The DSCA is a certificate which acts a trust anchor in the verification of the certificate chain for the DSCs issued by a Trust Network Participant"
 #### Trust Network Participant - Transport Layer Security (TNP<sub>TLS</sub>) 
 The TLS client authentication public key certificate of a GDHCN Participant's Backend System.
 

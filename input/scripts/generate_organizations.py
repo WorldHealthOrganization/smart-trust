@@ -14,6 +14,7 @@ import json
 gho_country_list_url = "https://ghoapi.azureedge.net/api/DIMENSION/COUNTRY/DimensionValues"
 
 participants_filename = "input/fsh/instances/participants.fsh"
+gho_filename = "input/fsh/codesystems/gho_countries.fsh"
 
 
 
@@ -39,11 +40,12 @@ def main():
         usage()
 
     gho_country_list = load_remote_json(gho_country_list_url)
-    country_resources = extract_countries(gho_country_list)
+    extract_countries(gho_country_list)
 
-    participants_file = open(participants_filename,"w")
-    print(country_resources,file=participants_file)
-    participants_file.close() 
+def printout(content,filename):
+    file = open(filename,"w")
+    print(content, file=file)
+    file.close
 
 
 def load_remote_json(url):
@@ -74,23 +76,27 @@ def escape(str):
 
 def extract_countries(data):
     instances = ""
+    codes = "CodeSystem: GHOCountryList\n"
+    codes += 'Title: "WHO Global Health Observatory (GHO) Country List"\n'
+
+    
     for country in data['value']:
         # print(pp(country))
         print("Processing " + country['Code'] + ' / ' + country['Title'])
+
+        codes += "* #" + country['Code'] + ' "' + escape(country['Title']) + '"\n'
+
+        
         participantid = "TNGPartcipant-" + country['Code']
         instance = "Instance: " + participantid + "\n"
         instance += "InstanceOf: IHE.mCSD.Organization\n"
         instance += "Usage: #definition" + "\n"
-        instance += '* title = "' + escape(country["Title"]) + '"\n'
-        instance += '* status = $pubStatus#active\n'
         instance += '* name = "' + escape(country['Title']) + '"\n'
-        instance += '* publisher = "WHO"\n'
-        instance += '* experimental = true\n'
-        instance += '* description = "' + escape(country['Title']) +'\n'
+        instance += '* type = $orgType#govt\n'    
         instances += instance + "\n"
         
-    return instances
-
+    printout(codes,gho_filename)
+    printout(instances,participants_filename)
 
 
 

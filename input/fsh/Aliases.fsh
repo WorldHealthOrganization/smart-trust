@@ -7,6 +7,7 @@ Alias: $TrustActor = http://smart.who.int/ips-pilgrimage/CodeSystem/WHO.TRUST.AC
 
 Alias: $Participants = http://smart.who.int/trust/CodeSystem/Participants
 
+Alias: $mCSDOrganization = https://profiles.ihe.net/ITI/mCSD/StructureDefinition/IHE.mCSD.Organization
 
 
 Alias: $pubStatus = http://hl7.org/fhir/publication-status
@@ -19,4 +20,16 @@ Alias: $SGActor = http://smart.who.int/base/StructureDefinition/SGActor
 Alias: $SGActorExt = http://smart.who.int/base/StructureDefinition/SGActorExt
 
 
-Alias: $ISO31663 = http://hl7.org/fhir/ValueSet/iso3166-1-3
+// Alias: $ISO31663 = http://hl7.org/fhir/ValueSet/iso3166-1-3
+Alias: $ISO31663 = urn:iso:std:iso:3166:-3
+
+Alias: $orgType = http://terminology.hl7.org/CodeSystem/organization-type
+
+
+Alias: $IPS = Ahttp://hl7.org/fhir/uv/ips/StructureDefinition/Bundle-uv-ips
+Alias: $HCertDCC = http://smart.who.int/ddcc/StructureDefinition/HCertDCC
+Alias: $DDCCVS = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetVS
+Alias: $DDCCTR = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetTR
+Alias: $DVC = http://smart.who.int/trust-phw/StructureDefinition/DVC
+
+Alias: $GHOCountryList = http://smart.who.int/trust/CodeSystem/GHOCountryList
