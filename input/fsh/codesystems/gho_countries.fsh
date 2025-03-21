@@ -1,6 +1,6 @@
 CodeSystem: GHOCountryList
 Title: "WHO GHO Country List"
-Description: "WHO Global Health Observatory (GHO) Country List"
+Description: "CodeSystem for WHO Global Health Observatory (GHO) Country List"
 * #ABW "Aruba"
 * #AFG "Afghanistan"
 * #AGO "Angola"

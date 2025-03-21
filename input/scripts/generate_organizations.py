@@ -14,6 +14,7 @@ import json
 gho_country_list_url = "https://ghoapi.azureedge.net/api/DIMENSION/COUNTRY/DimensionValues"
 
 participants_filename = "input/fsh/instances/participants.fsh"
+endpoints_filename = "input/fsh/instances/endpoints.fsh"
 gho_filename = "input/fsh/codesystems/gho_countries.fsh"
 participants_valueset = "input/fsh/valuesets/Participants.fsh"
 
@@ -90,9 +91,10 @@ def extract_countries(data):
     participants = load_participants()
 
     instances = ""
+    endpoints = ""
     codes = "CodeSystem: GHOCountryList\n"
     codes += 'Title: "WHO GHO Country List"\n'
-    codes += 'Description: "WHO Global Health Observatory (GHO) Country List"\n'
+    codes += 'Description: "CodeSystem for WHO Global Health Observatory (GHO) Country List"\n'
 
     
     for country in data['value']:
@@ -104,28 +106,33 @@ def extract_countries(data):
         if (country['Code']in participants):    
             participantid = "GDHCNParticipant-" + country['Code']
             didendpointid = "GDHCNParticipantDID-" + country['Code']
+            
             instance = "Instance: " + participantid + "\n"
             instance += "InstanceOf: IHE.mCSD.Organization\n"
             instance += "Usage: #definition" + "\n"
             instance += '* name = "' + escape(country['Title']) + '"\n'
             instance += '* type = $orgType#govt\n'
             instance += '\n'
-            instance +=  "Instance: " + didendpointid + "\n"
-            instance += "InstanceOf: IHE.mCSD.Endpoint\n"
-            instance += "Usage: #definition" + "\n"        
-            instance += "* managingOrganization = Reference(Organization/" + participantid + ")\n"
-            instance += "* status = #active\n"
-            instance += "* connectionType = $ConnectionTypes#trustlist\n"
-            instance += "* payloadMimeType = #application/did\n"
-            instance += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
-            instance += '* address = "http://tng-cdn.who.int/v2/trustlist/-/' + country['Code'] + '/did.json"\n'
+
+            endpoint =  "Instance: " + didendpointid + "\n"
+            endpoint += "InstanceOf: IHE.mCSD.Endpoint\n"
+            endpoint += "Usage: #definition" + "\n"
+            endpoint += '* name = "' + country['Code'] + ' Trust List (DID v2)"\n'
+            endpoint += "* managingOrganization = Reference(Organization/" + participantid + ")\n"
+            endpoint += "* status = #active\n"
+            endpoint += "* connectionType = $ConnectionTypes#http-get\n"
+            endpoint += "* payloadMimeType = #application/did\n"
+            endpoint += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
+            endpoint += '* address = "http://tng-cdn.who.int/v2/trustlist/-/' + country['Code'] + '/did.json"\n'
             
+            endpoints += endpoint + "\n"
             instances += instance + "\n"
         
 
         
     printout(codes,gho_filename)
     printout(instances,participants_filename)
+    printout(endpoints,endpoints_filename)
 
 
 

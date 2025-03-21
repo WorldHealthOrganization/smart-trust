@@ -1,6 +1,6 @@
 CodeSystem: Domains
 Title: "WHO GDHCN Trust Domains"
-Description: "Controlled vocabulary used to define WHO SMART Trust network service provider characteristics."
+Description: "CodeSystem for define WHO GDHCN Trust Domains."
 * ^experimental = false
 * ^caseSensitive = true
 
