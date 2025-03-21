@@ -117,7 +117,7 @@ def extract_countries(data):
             endpoint =  "Instance: " + didendpointid + "\n"
             endpoint += "InstanceOf: IHE.mCSD.Endpoint\n"
             endpoint += "Usage: #definition" + "\n"
-            endpoint += '* name = "' + country['Code'] + ' Trust List (DID v2)"\n'
+            endpoint += '* name = "' + escape(country['Title']) + ' Trust List (DID v2)"\n'
             endpoint += "* managingOrganization = Reference(Organization/" + participantid + ")\n"
             endpoint += "* status = #active\n"
             endpoint += "* connectionType = $ConnectionTypes#http-get\n"
