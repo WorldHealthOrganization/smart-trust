@@ -102,8 +102,8 @@ def extract_countries(data):
         codes += "* #" + country['Code'] + ' "' + escape(country['Title']) + '"\n'
 
         if (country['Code']in participants):    
-            participantid = "TNGParticipant-" + country['Code']
-            didendpointid = "TNGParticipantDID-" + country['Code']
+            participantid = "GDHCNParticipant-" + country['Code']
+            didendpointid = "GDHCNParticipantDID-" + country['Code']
             instance = "Instance: " + participantid + "\n"
             instance += "InstanceOf: IHE.mCSD.Organization\n"
             instance += "Usage: #definition" + "\n"
