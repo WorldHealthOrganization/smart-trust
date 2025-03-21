@@ -15,6 +15,8 @@ gho_country_list_url = "https://ghoapi.azureedge.net/api/DIMENSION/COUNTRY/Dimen
 
 participants_filename = "input/fsh/instances/participants.fsh"
 gho_filename = "input/fsh/codesystems/gho_countries.fsh"
+participants_valueset = "input/fsh/valuesets/Participants.fsh"
+
 
 
 
@@ -73,8 +75,20 @@ def pp(json_content):
 def escape(str):
     return str.replace('"', r'\"')
 
+def load_participants():
+    pattern = "^\\* \\$GHOCountryList#([A-Z]{3})"
+    compiled_pattern = re.compile(pattern)
+    matches = []
+    with open(participants_valueset, 'r') as file:
+        for line_num, line in enumerate(file,1):
+            match = compiled_pattern.match(line)
+            if (match):
+                matches.append(match.group()[-3:])
+    return  matches
 
 def extract_countries(data):
+    participants = load_participants()
+
     instances = ""
     codes = "CodeSystem: GHOCountryList\n"
     codes += 'Title: "WHO GHO Country List"\n'
@@ -87,27 +101,27 @@ def extract_countries(data):
 
         codes += "* #" + country['Code'] + ' "' + escape(country['Title']) + '"\n'
 
+        if (country['Code']in participants):    
+            participantid = "TNGParticipant-" + country['Code']
+            didendpointid = "TNGParticipantDID-" + country['Code']
+            instance = "Instance: " + participantid + "\n"
+            instance += "InstanceOf: IHE.mCSD.Organization\n"
+            instance += "Usage: #definition" + "\n"
+            instance += '* name = "' + escape(country['Title']) + '"\n'
+            instance += '* type = $orgType#govt\n'
+            instance += '\n'
+            instance +=  "Instance: " + didendpointid + "\n"
+            instance += "InstanceOf: IHE.mCSD.Endpoint\n"
+            instance += "Usage: #definition" + "\n"        
+            instance += "* managingOrganization = Reference(Organization/" + participantid + ")\n"
+            instance += "* status = #active\n"
+            instance += "* connectionType = $ConnectionTypes#trustlist\n"
+            instance += "* payloadMimeType = #application/did\n"
+            instance += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
+            instance += '* address = "http://tng-cdn.who.int/v2/trustlist/-/' + country['Code'] + '/did.json"\n'
+            
+            instances += instance + "\n"
         
-        participantid = "TNGParticipant-" + country['Code']
-        didendpointid = "TNGParticipantDID-" + country['Code']
-        instance = "Instance: " + participantid + "\n"
-        instance += "InstanceOf: IHE.mCSD.Organization\n"
-        instance += "Usage: #definition" + "\n"
-        instance += '* name = "' + escape(country['Title']) + '"\n'
-        instance += '* type = $orgType#govt\n'
-        instance += '\n'
-        instance =  "Instance: " + didendpointid + "\n"
-        instance += "InstanceOf: IHE.mCSD.Endpoint\n"
-        instance += "Usage: #definition" + "\n"        
-        instance += "* managingOrganization = Reference(Organization/" + participantid + ")\n"
-        instance += "* status = #active\n"
-        instance += "* connectionType = $ConnectionTypes#trustlist\n"
-        instance += "* payloadMimeType = #application/did\n"
-        instance += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
-        instance += '* address = "http://tng-cdn.who.int/v2/trustlist/-/' + country['Code'] + '/did.json"\n'
-        
-        instances += instance + "\n"
-
 
         
     printout(codes,gho_filename)

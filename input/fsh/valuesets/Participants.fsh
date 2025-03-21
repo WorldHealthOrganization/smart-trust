@@ -4,7 +4,6 @@ Description:  "ValueSet of GDHCN Trust Network Participants"
 
 * ^status = #active
 * ^experimental = true
-* ^name = "Participants"
 
 * include codes from system Participants
 
