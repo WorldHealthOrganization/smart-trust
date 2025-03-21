@@ -1,6 +1,6 @@
 CodeSystem: GHOCountryList
-Title: "WHO GHO Country List"
-Description: "CodeSystem for WHO Global Health Observatory (GHO) Country List"
+Title: "WHO GHO Jurisidiction List"
+Description: "CodeSystem for WHO Global Health Observatory (GHO) Country and Jurisidiction List available at https://ghoapi.azureedge.net/api/DIMENSION/COUNTRY/DimensionValues"
 * #ABW "Aruba"
 * #AFG "Afghanistan"
 * #AGO "Angola"

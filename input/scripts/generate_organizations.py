@@ -93,8 +93,8 @@ def extract_countries(data):
     instances = ""
     endpoints = ""
     codes = "CodeSystem: GHOCountryList\n"
-    codes += 'Title: "WHO GHO Country List"\n'
-    codes += 'Description: "CodeSystem for WHO Global Health Observatory (GHO) Country List"\n'
+    codes += 'Title: "WHO GHO Jurisidiction List"\n'
+    codes += 'Description: "CodeSystem for WHO Global Health Observatory (GHO) Country and Jurisidiction List available at ' + gho_country_list_url + '"\n'
 
     
     for country in data['value']:
