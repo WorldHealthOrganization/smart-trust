@@ -5,7 +5,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ABW/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ABW/did.json"
 
 Instance: TNGParticipantDID-AFG
 InstanceOf: IHE.mCSD.Endpoint
@@ -14,7 +14,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/AFG/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/AFG/did.json"
 
 Instance: TNGParticipantDID-AGO
 InstanceOf: IHE.mCSD.Endpoint
@@ -23,7 +23,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/AGO/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/AGO/did.json"
 
 Instance: TNGParticipantDID-AIA
 InstanceOf: IHE.mCSD.Endpoint
@@ -32,7 +32,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/AIA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/AIA/did.json"
 
 Instance: TNGParticipantDID-ALB
 InstanceOf: IHE.mCSD.Endpoint
@@ -41,7 +41,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ALB/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ALB/did.json"
 
 Instance: TNGParticipantDID-AND
 InstanceOf: IHE.mCSD.Endpoint
@@ -50,7 +50,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/AND/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/AND/did.json"
 
 Instance: TNGParticipantDID-ARE
 InstanceOf: IHE.mCSD.Endpoint
@@ -59,7 +59,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ARE/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ARE/did.json"
 
 Instance: TNGParticipantDID-ARG
 InstanceOf: IHE.mCSD.Endpoint
@@ -68,7 +68,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ARG/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ARG/did.json"
 
 Instance: TNGParticipantDID-ARM
 InstanceOf: IHE.mCSD.Endpoint
@@ -77,7 +77,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ARM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ARM/did.json"
 
 Instance: TNGParticipantDID-ASM
 InstanceOf: IHE.mCSD.Endpoint
@@ -86,7 +86,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ASM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ASM/did.json"
 
 Instance: TNGParticipantDID-ATG
 InstanceOf: IHE.mCSD.Endpoint
@@ -95,7 +95,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ATG/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ATG/did.json"
 
 Instance: TNGParticipantDID-AUS
 InstanceOf: IHE.mCSD.Endpoint
@@ -104,7 +104,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/AUS/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/AUS/did.json"
 
 Instance: TNGParticipantDID-AUT
 InstanceOf: IHE.mCSD.Endpoint
@@ -113,7 +113,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/AUT/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/AUT/did.json"
 
 Instance: TNGParticipantDID-AZE
 InstanceOf: IHE.mCSD.Endpoint
@@ -122,7 +122,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/AZE/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/AZE/did.json"
 
 Instance: TNGParticipantDID-BDI
 InstanceOf: IHE.mCSD.Endpoint
@@ -131,7 +131,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BDI/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BDI/did.json"
 
 Instance: TNGParticipantDID-BEL
 InstanceOf: IHE.mCSD.Endpoint
@@ -140,7 +140,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BEL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BEL/did.json"
 
 Instance: TNGParticipantDID-BEN
 InstanceOf: IHE.mCSD.Endpoint
@@ -149,7 +149,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BEN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BEN/did.json"
 
 Instance: TNGParticipantDID-BES
 InstanceOf: IHE.mCSD.Endpoint
@@ -158,7 +158,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BES/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BES/did.json"
 
 Instance: TNGParticipantDID-BFA
 InstanceOf: IHE.mCSD.Endpoint
@@ -167,7 +167,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BFA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BFA/did.json"
 
 Instance: TNGParticipantDID-BGD
 InstanceOf: IHE.mCSD.Endpoint
@@ -176,7 +176,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BGD/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BGD/did.json"
 
 Instance: TNGParticipantDID-BGR
 InstanceOf: IHE.mCSD.Endpoint
@@ -185,7 +185,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BGR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BGR/did.json"
 
 Instance: TNGParticipantDID-BHR
 InstanceOf: IHE.mCSD.Endpoint
@@ -194,7 +194,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BHR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BHR/did.json"
 
 Instance: TNGParticipantDID-BHS
 InstanceOf: IHE.mCSD.Endpoint
@@ -203,7 +203,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BHS/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BHS/did.json"
 
 Instance: TNGParticipantDID-BIH
 InstanceOf: IHE.mCSD.Endpoint
@@ -212,7 +212,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BIH/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BIH/did.json"
 
 Instance: TNGParticipantDID-BLR
 InstanceOf: IHE.mCSD.Endpoint
@@ -221,7 +221,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BLR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BLR/did.json"
 
 Instance: TNGParticipantDID-BLZ
 InstanceOf: IHE.mCSD.Endpoint
@@ -230,7 +230,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BLZ/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BLZ/did.json"
 
 Instance: TNGParticipantDID-BMU
 InstanceOf: IHE.mCSD.Endpoint
@@ -239,7 +239,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BMU/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BMU/did.json"
 
 Instance: TNGParticipantDID-BOL
 InstanceOf: IHE.mCSD.Endpoint
@@ -248,7 +248,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BOL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BOL/did.json"
 
 Instance: TNGParticipantDID-BRA
 InstanceOf: IHE.mCSD.Endpoint
@@ -257,7 +257,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BRA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BRA/did.json"
 
 Instance: TNGParticipantDID-BRB
 InstanceOf: IHE.mCSD.Endpoint
@@ -266,7 +266,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BRB/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BRB/did.json"
 
 Instance: TNGParticipantDID-BRN
 InstanceOf: IHE.mCSD.Endpoint
@@ -275,7 +275,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BRN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BRN/did.json"
 
 Instance: TNGParticipantDID-BTN
 InstanceOf: IHE.mCSD.Endpoint
@@ -284,7 +284,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BTN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BTN/did.json"
 
 Instance: TNGParticipantDID-BWA
 InstanceOf: IHE.mCSD.Endpoint
@@ -293,7 +293,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/BWA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/BWA/did.json"
 
 Instance: TNGParticipantDID-CAF
 InstanceOf: IHE.mCSD.Endpoint
@@ -302,7 +302,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CAF/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CAF/did.json"
 
 Instance: TNGParticipantDID-CAN
 InstanceOf: IHE.mCSD.Endpoint
@@ -311,7 +311,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CAN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CAN/did.json"
 
 Instance: TNGParticipantDID-CHE
 InstanceOf: IHE.mCSD.Endpoint
@@ -320,7 +320,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CHE/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CHE/did.json"
 
 Instance: TNGParticipantDID-CHI
 InstanceOf: IHE.mCSD.Endpoint
@@ -329,7 +329,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CHI/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CHI/did.json"
 
 Instance: TNGParticipantDID-CHL
 InstanceOf: IHE.mCSD.Endpoint
@@ -338,7 +338,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CHL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CHL/did.json"
 
 Instance: TNGParticipantDID-CHN
 InstanceOf: IHE.mCSD.Endpoint
@@ -347,7 +347,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CHN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CHN/did.json"
 
 Instance: TNGParticipantDID-CIV
 InstanceOf: IHE.mCSD.Endpoint
@@ -356,7 +356,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CIV/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CIV/did.json"
 
 Instance: TNGParticipantDID-CMR
 InstanceOf: IHE.mCSD.Endpoint
@@ -365,7 +365,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CMR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CMR/did.json"
 
 Instance: TNGParticipantDID-COD
 InstanceOf: IHE.mCSD.Endpoint
@@ -374,7 +374,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/COD/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/COD/did.json"
 
 Instance: TNGParticipantDID-COG
 InstanceOf: IHE.mCSD.Endpoint
@@ -383,7 +383,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/COG/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/COG/did.json"
 
 Instance: TNGParticipantDID-COK
 InstanceOf: IHE.mCSD.Endpoint
@@ -392,7 +392,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/COK/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/COK/did.json"
 
 Instance: TNGParticipantDID-COL
 InstanceOf: IHE.mCSD.Endpoint
@@ -401,7 +401,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/COL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/COL/did.json"
 
 Instance: TNGParticipantDID-COM
 InstanceOf: IHE.mCSD.Endpoint
@@ -410,7 +410,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/COM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/COM/did.json"
 
 Instance: TNGParticipantDID-CPV
 InstanceOf: IHE.mCSD.Endpoint
@@ -419,7 +419,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CPV/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CPV/did.json"
 
 Instance: TNGParticipantDID-CRI
 InstanceOf: IHE.mCSD.Endpoint
@@ -428,7 +428,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CRI/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CRI/did.json"
 
 Instance: TNGParticipantDID-CUB
 InstanceOf: IHE.mCSD.Endpoint
@@ -437,7 +437,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CUB/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CUB/did.json"
 
 Instance: TNGParticipantDID-CUW
 InstanceOf: IHE.mCSD.Endpoint
@@ -446,7 +446,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CUW/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CUW/did.json"
 
 Instance: TNGParticipantDID-CYM
 InstanceOf: IHE.mCSD.Endpoint
@@ -455,7 +455,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CYM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CYM/did.json"
 
 Instance: TNGParticipantDID-CYP
 InstanceOf: IHE.mCSD.Endpoint
@@ -464,7 +464,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CYP/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CYP/did.json"
 
 Instance: TNGParticipantDID-CZE
 InstanceOf: IHE.mCSD.Endpoint
@@ -473,7 +473,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/CZE/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/CZE/did.json"
 
 Instance: TNGParticipantDID-DEU
 InstanceOf: IHE.mCSD.Endpoint
@@ -482,7 +482,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/DEU/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/DEU/did.json"
 
 Instance: TNGParticipantDID-DJI
 InstanceOf: IHE.mCSD.Endpoint
@@ -491,7 +491,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/DJI/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/DJI/did.json"
 
 Instance: TNGParticipantDID-DMA
 InstanceOf: IHE.mCSD.Endpoint
@@ -500,7 +500,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/DMA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/DMA/did.json"
 
 Instance: TNGParticipantDID-DNK
 InstanceOf: IHE.mCSD.Endpoint
@@ -509,7 +509,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/DNK/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/DNK/did.json"
 
 Instance: TNGParticipantDID-DOM
 InstanceOf: IHE.mCSD.Endpoint
@@ -518,7 +518,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/DOM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/DOM/did.json"
 
 Instance: TNGParticipantDID-DZA
 InstanceOf: IHE.mCSD.Endpoint
@@ -527,7 +527,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/DZA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/DZA/did.json"
 
 Instance: TNGParticipantDID-ECU
 InstanceOf: IHE.mCSD.Endpoint
@@ -536,7 +536,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ECU/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ECU/did.json"
 
 Instance: TNGParticipantDID-EGY
 InstanceOf: IHE.mCSD.Endpoint
@@ -545,7 +545,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/EGY/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/EGY/did.json"
 
 Instance: TNGParticipantDID-ERI
 InstanceOf: IHE.mCSD.Endpoint
@@ -554,7 +554,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ERI/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ERI/did.json"
 
 Instance: TNGParticipantDID-ESP
 InstanceOf: IHE.mCSD.Endpoint
@@ -563,7 +563,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ESP/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ESP/did.json"
 
 Instance: TNGParticipantDID-EST
 InstanceOf: IHE.mCSD.Endpoint
@@ -572,7 +572,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/EST/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/EST/did.json"
 
 Instance: TNGParticipantDID-ETH
 InstanceOf: IHE.mCSD.Endpoint
@@ -581,7 +581,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ETH/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ETH/did.json"
 
 Instance: TNGParticipantDID-FIN
 InstanceOf: IHE.mCSD.Endpoint
@@ -590,7 +590,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/FIN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/FIN/did.json"
 
 Instance: TNGParticipantDID-FJI
 InstanceOf: IHE.mCSD.Endpoint
@@ -599,7 +599,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/FJI/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/FJI/did.json"
 
 Instance: TNGParticipantDID-FLK
 InstanceOf: IHE.mCSD.Endpoint
@@ -608,7 +608,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/FLK/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/FLK/did.json"
 
 Instance: TNGParticipantDID-FRA
 InstanceOf: IHE.mCSD.Endpoint
@@ -617,7 +617,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/FRA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/FRA/did.json"
 
 Instance: TNGParticipantDID-FRO
 InstanceOf: IHE.mCSD.Endpoint
@@ -626,7 +626,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/FRO/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/FRO/did.json"
 
 Instance: TNGParticipantDID-FSM
 InstanceOf: IHE.mCSD.Endpoint
@@ -635,7 +635,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/FSM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/FSM/did.json"
 
 Instance: TNGParticipantDID-GAB
 InstanceOf: IHE.mCSD.Endpoint
@@ -644,7 +644,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GAB/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GAB/did.json"
 
 Instance: TNGParticipantDID-GBR
 InstanceOf: IHE.mCSD.Endpoint
@@ -653,7 +653,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GBR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GBR/did.json"
 
 Instance: TNGParticipantDID-GEO
 InstanceOf: IHE.mCSD.Endpoint
@@ -662,7 +662,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GEO/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GEO/did.json"
 
 Instance: TNGParticipantDID-GHA
 InstanceOf: IHE.mCSD.Endpoint
@@ -671,7 +671,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GHA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GHA/did.json"
 
 Instance: TNGParticipantDID-GIB
 InstanceOf: IHE.mCSD.Endpoint
@@ -680,7 +680,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GIB/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GIB/did.json"
 
 Instance: TNGParticipantDID-GIN
 InstanceOf: IHE.mCSD.Endpoint
@@ -689,7 +689,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GIN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GIN/did.json"
 
 Instance: TNGParticipantDID-GLP
 InstanceOf: IHE.mCSD.Endpoint
@@ -698,7 +698,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GLP/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GLP/did.json"
 
 Instance: TNGParticipantDID-GMB
 InstanceOf: IHE.mCSD.Endpoint
@@ -707,7 +707,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GMB/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GMB/did.json"
 
 Instance: TNGParticipantDID-GNB
 InstanceOf: IHE.mCSD.Endpoint
@@ -716,7 +716,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GNB/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GNB/did.json"
 
 Instance: TNGParticipantDID-GNQ
 InstanceOf: IHE.mCSD.Endpoint
@@ -725,7 +725,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GNQ/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GNQ/did.json"
 
 Instance: TNGParticipantDID-GRC
 InstanceOf: IHE.mCSD.Endpoint
@@ -734,7 +734,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GRC/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GRC/did.json"
 
 Instance: TNGParticipantDID-GRD
 InstanceOf: IHE.mCSD.Endpoint
@@ -743,7 +743,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GRD/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GRD/did.json"
 
 Instance: TNGParticipantDID-GRL
 InstanceOf: IHE.mCSD.Endpoint
@@ -752,7 +752,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GRL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GRL/did.json"
 
 Instance: TNGParticipantDID-GTM
 InstanceOf: IHE.mCSD.Endpoint
@@ -761,7 +761,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GTM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GTM/did.json"
 
 Instance: TNGParticipantDID-GUF
 InstanceOf: IHE.mCSD.Endpoint
@@ -770,7 +770,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GUF/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GUF/did.json"
 
 Instance: TNGParticipantDID-GUM
 InstanceOf: IHE.mCSD.Endpoint
@@ -779,7 +779,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GUM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GUM/did.json"
 
 Instance: TNGParticipantDID-GUY
 InstanceOf: IHE.mCSD.Endpoint
@@ -788,7 +788,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/GUY/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/GUY/did.json"
 
 Instance: TNGParticipantDID-HKG
 InstanceOf: IHE.mCSD.Endpoint
@@ -797,7 +797,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/HKG/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/HKG/did.json"
 
 Instance: TNGParticipantDID-HND
 InstanceOf: IHE.mCSD.Endpoint
@@ -806,7 +806,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/HND/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/HND/did.json"
 
 Instance: TNGParticipantDID-HRV
 InstanceOf: IHE.mCSD.Endpoint
@@ -815,7 +815,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/HRV/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/HRV/did.json"
 
 Instance: TNGParticipantDID-HTI
 InstanceOf: IHE.mCSD.Endpoint
@@ -824,7 +824,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/HTI/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/HTI/did.json"
 
 Instance: TNGParticipantDID-HUN
 InstanceOf: IHE.mCSD.Endpoint
@@ -833,7 +833,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/HUN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/HUN/did.json"
 
 Instance: TNGParticipantDID-IDN
 InstanceOf: IHE.mCSD.Endpoint
@@ -842,7 +842,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/IDN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/IDN/did.json"
 
 Instance: TNGParticipantDID-IMN
 InstanceOf: IHE.mCSD.Endpoint
@@ -851,7 +851,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/IMN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/IMN/did.json"
 
 Instance: TNGParticipantDID-IND
 InstanceOf: IHE.mCSD.Endpoint
@@ -860,7 +860,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/IND/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/IND/did.json"
 
 Instance: TNGParticipantDID-IRL
 InstanceOf: IHE.mCSD.Endpoint
@@ -869,7 +869,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/IRL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/IRL/did.json"
 
 Instance: TNGParticipantDID-IRN
 InstanceOf: IHE.mCSD.Endpoint
@@ -878,7 +878,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/IRN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/IRN/did.json"
 
 Instance: TNGParticipantDID-IRQ
 InstanceOf: IHE.mCSD.Endpoint
@@ -887,7 +887,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/IRQ/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/IRQ/did.json"
 
 Instance: TNGParticipantDID-ISL
 InstanceOf: IHE.mCSD.Endpoint
@@ -896,7 +896,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ISL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ISL/did.json"
 
 Instance: TNGParticipantDID-ISR
 InstanceOf: IHE.mCSD.Endpoint
@@ -905,7 +905,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ISR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ISR/did.json"
 
 Instance: TNGParticipantDID-ITA
 InstanceOf: IHE.mCSD.Endpoint
@@ -914,7 +914,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ITA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ITA/did.json"
 
 Instance: TNGParticipantDID-JAM
 InstanceOf: IHE.mCSD.Endpoint
@@ -923,7 +923,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/JAM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/JAM/did.json"
 
 Instance: TNGParticipantDID-JOR
 InstanceOf: IHE.mCSD.Endpoint
@@ -932,7 +932,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/JOR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/JOR/did.json"
 
 Instance: TNGParticipantDID-JPN
 InstanceOf: IHE.mCSD.Endpoint
@@ -941,7 +941,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/JPN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/JPN/did.json"
 
 Instance: TNGParticipantDID-KAZ
 InstanceOf: IHE.mCSD.Endpoint
@@ -950,7 +950,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/KAZ/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/KAZ/did.json"
 
 Instance: TNGParticipantDID-KEN
 InstanceOf: IHE.mCSD.Endpoint
@@ -959,7 +959,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/KEN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/KEN/did.json"
 
 Instance: TNGParticipantDID-KGZ
 InstanceOf: IHE.mCSD.Endpoint
@@ -968,7 +968,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/KGZ/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/KGZ/did.json"
 
 Instance: TNGParticipantDID-KHM
 InstanceOf: IHE.mCSD.Endpoint
@@ -977,7 +977,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/KHM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/KHM/did.json"
 
 Instance: TNGParticipantDID-KIR
 InstanceOf: IHE.mCSD.Endpoint
@@ -986,7 +986,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/KIR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/KIR/did.json"
 
 Instance: TNGParticipantDID-KNA
 InstanceOf: IHE.mCSD.Endpoint
@@ -995,7 +995,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/KNA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/KNA/did.json"
 
 Instance: TNGParticipantDID-KOR
 InstanceOf: IHE.mCSD.Endpoint
@@ -1004,7 +1004,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/KOR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/KOR/did.json"
 
 Instance: TNGParticipantDID-KWT
 InstanceOf: IHE.mCSD.Endpoint
@@ -1013,7 +1013,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/KWT/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/KWT/did.json"
 
 Instance: TNGParticipantDID-LAO
 InstanceOf: IHE.mCSD.Endpoint
@@ -1022,7 +1022,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/LAO/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/LAO/did.json"
 
 Instance: TNGParticipantDID-LBN
 InstanceOf: IHE.mCSD.Endpoint
@@ -1031,7 +1031,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/LBN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/LBN/did.json"
 
 Instance: TNGParticipantDID-LBR
 InstanceOf: IHE.mCSD.Endpoint
@@ -1040,7 +1040,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/LBR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/LBR/did.json"
 
 Instance: TNGParticipantDID-LBY
 InstanceOf: IHE.mCSD.Endpoint
@@ -1049,7 +1049,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/LBY/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/LBY/did.json"
 
 Instance: TNGParticipantDID-LCA
 InstanceOf: IHE.mCSD.Endpoint
@@ -1058,7 +1058,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/LCA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/LCA/did.json"
 
 Instance: TNGParticipantDID-LIE
 InstanceOf: IHE.mCSD.Endpoint
@@ -1067,7 +1067,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/LIE/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/LIE/did.json"
 
 Instance: TNGParticipantDID-LKA
 InstanceOf: IHE.mCSD.Endpoint
@@ -1076,7 +1076,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/LKA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/LKA/did.json"
 
 Instance: TNGParticipantDID-LSO
 InstanceOf: IHE.mCSD.Endpoint
@@ -1085,7 +1085,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/LSO/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/LSO/did.json"
 
 Instance: TNGParticipantDID-LTU
 InstanceOf: IHE.mCSD.Endpoint
@@ -1094,7 +1094,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/LTU/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/LTU/did.json"
 
 Instance: TNGParticipantDID-LUX
 InstanceOf: IHE.mCSD.Endpoint
@@ -1103,7 +1103,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/LUX/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/LUX/did.json"
 
 Instance: TNGParticipantDID-LVA
 InstanceOf: IHE.mCSD.Endpoint
@@ -1112,7 +1112,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/LVA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/LVA/did.json"
 
 Instance: TNGParticipantDID-MAC
 InstanceOf: IHE.mCSD.Endpoint
@@ -1121,7 +1121,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MAC/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MAC/did.json"
 
 Instance: TNGParticipantDID-MAR
 InstanceOf: IHE.mCSD.Endpoint
@@ -1130,7 +1130,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MAR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MAR/did.json"
 
 Instance: TNGParticipantDID-MCO
 InstanceOf: IHE.mCSD.Endpoint
@@ -1139,7 +1139,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MCO/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MCO/did.json"
 
 Instance: TNGParticipantDID-MDA
 InstanceOf: IHE.mCSD.Endpoint
@@ -1148,7 +1148,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MDA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MDA/did.json"
 
 Instance: TNGParticipantDID-MDG
 InstanceOf: IHE.mCSD.Endpoint
@@ -1157,7 +1157,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MDG/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MDG/did.json"
 
 Instance: TNGParticipantDID-MDV
 InstanceOf: IHE.mCSD.Endpoint
@@ -1166,7 +1166,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MDV/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MDV/did.json"
 
 Instance: TNGParticipantDID-ME1
 InstanceOf: IHE.mCSD.Endpoint
@@ -1175,7 +1175,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ME1/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ME1/did.json"
 
 Instance: TNGParticipantDID-MEX
 InstanceOf: IHE.mCSD.Endpoint
@@ -1184,7 +1184,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MEX/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MEX/did.json"
 
 Instance: TNGParticipantDID-MHL
 InstanceOf: IHE.mCSD.Endpoint
@@ -1193,7 +1193,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MHL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MHL/did.json"
 
 Instance: TNGParticipantDID-MKD
 InstanceOf: IHE.mCSD.Endpoint
@@ -1202,7 +1202,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MKD/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MKD/did.json"
 
 Instance: TNGParticipantDID-MLI
 InstanceOf: IHE.mCSD.Endpoint
@@ -1211,7 +1211,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MLI/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MLI/did.json"
 
 Instance: TNGParticipantDID-MLT
 InstanceOf: IHE.mCSD.Endpoint
@@ -1220,7 +1220,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MLT/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MLT/did.json"
 
 Instance: TNGParticipantDID-MMR
 InstanceOf: IHE.mCSD.Endpoint
@@ -1229,7 +1229,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MMR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MMR/did.json"
 
 Instance: TNGParticipantDID-MNE
 InstanceOf: IHE.mCSD.Endpoint
@@ -1238,7 +1238,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MNE/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MNE/did.json"
 
 Instance: TNGParticipantDID-MNG
 InstanceOf: IHE.mCSD.Endpoint
@@ -1247,7 +1247,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MNG/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MNG/did.json"
 
 Instance: TNGParticipantDID-MNP
 InstanceOf: IHE.mCSD.Endpoint
@@ -1256,7 +1256,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MNP/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MNP/did.json"
 
 Instance: TNGParticipantDID-MOZ
 InstanceOf: IHE.mCSD.Endpoint
@@ -1265,7 +1265,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MOZ/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MOZ/did.json"
 
 Instance: TNGParticipantDID-MRT
 InstanceOf: IHE.mCSD.Endpoint
@@ -1274,7 +1274,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MRT/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MRT/did.json"
 
 Instance: TNGParticipantDID-MSR
 InstanceOf: IHE.mCSD.Endpoint
@@ -1283,7 +1283,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MSR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MSR/did.json"
 
 Instance: TNGParticipantDID-MTQ
 InstanceOf: IHE.mCSD.Endpoint
@@ -1292,7 +1292,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MTQ/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MTQ/did.json"
 
 Instance: TNGParticipantDID-MUS
 InstanceOf: IHE.mCSD.Endpoint
@@ -1301,7 +1301,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MUS/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MUS/did.json"
 
 Instance: TNGParticipantDID-MWI
 InstanceOf: IHE.mCSD.Endpoint
@@ -1310,7 +1310,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MWI/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MWI/did.json"
 
 Instance: TNGParticipantDID-MYS
 InstanceOf: IHE.mCSD.Endpoint
@@ -1319,7 +1319,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MYS/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MYS/did.json"
 
 Instance: TNGParticipantDID-MYT
 InstanceOf: IHE.mCSD.Endpoint
@@ -1328,7 +1328,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/MYT/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/MYT/did.json"
 
 Instance: TNGParticipantDID-NAM
 InstanceOf: IHE.mCSD.Endpoint
@@ -1337,7 +1337,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/NAM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/NAM/did.json"
 
 Instance: TNGParticipantDID-NCL
 InstanceOf: IHE.mCSD.Endpoint
@@ -1346,7 +1346,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/NCL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/NCL/did.json"
 
 Instance: TNGParticipantDID-NER
 InstanceOf: IHE.mCSD.Endpoint
@@ -1355,7 +1355,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/NER/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/NER/did.json"
 
 Instance: TNGParticipantDID-NGA
 InstanceOf: IHE.mCSD.Endpoint
@@ -1364,7 +1364,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/NGA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/NGA/did.json"
 
 Instance: TNGParticipantDID-NIC
 InstanceOf: IHE.mCSD.Endpoint
@@ -1373,7 +1373,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/NIC/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/NIC/did.json"
 
 Instance: TNGParticipantDID-NIU
 InstanceOf: IHE.mCSD.Endpoint
@@ -1382,7 +1382,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/NIU/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/NIU/did.json"
 
 Instance: TNGParticipantDID-NLD
 InstanceOf: IHE.mCSD.Endpoint
@@ -1391,7 +1391,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/NLD/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/NLD/did.json"
 
 Instance: TNGParticipantDID-NOR
 InstanceOf: IHE.mCSD.Endpoint
@@ -1400,7 +1400,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/NOR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/NOR/did.json"
 
 Instance: TNGParticipantDID-NPL
 InstanceOf: IHE.mCSD.Endpoint
@@ -1409,7 +1409,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/NPL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/NPL/did.json"
 
 Instance: TNGParticipantDID-NRU
 InstanceOf: IHE.mCSD.Endpoint
@@ -1418,7 +1418,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/NRU/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/NRU/did.json"
 
 Instance: TNGParticipantDID-NZL
 InstanceOf: IHE.mCSD.Endpoint
@@ -1427,7 +1427,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/NZL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/NZL/did.json"
 
 Instance: TNGParticipantDID-OMN
 InstanceOf: IHE.mCSD.Endpoint
@@ -1436,7 +1436,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/OMN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/OMN/did.json"
 
 Instance: TNGParticipantDID-PAK
 InstanceOf: IHE.mCSD.Endpoint
@@ -1445,7 +1445,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/PAK/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/PAK/did.json"
 
 Instance: TNGParticipantDID-PAN
 InstanceOf: IHE.mCSD.Endpoint
@@ -1454,7 +1454,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/PAN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/PAN/did.json"
 
 Instance: TNGParticipantDID-PER
 InstanceOf: IHE.mCSD.Endpoint
@@ -1463,7 +1463,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/PER/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/PER/did.json"
 
 Instance: TNGParticipantDID-PHL
 InstanceOf: IHE.mCSD.Endpoint
@@ -1472,7 +1472,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/PHL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/PHL/did.json"
 
 Instance: TNGParticipantDID-PLW
 InstanceOf: IHE.mCSD.Endpoint
@@ -1481,7 +1481,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/PLW/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/PLW/did.json"
 
 Instance: TNGParticipantDID-PNG
 InstanceOf: IHE.mCSD.Endpoint
@@ -1490,7 +1490,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/PNG/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/PNG/did.json"
 
 Instance: TNGParticipantDID-POL
 InstanceOf: IHE.mCSD.Endpoint
@@ -1499,7 +1499,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/POL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/POL/did.json"
 
 Instance: TNGParticipantDID-PRI
 InstanceOf: IHE.mCSD.Endpoint
@@ -1508,7 +1508,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/PRI/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/PRI/did.json"
 
 Instance: TNGParticipantDID-PRK
 InstanceOf: IHE.mCSD.Endpoint
@@ -1517,7 +1517,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/PRK/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/PRK/did.json"
 
 Instance: TNGParticipantDID-PRS
 InstanceOf: IHE.mCSD.Endpoint
@@ -1526,7 +1526,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/PRS/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/PRS/did.json"
 
 Instance: TNGParticipantDID-PRT
 InstanceOf: IHE.mCSD.Endpoint
@@ -1535,7 +1535,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/PRT/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/PRT/did.json"
 
 Instance: TNGParticipantDID-PRY
 InstanceOf: IHE.mCSD.Endpoint
@@ -1544,7 +1544,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/PRY/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/PRY/did.json"
 
 Instance: TNGParticipantDID-PSE
 InstanceOf: IHE.mCSD.Endpoint
@@ -1553,7 +1553,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/PSE/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/PSE/did.json"
 
 Instance: TNGParticipantDID-PYF
 InstanceOf: IHE.mCSD.Endpoint
@@ -1562,7 +1562,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/PYF/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/PYF/did.json"
 
 Instance: TNGParticipantDID-QAT
 InstanceOf: IHE.mCSD.Endpoint
@@ -1571,7 +1571,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/QAT/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/QAT/did.json"
 
 Instance: TNGParticipantDID-REU
 InstanceOf: IHE.mCSD.Endpoint
@@ -1580,7 +1580,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/REU/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/REU/did.json"
 
 Instance: TNGParticipantDID-ROU
 InstanceOf: IHE.mCSD.Endpoint
@@ -1589,7 +1589,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ROU/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ROU/did.json"
 
 Instance: TNGParticipantDID-RUS
 InstanceOf: IHE.mCSD.Endpoint
@@ -1598,7 +1598,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/RUS/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/RUS/did.json"
 
 Instance: TNGParticipantDID-RWA
 InstanceOf: IHE.mCSD.Endpoint
@@ -1607,7 +1607,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/RWA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/RWA/did.json"
 
 Instance: TNGParticipantDID-SAU
 InstanceOf: IHE.mCSD.Endpoint
@@ -1616,7 +1616,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SAU/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SAU/did.json"
 
 Instance: TNGParticipantDID-SDN
 InstanceOf: IHE.mCSD.Endpoint
@@ -1625,7 +1625,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SDN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SDN/did.json"
 
 Instance: TNGParticipantDID-SDN736
 InstanceOf: IHE.mCSD.Endpoint
@@ -1634,7 +1634,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SDN736/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SDN736/did.json"
 
 Instance: TNGParticipantDID-SEN
 InstanceOf: IHE.mCSD.Endpoint
@@ -1643,7 +1643,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SEN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SEN/did.json"
 
 Instance: TNGParticipantDID-SGP
 InstanceOf: IHE.mCSD.Endpoint
@@ -1652,7 +1652,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SGP/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SGP/did.json"
 
 Instance: TNGParticipantDID-SHN
 InstanceOf: IHE.mCSD.Endpoint
@@ -1661,7 +1661,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SHN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SHN/did.json"
 
 Instance: TNGParticipantDID-SLB
 InstanceOf: IHE.mCSD.Endpoint
@@ -1670,7 +1670,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SLB/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SLB/did.json"
 
 Instance: TNGParticipantDID-SLE
 InstanceOf: IHE.mCSD.Endpoint
@@ -1679,7 +1679,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SLE/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SLE/did.json"
 
 Instance: TNGParticipantDID-SLV
 InstanceOf: IHE.mCSD.Endpoint
@@ -1688,7 +1688,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SLV/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SLV/did.json"
 
 Instance: TNGParticipantDID-SMR
 InstanceOf: IHE.mCSD.Endpoint
@@ -1697,7 +1697,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SMR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SMR/did.json"
 
 Instance: TNGParticipantDID-SOM
 InstanceOf: IHE.mCSD.Endpoint
@@ -1706,7 +1706,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SOM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SOM/did.json"
 
 Instance: TNGParticipantDID-SPM
 InstanceOf: IHE.mCSD.Endpoint
@@ -1715,7 +1715,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SPM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SPM/did.json"
 
 Instance: TNGParticipantDID-SRB
 InstanceOf: IHE.mCSD.Endpoint
@@ -1724,7 +1724,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SRB/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SRB/did.json"
 
 Instance: TNGParticipantDID-SSD
 InstanceOf: IHE.mCSD.Endpoint
@@ -1733,7 +1733,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SSD/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SSD/did.json"
 
 Instance: TNGParticipantDID-STP
 InstanceOf: IHE.mCSD.Endpoint
@@ -1742,7 +1742,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/STP/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/STP/did.json"
 
 Instance: TNGParticipantDID-SUR
 InstanceOf: IHE.mCSD.Endpoint
@@ -1751,7 +1751,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SUR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SUR/did.json"
 
 Instance: TNGParticipantDID-SVK
 InstanceOf: IHE.mCSD.Endpoint
@@ -1760,7 +1760,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SVK/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SVK/did.json"
 
 Instance: TNGParticipantDID-SVN
 InstanceOf: IHE.mCSD.Endpoint
@@ -1769,7 +1769,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SVN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SVN/did.json"
 
 Instance: TNGParticipantDID-SWE
 InstanceOf: IHE.mCSD.Endpoint
@@ -1778,7 +1778,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SWE/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SWE/did.json"
 
 Instance: TNGParticipantDID-SWZ
 InstanceOf: IHE.mCSD.Endpoint
@@ -1787,7 +1787,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SWZ/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SWZ/did.json"
 
 Instance: TNGParticipantDID-SXM
 InstanceOf: IHE.mCSD.Endpoint
@@ -1796,7 +1796,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SXM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SXM/did.json"
 
 Instance: TNGParticipantDID-SYC
 InstanceOf: IHE.mCSD.Endpoint
@@ -1805,7 +1805,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SYC/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SYC/did.json"
 
 Instance: TNGParticipantDID-SYR
 InstanceOf: IHE.mCSD.Endpoint
@@ -1814,7 +1814,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/SYR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/SYR/did.json"
 
 Instance: TNGParticipantDID-TCA
 InstanceOf: IHE.mCSD.Endpoint
@@ -1823,7 +1823,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/TCA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/TCA/did.json"
 
 Instance: TNGParticipantDID-TCD
 InstanceOf: IHE.mCSD.Endpoint
@@ -1832,7 +1832,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/TCD/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/TCD/did.json"
 
 Instance: TNGParticipantDID-TGO
 InstanceOf: IHE.mCSD.Endpoint
@@ -1841,7 +1841,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/TGO/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/TGO/did.json"
 
 Instance: TNGParticipantDID-THA
 InstanceOf: IHE.mCSD.Endpoint
@@ -1850,7 +1850,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/THA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/THA/did.json"
 
 Instance: TNGParticipantDID-TJK
 InstanceOf: IHE.mCSD.Endpoint
@@ -1859,7 +1859,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/TJK/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/TJK/did.json"
 
 Instance: TNGParticipantDID-TKL
 InstanceOf: IHE.mCSD.Endpoint
@@ -1868,7 +1868,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/TKL/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/TKL/did.json"
 
 Instance: TNGParticipantDID-TKM
 InstanceOf: IHE.mCSD.Endpoint
@@ -1877,7 +1877,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/TKM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/TKM/did.json"
 
 Instance: TNGParticipantDID-TLS
 InstanceOf: IHE.mCSD.Endpoint
@@ -1886,7 +1886,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/TLS/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/TLS/did.json"
 
 Instance: TNGParticipantDID-TON
 InstanceOf: IHE.mCSD.Endpoint
@@ -1895,7 +1895,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/TON/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/TON/did.json"
 
 Instance: TNGParticipantDID-TTO
 InstanceOf: IHE.mCSD.Endpoint
@@ -1904,7 +1904,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/TTO/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/TTO/did.json"
 
 Instance: TNGParticipantDID-TUN
 InstanceOf: IHE.mCSD.Endpoint
@@ -1913,7 +1913,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/TUN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/TUN/did.json"
 
 Instance: TNGParticipantDID-TUR
 InstanceOf: IHE.mCSD.Endpoint
@@ -1922,7 +1922,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/TUR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/TUR/did.json"
 
 Instance: TNGParticipantDID-TUV
 InstanceOf: IHE.mCSD.Endpoint
@@ -1931,7 +1931,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/TUV/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/TUV/did.json"
 
 Instance: TNGParticipantDID-TZA
 InstanceOf: IHE.mCSD.Endpoint
@@ -1940,7 +1940,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/TZA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/TZA/did.json"
 
 Instance: TNGParticipantDID-UGA
 InstanceOf: IHE.mCSD.Endpoint
@@ -1949,7 +1949,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/UGA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/UGA/did.json"
 
 Instance: TNGParticipantDID-UKR
 InstanceOf: IHE.mCSD.Endpoint
@@ -1958,7 +1958,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/UKR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/UKR/did.json"
 
 Instance: TNGParticipantDID-URY
 InstanceOf: IHE.mCSD.Endpoint
@@ -1967,7 +1967,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/URY/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/URY/did.json"
 
 Instance: TNGParticipantDID-USA
 InstanceOf: IHE.mCSD.Endpoint
@@ -1976,7 +1976,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/USA/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/USA/did.json"
 
 Instance: TNGParticipantDID-UZB
 InstanceOf: IHE.mCSD.Endpoint
@@ -1985,7 +1985,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/UZB/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/UZB/did.json"
 
 Instance: TNGParticipantDID-VCT
 InstanceOf: IHE.mCSD.Endpoint
@@ -1994,7 +1994,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/VCT/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/VCT/did.json"
 
 Instance: TNGParticipantDID-VEN
 InstanceOf: IHE.mCSD.Endpoint
@@ -2003,7 +2003,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/VEN/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/VEN/did.json"
 
 Instance: TNGParticipantDID-VGB
 InstanceOf: IHE.mCSD.Endpoint
@@ -2012,7 +2012,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/VGB/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/VGB/did.json"
 
 Instance: TNGParticipantDID-VIR
 InstanceOf: IHE.mCSD.Endpoint
@@ -2021,7 +2021,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/VIR/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/VIR/did.json"
 
 Instance: TNGParticipantDID-VNM
 InstanceOf: IHE.mCSD.Endpoint
@@ -2030,7 +2030,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/VNM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/VNM/did.json"
 
 Instance: TNGParticipantDID-VUT
 InstanceOf: IHE.mCSD.Endpoint
@@ -2039,7 +2039,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/VUT/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/VUT/did.json"
 
 Instance: TNGParticipantDID-WLF
 InstanceOf: IHE.mCSD.Endpoint
@@ -2048,7 +2048,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/WLF/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/WLF/did.json"
 
 Instance: TNGParticipantDID-WSM
 InstanceOf: IHE.mCSD.Endpoint
@@ -2057,7 +2057,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/WSM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/WSM/did.json"
 
 Instance: TNGParticipantDID-XKX
 InstanceOf: IHE.mCSD.Endpoint
@@ -2066,7 +2066,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/XKX/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/XKX/did.json"
 
 Instance: TNGParticipantDID-YEM
 InstanceOf: IHE.mCSD.Endpoint
@@ -2075,7 +2075,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/YEM/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/YEM/did.json"
 
 Instance: TNGParticipantDID-ZAF
 InstanceOf: IHE.mCSD.Endpoint
@@ -2084,7 +2084,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ZAF/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ZAF/did.json"
 
 Instance: TNGParticipantDID-ZMB
 InstanceOf: IHE.mCSD.Endpoint
@@ -2093,7 +2093,7 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ZMB/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ZMB/did.json"
 
 Instance: TNGParticipantDID-ZWE
 InstanceOf: IHE.mCSD.Endpoint
@@ -2102,6 +2102,6 @@ InstanceOf: IHE.mCSD.Endpoint
 * connectionType = $ConnectionTypes#trustlist
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "tng-cdn.who.int/v2/trustlist/-/ZWE/did.json"
+* address = "http://tng-cdn.who.int/v2/trustlist/-/ZWE/did.json"
 
 

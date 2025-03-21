@@ -103,7 +103,7 @@ def extract_countries(data):
         instance += "* connectionType = $ConnectionTypes#trustlist\n"
         instance += "* payloadMimeType = #application/did\n"
         instance += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
-        instance += '* address = "tng-cdn.who.int/v2/trustlist/-/' + country['Code'] + '/did.json"\n'
+        instance += '* address = "http://tng-cdn.who.int/v2/trustlist/-/' + country['Code'] + '/did.json"\n'
         
         instances += instance + "\n"
 
