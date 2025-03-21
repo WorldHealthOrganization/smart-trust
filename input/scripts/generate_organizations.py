@@ -98,6 +98,7 @@ def extract_countries(data):
         instance += '\n'
         instance =  "Instance: " + didendpointid + "\n"
         instance += "InstanceOf: IHE.mCSD.Endpoint\n"
+        instance += "Usage: #definition" + "\n"        
         instance += "* managingOrganization = Reference(Organization/" + participantid + ")\n"
         instance += "* status = #active\n"
         instance += "* connectionType = $ConnectionTypes#trustlist\n"

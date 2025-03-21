@@ -6,7 +6,7 @@ Description:  "ValueSet of GDHCN Trust Network Participants"
 * ^experimental = true
 * ^name = "Participants"
 
-* include codes from system $Participants
+* include codes from system Participants
 
 
 // To generate this list of codes

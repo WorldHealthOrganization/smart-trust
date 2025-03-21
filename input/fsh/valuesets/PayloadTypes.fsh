@@ -6,4 +6,4 @@ Description:  "ValueSet of GDHCN Trust Network Payload Types"
 * ^experimental = true
 * ^name = "GDHCN Payload Types"
 
-* include codes from system $PayloadTypes
+* include codes from system PayloadTypes

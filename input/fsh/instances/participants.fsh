@@ -1,5 +1,6 @@
 Instance: TNGParticipantDID-ABW
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ABW)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -9,6 +10,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-AFG
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-AFG)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -18,6 +20,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-AGO
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-AGO)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -27,6 +30,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-AIA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-AIA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -36,6 +40,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ALB
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ALB)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -45,6 +50,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-AND
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-AND)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -54,6 +60,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ARE
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ARE)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -63,6 +70,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ARG
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ARG)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -72,6 +80,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ARM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ARM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -81,6 +90,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ASM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ASM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -90,6 +100,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ATG
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ATG)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -99,6 +110,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-AUS
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-AUS)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -108,6 +120,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-AUT
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-AUT)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -117,6 +130,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-AZE
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-AZE)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -126,6 +140,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BDI
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BDI)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -135,6 +150,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BEL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BEL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -144,6 +160,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BEN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BEN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -153,6 +170,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BES
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BES)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -162,6 +180,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BFA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BFA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -171,6 +190,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BGD
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BGD)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -180,6 +200,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BGR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BGR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -189,6 +210,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BHR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BHR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -198,6 +220,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BHS
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BHS)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -207,6 +230,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BIH
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BIH)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -216,6 +240,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BLR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BLR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -225,6 +250,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BLZ
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BLZ)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -234,6 +260,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BMU
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BMU)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -243,6 +270,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BOL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BOL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -252,6 +280,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BRA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BRA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -261,6 +290,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BRB
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BRB)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -270,6 +300,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BRN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BRN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -279,6 +310,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BTN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BTN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -288,6 +320,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-BWA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-BWA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -297,6 +330,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CAF
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CAF)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -306,6 +340,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CAN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CAN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -315,6 +350,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CHE
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CHE)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -324,6 +360,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CHI
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CHI)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -333,6 +370,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CHL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CHL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -342,6 +380,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CHN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CHN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -351,6 +390,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CIV
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CIV)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -360,6 +400,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CMR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CMR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -369,6 +410,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-COD
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-COD)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -378,6 +420,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-COG
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-COG)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -387,6 +430,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-COK
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-COK)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -396,6 +440,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-COL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-COL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -405,6 +450,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-COM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-COM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -414,6 +460,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CPV
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CPV)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -423,6 +470,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CRI
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CRI)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -432,6 +480,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CUB
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CUB)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -441,6 +490,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CUW
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CUW)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -450,6 +500,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CYM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CYM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -459,6 +510,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CYP
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CYP)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -468,6 +520,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-CZE
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-CZE)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -477,6 +530,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-DEU
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-DEU)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -486,6 +540,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-DJI
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-DJI)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -495,6 +550,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-DMA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-DMA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -504,6 +560,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-DNK
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-DNK)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -513,6 +570,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-DOM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-DOM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -522,6 +580,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-DZA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-DZA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -531,6 +590,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ECU
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ECU)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -540,6 +600,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-EGY
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-EGY)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -549,6 +610,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ERI
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ERI)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -558,6 +620,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ESP
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ESP)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -567,6 +630,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-EST
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-EST)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -576,6 +640,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ETH
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ETH)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -585,6 +650,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-FIN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-FIN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -594,6 +660,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-FJI
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-FJI)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -603,6 +670,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-FLK
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-FLK)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -612,6 +680,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-FRA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-FRA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -621,6 +690,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-FRO
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-FRO)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -630,6 +700,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-FSM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-FSM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -639,6 +710,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GAB
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GAB)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -648,6 +720,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GBR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GBR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -657,6 +730,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GEO
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GEO)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -666,6 +740,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GHA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GHA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -675,6 +750,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GIB
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GIB)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -684,6 +760,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GIN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GIN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -693,6 +770,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GLP
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GLP)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -702,6 +780,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GMB
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GMB)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -711,6 +790,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GNB
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GNB)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -720,6 +800,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GNQ
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GNQ)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -729,6 +810,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GRC
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GRC)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -738,6 +820,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GRD
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GRD)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -747,6 +830,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GRL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GRL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -756,6 +840,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GTM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GTM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -765,6 +850,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GUF
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GUF)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -774,6 +860,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GUM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GUM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -783,6 +870,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-GUY
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-GUY)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -792,6 +880,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-HKG
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-HKG)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -801,6 +890,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-HND
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-HND)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -810,6 +900,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-HRV
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-HRV)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -819,6 +910,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-HTI
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-HTI)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -828,6 +920,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-HUN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-HUN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -837,6 +930,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-IDN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-IDN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -846,6 +940,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-IMN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-IMN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -855,6 +950,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-IND
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-IND)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -864,6 +960,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-IRL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-IRL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -873,6 +970,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-IRN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-IRN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -882,6 +980,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-IRQ
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-IRQ)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -891,6 +990,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ISL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ISL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -900,6 +1000,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ISR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ISR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -909,6 +1010,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ITA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ITA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -918,6 +1020,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-JAM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-JAM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -927,6 +1030,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-JOR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-JOR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -936,6 +1040,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-JPN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-JPN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -945,6 +1050,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-KAZ
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-KAZ)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -954,6 +1060,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-KEN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-KEN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -963,6 +1070,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-KGZ
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-KGZ)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -972,6 +1080,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-KHM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-KHM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -981,6 +1090,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-KIR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-KIR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -990,6 +1100,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-KNA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-KNA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -999,6 +1110,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-KOR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-KOR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1008,6 +1120,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-KWT
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-KWT)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1017,6 +1130,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-LAO
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-LAO)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1026,6 +1140,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-LBN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-LBN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1035,6 +1150,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-LBR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-LBR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1044,6 +1160,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-LBY
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-LBY)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1053,6 +1170,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-LCA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-LCA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1062,6 +1180,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-LIE
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-LIE)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1071,6 +1190,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-LKA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-LKA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1080,6 +1200,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-LSO
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-LSO)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1089,6 +1210,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-LTU
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-LTU)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1098,6 +1220,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-LUX
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-LUX)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1107,6 +1230,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-LVA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-LVA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1116,6 +1240,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MAC
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MAC)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1125,6 +1250,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MAR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MAR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1134,6 +1260,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MCO
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MCO)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1143,6 +1270,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MDA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MDA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1152,6 +1280,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MDG
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MDG)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1161,6 +1290,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MDV
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MDV)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1170,6 +1300,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ME1
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ME1)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1179,6 +1310,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MEX
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MEX)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1188,6 +1320,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MHL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MHL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1197,6 +1330,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MKD
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MKD)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1206,6 +1340,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MLI
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MLI)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1215,6 +1350,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MLT
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MLT)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1224,6 +1360,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MMR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MMR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1233,6 +1370,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MNE
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MNE)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1242,6 +1380,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MNG
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MNG)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1251,6 +1390,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MNP
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MNP)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1260,6 +1400,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MOZ
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MOZ)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1269,6 +1410,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MRT
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MRT)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1278,6 +1420,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MSR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MSR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1287,6 +1430,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MTQ
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MTQ)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1296,6 +1440,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MUS
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MUS)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1305,6 +1450,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MWI
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MWI)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1314,6 +1460,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MYS
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MYS)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1323,6 +1470,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-MYT
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-MYT)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1332,6 +1480,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-NAM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-NAM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1341,6 +1490,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-NCL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-NCL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1350,6 +1500,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-NER
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-NER)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1359,6 +1510,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-NGA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-NGA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1368,6 +1520,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-NIC
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-NIC)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1377,6 +1530,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-NIU
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-NIU)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1386,6 +1540,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-NLD
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-NLD)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1395,6 +1550,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-NOR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-NOR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1404,6 +1560,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-NPL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-NPL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1413,6 +1570,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-NRU
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-NRU)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1422,6 +1580,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-NZL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-NZL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1431,6 +1590,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-OMN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-OMN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1440,6 +1600,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-PAK
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-PAK)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1449,6 +1610,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-PAN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-PAN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1458,6 +1620,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-PER
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-PER)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1467,6 +1630,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-PHL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-PHL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1476,6 +1640,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-PLW
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-PLW)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1485,6 +1650,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-PNG
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-PNG)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1494,6 +1660,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-POL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-POL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1503,6 +1670,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-PRI
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-PRI)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1512,6 +1680,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-PRK
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-PRK)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1521,6 +1690,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-PRS
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-PRS)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1530,6 +1700,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-PRT
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-PRT)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1539,6 +1710,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-PRY
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-PRY)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1548,6 +1720,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-PSE
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-PSE)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1557,6 +1730,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-PYF
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-PYF)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1566,6 +1740,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-QAT
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-QAT)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1575,6 +1750,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-REU
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-REU)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1584,6 +1760,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ROU
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ROU)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1593,6 +1770,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-RUS
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-RUS)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1602,6 +1780,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-RWA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-RWA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1611,6 +1790,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SAU
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SAU)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1620,6 +1800,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SDN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SDN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1629,6 +1810,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SDN736
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SDN736)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1638,6 +1820,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SEN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SEN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1647,6 +1830,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SGP
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SGP)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1656,6 +1840,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SHN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SHN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1665,6 +1850,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SLB
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SLB)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1674,6 +1860,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SLE
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SLE)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1683,6 +1870,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SLV
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SLV)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1692,6 +1880,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SMR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SMR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1701,6 +1890,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SOM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SOM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1710,6 +1900,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SPM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SPM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1719,6 +1910,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SRB
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SRB)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1728,6 +1920,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SSD
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SSD)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1737,6 +1930,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-STP
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-STP)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1746,6 +1940,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SUR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SUR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1755,6 +1950,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SVK
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SVK)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1764,6 +1960,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SVN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SVN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1773,6 +1970,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SWE
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SWE)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1782,6 +1980,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SWZ
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SWZ)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1791,6 +1990,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SXM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SXM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1800,6 +2000,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SYC
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SYC)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1809,6 +2010,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-SYR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-SYR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1818,6 +2020,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-TCA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-TCA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1827,6 +2030,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-TCD
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-TCD)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1836,6 +2040,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-TGO
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-TGO)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1845,6 +2050,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-THA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-THA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1854,6 +2060,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-TJK
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-TJK)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1863,6 +2070,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-TKL
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-TKL)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1872,6 +2080,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-TKM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-TKM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1881,6 +2090,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-TLS
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-TLS)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1890,6 +2100,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-TON
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-TON)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1899,6 +2110,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-TTO
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-TTO)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1908,6 +2120,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-TUN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-TUN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1917,6 +2130,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-TUR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-TUR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1926,6 +2140,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-TUV
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-TUV)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1935,6 +2150,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-TZA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-TZA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1944,6 +2160,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-UGA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-UGA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1953,6 +2170,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-UKR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-UKR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1962,6 +2180,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-URY
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-URY)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1971,6 +2190,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-USA
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-USA)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1980,6 +2200,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-UZB
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-UZB)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1989,6 +2210,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-VCT
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-VCT)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -1998,6 +2220,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-VEN
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-VEN)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -2007,6 +2230,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-VGB
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-VGB)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -2016,6 +2240,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-VIR
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-VIR)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -2025,6 +2250,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-VNM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-VNM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -2034,6 +2260,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-VUT
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-VUT)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -2043,6 +2270,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-WLF
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-WLF)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -2052,6 +2280,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-WSM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-WSM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -2061,6 +2290,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-XKX
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-XKX)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -2070,6 +2300,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-YEM
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-YEM)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -2079,6 +2310,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ZAF
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ZAF)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -2088,6 +2320,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ZMB
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ZMB)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist
@@ -2097,6 +2330,7 @@ InstanceOf: IHE.mCSD.Endpoint
 
 Instance: TNGParticipantDID-ZWE
 InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
 * managingOrganization = Reference(Organization/TNGParticipant-ZWE)
 * status = #active
 * connectionType = $ConnectionTypes#trustlist

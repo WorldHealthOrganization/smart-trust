@@ -6,4 +6,4 @@ Description:  "ValueSet of GDHCN Trust Network Connection Types"
 * ^experimental = true
 * ^name = "GDHCN Conneciton Types"
 
-* include codes from system $ConnectionTypes
+* include codes from system ConnectionTypes
