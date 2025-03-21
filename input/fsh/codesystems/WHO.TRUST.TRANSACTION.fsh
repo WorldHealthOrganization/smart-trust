@@ -1,7 +1,7 @@
 CodeSystem: Transactions
-Title:        "WHO SMART Trust Transaction CodeSystem"
+Title:        "WHO GDHCN Transactions CodeSystem"
 Description:  """
-CodeSystem for SMART Trust transactions that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.html)
+CodeSystem for GDHCN transactions that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.html)
 """
 
 * ^experimental = true

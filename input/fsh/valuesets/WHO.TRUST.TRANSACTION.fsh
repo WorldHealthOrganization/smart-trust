@@ -1,5 +1,5 @@
 ValueSet:     Transactions
-Title:        "SMART Trust transaction ValueSet of transaction codes "
+Title:        "WHO GDHCN Tansactions ValueSet of transaction codes "
 Description:  "ValueSet of codes for transaction codes"
 
 * ^status = #active

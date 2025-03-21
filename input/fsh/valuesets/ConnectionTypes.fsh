@@ -1,5 +1,5 @@
 ValueSet:     ConnectionTypes
-Title:        "GDHCN Connection Types"
+Title:        "WHO GDHCN Connection Types"
 Description:  "ValueSet of GDHCN Trust Network Connection Types"
 
 * ^status = #active

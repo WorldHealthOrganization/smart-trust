@@ -1,7 +1,7 @@
 CodeSystem: KeyUsage
-Title:        "WHO SMART Trust Key Usage CodeSystem"
+Title:        "WHO GDHCN Key Usage CodeSystem"
 Description:  """
-CodeSystem for SMART Trust key usage that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.html)
+CodeSystem for GDHCN Key Usage that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.html)
 """
 
 * ^experimental = true

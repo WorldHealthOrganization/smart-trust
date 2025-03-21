@@ -1,5 +1,5 @@
 ValueSet:     Participants
-Title:        "GDHCN Trust Network Participant"
+Title:        "WHO GDHCN Trust Network Participant"
 Description:  "ValueSet of GDHCN Trust Network Participants"
 
 * ^status = #active

@@ -1,5 +1,5 @@
 ValueSet:     KeyUsage
-Title:        "SMART Trust keyusage ValueSet of key usage codes "
+Title:        "WHO GDHCN  Key Usage ValueSet"
 Description:  "ValueSet of codes for key usage codes"
 
 * ^status = #active
