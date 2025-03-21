@@ -77,7 +77,8 @@ def escape(str):
 def extract_countries(data):
     instances = ""
     codes = "CodeSystem: GHOCountryList\n"
-    codes += 'Title: "WHO Global Health Observatory (GHO) Country List"\n'
+    codes += 'Title: "WHO GHO Country List"\n'
+    codes += 'Description: "WHO Global Health Observatory (GHO) Country List"\n'
 
     
     for country in data['value']:
@@ -87,13 +88,26 @@ def extract_countries(data):
         codes += "* #" + country['Code'] + ' "' + escape(country['Title']) + '"\n'
 
         
-        participantid = "TNGPartcipant-" + country['Code']
+        participantid = "TNGParticipant-" + country['Code']
+        didendpointid = "TNGParticipantDID-" + country['Code']
         instance = "Instance: " + participantid + "\n"
         instance += "InstanceOf: IHE.mCSD.Organization\n"
         instance += "Usage: #definition" + "\n"
         instance += '* name = "' + escape(country['Title']) + '"\n'
-        instance += '* type = $orgType#govt\n'    
+        instance += '* type = $orgType#govt\n'
+        instance += '\n'
+        instance =  "Instance: " + didendpointid + "\n"
+        instance += "InstanceOf: IHE.mCSD.Endpoint\n"
+        instance += "* managingOrganization = Reference(Organization/" + participantid + ")\n"
+        instance += "* status = #active\n"
+        instance += "* connectionType = $ConnectionTypes#trustlist\n"
+        instance += "* payloadMimeType = #application/did\n"
+        instance += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
+        instance += '* address = "tng-cdn.who.int/v2/trustlist/-/' + country['Code'] + '/did.json"\n'
+        
         instances += instance + "\n"
+
+
         
     printout(codes,gho_filename)
     printout(instances,participants_filename)

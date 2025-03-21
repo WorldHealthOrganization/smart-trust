@@ -6,6 +6,8 @@ Alias: $TrustTrans = http://smart.who.int/ips-pilgrimage/CodeSystem/WHO.TRUST.TR
 Alias: $TrustActor = http://smart.who.int/ips-pilgrimage/CodeSystem/WHO.TRUST.ACTOR
 
 Alias: $Participants = http://smart.who.int/trust/CodeSystem/Participants
+Alias: $ConnectionTypes = http://smart.who.int/trust/CodeSystem/ConnectionTypes
+Alias: $PayloadTypes = http://smart.who.int/trust/CodeSystem/PayloadTypes
 
 Alias: $mCSDOrganization = https://profiles.ihe.net/ITI/mCSD/StructureDefinition/IHE.mCSD.Organization
 
