@@ -1,6 +1,6 @@
 ValueSet:     Transactions
-Title:        "WHO GDHCN Tansactions ValueSet of transaction codes "
-Description:  "ValueSet of codes for transaction codes"
+Title:        "WHO GDHCN Transaction Codes"
+Description:  "ValueSet of WHO GDHCN Transaction Codes"
 
 * ^status = #active
 * ^experimental = true
