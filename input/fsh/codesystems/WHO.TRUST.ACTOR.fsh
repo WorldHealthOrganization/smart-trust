@@ -1,12 +1,12 @@
-CodeSystem: WHO.TRUST.ACTOR
-Title:        "WHO.TRUST.ACTOR CodeSystem"
+CodeSystem: Actors
+Title:        "WHO SMART Trust Actors CodeSystem"
 Description:  """
-CodeSystem for TRUST.ACTOR that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.html)
+CodeSystem for SMART Trust actors that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.html)
 """
 
 * ^experimental = true
 * ^caseSensitive = false
-* ^name = "WHO_TRUST_ACTOR"
+
 * ^status = #active
 
 * #credential-holder "Holder of a Credential"

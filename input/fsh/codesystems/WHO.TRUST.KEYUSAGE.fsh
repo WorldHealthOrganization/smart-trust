@@ -1,12 +1,12 @@
-CodeSystem: WHO.TRUST.KEYUSAGE
-Title:        "WHO.TRUST.KEYUSAGE CodeSystem"
+CodeSystem: KeyUsage
+Title:        "WHO SMART Trust Key Usage CodeSystem"
 Description:  """
-CodeSystem for TRUST.KEYUSAGE that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.html)
+CodeSystem for SMART Trust key usage that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.html)
 """
 
 * ^experimental = true
 * ^caseSensitive = false
-* ^name = "WHO_TRUST_KEYUSAGE"
+
 * ^status = #active
 
 * #SCA "Signer Certificate Authority (SCA)"	"A certificate which acts a trust anchor in the verification of the certificate chain for the DSCs issued by a Trust Network participant"

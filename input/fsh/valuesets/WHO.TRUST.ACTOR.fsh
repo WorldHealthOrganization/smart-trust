@@ -1,10 +1,9 @@
-ValueSet:     WHO.TRUST.ACTOR
-Title:        "TRUST.ACTOR ValueSet of actor codes "
+ValueSet:     Actors
+Title:        "SMART Trust Actor ValueSet of actor codes "
 Description:  "ValueSet of codes for actor codes"
 
 * ^status = #active
 * ^experimental = true
-* ^name = "WHO_TRUST_ACTOR"
 
-* include codes from system $TrustActor
+* include codes from system Actors
 

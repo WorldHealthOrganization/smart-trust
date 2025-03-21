@@ -1,10 +1,9 @@
-ValueSet:     WHO.TRUST.TRANSACTION
-Title:        "TRUST.TRANSACTION ValueSet of transaction codes "
+ValueSet:     Transactions
+Title:        "SMART Trust transaction ValueSet of transaction codes "
 Description:  "ValueSet of codes for transaction codes"
 
 * ^status = #active
 * ^experimental = true
-* ^name = "WHO_TRUST_TRANSACTION"
 
-* include codes from system $TrustTrans
+* include codes from system Transactions
 
