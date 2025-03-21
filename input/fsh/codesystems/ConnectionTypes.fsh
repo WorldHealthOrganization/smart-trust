@@ -6,7 +6,7 @@ CodeSystem for GDHCN connection types"
 
 * ^experimental = true
 * ^caseSensitive = false
-* ^name = "Participants"
+* ^name = "ConnectionTypes"
 * ^status = #active
 
 * #trustlist "trustlist" "SMART Trust Network Trust List"

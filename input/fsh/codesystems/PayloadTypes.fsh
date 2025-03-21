@@ -6,7 +6,7 @@ CodeSystem for GDHCN Payload types"
 
 * ^experimental = true
 * ^caseSensitive = false
-* ^name = "Participants"
+* ^name = "PayloadTypes"
 * ^status = #active
 
 * #urn:who:trust:trustlist:v2 "SMART Trust List v2" "SMART Trust List v2"
