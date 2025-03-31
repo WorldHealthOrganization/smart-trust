@@ -12,7 +12,6 @@ This Implementation Guide contains the following deployment support guidance:
 {% include security_privacy.md %}
 {% include testing.md %} 
 {% include reference_implementation.md %} 
-{% include adapting_guidelines.md %}
 {% include downloads.md %} 
 {% include changes.md %}
 {% include endpoints.md %}
