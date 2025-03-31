@@ -5,13 +5,13 @@ This digital health trust network is a network of stakeholders that securely exc
 
 It has been broken up into the following sections:
     
-	<ul>
-<li><a href="concepts.html">Key Concepts</a></li>
-      <li><a href="functional.html">Functional Requirements</a></li>   
-      <li><a href="usecases.html">Use Cases</a></li>
-      <li><a href="personas.html">Personas</a></li>
-      <li><a href="dictionary.html">Data Dictionary</a></li>
-    </ul>
+<ul>
+ <li><a href="concepts.html">Key Concepts</a></li>
+ <li><a href="functional.html">Functional Requirements</a></li>   
+ <li><a href="usecases.html">Use Cases</a></li>
+ <li><a href="personas.html">Personas</a></li>
+ <li><a href="dictionary.html">Data Dictionary</a></li>
+</ul>
 
 
 In addition to the key concepts used throughout this document, which are defined below, additional documentation may be found on:
@@ -25,12 +25,9 @@ The <i>GDHCN Administrative and Operational Framework</i> should be considered t
 
 
 {% include concepts.md %}
-  {% include concepts_certificate_governance.md %}
-  {% include concepts_CertificatePreperation.md %}
-  {% include concepts_onboarding.md %}
-  {% include concepts_onboarding_initialguideline_full.md %}
-  {% include concepts_onboarding_initialprocess_full.md %}
-  {% include concepts_onboarding_process_full.md %}
+{% include concepts_certificate_governance.md %}
+{% include concepts_onboarding.md %}
+
 
 {% include use_cases.md %}
 {% include decision_support.md %}
