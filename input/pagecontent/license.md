@@ -1,6 +1,8 @@
-# Creative Commons Attribution 3.0 IGO (CC-BY-3.0-IGO)
+### License
 
-## Summary
+Creative Commons Attribution 3.0 IGO (CC-BY-3.0-IGO)
+
+#### Summary
 
 This is a human-readable summary of the [Creative Commons Attribution 3.0 IGO (CC-BY-3.0-IGO) License](https://creativecommons.org/licenses/by/3.0/igo/). This summary is not a substitute for the full license text.
 
@@ -17,9 +19,8 @@ Under the following conditions:
 
 - International Government Organizations (IGOs): This license is specifically designed for works created by International Government Organizations.
 
-## License Text
+#### License Text
 
 This work is licensed under the [Creative Commons Attribution 3.0 IGO (CC-BY-3.0-IGO) License](https://creativecommons.org/licenses/by/3.0/igo/).
 
 To view a copy of this license, visit [https://creativecommons.org/licenses/by/3.0/igo/](https://creativecommons.org/licenses/by/3.0/igo/) or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
-
