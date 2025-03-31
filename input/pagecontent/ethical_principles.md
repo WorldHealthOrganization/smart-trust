@@ -216,4 +216,3 @@ Digital technology should not be the only mechanism available for verification. 
         publications/i/item/who-guidelines-on-ethical-issues-in-public-health-surveillance, accessed 27 June 2021).
     </li>
 </ol>
-

@@ -1,7 +1,8 @@
+### Checklist
 <p>
     The following sections provides a checklist to review to ensure that a SMART Guidelines Implmentation Guide has the expected content and level of quality.   This checklist is broken up according four layers of knowledge representation.
   </p>
-<h3>Checklist: L1 Content</h3>
+### Checklist: L1 Content
 <a name="checklist-l1"> </a>
 <p>Checklist for narrative content relating the guidance, guidelines, policies and recommendations underpinning this Implementation Guide.
   </p>
@@ -85,7 +86,7 @@
 <td class="checklist-description">Guidance to countries on adapting the Implementation Guide for making adaptations for country use</td>
 <td class="checklist-artifacts">adapting_guidelines.xml</td>
 <td class="checklist-criteria">Page exists under the home dropdown menu</td>
-<h3>Checklist: L2 Content</h3>
+### Checklist: L2 Content
 <a name="checklist-l2"> </a>
 <p>
     Checklist for semi-structure content relating to business requirements, definitions of key concepts, user personas, use cases, and data dictionaries underpinning the Implementation Guide.
@@ -291,7 +292,7 @@
 <td class="checklist-description">List of capabilities the system must have as introduced in the L2</td>
 <td class="checklist-artifacts">nonfunctional.xml</td>
 <td class="checklist-criteria">A page for non-functional requirements under business requirements exists</td>
-<h3>Checklist: L3 Content</h3>
+### Checklist: L3 Content
 <a name="checklist-l3"> </a>
 <p>
     Checklist for structured content relating to data models, data exchange protocols with actors and transactions defined which are defined in the Implementation Guide.
@@ -498,7 +499,7 @@
 <td class="checklist-description">ValueSets defined shall map to ICD-11 or one of the WHO Family of International Classifications (FIC), if the content exists. If not an openly available reference vocabulary such as LOINC shall be used</td>
 <td class="checklist-artifacts">ValueSet, ConceptMaps, CodeSystems</td>
 <td class="checklist-criteria">QA report shows no errors for ValueSet and Library artifacts missing executable profile conformance</td>
-<h3>Checklist: L4 Content</h3>
+### Checklist: L4 Content
 <a name="checklist-l4"> </a>
 <p>
     Checklist for executable content supporting guidance for adaptation to local contexts in the Implementation Guide.
@@ -628,7 +629,7 @@
 <td class="checklist-description">All IG Content shall be available to download as zip or npm package</td>
 <td class="checklist-artifacts">Zip, npm package</td>
 <td class="checklist-criteria">Links to npm package are available</td>
-<h3>Checklist: Global</h3>
+### Checklist: Global
 <a name="checklist-general"> </a>
 <p>
     Checklist applicable for the Implementation Guide in general.

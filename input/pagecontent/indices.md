@@ -1,4 +1,6 @@
-### Indices
+## Indices 
+
+
 
 This deployment guide consists of the following indexed material:
 
@@ -9,4 +11,9 @@ This deployment guide consists of the following indexed material:
 * [Downloads](downloads.html)
 * [License](license.html)
 
-
+{% include indices.md %}
+{% include maps.xml %} 
+{% include changes.xml %}
+{% include downloads.md %} 
+{% include references.md %}
+{% include license.md %} 

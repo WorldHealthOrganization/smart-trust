@@ -160,4 +160,3 @@ See [IHE Sharing Value Sets and Concept Maps](https://profiles.ihe.net/ITI/SVCM/
 #### Trigger Events
 #### Message Semantics
 #### Expected Actions
-

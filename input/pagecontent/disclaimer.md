@@ -1,4 +1,9 @@
 
+### Disclaimer
+  
+<a name="disclaimer"> </a>
+
+
   
 <p>    The specification herewith documented is for the WHO Gloa demo working specification, and may not be used for any implementation purposes. 
     This draft is provided without warranty of completeness or consistency, and the official publication supersedes this draft.

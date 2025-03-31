@@ -27,5 +27,3 @@ The participant needs to [communicate the results] of their tests to us, a quali
 
 
 Once the acceptance stage has been successfully completed and approved, the process to Go Live on Production Environment can commence. This involves submitting the key material targeted for the production environment (as outlined in stage 1), followed by onboarding to the production environment. The participant will be notified once the Go Live on Production Environment has been successful.
-
-

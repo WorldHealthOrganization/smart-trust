@@ -1,3 +1,5 @@
+
+### Changes
 <p>
     This provides a list of changes to the SMART Trust IG
   </p>

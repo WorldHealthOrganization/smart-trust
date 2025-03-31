@@ -1,4 +1,4 @@
-### Concepts Overview
+## Business Requirements 
 
 This digital health trust network is a network of stakeholders that securely exchange and uses health information based on trust, security, and privacy principles, and is designed to ensure that health information is handled in a secure, private, and compliant manner.  Through the GDHCN, WHO serves as the custodian of a digital health trust network.
 
@@ -10,3 +10,15 @@ In addition to the key concepts used throughout this document, which are defined
 
 The <i>GDHCN Administrative and Operational Framework</i> should be considered the authoritative source of definitions and concepts in case of any discrepancies.
 
+
+{% include concepts.md %}
+  {% include concepts_certificate_governance.md %}
+  {% include concepts_CertificatePreperation.md %}
+  {% include concepts_onboarding.md %}
+  {% include concepts_onboarding_initialguideline_full.md %}
+  {% include concepts_onboarding_initialprocess_full.md %}
+  {% include concepts_onboarding_process_full.md %}
+
+{% include use_cases.md %}
+{% include decision_support.md %}
+{% include functional.md %}

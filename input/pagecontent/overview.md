@@ -1,19 +1,17 @@
-
+  
+  
+### Introduction
 
   
 <a name="scope">  </a>
 
-  
-  
-<h3>Introduction</h3>
-  
 <a name="introduction"> </a>
 
-  {% include intro.xml %}
+  {% include intro.md %}
 
 
   
-<h3>Participants</h3>
+### Participants
  
 <a name="participants"> </a>
 
@@ -26,19 +24,19 @@
 
 
   
-<h3>Available Trust Domains</h3>
+### Available Trust Domains
 
-  {% include available_trust_domains.xml %}
+  {% include available_trust_domains.md %}
   
   
-<h3>Ethical Considerations and Data Protection Principles</h3>
+### Ethical Considerations and Data Protection Principles
 
   
 <p>As with any digital solution, there are ethical considerations, such as potential impacts on equity and on equitable access, and data protection principles that need to inform the design of the technical specifications, as well as provide guidance on how resulting solutions can be ethically implemented. The following <a href="ethical_principles.html">page</a> discusses some key ethical considerations and data protection principles that Member States are encouraged to – and, where they have legal obligations, must – include in their respective deployments of digital solutions. These ethical considerations and data protection principles have also informed the design criteria for WHO’s SMART Guidelines and for the utilization of the WHO’s Global Digital Health Certification Network. </p>
 
   
   
-<h3>References</h3>
+### References
   
 <a name="references"> </a>
 
@@ -47,23 +45,27 @@
 
 
   
-<h3>Dependencies</h3>
+### Dependencies
   
 <a name="dependencies"> </a>
 
-  {% include dependencies.xml %}
+  {% include dependencies.md %}
 
     
   
-<h3>Providing Feedback</h3>
+### Providing Feedback
   
 <a name="feedback"> </a>
 
-  {% include feedback.xml %}
+  {% include feedback.md %}
 
   
-<h3>Community</h3>
+### Community
   
 <a name="Community"/>
 
-  {% include community.xml %}
+
+<p>Sign up on <a href="https://chat.fhir.org/">chat.fhir.org</a> community and follow the stream who-smart-guidelines for questions, queries and chats related to WHO SMART Guidelines</p>
+<a href="https://chat.fhir.org/">chat.fhir.org</a>
+<p>WHO also hosts weekly calls on authoring and implementing WHO SMART Guidelines where participation is welcome. Please send an email at <a href="mailto:gdhcn-support@who.int?subject = SMART Trust FHIR IG">gdhcn-support@who.int</a> in order to get invited.</p>
+<a href="mailto:gdhcn-support@who.int?subject = SMART Trust FHIR IG">gdhcn-support@who.int</a>

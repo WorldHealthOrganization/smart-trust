@@ -22,6 +22,3 @@ The general information about Smart Trust:
 
 The Smart Trust concepts and Terms of Participation: 
 (https://smart.who.int/trust/concepts.html)
-
-
-

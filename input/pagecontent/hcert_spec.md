@@ -242,4 +242,3 @@ The DSC may contain an extended key usage extension with *zero or more* key usag
 
 In absence of any key usage extension (i.e. no extensions or zero extensions), this certificate can be used to validate any type of HCERT.  Other documents MAY define relevant additional extended key usage policy identifiers used with validation of HCERTs.
 _________________
-

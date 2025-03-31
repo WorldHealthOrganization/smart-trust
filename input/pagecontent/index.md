@@ -1,10 +1,6 @@
 
 
-  {% include overview.xml %}
+{% include overview.md %}
   
   
-<h3>Disclaimer</h3>
-  
-<a name="disclaimer"> </a>
-
-  {% include disclaimer.xml %}
+{% include disclaimer.md %}

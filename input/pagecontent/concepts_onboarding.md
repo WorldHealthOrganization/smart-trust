@@ -71,5 +71,3 @@ The organizational identity and contact will be established in an offline proces
 * After positively assessing the Letter of Application and assessing the Technical Evaluation Form, WHO will:
     * provide the necessary technical specifications and configuration information to connect to their back-end systems to the WHO GDHCN Trust Network Gateway (TNG)
     * invite the GDHCN Participant to register their production certificates and promote them to the production environment.
-
-

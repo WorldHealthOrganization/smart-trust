@@ -2,14 +2,14 @@
  
 
   
-<h3>Trust Network Specifications</h3>
+### Trust Network Specifications
  
 <a name="trust-specfications"> </a>
 
 
   
   
-<h4>EU DCC </h4>
+#### EU DCC 
 
   
 <ul>
@@ -23,7 +23,7 @@
 
 
   
-<h4> DIVOC </h4>
+####  DIVOC 
 
   
 <ul>
@@ -34,7 +34,7 @@
 
 
   
-<h4>ICAO </h4>
+#### ICAO 
 
   
 <ul>
@@ -43,7 +43,7 @@
 
 
   
-<h4>SMART Health Cards </h4>
+#### SMART Health Cards 
 
   
 <ul>
@@ -55,7 +55,7 @@
 
   
   
-<h4>WHO SMART Guideline Development </h4>
+#### WHO SMART Guideline Development 
   
 <a name="smart-guidelines"> </a>
 

@@ -1,3 +1,4 @@
+### Adapting Guidelines
 <p>
     The folowing page provides a reference to all useful resources that can guide Countries while adapting the guidelines for Country use. The content below is maintained by Digital Square in the Global Goods Guidebook at https://gg-gb.digitalsquare.org
 	</p>

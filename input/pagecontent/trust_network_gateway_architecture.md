@@ -353,4 +353,3 @@ The WHO Global Digital Health Certification Network Secretariat is responsible t
 ________________
 [^1]: TNG Trust Network Gateway, formerly named Digital Documentation of Covid Certificates (DDCC) Gateway
 [^2]: DID Core,   https://www.w3.org/TR/did-core/
-
