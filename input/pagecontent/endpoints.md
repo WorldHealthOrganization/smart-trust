@@ -18,7 +18,6 @@ The list of key usage codes is maintained in the [GDHCN Key Usage Value Set](Val
 The list of onboarded Trust Network Participants is availabe in the  [GDHCN Participants Value Set](ValueSet-Participants.html).
 
 
-### Endpoints
 
 #### Trustlist Distribution Endpoints
 
@@ -35,7 +34,7 @@ THe following are the endpoints for the [GDHCN DID Trust List](concepts_did_gdhc
 
 
 
-##### Trust Network Gateway 
+#### Trust Network Gateway 
 
 
 THe following are the endpoints for the [Trust Network Gateway](concepts.html#trust-network-gateway-tng) for each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s:
