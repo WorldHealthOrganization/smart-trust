@@ -179,6 +179,7 @@ The recommended elliptic curve for EC-DSA is again NIST-p-256 due to its widespr
 
 ###### 	SCA certificate (TNP<sub>SCA</sub>)
 The following table gives guidance on the TNP<sub>SCA</sub> certificate template in case that a GDHCN Participant decides to operate its own SCA for the DCC system. **Bold** entries are required (MUST be included in the certificate), *italic* entries are recommended (SHOULD be included). For absent fields, no recommendations are defined.
+
 |Field | Value|
 |------| -----|
 |**Subject**|	**cn= \<non-empty and unique common name\>**, *o=\<Provider\>* ,**c=\<GDHCN Participant\>**|
@@ -225,6 +226,7 @@ The following table provides guidance for the GDHCN Participant Backend upload c
   
 ##### GDHCN Participant TLS Client Authentication (TNP<sub>TLS</sub>)
 The following table provides guidance for the GDHCN Participant Backend TLS client authentication certificate. **Bold** entries are required (MUST be included in the certificate), *italic* entries are recommended (SHOULD be included). For absent fields, no recommendations are defined.
+
 |Field | Value|
 |------| -----|
 |**Subject**|	**cn=\<non-empty and unique common name\>**, *o=\<Provider\>*, **c= \<GDHCN Participant that uses this TLS\>**
@@ -237,6 +239,7 @@ Beware that self-signed certificates should also contain the key usage *Certific
   
 ##### Trust list signature certificate (TNG<sub>TA</sub>)
 The following table defines the TNG Trust Anchor certificate.
+
 |Field | Value|
 |------| -----|
 |**Subject**|	**cn= Digital COVID Certificate Gateway, o=\<Provider\> , c=\<GDHCN Participant\>**
@@ -244,6 +247,7 @@ The following table defines the TNG Trust Anchor certificate.
 
 ##### TNG TLS Server certificates (TNG<sub>TLS</sub>)
 The following table defines the TNG TLS certificate.
+
 |Field | Value|
 |------| -----|
 |**Subject**|	**cn=\<FQDN or IP address of the TNG\>**, **o=\<Provider\>** ,**c= \<GDHCN Participant\>**
