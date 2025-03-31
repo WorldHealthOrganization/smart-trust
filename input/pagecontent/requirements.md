@@ -1,8 +1,9 @@
-<div xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://hl7.org/fhir ../../input-cache/schemas/R5/fhir-single.xsd">
+### Business Requirements
   
 
     This implementation guide contains the full set of specifications for general case reporting workflows. It has been broken up into the following sections:
-    <ul>
+    
+<ul>
       <li><a href="concepts.html">Key Concepts</a></li>
       <li><a href="functional.html">Functional Requirements</a></li>   
       <li><a href="usecases.html">Use Cases</a></li>
@@ -10,5 +11,5 @@
       <li><a href="dictionary.html">Data Dictionary</a></li>
     </ul>
 
+
     
-</div>

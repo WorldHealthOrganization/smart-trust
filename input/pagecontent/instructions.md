@@ -1,17 +1,24 @@
-<div xmlns="http://www.w3.org/1999/xhtml"
-     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="http://hl7.org/fhir ../../src-generated/schemas/fhir-single.xsd"
-     xmlns:xi="http://www.w3.org/2001/XInclude"
-     lang="en">
-  <a name="scope">  </a>
 
-  <p>
+  
+<a name="scope">  </a>
+
+
+  
+<p>
     This Implementation Guide, <em>smart-ig-empty</em>, is a GitHub <em>template repostiory</em> which means that it can be used as a starting point for developing a new Implementation Guide.  Following these instructions will ensure consistent styling and content structure to ease adoption of WHO's <a href="https://www.who.int/teams/digital-health-and-innovation/smart-guidelines">SMART Guidelines</a>.  This 
   </p>
-  <h3>Creating a new WHO SMART Guidline</h3><a name="new-smart"> </a>
 
-  <h4>Creating a new GitHub repository</h4><a name="github"> </a>
-  <ul>
+  
+<h3>Creating a new WHO SMART Guidline</h3>
+<a name="new-smart"> </a>
+
+
+  
+<h4>Creating a new GitHub repository</h4>
+<a name="github"> </a>
+
+  
+<ul>
     <li>
       Choose an apporpriate for the Implementation Guide you are developing.  The code of this implemenation guide is <em>smart-ig-empty</em>.  For the sake of the following instructions, we will assume that you have chosen <em>smart-ig-my-guide</em>.
     </li>
@@ -27,12 +34,17 @@ git commit --allow-empty -m "Initializing gh-pages branch"
 git push origin gh-pages
 git checkout main</pre>
       </blockquote>
-      Then, under the repoistory, navigate to 'Settings->Pages' and set the 'Source' to 'gh-pages'.
+      Then, under the repoistory, navigate to 'Settings-&gt;Pages' and set the 'Source' to 'gh-pages'.
     </li>
   </ul>
 
-  <h4>Modifying the template repository</h4><a name="modify"> </a>
-  <ul>
+
+  
+<h4>Modifying the template repository</h4>
+<a name="modify"> </a>
+
+  
+<ul>
     <li>
       Modify the following files as indiciated:
       <dl>
@@ -60,11 +72,18 @@ git checkout main</pre>
     </li>
   </ul>
 
-  <h3>Country adaptation of an existing guide</h3><a name="adaptation"> </a>
-  <p>
+
+  
+<h3>Country adaptation of an existing guide</h3>
+<a name="adaptation"> </a>
+
+  
+<p>
     Basic country adaptation of SMART Implementation Guide has a few additional steps. In this case, rather than creating a new repostiory based off of <em>smart-ig-empty</em> you should fork an existing repository, such as <em>smart-ig-anc</em>.         Determine the appropriate ISO-alpha3 and M49 ISO-3166 <a href="https://unstats.un.org/unsd/methodology/m49/">jurisdicition codes</a>.  For the purposes of these instructions, suppose it is <em>EXA</em> and <em>999</em> for an 'Example' country. 
   </p>
-  <ul>
+
+  
+<ul>
     <li>
       Name the forked repository the same as the repository you are forking from but you should add the ISO-alpha3 code to then end.  For example <em>smart-ig-anc</em> would beceom <em>smart-ig-anc-exa</em>
     </li>
@@ -95,9 +114,14 @@ git checkout main</pre>
     <li>Modify data collection resources (e.g. Questionnaires), logical models, and document structures to account for country specific data fields</li>
   </ul>
 
+
   
-  <h3>Directory layout for content</h3><a name="directory-structure"> </a>
-  <ul>
+  
+<h3>Directory layout for content</h3>
+<a name="directory-structure"> </a>
+
+  
+<ul>
     <li>
       Create your content following the <a href="#checklist">Smart Guidelines IG checklist</a> and using the following directory and file structure:
       <dl>
@@ -221,8 +245,13 @@ git checkout main</pre>
       </dl>
     </li>
   </ul>
-  <h3>Generating an implmentation guide</h3><a name="generation"> </a>
-  <ul>
+
+  
+<h3>Generating an implmentation guide</h3>
+<a name="generation"> </a>
+
+  
+<ul>
     <li>
       Install Implemenation Guide Publisher dependencies (Ubuntu instructions)
       <blockquote><pre>apt-get install npm node.js jekyll
@@ -242,7 +271,3 @@ npm install -g sushi</pre></blockquote>
       Do a github commit, let the github action run.  For a WHO SMART Guideline you can open GitHub pages at <a href="{{ site.data.fhir.packageId | split: '.' | last | prepend: 'https://smart.who.int/' }}">{{ site.data.fhir.packageId | split: '.' | last }} </a>  but change  <em>smart-ig-empty</em> to <em>smart-ig-my-guide</em>.  
     </li>
   </ul>
-
-
-
-</div>

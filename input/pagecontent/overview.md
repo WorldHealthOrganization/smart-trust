@@ -1,0 +1,69 @@
+
+
+  
+<a name="scope">  </a>
+
+  
+  
+<h3>Introduction</h3>
+  
+<a name="introduction"> </a>
+
+  {% include intro.xml %}
+
+
+  
+<h3>Participants</h3>
+ 
+<a name="participants"> </a>
+
+
+  ![Latest Status](./Participant_Onboarding_Status.jpg){:width="850em"}
+
+
+  
+<br/>
+
+
+  
+<h3>Available Trust Domains</h3>
+
+  {% include available_trust_domains.xml %}
+  
+  
+<h3>Ethical Considerations and Data Protection Principles</h3>
+
+  
+<p>As with any digital solution, there are ethical considerations, such as potential impacts on equity and on equitable access, and data protection principles that need to inform the design of the technical specifications, as well as provide guidance on how resulting solutions can be ethically implemented. The following <a href="ethical_principles.html">page</a> discusses some key ethical considerations and data protection principles that Member States are encouraged to – and, where they have legal obligations, must – include in their respective deployments of digital solutions. These ethical considerations and data protection principles have also informed the design criteria for WHO’s SMART Guidelines and for the utilization of the WHO’s Global Digital Health Certification Network. </p>
+
+  
+  
+<h3>References</h3>
+  
+<a name="references"> </a>
+
+  This Implementation Guide is based on the following 
+<a href="references.html">References</a>
+
+
+  
+<h3>Dependencies</h3>
+  
+<a name="dependencies"> </a>
+
+  {% include dependencies.xml %}
+
+    
+  
+<h3>Providing Feedback</h3>
+  
+<a name="feedback"> </a>
+
+  {% include feedback.xml %}
+
+  
+<h3>Community</h3>
+  
+<a name="Community"/>
+
+  {% include community.xml %}

@@ -1,11 +1,14 @@
-<div xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://hl7.org/fhir ../../input-cache/schemas/R5/fhir-single.xsd">
+
 {% assign excludexml = site.data.info.excludexml | downcase | slice: 0 %}
 {% assign excludejson = site.data.info.excludejson | downcase | slice: 0 %}
 {% assign excludettl = site.data.info.excludettl | downcase | slice: 0 %}
-	<p>
+	
+<p>
     Download the entire implementation guide <a href="full-ig.zip">here</a>
 	</p>
-	<table>
+
+	
+<table>
 		<tbody>
 			<tr>
 				<th>Artifact Definitions</th>
@@ -45,4 +48,3 @@
 			</tr>
 		</tbody>
 	</table>
-</div>

@@ -1,8 +1,9 @@
-<div xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://hl7.org/fhir ../../input-cache/schemas/R5/fhir-single.xsd">
 
+### Deployment Support
 
     This Implementation Guide contains the following deployment support guidance:
-    <ul>
+    
+<ul>
       <li><a href="security_privacy.html">API</a></li>
       <li><a href="qa.html">Quality Assurance</a></li>
       <li><a href="security_privacy.html">Security and Privacy Considerations</a></li>
@@ -12,6 +13,6 @@
 
 
 
+
   
     
-</div>

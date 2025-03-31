@@ -1,4 +1,6 @@
-This repository contains the template for building [onboarding](https://github.com/WorldHealthOrganization/smart-trust/blob/main/input/pagecontent/concepts_onboarding.md) information for the Smart Trust Network Attendees. This includes CSCAs, Auth information, signing information and other relevant files for onboarding a participant. Videos guides to the steps described here are available on this [page](video_tutorial.html).
+### Onboarding Checklist
+
+This repository contains the a checklist for [onboarding](concepts_onboarding.md) the Trust Network Participants. This includes CSCAs, Auth information, signing information and other relevant files for onboarding a participant. Videos guides to the steps described here are available on this [page](video_tutorial.html).
 
 {% include img.html img="Onboarding%20Process.drawio.png" caption="Onboarding Process" width ="60%" %}     
 **Prerequisites for Onboarding**
@@ -93,7 +95,7 @@ Before beginning the onboarding process, please ensure the following tools, perm
 
 **Steps to Be Followed by Participant Country:**
 
-### Git Repository
+#### Git Repository
 
 **Create a private git repository on github. One for each Environment (DEV, UAT, PROD)**
 
@@ -120,7 +122,7 @@ Before beginning the onboarding process, please ensure the following tools, perm
   
 > **Save For Later:** Be sure to securely save the **GitHub PAT (Personal Access Token)**, as it will be needed in upcoming steps.
 
-### Local Repository
+#### Local Repository
 
 - Go to local repo
 - Clone the new Github repo in your local repo
@@ -132,7 +134,7 @@ Before beginning the onboarding process, please ensure the following tools, perm
 	- git pull template-repo main
 	```
 
-### Invite tng-bot
+#### Invite tng-bot
 - Add tng-bot to new repository
 	> Please check [Invite tng-bot to private repository](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.2.full-video.v2.mp4) video for reference	
 - Go to Repository -> Settings
@@ -146,7 +148,7 @@ Before beginning the onboarding process, please ensure the following tools, perm
 </video>
 
 
-### Generate GPG Key
+#### Generate GPG Key
 - Create GPG Keys for responsible persons for each environment
 	> Note: Before generating a new GPG key, make sure you've verified your email address. If you haven't verified your email address, you won't be able to sign commits and tags with GPG.
 	> Please check [GPG key Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.2.full-video.v2.mp4)  video for reference
@@ -220,9 +222,9 @@ Before beginning the onboarding process, please ensure the following tools, perm
   <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.3.full-video.v2.mp4" type="video/mp4">
 </video>
 
-### Create Certificates
+#### Create Certificates
 	
-#### Certificate Preparation for DEV and UAT
+##### Certificate Preparation for DEV and UAT
 
 > **Disclaimer**: This script is designed to create self-signed certificates solely for non-production environments, such as DEV and UAT, not intended to be used on production environments. To use it, **choose the appropriate script for your operating system**:
 > 
@@ -234,7 +236,7 @@ Before beginning the onboarding process, please ensure the following tools, perm
 These scripts, along with the provided configuration files, serve as guidelines for [certificate preparation](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/README.md) .
 
 
-#### If your Operating Systems is Unix/Linux/Mac
+##### If your Operating Systems is Unix/Linux/Mac
 >
 - To customize certificate parameters, update the [DN_template.cnf](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/DN_template.cnf) file, which will be used by the [gen_all_certs.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.sh) script.
 - Modify the following default certificate parameters as needed.
@@ -250,7 +252,7 @@ export OSSL_COMMON_NAME="NationXC_TNP
 > Note: OSSL_COUNTRY_NAME should be ISO 2 letter name of the country mapped to the name used in repository.
 
 
-#### If your Operating Systems is Windows
+##### If your Operating Systems is Windows
 >
 For Windows, use the [gen_all_certs.ps1](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_all_certs.ps1) PowerShell script. You can modify the environment variables directly within the script or set them in your current PowerShell session:
 
@@ -276,7 +278,7 @@ Please note that you need to have  [OpenSSL installed](https://slproweb.com/prod
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
 ```
  
-#### How to Run Script :
+##### How to Run Script :
 
 - Once you execute the script. It will generate all certificates and keys in a subfolder named by current datetime.
 - **Notes**: While execution of "gen_all_certs.sh" script on **Unix/Linux/Mac Operating System,** Please provide script argument "DN_template.cnf" file which consists of country related information to generate all required certificates (TLS,SCA,UP)
@@ -295,7 +297,7 @@ cd scripts/certgen
  
 This setup generates all required certificates (TLS, SCA, UP) and keys in a timestamped subfolder, based on the configuration specified in DN_template.cnf for Unix/Linux and the environment variables set in the current PowerShell session for Windows.
 
-#### Prepare Folders
+##### Prepare Folders
 
 > Note: keep your private keys safe and secure. Do not share them with anyone.
 
@@ -309,7 +311,7 @@ Files to be copied in respective folders are as follows:
 >Note: On DEV and UAT environment, if the files are generated using a script, delete the generated folder before committing the files.
 	
 
-#### Certification Preparation for Prod
+##### Certification Preparation for Prod
 
 This guide follows the certificate templates defined in the certificate governance. Public Key Certificates generated by following this guide will include the minimal required fields - further fields can be added in the configuration files if needed.Self-signed certificates are typically used in DEV and UAT environments.
 
@@ -323,7 +325,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 - DSA with SHA-256
 - Legacy: SHA-256 with RSA Encryption
 
-##### SCA certificate (TNP<sub>SCA</sub>) generation example
+###### SCA certificate (TNP<sub>SCA</sub>) generation example
 > Please check [SCA Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.SCA.v2.mp4) video  for reference
 
 - *sca.conf*: Create a new file called sca.conf and replace the dn entries with your jurisdiction’s details.
@@ -359,7 +361,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
   <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.SCA.v2.mp4" type="video/mp4">
 </video>
 
-##### DSC generation example
+###### DSC generation example
 **DSC generation example**
 	Document Signer Certificates (DSCs) must be signed by the SCA. Hence, you have to create the SCA certificate (with the corresponding private key) before you can issue DSCs.
 
@@ -405,7 +407,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
   <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/3.2.and3.3.full-video.v2.mp4" type="video/mp4">
 </video>
 
-##### TNP<sub>UP</sub> generation example
+###### TNP<sub>UP</sub> generation example
 
 - *uploadCert.conf*
 > Please check [UP Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.UP.v2.mp4)  video for reference
@@ -440,7 +442,7 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
   <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.UP.v2.mp4" type="video/mp4">
 </video>
 
-##### TNP<sub>TLS</sub> generation example
+###### TNP<sub>TLS</sub> generation example
 
 - *TLSClient.conf*
 > Please check  [TLS Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.TLS.v2.mp4) video for reference 
@@ -489,7 +491,7 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
   <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.TLS.v2.mp4" type="video/mp4">
 </video>
 
-### Provide
+#### Provide
 
 > Please check  [Signing (tag) certificates](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.4.full-video.v2.mp4) video for reference
 
@@ -576,13 +578,13 @@ Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use R
 **Everyone Must Sign - Always a good idea**
 Signing tags and commits is great, but if you decide to use this in your normal workflow, you’ll have to make sure that everyone on your team understands how to do so. This can be achieved by asking everyone working with the repository to run git config --local commit.gpgsign true to automatically have all of their commits in the repository signed by default. If you don’t, you’ll end up spending a lot of time helping people figure out how to rewrite their commits with signed versions. Make sure you understand GPG and the benefits of signing things before adopting this as part of your standard workflow.
 
-### Send an onboarding/participation request
+#### Send an onboarding/participation request
 
 - Send an onboarding/participation request to gdhcn-support@who.int which contains:
     - URL of the private repository created as a prerequisite
     - The GPG key ( Beginning with -----BEGIN PGP PUBLIC KEY BLOCK----- and ending with -----END PGP PUBLIC KEY BLOCK-----) exported in Step [1.8.6.4](#generate-gpg-key)
   
-### Validate the connection
+#### Validate the connection
 - Once the confirmation of successful onboarding is received from the TNG Support Team ( gdhcn-support@who.int), please do the following 
 
 
@@ -618,7 +620,7 @@ You should see a output like:
 ```
 - Test the other Trustlist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication…)
 
-### Upload CMS Package
+#### Upload CMS Package
 - Create an Document Signer Certificate and sign it by the SCA [Refer](#certification-preparation-for-prod) and [DSC generation example](#dsc-generation-example)
 
 - Create an CMS Package with the following Command:
@@ -714,9 +716,9 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 
 
 
-### Appendix
+#### Appendix
 
-#### Further example configuration files
+##### Further example configuration files
 The following configuration files have been provided during the alignment on the [certificate governance](https://worldhealthorganization.github.io/smart-trust/concepts_certificate_governance.html). The configuration files contain additional fields that a Trust Network Participant might want to include and use. The config-files are not tested with the OpenSSL commands provided above.
 
 - *SCA Conf*
@@ -791,7 +793,7 @@ The following configuration files have been provided during the alignment on the
 	notAfter                = IMPLICIT:1,GENERALIZEDTIME:$ENV::DS_PRIV_KEY_END
 	```
 
-#### Steps to Obtain and Use a CA-Signed Certificate
+##### Steps to Obtain and Use a CA-Signed Certificate
 
 - Generate a Certificate Signing Request (CSR)
 To begin, generate a CSR using the following OpenSSL command. This request will include a new private key and a configuration file:
@@ -818,7 +820,7 @@ Once you receive the CA-signed certificate, you will use it instead of generatin
 cp signed_CA_cert.pem ${subdir}/CAcert.pem 
 cp CAprivkey.key ${subdir}/CAprivkey.key
 
-#### More information about Git commit, signing and tagging commands
+##### More information about Git commit, signing and tagging commands
 
 
 **Signing Your Work**
