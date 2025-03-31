@@ -20,16 +20,7 @@ participants_valueset = "input/fsh/valuesets/Participants.fsh"
 
 
 
-
-
 def usage():
-    print("Usage: scans input/system-requirements for excel sheets ")
-    print("where the referenced excel contains a sheet entitled 'Non-functional'")
-    print("and one entitled 'Functional' which contain the requirements.")
-    print("The header row of the 'Non-functional' sheet should contain: ")
-    print("   " , ', '.join(nonfunctional_headers))
-    print("The header row of the 'Functional' sheet should contain: ")
-    print("   " , ', '.join(nonfunctional_headers))
     print("OPTIONS:")
     print(" none")
     print("--help|h : print this information")
@@ -87,6 +78,7 @@ def load_participants():
                 matches.append(match.group()[-3:])
     return  matches
 
+
 def extract_countries(data):
     participants = load_participants()
 
@@ -104,30 +96,60 @@ def extract_countries(data):
         codes += "* #" + country['Code'] + ' "' + escape(country['Title']) + '"\n'
 
         if (country['Code']in participants):    
-            participantid = "GDHCNParticipant-" + country['Code']
-            didendpointid = "GDHCNParticipantDID-" + country['Code']
+            participantid = "GDHCNParticipant-" + country['Code']            
+            endpointreferences = ""
             
-            instance = "Instance: " + participantid + "\n"
-            instance += "InstanceOf: IHE.mCSD.Organization\n"
-            instance += "Usage: #definition" + "\n"
-            instance += '* name = "' + escape(country['Title']) + '"\n'
-            instance += '* type = $orgType#govt\n'
-            instance += '\n'
-
+            didendpointid = "GDHCNParticipantDID-" + country['Code'] + "-All"
             endpoint =  "Instance: " + didendpointid + "\n"
             endpoint += "InstanceOf: IHE.mCSD.Endpoint\n"
             endpoint += "Usage: #definition" + "\n"
-            endpoint += '* name = "' + escape(country['Title']) + ' Trust List (DID v2)"\n'
+            endpoint += '* name = "' + escape(country['Title']) + ' Trustlist (DID v2) - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:' + country['Code'] + '\nresolvable at http://tng-cdn.who.int/v2/trustlist/-/' + country['Code'] + '/did.json"\n'
             endpoint += "* managingOrganization = Reference(Organization/" + participantid + ")\n"
             endpoint += "* status = #active\n"
             endpoint += "* connectionType = $ConnectionTypes#http-get\n"
             endpoint += "* payloadMimeType = #application/did\n"
             endpoint += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
-            endpoint += '* address = "http://tng-cdn.who.int/v2/trustlist/-/' + country['Code'] + '/did.json"\n'
-            
+            endpoint += '* address = "did:web:tng-cdn.who.int:v2:trustlist:-:' + country['Code'] + '"\n'            
             endpoints += endpoint + "\n"
-            instances += instance + "\n"
+            endpointreferences += "* endpoint[+] = Reference(" + didendpointid + ")\n"
+
+            didendpointid = "GDHCNParticipantDID-" + country['Code'] + "-DSC"
+            endpoint =  "Instance: " + didendpointid + "\n"
+            endpoint += "InstanceOf: IHE.mCSD.Endpoint\n"
+            endpoint += "Usage: #definition" + "\n"
+            endpoint += '* name = "' + escape(country['Title']) + ' Trustlist (DID v2) - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:' + country['Code'] + ':DSC\nresolvable at http://tng-cdn.who.int/v2/trustlist/-/' + country['Code'] + '/DSC/did.json"\n'
+            endpoint += "* managingOrganization = Reference(Organization/" + participantid + ")\n"
+            endpoint += "* status = #active\n"
+            endpoint += "* connectionType = $ConnectionTypes#http-get\n"
+            endpoint += "* payloadMimeType = #application/did\n"
+            endpoint += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
+            endpoint += '* address = "did:web:tng-cdn.who.int:v2:trustlist:-:' + country['Code'] + '"\n'            
+            endpoints += endpoint + "\n"
+            endpointreferences += "* endpoint[+] = Reference(" + didendpointid + ")\n"
+
+            didendpointid = "GDHCNParticipantDID-" + country['Code'] + "-SCA"
+            endpoint =  "Instance: " + didendpointid + "\n"
+            endpoint += "InstanceOf: IHE.mCSD.Endpoint\n"
+            endpoint += "Usage: #definition" + "\n"
+            endpoint += '* name = "' + escape(country['Title']) + ' Trustlist (DID v2) - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:' + country['Code'] + ':DSC\nresolvable at http://tng-cdn.who.int/v2/trustlist/-/' + country['Code'] + '/SCA/did.json"\n'
+            endpoint += "* managingOrganization = Reference(Organization/" + participantid + ")\n"
+            endpoint += "* status = #active\n"
+            endpoint += "* connectionType = $ConnectionTypes#http-get\n"
+            endpoint += "* payloadMimeType = #application/did\n"
+            endpoint += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
+            endpoint += '* address = "did:web:tng-cdn.who.int:v2:trustlist:-:' + country['Code'] + '"\n'            
+            endpoints += endpoint + "\n"
+            endpointreferences += "* endpoint[+] = Reference(" + didendpointid + ")\n"
+            
         
+            instance = "Instance: " + participantid + "\n"
+            instance += "InstanceOf: IHE.mCSD.Organization\n"
+            instance += "Usage: #definition" + "\n"
+            instance += '* name = "' + escape(country['Title']) + '"\n'
+            instance += '* type = $orgType#govt\n'
+            instance += endpointreferences 
+            instance += '\n'
+            instances += instance + "\n"
 
         
     printout(codes,gho_filename)
