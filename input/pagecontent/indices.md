@@ -11,9 +11,7 @@ This deployment guide consists of the following indexed material:
 * [Downloads](downloads.html)
 * [License](license.html)
 
-{% include indices.md %}
-{% include maps.xml %} 
-{% include changes.xml %}
-{% include downloads.md %} 
+
 {% include references.md %}
+{% include maps.md %} 
 {% include license.md %} 
