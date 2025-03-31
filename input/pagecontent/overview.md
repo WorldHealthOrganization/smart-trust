@@ -4,9 +4,6 @@
   
 <a name="scope">  </a>
 
-
-    
-#### Overview
 <a name="Overview"> </a>
 
     
@@ -130,7 +127,6 @@ existing trust networks or potential verifiers who may participate in the federa
   
     
   
-#### Providing Feedback
   
 <a name="feedback"> </a>
 
