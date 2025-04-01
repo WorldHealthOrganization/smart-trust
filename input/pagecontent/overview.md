@@ -118,7 +118,7 @@ existing trust networks or potential verifiers who may participate in the federa
 
 <p>The codes for the GDHCN Trust Domains are contained in the <a href="ValueSet-Domains.html">GDHCN Trust Domain Value Set</a> and are described in more detail <a href="trust_domains.html">here</a>.
 
-  
+</p>  
   
 #### Ethical Considerations and Data Protection Principles
 
