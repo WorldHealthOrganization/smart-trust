@@ -1,5 +1,8 @@
 Instance: GDHCNParticipantDID-ALB-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Albania Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:ALB
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/ALB/did.json"
 Usage: #definition
 * name = "Albania Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:ALB
@@ -39,6 +42,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/ALB/SCA/did.json"
 
 Instance: GDHCNParticipantDID-AND-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Andorra Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:AND
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/AND/did.json"
 Usage: #definition
 * name = "Andorra Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:AND
@@ -78,6 +84,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/AND/SCA/did.json"
 
 Instance: GDHCNParticipantDID-ARM-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Armenia Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:ARM
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/ARM/did.json"
 Usage: #definition
 * name = "Armenia Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:ARM
@@ -117,6 +126,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/ARM/SCA/did.json"
 
 Instance: GDHCNParticipantDID-BEL-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Belgium Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:BEL
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/BEL/did.json"
 Usage: #definition
 * name = "Belgium Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:BEL
@@ -156,6 +168,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/BEL/SCA/did.json"
 
 Instance: GDHCNParticipantDID-BRA-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Brazil Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:BRA
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/BRA/did.json"
 Usage: #definition
 * name = "Brazil Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:BRA
@@ -195,6 +210,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/BRA/SCA/did.json"
 
 Instance: GDHCNParticipantDID-CYP-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Cyprus Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:CYP
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/CYP/did.json"
 Usage: #definition
 * name = "Cyprus Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:CYP
@@ -234,6 +252,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/CYP/SCA/did.json"
 
 Instance: GDHCNParticipantDID-CZE-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Czechia Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:CZE
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/CZE/did.json"
 Usage: #definition
 * name = "Czechia Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:CZE
@@ -273,6 +294,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/CZE/SCA/did.json"
 
 Instance: GDHCNParticipantDID-BEN-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Benin Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:BEN
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/BEN/did.json"
 Usage: #definition
 * name = "Benin Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:BEN
@@ -312,6 +336,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/BEN/SCA/did.json"
 
 Instance: GDHCNParticipantDID-EST-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Estonia Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:EST
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/EST/did.json"
 Usage: #definition
 * name = "Estonia Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:EST
@@ -351,6 +378,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/EST/SCA/did.json"
 
 Instance: GDHCNParticipantDID-FRO-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Faroe Islands Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:FRO
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/FRO/did.json"
 Usage: #definition
 * name = "Faroe Islands Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:FRO
@@ -390,6 +420,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/FRO/SCA/did.json"
 
 Instance: GDHCNParticipantDID-FIN-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Finland Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:FIN
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/FIN/did.json"
 Usage: #definition
 * name = "Finland Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:FIN
@@ -429,6 +462,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/FIN/SCA/did.json"
 
 Instance: GDHCNParticipantDID-FRA-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "France Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:FRA
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/FRA/did.json"
 Usage: #definition
 * name = "France Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:FRA
@@ -468,6 +504,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/FRA/SCA/did.json"
 
 Instance: GDHCNParticipantDID-ISL-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Iceland Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:ISL
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/ISL/did.json"
 Usage: #definition
 * name = "Iceland Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:ISL
@@ -507,6 +546,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/ISL/SCA/did.json"
 
 Instance: GDHCNParticipantDID-IDN-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Indonesia Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:IDN
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/IDN/did.json"
 Usage: #definition
 * name = "Indonesia Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:IDN
@@ -546,6 +588,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/IDN/SCA/did.json"
 
 Instance: GDHCNParticipantDID-IRL-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Ireland Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:IRL
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/IRL/did.json"
 Usage: #definition
 * name = "Ireland Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:IRL
@@ -585,6 +630,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/IRL/SCA/did.json"
 
 Instance: GDHCNParticipantDID-LVA-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Latvia Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:LVA
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/LVA/did.json"
 Usage: #definition
 * name = "Latvia Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:LVA
@@ -624,6 +672,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/LVA/SCA/did.json"
 
 Instance: GDHCNParticipantDID-LTU-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Lithuania Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:LTU
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/LTU/did.json"
 Usage: #definition
 * name = "Lithuania Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:LTU
@@ -663,6 +714,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/LTU/SCA/did.json"
 
 Instance: GDHCNParticipantDID-MYS-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Malaysia Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:MYS
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/MYS/did.json"
 Usage: #definition
 * name = "Malaysia Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:MYS
@@ -702,6 +756,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/MYS/SCA/did.json"
 
 Instance: GDHCNParticipantDID-MLT-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Malta Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:MLT
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/MLT/did.json"
 Usage: #definition
 * name = "Malta Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:MLT
@@ -741,6 +798,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/MLT/SCA/did.json"
 
 Instance: GDHCNParticipantDID-MCO-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Monaco Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:MCO
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/MCO/did.json"
 Usage: #definition
 * name = "Monaco Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:MCO
@@ -780,6 +840,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/MCO/SCA/did.json"
 
 Instance: GDHCNParticipantDID-OMN-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Oman Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:OMN
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/OMN/did.json"
 Usage: #definition
 * name = "Oman Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:OMN
@@ -819,6 +882,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/OMN/SCA/did.json"
 
 Instance: GDHCNParticipantDID-NLD-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Netherlands (Kingdom of the) Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:NLD
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/NLD/did.json"
 Usage: #definition
 * name = "Netherlands (Kingdom of the) Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:NLD
@@ -858,6 +924,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/NLD/SCA/did.json"
 
 Instance: GDHCNParticipantDID-NZL-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "New Zealand Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:NZL
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/NZL/did.json"
 Usage: #definition
 * name = "New Zealand Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:NZL
@@ -897,6 +966,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/NZL/SCA/did.json"
 
 Instance: GDHCNParticipantDID-POL-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Poland Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:POL
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/POL/did.json"
 Usage: #definition
 * name = "Poland Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:POL
@@ -936,6 +1008,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/POL/SCA/did.json"
 
 Instance: GDHCNParticipantDID-PRT-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Portugal Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:PRT
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/PRT/did.json"
 Usage: #definition
 * name = "Portugal Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:PRT
@@ -975,6 +1050,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/PRT/SCA/did.json"
 
 Instance: GDHCNParticipantDID-SMR-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "San Marino Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:SMR
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/SMR/did.json"
 Usage: #definition
 * name = "San Marino Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:SMR
@@ -1014,6 +1092,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/SMR/SCA/did.json"
 
 Instance: GDHCNParticipantDID-SGP-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Singapore Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:SGP
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/SGP/did.json"
 Usage: #definition
 * name = "Singapore Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:SGP
@@ -1053,6 +1134,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/SGP/SCA/did.json"
 
 Instance: GDHCNParticipantDID-SVK-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Slovakia Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:SVK
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/SVK/did.json"
 Usage: #definition
 * name = "Slovakia Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:SVK
@@ -1092,6 +1176,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/SVK/SCA/did.json"
 
 Instance: GDHCNParticipantDID-SVN-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Slovenia Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:SVN
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/SVN/did.json"
 Usage: #definition
 * name = "Slovenia Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:SVN
@@ -1131,6 +1218,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/SVN/SCA/did.json"
 
 Instance: GDHCNParticipantDID-ESP-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Spain Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:ESP
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/ESP/did.json"
 Usage: #definition
 * name = "Spain Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:ESP
@@ -1170,6 +1260,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/ESP/SCA/did.json"
 
 Instance: GDHCNParticipantDID-SWE-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Sweden Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:SWE
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/SWE/did.json"
 Usage: #definition
 * name = "Sweden Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:SWE
@@ -1209,6 +1302,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/SWE/SCA/did.json"
 
 Instance: GDHCNParticipantDID-THA-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Thailand Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:THA
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/THA/did.json"
 Usage: #definition
 * name = "Thailand Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:THA
@@ -1248,6 +1344,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/THA/SCA/did.json"
 
 Instance: GDHCNParticipantDID-TGO-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Togo Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:TGO
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/TGO/did.json"
 Usage: #definition
 * name = "Togo Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:TGO
@@ -1287,8 +1386,11 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/TGO/SCA/did.json"
 
 Instance: GDHCNParticipantDID-TUR-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Türkiye Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:TUR
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/TUR/did.json"
 Usage: #definition
-* name = "TÃ¼rkiye Trustlist (DID v2) - All keys
+* name = "Türkiye Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:TUR
 resolvable at http://tng-cdn.who.int/v2/trustlist/-/TUR/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TUR)
@@ -1301,7 +1403,7 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/TUR/did.json"
 Instance: GDHCNParticipantDID-TUR-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "TÃ¼rkiye Trustlist (DID v2) - Document Signing Certificates
+* name = "Türkiye Trustlist (DID v2) - Document Signing Certificates
 did:web:tng-cdn.who.int:v2:trustlist:-:TUR:DSC
 resolvable at http://tng-cdn.who.int/v2/trustlist/-/TUR/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TUR)
@@ -1314,7 +1416,7 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/TUR/DSC/did.json"
 Instance: GDHCNParticipantDID-TUR-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "TÃ¼rkiye Trustlist (DID v2) - Certificate Signing Authority
+* name = "Türkiye Trustlist (DID v2) - Certificate Signing Authority
 did:web:tng-cdn.who.int:v2:trustlist:-:TUR:DSC
 resolvable at http://tng-cdn.who.int/v2/trustlist/-/TUR/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TUR)
@@ -1326,6 +1428,9 @@ resolvable at http://tng-cdn.who.int/v2/trustlist/-/TUR/SCA/did.json"
 
 Instance: GDHCNParticipantDID-UKR-All
 InstanceOf: IHE.mCSD.Endpoint
+Description: "Ukraine Trustlist (DID v2) - All keys
+did:web:tng-cdn.who.int:v2:trustlist:-:UKR
+resolvable at http://tng-cdn.who.int/v2/trustlist/-/UKR/did.json"
 Usage: #definition
 * name = "Ukraine Trustlist (DID v2) - All keys
 did:web:tng-cdn.who.int:v2:trustlist:-:UKR

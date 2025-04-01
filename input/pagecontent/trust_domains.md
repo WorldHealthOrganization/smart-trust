@@ -5,7 +5,7 @@ A Trust Domain consists of:
 *	a set of policy and regulatory standards describing expected behavior of GDHCN Participants in relation to operation of the Trusted Services and utilization of Verifiable Digital Health Certificates (e.g. data minimization, privacy, scope of use).
 
 
-  <p>The codes for the GDHCN Trust Domains are contained in the <a href="ValueSet-WHO.TRUST.DOMAIN.html">GDHCN Trust Domain Value Set</a>.
+  <p>The codes for the GDHCN Trust Domains are contained in the <a href="ValueSet-Domains.html">GDHCN Trust Domain Value Set</a>.
   </p>
 
 
