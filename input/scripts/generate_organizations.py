@@ -10,7 +10,7 @@ import getopt
 import urllib3 as urllib
 import json
 
-# the WHO GHO Country List
+# the WHO RefMart Country List
 refmart_country_list_url = "https://xmart-api-public.who.int/REFMART/REF_COUNTRY"
 
 participants_filename = "input/fsh/instances/participants.fsh"
