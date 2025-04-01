@@ -148,4 +148,4 @@ A service (digital or otherwise) related to the issuance, management, verificati
 #### Verifiable Digital Health Certificate
 Verifiable Digital Health Certificate: A digital representation of a data set comprising a certificate or document, designed for a set of specific clinical or public health use cases which is defined using open, interoperable digital health standards; that contains within, or is associated to, a digital signature which can be verified by the public key of a public-private encryption key pair, and which is issued by a GDHCN Participant.
 
-The specific Verifiable Digital Health Certificates are defined in the [Content Profiles](content_profiles.html)
+The specific Verifiable Digital Health Certificates are defined in the [Content Profiles](trust_domains.html)

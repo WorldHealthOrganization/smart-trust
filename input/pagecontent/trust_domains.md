@@ -19,7 +19,7 @@ The [Digital Documentation of COVID-19 Certificates (DDCC)](https://www.who.int/
   ![DDCC QR Codes and Logical Models](./ddcc_vs_qr_lm.png){:width="850em"}
 </div>
 
-<div/> <p/>
+
 <br />
 
 
