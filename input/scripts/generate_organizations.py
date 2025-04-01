@@ -94,7 +94,7 @@ def escape(str):
     return str.replace('"', r'\"')
 
 def load_participants():
-    pattern = "^\\* \\$RefmartCountryList#([A-Z]{3})"
+    pattern = "^\\* \\$RefMartCountryList#([A-Z]{3})"
     compiled_pattern = re.compile(pattern)
     matches = []
     with open(participants_valueset, 'r') as file:
@@ -107,7 +107,7 @@ def load_participants():
 
 def extract_countries(data):
     participants = load_participants()
-
+    print (participants)
     instances = ""
     endpoints = ""
     codes = "CodeSystem: RefMartCountryList\n"
@@ -121,7 +121,8 @@ def extract_countries(data):
 
         codes += "* #" + country['CODE_ISO_3'] + ' "' + escape(country['NAME_SHORT_EN']) + '"\n'
 
-        if (country['CODE_ISO_3']in participants):    
+        
+        if (country['CODE_ISO_3'] in participants):    
             participantid = "GDHCNParticipant-" + country['CODE_ISO_3']            
             endpointreferences = ""
             
