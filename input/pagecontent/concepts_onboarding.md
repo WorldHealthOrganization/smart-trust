@@ -15,7 +15,7 @@ The GDHCN Secretariat manages the Onboarding Process and Letters of Applications
 
 Please review the:
 * [Concepts](concepts.html) underpinning the description of these on-boarding processes including the general description of the Terms of Participation;
-* [Onboarding Overview](concepts_onboarding_initialproces_full.html) describing the overview of the onboarding process; 
+* [Onboarding Overview](concepts_onboarding_process_full.html) describing the overview of the onboarding process; 
 * [Certificate Governance](concepts_certificate_governance.html) describing the governance of public key certificates; 
 
 An eligible GDHCN Participant should complete the [Onboarding Checklist](concepts_onboarding_checklist.html) which contains guiding videos through the onboarding process.
