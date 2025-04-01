@@ -1,4 +1,6 @@
-### Federated PKD Aggregation
+### Use Cases
+
+#### Federated PKD Aggregation
 
 Keys from Local PKDs are aggregated in a federated PKD for use by verification
 applications.
@@ -9,7 +11,7 @@ applications.
 
 **TRANSACTION:** Mirror Local PKD
 
-### Federated Verification
+#### Federated Verification
 
 Verifications can cryptographically verify health credentials using keys retrieved from
 the Federated PKD.
@@ -21,7 +23,7 @@ the Federated PKD.
 
 **TRANSACTION:** Request PKD
 
-### Dynamic Business Rule Validation​
+#### Dynamic Business Rule Validation​
 
 Validate one or more verified COVID credential against a dynamic business rule.​
 
