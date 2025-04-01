@@ -9,6 +9,12 @@
 </figure>
 
 
+####  <a id="routine_sync"></a> Verification of a Digital Health Certificates
+<figure style="width:70%">
+ {% include verify_vdhc.svg %}
+</figure>
+
+
 
 
 #### Federated PKD Aggregation

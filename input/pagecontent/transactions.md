@@ -1,3 +1,11 @@
+### Publish Keys {#publish_keys}
+#### Trigger Events
+The Trust Network Participant, or one of its authorized Issuers, generates a new public-private key pair for use for document signing.
+#### Message Semantics
+See the [EU DCC Open API](openapi/index.html#/GDHCN/postTrustedCertificate) documentation.  The key usage is DSC for Document Signing Certificate
+#### Expected Actions
+The Trust Anchor will validate the submitted key material and distribute it to other Trust Network Participants
+
 ### Mirror Local PKD {#mirror_keys}
 #### Trigger Events
 #### Message Semantics
