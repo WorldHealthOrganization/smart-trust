@@ -2,20 +2,19 @@
 
 {% assign actorstub = "ActorDefinition-" | append: actordefinition.id %}
 {% assign canonicals = site.data.canonicals | where: 'type' , 'Requirements' %}
-
+<pre>Req={{ canonicals | escape }}</pre>
 This actor fulfills the following requirements:
 <ul>
   {% for canonical in canonicals %}
     {% assign stub = canonical.type | append: "-" | append: canonical.id %}
     {% assign requirement = site.data[stub] %}
-    {% assign reqactors =  requirement.extension | where: 'url', 'http://hl7.org/fhir/5.0/StructureDefinition/extension-Requirements.actor' %}
+    {% assign reqactors =  requirement.actor %}
     {% for reqactor in reqactors %}
-      {% assign reqactorcanonical = reqactor.valueCanonical | split: "/" | last   %}
+      {% assign reqactorcanonical = reqactor | split: "/" | last   %}
       {% assign reqactorstub = "ActorDefinition-" | append: reqactorcanonical %}
+      <li>Checking {{ reqactorstub }} == {{ actorstub }} </li>
       {% unless reqactorstub != actorstub %}
-        {% assign reqtitle = requirement.extension 
-           | where: "url", "http://hl7.org/fhir/5.0/StructureDefinition/extension-Requirements.title"
-           | first %}
+        {% assign reqtitle = requirement.title %}
         <li>
           <b><a href="Requirements-{{requirement.id}}.html">{{ reqtitle.valueString | escape }}</a></b>
         </li>

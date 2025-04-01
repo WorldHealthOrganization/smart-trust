@@ -32,4 +32,4 @@ Alias: $DDCCVS = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetVS
 Alias: $DDCCTR = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetTR
 Alias: $DVC = http://smart.who.int/trust-phw/StructureDefinition/DVC
 
-Alias: $GHOCountryList = http://smart.who.int/trust/CodeSystem/GHOCountryList
+Alias: $RefMartCountryList = http://smart.who.int/refmart/CodeSystem/REF_COUNTRY

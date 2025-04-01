@@ -3,16 +3,16 @@
 
 
 
-Actors produce, manage, or act on health information. Actors relevant to the SMARTx Trust Network are as follows.
+Actors produce, manage, or act on health information. Actors relevant to the SMART Trust Network are as follows.
 
-A
+
 {% assign canonicals = site.data.canonicals | where: 'type' , 'ActorDefinition' %}
 {% for canonical in canonicals %}
    {% assign stub = canonical.type | append: "-" | append: canonical.id %}
    {% assign actordefinition = site.data[stub] %}
    {% include actordefinition-short-summary.liquid actordefinition=actordefinition site=site %}
 {% endfor %}
-B
+
 
 
 
