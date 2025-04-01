@@ -8,7 +8,7 @@ It has been broken up into the following sections:
 <ul>
  <li><a href="concepts.html">Key Concepts</a></li>
  <li><a href="functional.html">Functional Requirements</a></li>   
- <li><a href="usecases.html">Use Cases</a></li>
+ <li><a href="use_cases.html">Use Cases</a></li>
  <li><a href="personas.html">Personas</a></li>
  <li><a href="dictionary.html">Data Dictionary</a></li>
 </ul>
