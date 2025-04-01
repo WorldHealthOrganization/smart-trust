@@ -1,9 +1,9 @@
 
 ## Data Models and Exchange
 
-{% include actors.md %}
+{% include system-actors.md %}
 {% include transactions.md %}
-{% include workflows.md %}
+{% include sequence-diagrams.md %}
 {% include trust_domains.md %}
 {% include trust_network_gateway_architecture.md %}
 

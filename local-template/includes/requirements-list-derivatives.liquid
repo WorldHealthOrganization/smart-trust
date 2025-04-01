@@ -1,0 +1,20 @@
+This requirement has the following derivatives:
+{% assign canonicals = site.data.canonicals | where: 'type' , 'Requirements' %}
+<ul>
+  {% for canonical in canonicals %}
+    {% assign stub = canonical.type | append: "-" | append: canonical.id %}
+    {% assign req = site.data[stub] %}
+    {% assign dfs  =  req.extension
+      | where: 'url', 'http://hl7.org/fhir/5.0/StructureDefinition/extension-Requirements.derivedFrom' %}
+    {% for df in dfs %}
+      {% assign dfinstance = df.valueCanonical | split: "/" | last   %}    
+      {% if dfinstance == requirement.id %}
+        {% assign reqtitle = req.extension 
+           | where: "url", "http://hl7.org/fhir/5.0/StructureDefinition/extension-Requirements.title"
+           | first %}
+        <li><a href="Requirements-{{ req.id}}.html">{{ reqtitle.valueString | escape }}</a></li>        
+      {% endif %}
+    {% endfor %}	
+  {% endfor %}
+
+</ul> 
