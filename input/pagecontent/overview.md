@@ -17,9 +17,10 @@
       The GDHCN is a digital reflection of the trust WHO already has with Member States. The GDHCN is a digital trust network is based on proven <a href="concepts.html"> concepts</a> which are used to describe the specifications and mechanisms for establishing trust, which allow eligible participants to establish new <a href="concepts.html#trust-domain">trust domains</a> for exchange of verifiable digital health records. Eligible participants of the trust network may apply to join by following an <a href="concepts_onboarding.html">on-boarding process</a>.   The GDHCN is operated under the <a href="GDHCN_Administrative_and_Operational_Framework.pdf">GDHCN Administrative and Operational Framework</a>.
     </p>
 
-    
-{% include img.html img="trust_network.png" caption="Trust Network" width="70%" %}    
 
+<div style="display:block">
+{% include img.html img="trust_network.png" caption="Trust Network" width="70%" %} 
+</div>
     
 #### Background &amp; Purpose
 <a name="Background"> </a>
@@ -102,8 +103,9 @@ existing trust networks or potential verifiers who may participate in the federa
  
 <a name="participants"> </a>
 
+
 <div style="display:block">
-  ![Latest Status](./Participant_Onboarding_Status.jpg){:width="850em"}
+  {% include img.html img="Participant_Onboarding_Status.png" caption="Trust Network Participants" width="85Oem" %} 
 </div>
 
   
@@ -114,9 +116,8 @@ existing trust networks or potential verifiers who may participate in the federa
 #### Available Trust Domains
 
 
-<p>The codes for the GDHCN Trust Domains are contained in the <a href="ValueSet-WHO.TRUST.DOMAIN.html">GDHCN Trust Domain Value Set</a>.
-  </p>
-<a href="ValueSet-WHO.TRUST.DOMAIN.html">GDHCN Trust Domain Value Set</a>
+<p>The codes for the GDHCN Trust Domains are contained in the <a href="ValueSet-Domains.html">GDHCN Trust Domain Value Set</a> and are described in more detail <a href="trust_domains.html">here</a>.
+
   
   
 #### Ethical Considerations and Data Protection Principles
