@@ -5,12 +5,12 @@ The following describes the active services and endpoints for the GDHCN Trust Ne
 #### Operational Metadata
 ##### Trust Domains
 
-The list of active trust domains is maintained in the [GDHCN Trust Domain Value Set](ValueSet-WHO.TRUST.DOMAIN.html).
+The list of active trust domains is maintained in the [GDHCN Trust Domain Value Set](ValueSet-Domains.html).
 
 
 ##### Key Usage Codes
 
-The list of key usage codes is maintained in the [GDHCN Key Usage Value Set](ValueSet-WHO.TRUST.KEYUSAGE.html).
+The list of key usage codes is maintained in the [GDHCN Key Usage Value Set](ValueSet-KeyUsage.html).
 
 
 ##### Participants

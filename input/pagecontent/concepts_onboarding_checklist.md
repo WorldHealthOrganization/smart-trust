@@ -1,8 +1,8 @@
 ### Onboarding Checklist
 
-This repository contains the a checklist for [onboarding](concepts_onboarding.md) the Trust Network Participants. This includes CSCAs, Auth information, signing information and other relevant files for onboarding a participant. Videos guides to the steps described here are available on this [page](video_tutorial.html).
+This repository contains the a checklist for [onboarding](concepts_onboarding.html) the Trust Network Participants. This includes CSCAs, Auth information, signing information and other relevant files for onboarding a participant. Videos guides to the steps described here are available on this [page](video_tutorial.html).
 
-{% include img.html img="Onboarding%20Process.drawio.png" caption="Onboarding Process" width ="60%" %}     
+{% include img.html img="OnboardingProcess.drawio.png" caption="Onboarding Process" width ="60%" %}     
 **Prerequisites for Onboarding**
 
 Before beginning the onboarding process, please ensure the following tools, permissions, and environment configurations are in place. This checklist is crucial for a seamless setup experience.
@@ -719,7 +719,7 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 #### Appendix
 
 ##### Further example configuration files
-The following configuration files have been provided during the alignment on the [certificate governance](https://worldhealthorganization.github.io/smart-trust/concepts_certificate_governance.html). The configuration files contain additional fields that a Trust Network Participant might want to include and use. The config-files are not tested with the OpenSSL commands provided above.
+The following configuration files have been provided during the alignment on the [certificate governance](concepts_certificate_governance.html). The configuration files contain additional fields that a Trust Network Participant might want to include and use. The config-files are not tested with the OpenSSL commands provided above.
 
 - *SCA Conf*
 

@@ -129,6 +129,7 @@ def extract_countries(data):
             didendpointid = "GDHCNParticipantDID-" + country['CODE_ISO_3'] + "-All"
             endpoint =  "Instance: " + didendpointid + "\n"
             endpoint += "InstanceOf: IHE.mCSD.Endpoint\n"
+            endpoint += 'Description: "' + escape(country['NAME_SHORT_EN']) + ' Trustlist (DID v2) - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:' + country['CODE_ISO_3'] + '\nresolvable at http://tng-cdn.who.int/v2/trustlist/-/' + country['CODE_ISO_3'] + '/did.json"\n'
             endpoint += "Usage: #definition" + "\n"
             endpoint += '* name = "' + escape(country['NAME_SHORT_EN']) + ' Trustlist (DID v2) - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:' + country['CODE_ISO_3'] + '\nresolvable at http://tng-cdn.who.int/v2/trustlist/-/' + country['CODE_ISO_3'] + '/did.json"\n'
             endpoint += "* managingOrganization = Reference(Organization/" + participantid + ")\n"

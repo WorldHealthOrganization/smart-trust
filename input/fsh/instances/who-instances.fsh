@@ -8,7 +8,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-WHO
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "WHO Trust List (DID v2) "
+* name = "WHO Trust List (DID v2)"
 // * description = "WHO Trust List (DID v2) production environment"
 * managingOrganization = Reference(Organization/GDHCNParticipant-WHO)
 * status = #active
@@ -21,7 +21,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-WHO-UAT
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "WHO Trust List (DID v2) - UAT "
+* name = "WHO Trust List (DID v2) - UAT"
 // * description = "WHO Trust List (DID v2) User-Acceptance-Testing (UAT) environment"
 * managingOrganization = Reference(Organization/GDHCNParticipant-WHO)
 * status = #active
@@ -33,7 +33,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-WHO-DEV
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "WHO Trust List (DID v2) - DEV "
+* name = "WHO Trust List (DID v2) - DEV"
 // * description = "WHO Trust List (DID v2) Development (DEV) environment"
 * managingOrganization = Reference(Organization/GDHCNParticipant-WHO)
 * status = #active

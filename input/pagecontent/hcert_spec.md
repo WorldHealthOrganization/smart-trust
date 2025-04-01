@@ -38,10 +38,10 @@ The integrity and authenticity of origin of payload data MUST be verifiable by t
   - Issuer (`iss`, claim key 1, optional, ISO 3166-1 alpha-2 of issuer)
   - Issued At (`iat`, claim key 6)
   - Expiration Time (`exp`, claim key 4)
-  - Health Certificate (`hcert`, claim key -260, see section [3.2.7](/smart-trust/hcert_spec.html#327-health-certificate-claim) for subclaim details )
+  - Health Certificate (`hcert`, claim key -260, see section [3.2.7](hcert_spec.html#327-health-certificate-claim) for subclaim details )
 - Signature
 
-The logical model can be found specified [here](/smart-trust/StructureDefinition-hcert.html)
+The logical model can be found specified [here](StructureDefinition-hcert.html)
 
 ###### 3.2.2 Signature Algorithm
 
@@ -98,7 +98,7 @@ Strings in the JSON object SHOULD be NFC normalised according to the Unicode sta
 ####### 3.2.7.1 Subclaims
 - subclaims 0 and above are reserved by WHO to be assigned, a new sub claim can be requested for by requesting to create a new trust domain
 - subclaims for negative integer values are for development purposes and are free to use
-- While the [logical model](/smart-trust/StructureDefinition-hcert.html) enlists assigned sub claims, the ones listed in this specification are considered authoritative
+- While the [logical model](StructureDefinition-hcert.html) enlists assigned sub claims, the ones listed in this specification are considered authoritative
 
 ######## 3.2.7.1.1 EU Digital Covid Certificate (DCC)
 [Data elements](http://smart.who.int/ddcc/StructureDefinition/HCertDCC) for the EU Digital COVID Certificate Core Data Set. Based on the official specification for COVID-19-related payloads https://health.ec.europa.eu/system/files/2021-06/covid-certificate_json_specification_en_0.pdf as of 2023-01-31, and Implementing Decision (EU) 2021/1073, Annex 1 https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32021D1073&from=EN#d1e34-35-1.

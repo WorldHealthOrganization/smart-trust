@@ -43,9 +43,9 @@ These DID documents are parameterized by the following according to the levels i
 | Level          | Description                                                                                       |
 |----------------|---------------------------------------------------------------------------------------------------|
 | **root**           | A fixed parameter for all trusted key material or trusted DID references of GDHCN.                                |
-| **$domain**         | Contains trusted key material or DID references of GDHCN for a supported trust domain.   **$domain** should be one of the codes in the [GDHCN Trust Domain Value Set](ValueSet-WHO.TRUST.DOMAIN.html).              |
-| **$participant**    | Contains trusted key material or DID references of GDHCN for a trusted participant.  **$participant** should be one of the codes in the  [GDHCN Participant Value Set](ValueSet-WHO.TRUST.PARTICIPANT.html).                  |
-| **$usage**  | Contains trusted key material or DID references of a supported key usage type.   **$usage** type is one of the key usages codes in the [GDHCN Key Usage Value Set](CodeSystem-WHO.TRUST.KEYUSAGE.html). |
+| **$domain**         | Contains trusted key material or DID references of GDHCN for a supported trust domain.   **$domain** should be one of the codes in the [GDHCN Trust Domain Value Set](ValueSet-Domains.html).              |
+| **$participant**    | Contains trusted key material or DID references of GDHCN for a trusted participant.  **$participant** should be one of the codes in the  [GDHCN Participant Value Set](ValueSet-Participants.html).                  |
+| **$usage**  | Contains trusted key material or DID references of a supported key usage type.   **$usage** type is one of the key usages codes in the [GDHCN Key Usage Value Set](CodeSystem-KeyUsage.html). |
 
 
 The levels are organized hierarchically so that they function as filters following an AND logic operation when resolving or discovering key material.

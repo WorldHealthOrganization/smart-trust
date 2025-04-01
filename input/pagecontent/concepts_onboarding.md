@@ -15,7 +15,7 @@ The GDHCN Secretariat manages the Onboarding Process and Letters of Applications
 
 Please review the:
 * [Concepts](concepts.html) underpinning the description of these on-boarding processes including the general description of the Terms of Participation;
-* [Onboarding Overview](concepts_onboarding_process_full.html) describing the overview of the onboarding process; 
+* [Onboarding Overview](concepts_onboarding.html) describing the overview of the onboarding process; 
 * [Certificate Governance](concepts_certificate_governance.html) describing the governance of public key certificates; 
 
 An eligible GDHCN Participant should complete the [Onboarding Checklist](concepts_onboarding_checklist.html) which contains guiding videos through the onboarding process.
@@ -54,7 +54,7 @@ and [README.md](https://github.com/WorldHealthOrganization/tng-participant-templ
 
  A [Diagram](https://smart.who.int/trust/OnboardingProcessInteractionParticipantAndWHO.png) that gives and overview about the steps in order to start the Full Onboarding.
  
-The [document](https://smart.who.int/trust/blob/docs/OnboardingProcess_Documents/input/pagecontent/concepts_onboarding_process_full.md) contain a detailed description of the tasks to be carried out by the participant.
+The [document](https://smart.who.int/trust/blob/docs/OnboardingProcess_Documents/input/pagecontent/concepts_onboarding_process_full.html) contain a detailed description of the tasks to be carried out by the participant.
  Note: Please note that the participant’s work begins at step 8 and ends at step 14.
 
 
