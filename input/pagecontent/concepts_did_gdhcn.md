@@ -1,4 +1,4 @@
-### GDHCN Trustlists
+#### GDHCN Trustlists
 
 This specification describes the publication of Global Digital Health Certification Network (GDHCN) key material as Decentralized Identifier (DID) documents. 
 DIDs are specified by the [W3C DID Core Specification](https://www.w3.org/TR/did-core/).
@@ -11,16 +11,22 @@ A key to real interoperability among existing trust networks is to find alignmen
 | 2.0.0   | Draft    | 2.0.0 is in pre-released state for verification and feedback. On technical level in the API "v2" is used to address DID documents following version two specification |
 | 1.0.0   | Released | 1.0.0 is deprecated and will be replaced by version 2.0.0                                                                                                           |
 
-#### Trustlists 2.0.0
+##### Trustlists 2.0.0
 
-Version 2.0.0 introduces two variants of the trust lists - embedded and by reference.
+Version 2.0.0 introduces two **variant**s of the trust lists - embedded and by reference.
 
 <img src="did-trustlist-types.png" alt="Types of DID trustlists" style="width:300px; float:none; margin: 0px 0px 0px 0px;"/>
 
-| Trustlist           | URL                                                                                                          |
-|---------------------|--------------------------------------------------------------------------------------------------------------|
-| Embedded Trustlist  | [https://tng-cdn.who.int/v2/trustlist/did.json](https://tng-cdn.who.int/v2/trustlist/did.json)         |
-| Reference Trustlist | [https://tng-cdn.who.int/v2/trustlist-ref/did.json](https://tng-cdn.who.int/v2/trustlist-ref/did.json) |
+For each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment**s there is a trust list according to the following table:
+
+|  Environment   |      Variant         | URL                                                                                     |
+|---------|------------|--------------------------------------------------------------------------------------------------------------|
+|  DEV   |  Embedded    | [https://tng-cdn-dev.who.int/v2/trustlist/did.json](https://tng-cdn-dev.who.int/v2/trustlist/did.json)         |
+|  DEV  | Reference  | [https://tng-cdn-dev.who.int/v2/trustlist-ref/did.json](https://tng-cdn-dev.who.int/v2/trustlist-ref/did.json) |
+|   UAT   |  Embedded   | [https://tng-cdn-uat.who.int/v2/trustlist/did.json](https://tng-cdn-uat.who.int/v2/trustlist/did.json)         |
+|    UAT   | Reference  | [https://tng-cdn-uat.who.int/v2/trustlist-ref/did.json](https://tng-cdn-uat.who.int/v2/trustlist-ref/did.json) |
+|  PROD  |  Embedded   | [https://tng-cdn.who.int/v2/trustlist/did.json](https://tng-cdn.who.int/v2/trustlist/did.json)         |
+| PROD | Reference  | [https://tng-cdn.who.int/v2/trustlist-ref/did.json](https://tng-cdn.who.int/v2/trustlist-ref/did.json) |
 
 The embedded type of trustlist carries the key material directly within the DID documents' verificationMethod property and supports immediate verification.
 On the root level it contains all keys imported from the trust network gateway (TNG).
@@ -29,19 +35,17 @@ The reference type lists link other DID documents, which may contain the actual 
 Therefore reference type trustlists contain only DID ids that can be used to resolve DID documents.
 This helps to keep the main trustlist documents concise and supports dynamic discovery of DID structures and key material.
 
-##### DID trustlists structure
+###### DID trustlists structure
 
 Version 2.0.0 introduces a hierarchical structure for DID documents, to support more fine grained resolution and discovery of key material.
-It distinguishes the levels **root**, **domain**, **participant**, and **key usage type**.
-
-Note: **domain** is one of the supported trust domains, **participant** is currently represented as ISO-3166 alpha-3 country code and **key usage type** is the certifcate type SCA or DSC.
+These DID documents are parameterized by the following according to the levels in the following table.
 
 | Level          | Description                                                                                       |
 |----------------|---------------------------------------------------------------------------------------------------|
-| root           | contains all trusted key material or trusted DID references of GDHCN                              |
-| domain         | contains trusted key material or DID references of GDHCN for a supported trust domain             |
-| participant    | contains trusted key material or DID references of GDHCN for a trusted participant                |
-| key usage type | contains trusted key material or DID references of a supported usage type like DSC or SCA or both |
+| **root**           | A fixed parameter for all trusted key material or trusted DID references of GDHCN.                                |
+| **$domain**         | Contains trusted key material or DID references of GDHCN for a supported trust domain.   **$domain** should be one of the codes in the [GDHCN Trust Domain Value Set](ValueSet-WHO.TRUST.DOMAIN.html).              |
+| **$participant**    | Contains trusted key material or DID references of GDHCN for a trusted participant.  **$participant** should be one of the codes in the  [GDHCN Participant Value Set](ValueSet-WHO.TRUST.PARTICIPANT.html).                  |
+| **$usage**  | Contains trusted key material or DID references of a supported key usage type.   **$usage** type is one of the key usages codes in the [GDHCN Key Usage Value Set](CodeSystem-WHO.TRUST.KEYUSAGE.html). |
 
 
 The levels are organized hierarchically so that they function as filters following an AND logic operation when resolving or discovering key material.
@@ -50,20 +54,21 @@ This allows to omit filtering on the respective level effectively matching all c
 
 The following examples outline the expected behavior of embedded trustlist: 
 
-* tng-cdn.who.int/v2/trustlist/did.json matches all keys for all domains, participants and key usage types.
-* tng-cdn.who.int/v2/trustlist/{{DOMAIN}}/{{PARTICIPANT_CODE}}/did.json matches all keys (DSC, SCA) for a specific domain AND participant.
-* tng-cdn.who.int/v2/trustlist/{{DOMAIN}}/{{PARTICIPANT_CODE}}/{{USAGE}}/did.json matches all keys for a specific key usage type for a given domain AND participant.
-* tng-cdn.who.int/v2/trustlist/-/{{PARTICIPANT_CODE}}/did.json matches key material or references for all domains for a specific participant without filtering the key usage types.
-* tng-cdn.who.int/v2/trustlist/-/{{PARTICIPANT_CODE}}/{{USAGE}}/did.json matches keys or references in all domains for a specific participant and specific key usage type.
-* tng-cdn.who.int/v2/trustlist/{{DOMAIN}}/-/{{USAGE}}/did.json matches keys for all participants of a specific domain filtered by there key usage type.
-* tng-cdn-who.int/v2/trustlist/-/- matches key material for all domains and all participants without filtering a specific usage type so the did.json may contain SCA and DSC keys.
+* tng-cdn.who.int/v2/trustlist/did.json matches all keys for all **$domain**s, **$participant**s and key **$usage** types.
+* tng-cdn.who.int/v2/trustlist/**$domain**/**$participant**/did.json matches all key **$usage** types for a specific **$domain** AND **$participant**.
+* tng-cdn.who.int/v2/trustlist/-/**$participant**/did.json matches all key **$usage** types across all **$domain**s for a specific **$participant**.
+* tng-cdn.who.int/v2/trustlist/**$domain**/**$participant**/**$usage**/did.json matches all keys for a specific key **$usage** type for a given **$domain** AND **$participant**.
+* tng-cdn.who.int/v2/trustlist/-/{{PARTICIPANT_CODE}}/did.json matches key material or references for all **$domain**s for a specific **$participant** without filtering the key usage types.
+* tng-cdn.who.int/v2/trustlist/-/**$participant**/**$usage**/did.json matches keys or references in all **$domain**s for a specific **$participant** and specific key **$usage** type.
+* tng-cdn.who.int/v2/trustlist/**$domain**/-/**$usage**/did.json matches keys for all **$participant**s of a specific **$domain** filtered by there key **$usage** type.
+* tng-cdn-who.int/v2/trustlist/-/- matches key material for all **$domain**s and all **$participant**s without filtering a specific **$usage** type so the did.json may contain SCA and DSC keys.
 
 And the following examples outline the expected behavior of reference type trustlist:
 
 * tng-cdn.who.int/v2/trustlist-ref/did.json contains all DID document references of the next sub-level as DID id.
-* tng-cdn.who.int/v2/trustlist-ref/{{DOMAIN}}/did.json contains all **participant** level DID document references as DID id for the given **domain**.
-* tng-cdn.who.int/v2/trustlist-ref/{{DOMAIN}}/{{PARTICIPANT}}/did.json contains all **key usage type** level DID document references as DID id for the selected **domain** and **participant**.
-* tng-cdn.who.int/v2/trustlist-ref/{{DOMAIN}}/{{PARTICIPANT}}/{{USAGE}}/did.json contains a **reference to the embedded trustlist** that correlates to the selected **domain**, **participant** and **key usage type** and that contains the key material.
+* tng-cdn.who.int/v2/trustlist-ref/**$domain**/did.json contains all **$participant** level DID document references as DID id for the given **$domain**.
+* tng-cdn.who.int/v2/trustlist-ref/**$domain**/**$partcipant**/did.json contains all key **$usage** type level DID document references as DID id for the selected **$domain** and **$participant**.
+* tng-cdn.who.int/v2/trustlist-ref/**$domain**/**$participant**/**$usage**/did.json contains a reference to a DID the embedded trustlist that correlates to the selected **$domain**, **$participant** and key **$usage** type and that contains the key material.
 
 Note: all levels of the reference type trustlist may contain additional DID references linking trusted external DID documents.
 
@@ -72,9 +77,9 @@ The [did trustlists structure diagram](https://smart.who.int/trust/did-trustlist
 <img src="did-trustlist-structure.drawio.png" alt="DID trustlists structure" style="width:600px; float:none; margin: 0px 0px 0px 0px;"/>
 
 
-##### Example DID documents
+###### Example DID documents
 
-Reference type DID document linking the embedded trustlist for **domain**: DCC, **participant**: XXA and **key usage type**: DSC.
+Reference type DID document linking the embedded trustlist for **$domain**: DCC, **$participant**: XXA and key **$usage** type: DSC.
 
 ```js
 {
@@ -98,7 +103,7 @@ Reference type DID document linking the embedded trustlist for **domain**: DCC, 
 }
 ```
 
-Embedded trustlist for **domain**: DCC, **participant**: XXA and **key usage type**: DSC with key matrial:
+Embedded trustlist for **$domain**: DCC, **$participant**: XXA and key **$usage** type: DSC with key matrial:
 
 ```js
 {
@@ -139,7 +144,7 @@ Embedded trustlist for **domain**: DCC, **participant**: XXA and **key usage typ
 
 Note: Specific keys use base64 encoded key id (kid) as identifier, It is represented as fragments (#) in verification method id and can be resolved using client side filtering.
 
-##### Environments & Repositories
+###### Environments & Repositories
 
 The trustlists are maintained using GitHub and published via GitHub pages.
 
@@ -150,6 +155,6 @@ The trustlists are maintained using GitHub and published via GitHub pages.
 | Production  | tbd.                                                                                                             | [https://tng-cdn.who.int](https://tng-cdn.who.int)                                                             |
 
 
-#### Trustlist Specification 1.0.0
+##### Trustlist Specification 1.0.0
 
-[Initial specification](https://github.com/WorldHealthOrganization/ddcc-trust/blob/main/TrustListSpecification.md#leading-contender-did-document)
+[Initial specification](concepts_did.html) is deprecated.

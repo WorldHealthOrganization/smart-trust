@@ -1,9 +1,8 @@
-ValueSet: WHO.TRUST.DOMAIN
-Title: "WHO SMART Trust Domains"
-Description: "Health credential type"
-* ^name = "WHO_TRUST_DOMAIN"
+ValueSet: Domains
+Title: "WHO GDHCN Trust Domains"
+Description: "ValueSet of WHO GDHCN Trust Domains"
+
 
 * ^experimental = false
 
-* WHO.TRUST.DOMAIN#DDCC
-* WHO.TRUST.DOMAIN#IPS-PILGRIMAGE
+* include codes from system Domains

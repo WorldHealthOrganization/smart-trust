@@ -1,0 +1,64 @@
+
+{% assign ext = actordefinition.extension %}
+
+{% assign title = ext | where: "url", "http://hl7.org/fhir/5.0/StructureDefinition/extension-ActorDefinition.title" | first %}
+{% assign capes = ext | where: 'url', 'http://hl7.org/fhir/5.0/StructureDefinition/extension-ActorDefinition.capabilities' %}
+    
+
+<table border="1" style="border-collapse: collapse;">
+  <tbody>
+
+    <tr>
+      <th>Publisher</th>
+      <td>	
+	{% assign contacturl =  ext
+	  | where: 'url', 'http://hl7.org/fhir/5.0/StructureDefinition/extension-Requirements.contact'
+	  | map: 'valueContactDetail' | map: 'telecom' | first | where: 'system', 'url' | first | map: 'value' | first %}
+	{% assign publisher = ext
+	  | where: 'url', 'http://hl7.org/fhir/5.0/StructureDefinition/extension-Requirements.publisher'
+	  | first | map: 'valueString' | first %}
+	{% if publisher == empty or publisher == nil %}
+	  {% if contacturl == empty or contactur == nil %}
+	    No publisher has been registered.
+	  {% else %}
+	    {{ contacturl }}
+	  {% endif %}
+	{% else %}
+	  {% if contacturl == empty or contacturl == nil %}
+	    {{  publisher  }}
+	  {% else %}
+    	    <a href="{{  contacturl  }}">{{  publisher  }}</a>
+	  {% endif %}
+	{% endif %}
+      </td>
+    </tr>
+    <tr>
+      <th>Contact Email</th>
+      <td>
+	{% assign url = ext
+	  | where: 'url', 'http://hl7.org/fhir/5.0/StructureDefinition/extension-Requirements.contact'
+  	  | map: 'valueContactDetail' | map: 'telecom' | first | where: 'system', 'email' | first | map: 'value' | first %}
+	{% if url == empty or url == nil %}
+	   No contact email has been registered.
+	{% else %}
+	  {{url}}
+	{% endif %}
+      </td>
+    </tr>
+    
+    <tr>
+      <th>Jurisdiction</th>
+      <td>{{ ext | where: 'url', 'http://hl7.org/fhir/5.0/StructureDefinition/extension-ActorDefinition.jurisdiction' | first | map: 'valueCodeableConcept' | map: 'coding' | first | first | map: 'code' | first }}</td>
+    </tr>
+    {% unless capes == empty or capes == nil %}    
+    <tr>
+      <th>Capability Statements</th>
+      <td>{% include actordefinition-list-capabilites.liquid site=site actordefinition=actordefinition %}</td>
+    </tr>
+    {% endunless %}
+    <tr>
+      <th>Requirements</th>
+      <td>{% include actordefinition-list-requirements-full.liquid site=site actordefinition=actordefinition %}</td>
+    </tr>
+  </tbody>
+</table>

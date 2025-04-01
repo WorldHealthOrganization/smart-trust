@@ -1,11 +1,18 @@
+### Publish Keys {#publish_keys}
+#### Trigger Events
+The Trust Network Participant, or one of its authorized Issuers, generates a new public-private key pair for use for document signing.
+#### Message Semantics
+See the [EU DCC Open API](openapi/index.html#/GDHCN/postTrustedCertificate) documentation.  The key usage is DSC for Document Signing Certificate
+#### Expected Actions
+The Trust Anchor will validate the submitted key material and distribute it to other Trust Network Participants
+
 ### Mirror Local PKD {#mirror_keys}
 #### Trigger Events
 #### Message Semantics
 #### Expected Actions
 
 Steps include:
-- Local PKD onboarding (one-time). Onboarding may include evaluating Local PKD
-format, providing the Federated PKD access, and signing of business agreements.
+- Local PKD onboarding (one-time). Onboarding may include evaluating Local PKD format, providing the Federated PKD access, and signing of business agreements.
 - Local PKD public keys are mirrored (periodic)
 - Mirrored public keys are merged into a master list (periodic)
 - Master list is digitally signed for distribution
@@ -16,19 +23,20 @@ Local PKDs participating in the Federated PKD are expected to:
 - Can share public keys in one of the following formats:
   - X.509
   - JSON Web Keys (JWK)
-  - Decentralized Identifiers (DID)
+  - [Decentralized Identifiers](https://www.w3.org/TR/did-1.0/) (DID) according to the [GDHCN specification](concepts_did_gdhcn.html) specification.
 
 Federated PKDs are expected to:
 - Have a means for retrieving local public key directories / nodes members represented in the aggregation services
 - Have permissions/policies in place that allow sharing the public keys from trust node members
 - Have an existing public key infrastructure used for signing list of keys my node members
 - Can share list of public keys in the following format:
-  - Decentralized Identifiers (DID)
+  - [Decentralized Identifiers](https://www.w3.org/TR/did-1.0/) (DID) according to the [GDHCN specification](concepts_did_gdhcn.html) specification.
+  
 
 
 ### Sign Health Certificate (HCERT)  Claim {#sign_claim}
 #### Trigger Events
-The claim payload of a HCERT has been generated and is ready to be signed by an Issuer acting on behalf of a Trust Network Participant.
+The claim payload of a [HCERT](hcert_spec.html) has been generated and is ready to be signed by an Issuer acting on behalf of a Trust Network Participant.
 #### Message Semantics
 The output should be a valid signed [HCERT](hcert_spec.html)
 #### Expected Actions
@@ -38,7 +46,7 @@ The output should be a valid signed [HCERT](hcert_spec.html)
 <h4 id="put_keys_api} Publish Verification Keys - API 
 #### Trigger Events
 
-A Trust Network Partcipiant publish keys to the Trust Network Gateway for use by Verification Applications.  Keys may be coded for a variety of uses including following the [certificate governance](concepts_certificate_governance.html) according to their [usage](ValueSet-TRUST.KEYUSAGE.html) and [trust domain](ValueSet-TRUST.DOMAIN.html)
+A Trust Network Partcipiant publish keys to the Trust Network Gateway for use by Verification Applications.  Keys may be coded for a variety of uses including following the [certificate governance](concepts_certificate_governance.html) according to their [**$usage**](ValueSet-TRUST.KEYUSAGE.html) and trust [**$domain**](ValueSet-TRUST.DOMAIN.html) 
 
 
 #### Message Semantics
@@ -50,7 +58,7 @@ See [Swagger API](openapi/index.html)
 #### Trigger Events
 
 #### Message Semantics
-Keys should be retrieved using the [GDHCN](https://smart.who.int/trust) framework. 
+Keys should be retrieved using the [GDHCN DID](concepts_did_gdhcn.html) specification. 
 #### Expected Actions
 Once a Verification Application has onboarded to the Trust Network it may retrieve verification keys.   The retrieved list of verificaiton keys may be used for the following busines processes:
 - Onboarding a Federated PKD by retrieving the signing key used to sign the master list (one-time).
@@ -92,7 +100,7 @@ Once a Verification Application has onboarded to the Trust Network it may retrie
   - the name/identity on the certificate matches an ID document.
   - the business rules of the verification jurisdiction pass for the certificate.  
 
-Keys should be retrieved using the [GDHCN](https://smart.who.int/trust) framework.  
+Keys should be retrieved using the [GDHCN DID](concepts_did_gdhcn.html) specification.  
 
 
 
@@ -160,4 +168,3 @@ See [IHE Sharing Value Sets and Concept Maps](https://profiles.ihe.net/ITI/SVCM/
 #### Trigger Events
 #### Message Semantics
 #### Expected Actions
-

@@ -1,6 +1,5 @@
-## Onboarding Checklist
 
-### General Hints
+####  Details of the Onboarding Process
 
 This document describes the standard onboarding process (so called Future Onboarding Process - FOP).
 
@@ -20,7 +19,6 @@ It is highly recommended:
 
 - **Not to reuse any certificates across the different staging environments**
 
-## Procedure
 
 In the following description the required steps are divided into three sections:
 
@@ -31,7 +29,7 @@ In the following description the required steps are divided into three sections:
 
 <img src="OnboardingProcess_Full.png" style="float:none; margin: 0px 0px 0px 0px;"/>
 
-### Application and Verification
+##### Application and Verification
 
 **[1]** The eligible Trust Network Participant (TNP) has to submit its Statement of Interest [link to the form. [Document 5] ] to gdhcn-support@who.int .
 
@@ -136,7 +134,7 @@ When the Letter of Application is received, identification of individuals take p
 
 - the confirmation that the invitation for the GitHub bot users has been accepted
 
-### Setup
+##### Setup
 
 **[30]** The collected onboarding information is sent to the operations (OPS) team. The onboarding (OB) team is informed as well.
 
@@ -163,7 +161,7 @@ When the Letter of Application is received, identification of individuals take p
 
 
 
-### Participant Onboarding
+#### Participant Onboarding
 
 **[60]** The participant is connecting to UAT environment and the following steps has to be performed to check the connection:
 
