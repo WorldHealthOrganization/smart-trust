@@ -1,7 +1,7 @@
 CodeSystem: Participants
-Title:        "WHO GDHCN Trust Network CodeSystem"
+Title:        "WHO GDHCN Trust Network Participants CodeSystem"
 Description:  """
-CodeSystem for GDHCN Trust Network Participants which are not already included in the ISO-3166 three letter code system"
+CodeSystem for GDHCN Trust Network Participants which are not already included in the ISO-3166 three letter code system
 """
 
 * ^experimental = true
@@ -10,3 +10,4 @@ CodeSystem for GDHCN Trust Network Participants which are not already included i
 * ^status = #active
 
 * #WHO "WHO" "World Health Organization"
+

@@ -1,9 +1,9 @@
-CodeSystem: WHO.TRUST.DOMAIN
-Title: "WHO SMART Trust Domains"
-Description: "Controlled vocabulary used to define WHO SMART Trust network service provider characteristics."
+CodeSystem: Domains
+Title: "WHO GDHCN Trust Domains"
+Description: "CodeSystem for define WHO GDHCN Trust Domains."
 * ^experimental = false
 * ^caseSensitive = true
-* ^name = "WHO_TRUST_DOMAIN"
+
 
 
 * #DDCC "DDCC" "The Digital Documentation for COVID-19 Certificates (DDCC) is defined by the SMART Implementation Guide at http://smart.who.int/ddcc"

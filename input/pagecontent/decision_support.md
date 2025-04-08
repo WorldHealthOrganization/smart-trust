@@ -241,8 +241,7 @@ system.
 
 Using the StructureMaps to translate formats requires a
 [mapping engine](https://confluence.hl7.org/display/FHIR/Using+the+FHIR+Mapping+Language#UsingtheFHIRMappingLanguage-MappingEngineImplementations).
-Note that using the Java mapping engine also requires the use of a terminology server; it uses
-[tx.fhir.org](tx.fhir.org) by default.
+Note that using the Java mapping engine also requires the use of a terminology server; it uses [tx.fhir.org](https://tx.fhir.org) by default.
 
 References:
 

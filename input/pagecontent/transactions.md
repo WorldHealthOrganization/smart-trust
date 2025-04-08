@@ -1,3 +1,11 @@
+### Publish Keys {#publish_keys}
+#### Trigger Events
+The Trust Network Participant, or one of its authorized Issuers, generates a new public-private key pair for use for document signing.
+#### Message Semantics
+See the [EU DCC Open API](openapi/index.html#/GDHCN/postTrustedCertificate) documentation.  The key usage is DSC for Document Signing Certificate
+#### Expected Actions
+The Trust Anchor will validate the submitted key material and distribute it to other Trust Network Participants
+
 ### Mirror Local PKD {#mirror_keys}
 #### Trigger Events
 #### Message Semantics
@@ -38,7 +46,7 @@ The output should be a valid signed [HCERT](hcert_spec.html)
 <h4 id="put_keys_api} Publish Verification Keys - API 
 #### Trigger Events
 
-A Trust Network Partcipiant publish keys to the Trust Network Gateway for use by Verification Applications.  Keys may be coded for a variety of uses including following the [certificate governance](concepts_certificate_governance.html) according to their [**$usage**](ValueSet-TRUST.KEYUSAGE.html) and trust [**$domain**](ValueSet-TRUST.DOMAIN.html) 
+A Trust Network Partcipiant publish keys to the Trust Network Gateway for use by Verification Applications.  Keys may be coded for a variety of uses including following the [certificate governance](concepts_certificate_governance.html) according to their [**$usage**](ValueSet-KeyUsage.html) and trust [**$domain**](ValueSet-Domains.html) 
 
 
 #### Message Semantics
@@ -160,4 +168,3 @@ See [IHE Sharing Value Sets and Concept Maps](https://profiles.ihe.net/ITI/SVCM/
 #### Trigger Events
 #### Message Semantics
 #### Expected Actions
-
