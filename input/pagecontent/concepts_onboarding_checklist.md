@@ -52,6 +52,15 @@ Before beginning the onboarding process, please ensure the following tools, perm
         </td>
       </tr>
       <tr>
+        <td><strong>GPG - Gnu Privacy Guard</strong></td>
+        <td>
+          - Essential for singing you git tags in your private repository.<br>
+          - <strong>Minimum Version</strong>: 2.2 - 2.4 any fewer version is outdated.<br>
+          - <strong>Verify</strong>: <code>gpg --version</code>.<br>
+          - <a href="https://gnupg.org/download/index.html">Download GPG</a>
+        </td>
+      </tr>
+      <tr>
         <td><strong>Text Editor or IDE (Optional)</strong></td>
         <td>
           - Use a reliable text editor or IDE such as <strong>Visual Studio Code</strong>, <strong>Sublime Text</strong>, or <strong>Notepad++</strong> for editing files.<br>
@@ -141,7 +150,10 @@ Before beginning the onboarding process, please ensure the following tools, perm
 - Go to Collaborators
 - Authenticate
 - Click on Add people
-- Add tng-bot for Prod and tng-bot-dev for dev and UAT
+- Add **tng-bot** for **Prod** and **tng-bot-dev** for **dev** and **UAT**
+- **Assign Role**:
+When inviting both tng-bot and tng-bot-dev, select the **role** as "**Write**"
+Click **Add Selection** to complete the invitation.
 
 <video width="60%"  controls>
   <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.2.full-video.v2.mp4" type="video/mp4">
@@ -154,7 +166,8 @@ Before beginning the onboarding process, please ensure the following tools, perm
 	> Please check [GPG key Creation](https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.2.full-video.v2.mp4)  video for reference
 - Download and install the GPG command line tools for your operating system. We generally recommend installing the latest version for your operating system.
 - Open Git Bash
-- Generate a GPG key pair. Since there are multiple versions of GPG, you may need to consult the relevant man page to find the appropriate key generation command
+- Generate a GPG key pair. Since there are multiple versions of GPG, you may need to consult the relevant man page to find the appropriate key generation command.  
+
 <video width="60%"  controls>
   <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.2.full-video.v2.mp4" type="video/mp4">
 </video>
@@ -486,7 +499,8 @@ This is just an example reference on how to use a Trusted CA certificate in a pr
 
 **RSA Public Key Certificates**
 In case you want to use RSA certificates you can still use the configuration files provided above. During the CSR/certificate creation, replace the `-newkey ec:<(openssl ecparam -name prime256v1)` with `-newkey rsa:4096` for a 4096 Bit RSA key.  
-Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use RSA as your document signing algorithm, please create either a 2048 bit RSA key or at maximum a 3072 bit RSA key due to the space limitations on the QR codes.
+Please be aware that RSA is NOT RECOMMENDED for the DSC and if you want to use RSA as your document signing algorithm, please create either a 2048 bit RSA key or at maximum a 3072 bit RSA key due to the space limitations on the QR codes.  
+
 <video width="60%"  controls>
   <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/1.1.full-video.TLS.v2.mp4" type="video/mp4">
 </video>
@@ -686,13 +700,38 @@ An optional third argument can be provided to specify the purpose of the DSC (e.
 
 **- /path/to/subdir:** Path to the directory containing UP.pem and UP.key.
 
-**- /path/to/DSC_dir:** Path to the directory containing the DSC files (DSC.pem, DSC.key).
+**- /path/to/DSC_dir:** Path to the directory containing the DSC files (DSC.pem, DSC.key).  
 
 **DCC:** The domain name to be used. If omitted, the script will default to DCC.
 
 ```
 ./upload_dsc.sh /path/to/subdir-up_pem_key  /path/to/DSC_dir [DCC]
 ```
+ 
+
+- Check DSC is already exist before upload CMS package
+
+```   
+curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
+```
+If there is no DSC uploaded, or the one you find is older than the one you want to upload, 
+you can proceed with the upload.  
+
+```
+./upload_dsc.sh /path/to/subdir-up_pem_key  /path/to/DSC_dir [DCC] 
+```
+This script will generate a \[signed with the upload certificate\] [CMS](https://datatracker.ietf.org/doc/html/rfc5652) 
+of your content \[the DSC\] and upload it to the TNG. The upload is done with the following curl command (this is 
+included in the script as well):
+
+```    
+curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS.key  
+--header "Content-Type: application/json" \
+--header "Accept: application/json" \
+--data '{"cms":@cms.b64, "domain": "DCC|IPS-PILGRIMAGE", "group": "DSC|DESC"}' https://tng-dev.who.int/trustedCertificate   
+```
+**Domain** and **group** are optionals, defaulting to DCC and DSC respectively.  
+
 - Download the Trustlist again, and check if your DSC is available.
 
 ```   
