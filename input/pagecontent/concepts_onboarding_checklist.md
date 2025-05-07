@@ -150,7 +150,10 @@ Before beginning the onboarding process, please ensure the following tools, perm
 - Go to Collaborators
 - Authenticate
 - Click on Add people
-- Add tng-bot for Prod and tng-bot-dev for dev and UAT
+- Add **tng-bot** for **Prod** and **tng-bot-dev** for **dev** and **UAT**
+- **Assign Role**:
+When inviting both tng-bot and tng-bot-dev, select the **role** as "**Write**"
+Click **Add Selection** to complete the invitation.
 
 <video width="60%"  controls>
   <source src="https://github.com/WorldHealthOrganization/smart-trust/releases/download/v1.1.1/2.2.full-video.v2.mp4" type="video/mp4">
