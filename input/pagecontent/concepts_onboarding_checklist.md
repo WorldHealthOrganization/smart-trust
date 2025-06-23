@@ -637,19 +637,16 @@ You should see a output like:
 #### Upload CMS Package
 - Create an Document Signer Certificate and sign it by the SCA [Refer](#certification-preparation-for-prod) and [DSC generation example](#dsc-generation-example)
 
-- Create an CMS Package with the following Command:
-> Note: Step 3 and 4 could be achieved through two method, commandline and script respectively .
+- Create an CMS Package :
+> Note: It could be achieved through below two methods ( Command line and Script )
 
-**Method 1 - Commandline .**
+**Method 1 - Command line .**
+Before running the below commands we need DSC certificate : [To Generate DSC through command line - Follow section 4.1.1.5.6.2](https://worldhealthorganization.github.io/smart-trust/branches/signerCertificate-to-trustedCertificate/concepts_onboarding_checklist.html#dsc-generation-example)
 ```
-openssl x509 -outform der -in cert.pem -out cert.der
-openssl cms -sign -nodetach -in cert.der -signer signing.crt -inkey signing.key -out signed.der -outform DER -binary
-openssl base64 -in signed.der -out cms.b64 -e -A
-
+openssl x509 -outform der -in DSC.pem -out cert.der
+openssl cms -sign -nodetach -in cert.der -signer UP.pem -inkey UP.key -out signed.der -outform DER -binary
+openssl base64 -in signed.der -out DSC_cms.b64 -e -A
 ```
-> Note: cert.der is your DSC, signing.crt is the TNP<sub>UP</sub>.
-
-
 
 - Check DSC is already exist before upload CMS package
 
@@ -660,7 +657,7 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 - Upload the CMS Package to the Gateway
 
 ```    
-curl -v -X POST -H "Content-Type: application/json"  --cert TLS.pem --key TLS.key --data '{"cms": "'"$(cat cms.b64)"'", "properties": {}, "domain": "DCC"}' https://tng-dev.who.int/trustedCertificate
+curl -v -X POST -H "Content-Type: application/json"  --cert TLS.pem --key TLS.key --data '{"cms": "'"$(cat DSC_cms.b64)"'", "properties": {}, "domain": "DCC"}' https://tng-dev.who.int/trustedCertificate
 ```
 
 - Download the Trustlist again, and check if your DSC is available.
@@ -688,28 +685,38 @@ A configuration file (DN_template.cnf) that contains the Distinguished Name (DN)
 A subdirectory where the SCA (Signing Certificate Authority) PEM and KEY files are located.
 An optional third argument can be provided to specify the purpose of the DSC (e.g., test, vax, rec). If this argument is not provided, the DSC will be generated for all purposes.
 
-**How to to run DSC Generate Script** [gen_dsh.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_dsc.sh)
+**How to to run DSC Generate Script** [gen_dsc.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_dsc.sh)
 
 ``` 
-./script_name.sh DN_template.cnf directory_of_SCA_files [test/vax/rec-purpose]
-
+./gen_dsc.sh DN_template.cnf path/to/sca_directory [test/vax/rec-purpose]
 ```
+
+**- ./gen_dsc.sh:** Script name
+**- /path/to/sca:** Create SCA directory which contains SCA.pem and SCA.key
+
+
+
+
 **How to run upload_dsc.sh script to upload CMS Package:** [upload_dsc.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/upload_dsc.sh)
 
-**- ./upload_dsc.sh:** Replace this with the actual name of your script.
-
-**- /path/to/subdir:** Path to the directory containing UP.pem and UP.key.
-
-**- /path/to/DSC_dir:** Path to the directory containing the DSC files (DSC.pem, DSC.key).  
-
-**DCC:** The domain name to be used. If omitted, the script will default to DCC.
-
 ```
-./upload_dsc.sh /path/to/subdir-up_pem_key  /path/to/DSC_dir [DCC]
+./upload_dsc.sh /path/to/subdir  /path/to/DSC_dir [DCC]
 ```
- 
 
-- Check DSC is already exist before upload CMS package
+**- ./upload_dsc.sh:** Script name
+
+**- /path/to/subdir:** Create subdir directory which contains UP.pem and UP.key
+
+**- /path/to/DSC_dir:** Create DSC_dir directory which contain the DSC.pem.
+
+**- DCC:** The domain name to be used. If omitted, the script will default to DCC.
+
+**Important :** Once above command executed sucessfully that's mean your CMS package uploaded to gateway
+
+
+
+
+**Check DSC is already exist**
 
 ```   
 curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
@@ -718,7 +725,7 @@ If there is no DSC uploaded, or the one you find is older than the one you want 
 you can proceed with the upload.  
 
 ```
-./upload_dsc.sh /path/to/subdir-up_pem_key  /path/to/DSC_dir [DCC] 
+./upload_dsc.sh /path/to/subdir  /path/to/DSC_dir [DCC] 
 ```
 This script will generate a \[signed with the upload certificate\] [CMS](https://datatracker.ietf.org/doc/html/rfc5652) 
 of your content \[the DSC\] and upload it to the TNG. The upload is done with the following curl command (this is 
