@@ -1,6 +1,12 @@
-### Endpoints 
-
-The following describes the active services and endpoints for the GDHCN Trust Network Gateway.
+---
+layout: default
+title: Home
+---
+<label for="dropdown"><strong>Select Country:</strong></label>
+<select id="dropdown">
+    <option>Loading...</option>
+</select>
+<div id="output"></div>
 
 #### Operational Metadata
 ##### Trust Domains
@@ -23,18 +29,20 @@ The list of onboarded Trust Network Participants is availabe in the  [GDHCN Part
 
 THe following are the endpoints for the [GDHCN DID Trust List](concepts_did_gdhcn.html) for each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s:
 
-|  Environment   |      Variant         | URL                                                                                     |
-|---------|------------|--------------------------------------------------------------------------------------------------------------|
-|  DEV   |  Embedded    | [https://tng-cdn-dev.who.int/v2/trustlist/did.json](https://tng-cdn-dev.who.int/v2/trustlist/did.json)         |
-|  DEV  | Reference  | [https://tng-cdn-dev.who.int/v2/trustlist-ref/did.json](https://tng-cdn-dev.who.int/v2/trustlist-ref/did.json) |
-|   UAT   |  Embedded   | [https://tng-cdn-uat.who.int/v2/trustlist/did.json](https://tng-cdn-uat.who.int/v2/trustlist/did.json)         |
-|    UAT   | Reference  | [https://tng-cdn-uat.who.int/v2/trustlist-ref/did.json](https://tng-cdn-uat.who.int/v2/trustlist-ref/did.json) |
-|  PROD  |  Embedded   | [https://tng-cdn.who.int/v2/trustlist/did.json](https://tng-cdn.who.int/v2/trustlist/did.json)         |
-| PROD | Reference  | [https://tng-cdn.who.int/v2/trustlist-ref/did.json](https://tng-cdn.who.int/v2/trustlist-ref/did.json) |
+<table>
+  <thead>
+    <tr>
+      <th>Environment</th>
+      <th>Variant</th>
+      <th>URL</th>
+    </tr>
+  </thead>
+  <tbody id="env-table">
+    <!-- Rows will be dynamically added here -->
+  </tbody>
+</table>
 
-
-
-#### Trust Network Gateway 
+#### Trust Network Gateway
 
 
 THe following are the endpoints for the [Trust Network Gateway](concepts.html#trust-network-gateway-tng) for each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s:
