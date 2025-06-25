@@ -728,15 +728,11 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 
  **Certificate Validation on Grafana:** Once the CMS package is uploaded to the gateway, your DSC certificate entry will be reflected in Grafana.
 
-| Environment | Dashboard Name |
-|-------------|-----|
-| [DEV](https://auth-tng-dev.switzerlandnorth.cloudapp.azure.com) | DEV Country certificate expiry	|
-| [UAT](https://auth-tng-uat.switzerlandnorth.cloudapp.azure.com) |	UAT Country certificate expiry	|
-| [PROD](https://auth-tng.switzerlandnorth.cloudapp.azure.com) | PROD Country certificate expiry	|	
-
-
-
-
+| Environment |
+|-------------|
+| [DEV](https://auth-tng-dev.switzerlandnorth.cloudapp.azure.com/grafana/d/dev-cert-expiry/dev-country-certificate-expiry?orgId=2) | 
+| [UAT](https://auth-tng-uat.switzerlandnorth.cloudapp.azure.com/grafana/d/uat-cert-expiry/uat-country-certificate-expiry?orgId=2) |
+| [PROD](https://auth-tng.switzerlandnorth.cloudapp.azure.com/grafana/d/cert-expiry/prod-country-certificate-expiry?orgId=2) |
 
 
 
