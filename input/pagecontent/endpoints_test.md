@@ -1,9 +1,75 @@
-<div xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://hl7.org/fhir ../../input-cache/schemas/R5/fhir-single.xsd">
-  <p>Sign up on <a href="https://chat.fhir.org/">chat.fhir.org</a> community and follow the stream who-smart-guidelines for questions, queries and chats related to WHO SMART Guidelines</p>
+---
+layout: default
+title: Home
+---
+<label for="dropdown"><strong>Select Country:</strong></label>
+<select id="dropdown">
+    <option>Loading...</option>
+</select>
+<div id="output"></div>
 
-  <p>WHO also hosts weekly calls on authoring and implementing WHO SMART Guidelines where participation is welcome. Please send an email at <a href= "mailto:gdhcn-support@who.int?subject = SMART Trust FHIR IG">gdhcn-support@who.int</a> in order to get invited.</p>
+#### Operational Metadata
+##### Trust Domains
 
-<script>
-document.write(5 + 6);
-</script>
-</div>
+The list of active trust domains is maintained in the [GDHCN Trust Domain Value Set](ValueSet-Domains.html).
+
+
+##### Key Usage Codes
+
+The list of key usage codes is maintained in the [GDHCN Key Usage Value Set](ValueSet-KeyUsage.html).
+
+
+##### Participants
+
+The list of onboarded Trust Network Participants is availabe in the  [GDHCN Participants Value Set](ValueSet-Participants.html).
+
+
+
+#### Trustlist Distribution Endpoints
+
+THe following are the endpoints for the [GDHCN DID Trust List](concepts_did_gdhcn.html) for each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s:
+
+<table>
+  <thead>
+    <tr>
+      <th>Environment</th>
+      <th>Variant</th>
+      <th>URL</th>
+    </tr>
+  </thead>
+  <tbody id="env-table">
+    <!-- Rows will be dynamically added here -->
+  </tbody>
+</table>
+
+#### Trust Network Gateway
+
+
+THe following are the endpoints for the [Trust Network Gateway](concepts.html#trust-network-gateway-tng) for each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s:
+
+| Environment | URL |
+|-------------|-----|
+| PROD |	 https://tng.who.int |
+| UAT |	 https://tng-uat.who.int |
+| DEV |	 https://tng-dev.who.int |
+
+
+
+
+#### Status Monitoring Dashboards
+
+The following dashboards reflect the realtime status of key materials for each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s:
+
+
+| Environment | Dashboard | 
+|----------|--------------|
+| DEV | [Country certificate expiry](https://tng-monitor-dev.who.int/grafana/d/dev-cert-expiry/dev-country-certificate-expiry) |
+| DEV | [Country Onboarding Status](https://tng-monitor-dev.who.int/grafana/d/ddh0xqz9diio0c/dev-country-onboarding-status) |
+| DEV | [Country Queries](https://tng-monitor-dev.who.int/grafana/d/dev-country-queries/dev-country-queries) |
+| DEV | [Gateway Availability Dashboard](https://tng-monitor-dev.who.int/grafana/d/gw-availability/dev-gateway-availability-dashboard) |
+| UAT | [Country certificate expiry](https://tng-monitor-uat.who.int/grafana/d/uat-cert-expiry/uat-country-certificate-expiry) |
+| UAT | [Country Queries](https://tng-monitor-uat.who.int/grafana/d/uat-country-queries/uat-country-queries)  |
+| UAT | [Gateway Availability Dashboard](https://tng-monitor-uat.who.int/grafana/d/c3ed3dbe-6cc0-4f16-8f0a-c7bcebd36420/uat-gateway-availability-dashboard) |
+| PROD | [Country certificate expiry](https://tng-monitor.who.int/grafana/d/cert-expiry/prod-country-certificate-expiry) |
+| PROD | [Country Queries](https://tng-monitor.who.int/grafana/d/prod-country-queries/prod-country-queries) |
+| PROD | [Gateway Availability Dashboard](https://tng-monitor.who.int/grafana/d/gateway-availability/prod-gateway-availability-dashboard) |
