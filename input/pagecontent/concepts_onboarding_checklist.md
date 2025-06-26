@@ -639,7 +639,7 @@ You should see a output like:
 
 - Create an CMS Package :
 
-**Note**: It could be achieved using either of the two methods listed below — Method 1 (Command Line) OR Method 2 (Script-based approach).
+	>**Note**: It could be achieved using either of the two methods listed below — Method 1 (Command Line) OR Method 2 (Script-based approach).
 
  
 **Method 1 - Command line .**
@@ -652,13 +652,15 @@ openssl base64 -in signed.der -out DSC_cms.b64 -e -A
 
 - Check DSC is already exist before upload CMS package
   
-**Note**: Please replace XC with your actual two letter country code
+	>**Note**: Please replace XC with your actual two letter country code
 
 ```   
 curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 ```
 
 - Upload the CMS Package to the Gateway
+  
+	> Below command require 3 inputs (TLS.pem, TLS.key and DSC_cms.b64)   
 
 ```    
 curl -v -X POST -H "Content-Type: application/json"  --cert TLS.pem --key TLS.key --data '{"cms": "'"$(cat DSC_cms.b64)"'", "properties": {}, "domain": "DCC"}' https://tng-dev.who.int/trustedCertificate
@@ -697,6 +699,7 @@ An optional third argument can be provided to specify the purpose of the DSC (e.
 ```
 
 **- ./gen_dsc.sh:** Script name
+
 **- /path/to/sca:** Create SCA directory which contains SCA.pem and SCA.key
 
 
