@@ -638,8 +638,10 @@ You should see a output like:
 - Create an Document Signer Certificate and sign it by the SCA [Refer](#certification-preparation-for-prod) and [DSC generation example](#dsc-generation-example)
 
 - Create an CMS Package :
-> Note: It could be achieved through below two methods ( Command line and Script )
 
+**Note**: It could be achieved using either of the two methods listed below — Method 1 (Command Line) OR Method 2 (Script-based approach).
+
+ 
 **Method 1 - Command line .**
 Before running the below commands we need DSC certificate : [To Generate DSC through command line - Follow section 4.1.1.5.6.2](https://worldhealthorganization.github.io/smart-trust/branches/signerCertificate-to-trustedCertificate/concepts_onboarding_checklist.html#dsc-generation-example)
 ```
