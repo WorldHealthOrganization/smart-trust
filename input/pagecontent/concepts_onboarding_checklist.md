@@ -671,7 +671,8 @@ curl -v -X POST -H "Content-Type: application/json" --cert TLS.pem --key TLS.key
 
 **Example:** DCC for domain, DSC for group, and https://tng-dev.who.int for DEV environment endpoint.
 
-![image](https://github.com/user-attachments/assets/7931f435-e8f7-41ab-ae72-708ace085f96)
+![image](https://github.com/user-attachments/assets/6a44c80c-51a4-4eca-810e-32e96e3a0141)
+
 
             
 - Download the Trustlist again, and check if your DSC is available.
