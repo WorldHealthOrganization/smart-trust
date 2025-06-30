@@ -671,7 +671,7 @@ curl -v -X POST -H "Content-Type: application/json" --cert TLS.pem --key TLS.key
 
 **Example:** DCC for domain, DSC for group, and https://tng-dev.who.int for DEV environment endpoint.
 
-{% include img.html img="https://github.com/user-attachments/assets/6a44c80c-51a4-4eca-810e-32e96e3a0141" caption="Example" width="70%" %}
+{% include img.html img="CMSPackageUploadCommand.png" caption="Example" width="70%" %}
 
 
 
@@ -750,12 +750,12 @@ curl -v <<EndpointURL>>/trustList/DSC/XC --cert TLS.pem --key TLS.key
 
 
 
-{% include img.html img="https://github.com/user-attachments/assets/b55d083f-dccb-4547-af48-bbb7cb60d681" caption="Working Setup" width ="60%" %}     
+{% include img.html img="WorkingSetup.png" caption="Working Setup" width ="60%" %}     
 
 
 
 
-{% include img.html img="https://github.com/user-attachments/assets/0f149617-d5f8-4f1b-bb65-37a073d4c146" caption="Non-working setup" width ="60%" %}    
+{% include img.html img="NonWorkingSetup.png" caption="Non-working setup" width ="60%" %}    
 
 
  **Certificate Validation on Grafana:** Once the CMS package is uploaded to the gateway, your DSC certificate entry will be reflected in Grafana.
