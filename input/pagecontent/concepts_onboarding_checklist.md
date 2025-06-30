@@ -668,8 +668,8 @@ curl -v -X POST -H "Content-Type: application/json" --cert TLS.pem --key TLS.key
 ```
 
 **Note:** Replace domain, group, and EndpointURL with the appropriate values for your onboarding environment.
-
-**Example:** DCC for domain, DSC for group, and https://tng-dev.who.int for DEV environment endpoint.
+ 
+ DCC for domain, DSC for group, and https://tng-dev.who.int for DEV environment endpoint.
 
 {% include img.html img="CMSPackageUploadCommand.png" caption="Example" width="70%" %}
 
