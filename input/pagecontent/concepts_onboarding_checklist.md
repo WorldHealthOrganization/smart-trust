@@ -635,7 +635,7 @@ You should see a output like:
 ```
 - Test the other Trustlist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication…)
 
-#### Upload CMS Package
+#### Upload DSC Certificate
 - Create an Document Signer Certificate and sign it by the SCA [Refer](#certification-preparation-for-prod) and [DSC generation example](#dsc-generation-example)
 
 - Create an CMS Package :
