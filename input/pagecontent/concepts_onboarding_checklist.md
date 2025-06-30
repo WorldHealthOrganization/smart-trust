@@ -671,7 +671,8 @@ curl -v -X POST -H "Content-Type: application/json" --cert TLS.pem --key TLS.key
 
 **Example:** DCC for domain, DSC for group, and https://tng-dev.who.int for DEV environment endpoint.
 
-![image](https://github.com/user-attachments/assets/6a44c80c-51a4-4eca-810e-32e96e3a0141)
+{% include img.html img="https://github.com/user-attachments/assets/6a44c80c-51a4-4eca-810e-32e96e3a0141" caption="Example" width="70%" %}
+
 
 
             
