@@ -605,17 +605,18 @@ Signing tags and commits is great, but if you decide to use this in your normal 
 
 THe following are the endpoints for the [Trust Network Gateway](concepts.html#trust-network-gateway-tng) for each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s:
 
-| Environment | URL |
+| Environment | EndpointURL |
 |-------------|-----|
 | PROD |	 https://tng.who.int |
 | UAT |	 https://tng-uat.who.int |
 | DEV |	 https://tng-dev.who.int |
 
+**Please ensure you replace with your actual environment's endpoint URL wherever indicated.**
 
 - After onboarding in the DEV/UAT/PROD Environment, check the connectivity with the Trust Network Gateway using its [API](https://smart.who.int/trust/openapi/). This can be achieved with following command:
 
 ```
-curl -v https://tng-dev.who.int/trustList --cert TLS.pem --key TLS.key
+curl -v <<EndpointURL>>/trustList --cert TLS.pem --key TLS.key
 ```
 You should see a output like:
 
@@ -634,40 +635,53 @@ You should see a output like:
 ```
 - Test the other Trustlist Routes in the same style (e.g. with DSC/SCA/Upload/Authentication…)
 
-#### Upload CMS Package
+#### Upload DSC Certificate
 - Create an Document Signer Certificate and sign it by the SCA [Refer](#certification-preparation-for-prod) and [DSC generation example](#dsc-generation-example)
 
-- Create an CMS Package with the following Command:
-> Note: Step 3 and 4 could be achieved through two method, commandline and script respectively .
+- Create an CMS Package :
 
-**Method 1 - Commandline .**
+	>**Note**: It could be achieved using either of the two methods listed below — Method 1 (Command Line) OR Method 2 (Script-based approach).
+
+ 
+**Method 1 - Command line .**
+Before running the below commands we need DSC certificate : [To Generate DSC through command line - Follow section 4.1.1.5.6.2](https://worldhealthorganization.github.io/smart-trust/branches/signerCertificate-to-trustedCertificate/concepts_onboarding_checklist.html#dsc-generation-example)
 ```
-openssl x509 -outform der -in cert.pem -out cert.der
-openssl cms -sign -nodetach -in cert.der -signer signing.crt -inkey signing.key -out signed.der -outform DER -binary
-openssl base64 -in signed.der -out cms.b64 -e -A
-
+openssl x509 -outform der -in DSC.pem -out cert.der
+openssl cms -sign -nodetach -in cert.der -signer UP.pem -inkey UP.key -out signed.der -outform DER -binary
+openssl base64 -in signed.der -out DSC_cms.b64 -e -A
 ```
-> Note: cert.der is your DSC, signing.crt is the TNP<sub>UP</sub>.
-
-
 
 - Check DSC is already exist before upload CMS package
+  
+	>**Note**: Please replace XC with your actual two letter country code
 
 ```   
-curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
+curl -v <<EndpointURL>>/trustList/DSC/XC --cert TLS.pem --key TLS.key
 ```
 
 - Upload the CMS Package to the Gateway
+  
+	> Below command require 3 inputs (TLS.pem, TLS.key and DSC_cms.b64)   
 
 ```    
-curl -v -X POST -H "Content-Type: application/json"  --cert TLS.pem --key TLS.key --data '{"cms": "'"$(cat cms.b64)"'", "properties": {}, "domain": "DCC"}' https://tng-dev.who.int/trustedCertificate
+curl -v -X POST -H "Content-Type: application/json" --cert TLS.pem --key TLS.key -H "Accept: application/json" --data '{"cms": "'"$(cat DSC_cms.b64)"'", "properties": {}, "domain": "DCC|IPS-PILGRIMAGE", "group": "DSC|DESC"}' <<EndpointURL>>/trustedCertificate
 ```
 
+**Note:** Replace domain, group, and EndpointURL with the appropriate values for your onboarding environment.
+ 
+ DCC for domain, DSC for group, and https://tng-dev.who.int for DEV environment endpoint.
+
+{% include img.html img="CMSPackageUploadCommand.png" caption="Example" width="70%" %}
+
+
+
+            
 - Download the Trustlist again, and check if your DSC is available.
 
 ```   
-curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
+curl -v <<EndpointURL>>/trustList/DSC/XC --cert TLS.pem --key TLS.key
 ```
+
 
 
 **Method 2 - Scripts**
@@ -688,54 +702,44 @@ A configuration file (DN_template.cnf) that contains the Distinguished Name (DN)
 A subdirectory where the SCA (Signing Certificate Authority) PEM and KEY files are located.
 An optional third argument can be provided to specify the purpose of the DSC (e.g., test, vax, rec). If this argument is not provided, the DSC will be generated for all purposes.
 
-**How to to run DSC Generate Script** [gen_dsh.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_dsc.sh)
+**How to to run DSC Generate Script** [gen_dsc.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/gen_dsc.sh)
 
 ``` 
-./script_name.sh DN_template.cnf directory_of_SCA_files [test/vax/rec-purpose]
-
+./gen_dsc.sh DN_template.cnf path/to/sca_directory [test/vax/rec-purpose]
 ```
+
+./gen_dsc.sh: Script name
+
+/path/to/sca: Create SCA directory which contains SCA.pem and SCA.key
+
+
+
+
 **How to run upload_dsc.sh script to upload CMS Package:** [upload_dsc.sh](https://github.com/WorldHealthOrganization/tng-participant-template/blob/main/scripts/certgen/upload_dsc.sh)
 
-**- ./upload_dsc.sh:** Replace this with the actual name of your script.
-
-**- /path/to/subdir:** Path to the directory containing UP.pem and UP.key.
-
-**- /path/to/DSC_dir:** Path to the directory containing the DSC files (DSC.pem, DSC.key).  
-
-**DCC:** The domain name to be used. If omitted, the script will default to DCC.
-
 ```
-./upload_dsc.sh /path/to/subdir-up_pem_key  /path/to/DSC_dir [DCC]
+./upload_dsc.sh /path/to/subdir  /path/to/DSC_dir [DCC]
 ```
- 
 
-- Check DSC is already exist before upload CMS package
+./upload_dsc.sh: Script name
+
+/path/to/subdir: Create subdir directory which contains UP.pem and UP.key.
+
+/path/to/DSC_dir: Create DSC_dir directory which contain the DSC.pem.
+
+DCC: The domain name to be used. If omitted, the script will default to DCC.
+
+**Important** : Once above command executed sucessfully that's mean your CMS package uploaded to gateway
+
+
+
+**Check DSC Status**
+
+
+Please replace XC with your actual two letter country code
 
 ```   
-curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
-```
-If there is no DSC uploaded, or the one you find is older than the one you want to upload, 
-you can proceed with the upload.  
-
-```
-./upload_dsc.sh /path/to/subdir-up_pem_key  /path/to/DSC_dir [DCC] 
-```
-This script will generate a \[signed with the upload certificate\] [CMS](https://datatracker.ietf.org/doc/html/rfc5652) 
-of your content \[the DSC\] and upload it to the TNG. The upload is done with the following curl command (this is 
-included in the script as well):
-
-```    
-curl -v -X POST -H "Content-Type: application/cms" --cert TLS.pem --key TLS.key  
---header "Content-Type: application/json" \
---header "Accept: application/json" \
---data '{"cms":@cms.b64, "domain": "DCC|IPS-PILGRIMAGE", "group": "DSC|DESC"}' https://tng-dev.who.int/trustedCertificate   
-```
-**Domain** and **group** are optionals, defaulting to DCC and DSC respectively.  
-
-- Download the Trustlist again, and check if your DSC is available.
-
-```   
-curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
+curl -v <<EndpointURL>>/trustList/DSC/XC --cert TLS.pem --key TLS.key
 ```
 
 
@@ -746,12 +750,22 @@ curl -v https://tng-dev.who.int/trustList/DSC/XC --cert TLS.pem --key TLS.key
 
 
 
-{% include img.html img="https://github.com/user-attachments/assets/b55d083f-dccb-4547-af48-bbb7cb60d681" caption="Working Setup" width ="60%" %}     
+{% include img.html img="WorkingSetup.png" caption="Working Setup" width ="60%" %}     
 
 
 
 
-{% include img.html img="https://github.com/user-attachments/assets/0f149617-d5f8-4f1b-bb65-37a073d4c146" caption="Non-working setup" width ="60%" %}     
+{% include img.html img="NonWorkingSetup.png" caption="Non-working setup" width ="60%" %}    
+
+
+ **Certificate Validation on Grafana:** Once the CMS package is uploaded to the gateway, your DSC certificate entry will be reflected in Grafana.
+
+| Environment |
+|-------------|
+| [DEV](https://auth-tng-dev.switzerlandnorth.cloudapp.azure.com/grafana/d/dev-cert-expiry/dev-country-certificate-expiry?orgId=2) | 
+| [UAT](https://auth-tng-uat.switzerlandnorth.cloudapp.azure.com/grafana/d/uat-cert-expiry/uat-country-certificate-expiry?orgId=2) |
+| [PROD](https://auth-tng.switzerlandnorth.cloudapp.azure.com/grafana/d/cert-expiry/prod-country-certificate-expiry?orgId=2) |
+
 
 
 
