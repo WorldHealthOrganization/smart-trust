@@ -1,13 +1,9 @@
-Feature: Publish PKI Material
+Feature: Retrieve Trust List
 
-Scenario: Retrieved IPS content is valid
-GIVEN the Host Country EMR retrieved IPS Content as JSON
-WHEN the EMR validates the IPS content
-THEN IPS content validation is successful
-AND IPS Content is displayed
+Scenario: Retrieve Trust List - DID
+GIVEN a Trust Network Participant has onboard to the Trust Network
+WHEN the Trust Network Participant is connected to the Trust Network using a secure mTLS connection
+THEN the Trust Network Participant is able to retrieve the Trust List in DID format
 
-Scenario: Retrieved IPS content is invalid
-GIVEN the Host Country EMR retrieved IPS Content as JSON
-WHEN the EMR validates the IPS content
-THEN IPS content validation fails
-AND error message is sent
+
+Scenario: Retrieve Trust List - API
