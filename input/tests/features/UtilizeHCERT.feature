@@ -18,7 +18,7 @@ AND the QR code uses Alphanumeric mode (Mode 2) encoding
 WHEN the Receiver scans the QR Code
 THEN the QR code is successfully decoded
 AND the decoded raw Alphanumeric string does not start with "HC1:" prefix
-
+AND the QR Code is rejected with an Error
 
 Scenario: Received QR code is a valid HCERT QR Code and a correct CWT Token is retrieved
 GIVEN a Receiver is presented a QR Code
