@@ -27,4 +27,3 @@ Issues and change requests are managed here:
 Issues:  __https://github.com/WorldHealthOrganization/smart-trust/issues__  
     or the Kanban board: __https://github.com/WorldHealthOrganization/smart-trust/projects/1__
 
- 
