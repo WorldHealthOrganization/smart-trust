@@ -22,8 +22,13 @@ for %%m in (%MODELS%) do (
     set NEW_FILE=%OUTPUT_DIR%\StructureDefinition-%%m.schema.json
     
     if exist "!OLD_FILE!" (
-        echo Renaming !OLD_FILE! to !NEW_FILE!
-        move "!OLD_FILE!" "!NEW_FILE!"
+        if exist "!NEW_FILE!" (
+            echo Target file !NEW_FILE! already exists, removing old file !OLD_FILE!
+            del "!OLD_FILE!"
+        ) else (
+            echo Renaming !OLD_FILE! to !NEW_FILE!
+            move "!OLD_FILE!" "!NEW_FILE!"
+        )
     ) else (
         echo Schema file !OLD_FILE! not found, skipping...
     )

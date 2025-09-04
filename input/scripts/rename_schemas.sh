@@ -21,8 +21,13 @@ for model in "${LOGICAL_MODELS[@]}"; do
     NEW_FILE="$OUTPUT_DIR/StructureDefinition-${model}.schema.json"
     
     if [ -f "$OLD_FILE" ]; then
-        echo "Renaming $OLD_FILE to $NEW_FILE"
-        mv "$OLD_FILE" "$NEW_FILE"
+        if [ -f "$NEW_FILE" ]; then
+            echo "Target file $NEW_FILE already exists, removing old file $OLD_FILE"
+            rm "$OLD_FILE"
+        else
+            echo "Renaming $OLD_FILE to $NEW_FILE"
+            mv "$OLD_FILE" "$NEW_FILE"
+        fi
     else
         echo "Schema file $OLD_FILE not found, skipping..."
     fi
