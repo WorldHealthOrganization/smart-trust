@@ -18,8 +18,18 @@ SET JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8
 
 IF EXIST "%input_cache_path%\%publisher_jar%" (
 	JAVA -jar "%input_cache_path%\%publisher_jar%" -ig . %txoption% %*
+	REM Run schema renaming post-processing
+	IF EXIST "input\scripts\rename_schemas.bat" (
+		ECHO Running schema renaming post-processing...
+		CALL input\scripts\rename_schemas.bat output
+	)
 ) ELSE If exist "..\%publisher_jar%" (
 	JAVA -jar "..\%publisher_jar%" -ig . %txoption% %*
+	REM Run schema renaming post-processing
+	IF EXIST "input\scripts\rename_schemas.bat" (
+		ECHO Running schema renaming post-processing...
+		CALL input\scripts\rename_schemas.bat output
+	)
 ) ELSE (
 	ECHO IG Publisher NOT FOUND in input-cache or parent folder.  Please run _updatePublisher.  Aborting...
 )
