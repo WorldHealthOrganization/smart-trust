@@ -1,4 +1,4 @@
-Logical:        SchemeInformation
+Logical:        StructureDefinition-SchemeInformation
 Title:          "Scheme Information"
 Description:    "Logical Model for Information on the trusted list and its issuing scheme"
 

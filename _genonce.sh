@@ -19,20 +19,11 @@ export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS -Dfile.encoding=UTF-8"
 publisher=$input_cache_path/$publisher_jar
 if test -f "$publisher"; then
 	java -jar $publisher -ig . $txoption $*
-	# Run schema renaming post-processing
-	if [ -f "input/scripts/rename_schemas.sh" ]; then
-		echo "Running schema renaming post-processing..."
-		./input/scripts/rename_schemas.sh output
-	fi
+
 else
 	publisher=../$publisher_jar
 	if test -f "$publisher"; then
 		java -jar $publisher -ig . $txoption $*
-		# Run schema renaming post-processing
-		if [ -f "input/scripts/rename_schemas.sh" ]; then
-			echo "Running schema renaming post-processing..."
-			./input/scripts/rename_schemas.sh output
-		fi
 	else
 		echo IG Publisher NOT FOUND in input-cache or parent folder.  Please run _updatePublisher.  Aborting...
 	fi

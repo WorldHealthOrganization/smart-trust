@@ -1,5 +1,5 @@
 
-Logical:        HCert
+Logical:        StructureDefinition-HCert
 Title:          "Health Certificate"
 Description:    "Logical Model for the HCERT"
 

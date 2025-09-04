@@ -1,6 +1,6 @@
 
 
-Logical:        COSEHeader
+Logical:        StructureDefinition-COSEHeader
 Title:          "COSE Headers (DRAFT)"
 Description:    "Data elements for COSE Headers https://www.iana.org/assignments/cose/cose.xhtml#header-parameters"
 
