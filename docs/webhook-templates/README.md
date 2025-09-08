@@ -1,18 +1,23 @@
-# Webhook Templates for Participant Repositories
+# GitHub Workflow Configuration for Participant Repositories
 
-This directory contains template files that should be added to each participant repository to enable automatic webhook triggers to the WHO SMART Trust repository.
+**This directory contains the templates and instructions for configuring GitHub workflows in participant repositories.**
 
-## Files Overview
+## 📋 Primary Configuration Guide
 
-- `github-workflow-template.yml` - GitHub Actions workflow template
-- `simple-webhook-template.sh` - Simple shell script template
-- `setup-instructions.md` - Detailed setup instructions
+**For complete GitHub workflow setup, follow:** 
+📖 **[setup-instructions.md](setup-instructions.md)**
 
-## Quick Setup
+## 📁 Template Files
 
-1. Choose your preferred webhook method (GitHub Actions recommended)
-2. Copy the appropriate template to your participant repository
-3. Configure the required secrets/tokens
-4. Test the webhook trigger
+- **`github-workflow-template.yml`** - GitHub Actions workflow template (copy to `.github/workflows/`)
+- **`simple-webhook-template.sh`** - Shell script template for manual triggers
+- **`setup-instructions.md`** - Complete step-by-step configuration guide
 
-See `setup-instructions.md` for detailed step-by-step instructions.
+## 🚀 Quick Setup
+
+1. Copy `github-workflow-template.yml` to `.github/workflows/trigger-smart-trust-update.yml` in your participant repository
+2. Create GitHub token with `repo` permissions
+3. Add token as repository secret `SMART_TRUST_WEBHOOK_TOKEN`
+4. Test by pushing changes to main branch
+
+**For detailed instructions, see [setup-instructions.md](setup-instructions.md)**
