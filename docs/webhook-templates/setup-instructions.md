@@ -166,7 +166,7 @@ tng-participants-{env}/
 - **Source**: `tng-participants-prod` repository
 - **RefMart**: Includes RefMartCountryList codesystem
 - **Participants**: All directories from repository
-- **Output**: `Participants.fsh`, `refmart_countries.fsh`
+- **Output**: `Participants.fsh`, `RefMartList.fsh`
 
 ### UAT Environment  
 - **Source**: `tng-participants-uat` repository
