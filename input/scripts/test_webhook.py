@@ -34,7 +34,10 @@ def main():
         "ref": "refs/heads/main",
         "repository": {
             "name": repo_name,
-            "full_name": f"WorldHealthOrganization/{repo_name}"
+            "full_name": f"WorldHealthOrganization/{repo_name}",
+            "owner": {
+                "login": "WorldHealthOrganization"
+            }
         },
         "pusher": {
             "name": "test-user"

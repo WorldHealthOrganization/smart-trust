@@ -10,6 +10,31 @@ import subprocess
 import argparse
 from pathlib import Path
 
+# Security: Allowed repositories for webhook triggers
+ALLOWED_REPOSITORIES = {
+    "WorldHealthOrganization/tng-participants-prod",
+    "WorldHealthOrganization/tng-participants-uat", 
+    "WorldHealthOrganization/tng-participants-dev"
+}
+
+# Security: Required organization
+REQUIRED_ORGANIZATION = "WorldHealthOrganization"
+
+def validate_webhook_source(repository_info):
+    """Validate that webhook comes from an allowed repository and organization"""
+    full_name = repository_info.get('full_name', '')
+    owner = repository_info.get('owner', {}).get('login', '')
+    
+    # Check organization
+    if owner != REQUIRED_ORGANIZATION:
+        return False, f"Webhook rejected: Repository owner '{owner}' is not '{REQUIRED_ORGANIZATION}'"
+    
+    # Check repository whitelist
+    if full_name not in ALLOWED_REPOSITORIES:
+        return False, f"Webhook rejected: Repository '{full_name}' is not in allowed list: {list(ALLOWED_REPOSITORIES)}"
+    
+    return True, "Webhook source validated successfully"
+
 def determine_environment_from_repo(repo_name):
     """Determine environment based on repository name"""
     if repo_name.endswith('-prod'):
@@ -28,6 +53,18 @@ def handle_webhook(payload_data):
     repository = payload_data.get('repository', {})
     repo_name = repository.get('name', '')
     full_name = repository.get('full_name', '')
+    
+    # Security validation
+    is_valid, validation_message = validate_webhook_source(repository)
+    if not is_valid:
+        print(validation_message)
+        return {
+            'status': 'error',
+            'repository': full_name,
+            'message': validation_message
+        }
+    
+    print(f"Webhook validated and accepted from repository: {full_name}")
     
     # Determine environment
     environment = determine_environment_from_repo(repo_name)
@@ -72,8 +109,6 @@ def handle_webhook(payload_data):
 def main():
     parser = argparse.ArgumentParser(description='Handle webhook from participant repositories')
     parser.add_argument('--payload', help='JSON payload from webhook (can be file path or JSON string)')
-    parser.add_argument('--repo', help='Repository name (if not in payload)')
-    parser.add_argument('--env', help='Force specific environment (PROD, UAT, DEV)')
     
     args = parser.parse_args()
     
@@ -95,19 +130,6 @@ def main():
         except json.JSONDecodeError as e:
             print(f"Error parsing JSON from stdin: {e}")
             sys.exit(1)
-    
-    # Override environment if specified
-    if args.env:
-        # Force environment by modifying repository name
-        if 'repository' not in payload:
-            payload['repository'] = {}
-        payload['repository']['name'] = f"tng-participants-{args.env.lower()}"
-    
-    # Override repository if specified
-    if args.repo:
-        if 'repository' not in payload:
-            payload['repository'] = {}
-        payload['repository']['name'] = args.repo
     
     result = handle_webhook(payload)
     print(json.dumps(result, indent=2))

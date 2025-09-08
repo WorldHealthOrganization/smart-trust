@@ -12,6 +12,16 @@ The WHO SMART Trust system supports three environments with corresponding partic
 
 When participants are added, removed, or modified in any participant repository, webhooks can automatically trigger updates to the corresponding SMART Trust valuesets and codesystems.
 
+## Security Requirements
+
+**Important**: For security, webhooks are only accepted from these exact repositories:
+
+- `WorldHealthOrganization/tng-participants-prod`
+- `WorldHealthOrganization/tng-participants-uat`
+- `WorldHealthOrganization/tng-participants-dev`
+
+All webhook sources must be from the `WorldHealthOrganization` organization. Webhooks from any other repositories or organizations will be rejected.
+
 ## Method 1: GitHub Actions Webhook (Recommended)
 
 This method uses GitHub Actions workflows to trigger webhooks when changes are pushed to the main branch.
@@ -270,3 +280,5 @@ For issues with webhook setup:
 - **Regularly rotate tokens** (every 90 days recommended)
 - **Limit token scope** to minimum required permissions
 - **Monitor token usage** in GitHub settings
+- **Repository validation**: Webhooks are only accepted from the three official WHO participant repositories
+- **Organization validation**: All webhook sources must be from the `WorldHealthOrganization` organization
