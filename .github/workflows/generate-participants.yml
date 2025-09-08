@@ -78,25 +78,10 @@ jobs:
       id: env
       run: |
         if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-          # Extract environment from webhook payload
-          ENV="${{ github.event.client_payload.environment }}"
+          # Extract environment from repository name (part after last dash)
           SOURCE_REPO="${{ steps.validate.outputs.source_repo }}"
-          
-          # Validate environment matches repository
-          if [[ "$SOURCE_REPO" == *"-prod" ]] && [ "$ENV" != "PROD" ]; then
-            echo "ERROR: Environment mismatch - prod repository with $ENV environment"
-            exit 1
-          elif [[ "$SOURCE_REPO" == *"-uat" ]] && [ "$ENV" != "UAT" ]; then
-            echo "ERROR: Environment mismatch - uat repository with $ENV environment"
-            exit 1
-          elif [[ "$SOURCE_REPO" == *"-dev" ]] && [ "$ENV" != "DEV" ]; then
-            echo "ERROR: Environment mismatch - dev repository with $ENV environment"
-            exit 1
-          fi
-          
-          if [ -z "$ENV" ]; then
-            ENV="PROD"
-          fi
+          ENV_SUFFIX=$(echo "$SOURCE_REPO" | sed 's/.*-//')
+          ENV=$(echo "$ENV_SUFFIX" | tr '[:lower:]' '[:upper:]')
         else
           # Use manual input
           ENV="${{ github.event.inputs.environment }}"

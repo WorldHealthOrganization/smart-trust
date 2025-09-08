@@ -14,15 +14,9 @@ GENERATE_SCRIPT="$SCRIPT_DIR/generate_organizations.py"
 determine_environment() {
     local repo_name="${1:-$(basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")}"
     
-    if [[ "$repo_name" == *"-prod" ]]; then
-        echo "PROD"
-    elif [[ "$repo_name" == *"-uat" ]]; then
-        echo "UAT"
-    elif [[ "$repo_name" == *"-dev" ]]; then
-        echo "DEV"
-    else
-        echo "PROD"  # Default
-    fi
+    # Extract suffix after last dash and convert to uppercase
+    local env_suffix=$(echo "$repo_name" | sed 's/.*-//')
+    echo "$env_suffix" | tr '[:lower:]' '[:upper:]'
 }
 
 # Parse command line arguments

@@ -36,15 +36,10 @@ def validate_webhook_source(repository_info):
     return True, "Webhook source validated successfully"
 
 def determine_environment_from_repo(repo_name):
-    """Determine environment based on repository name"""
-    if repo_name.endswith('-prod'):
-        return 'PROD'
-    elif repo_name.endswith('-uat'):
-        return 'UAT'
-    elif repo_name.endswith('-dev'):
-        return 'DEV'
-    else:
-        return 'PROD'  # Default
+    """Determine environment based on repository name (part after last dash)"""
+    # Extract suffix after last dash and convert to uppercase
+    env_suffix = repo_name.split('-')[-1]
+    return env_suffix.upper()
 
 def handle_webhook(payload_data):
     """Handle webhook payload and trigger participant generation"""

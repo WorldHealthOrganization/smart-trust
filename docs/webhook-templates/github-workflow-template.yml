@@ -29,16 +29,9 @@ jobs:
         if [ -n "${{ github.event.inputs.force_environment }}" ]; then
           ENV="${{ github.event.inputs.force_environment }}"
         else
-          # Auto-detect from repository name
-          if [[ "$REPO_NAME" == *"-prod" ]]; then
-            ENV="PROD"
-          elif [[ "$REPO_NAME" == *"-uat" ]]; then
-            ENV="UAT"
-          elif [[ "$REPO_NAME" == *"-dev" ]]; then
-            ENV="DEV"
-          else
-            ENV="PROD"
-          fi
+          # Auto-detect from repository name (part after last dash)
+          ENV_SUFFIX=$(echo "$REPO_NAME" | sed 's/.*-//')
+          ENV=$(echo "$ENV_SUFFIX" | tr '[:lower:]' '[:upper:]')
         fi
         
         echo "environment=$ENV" >> $GITHUB_OUTPUT
