@@ -1,6 +1,6 @@
 ValueSet:     Participants
 Title:        "WHO GDHCN Trust Network Participant"
-Description:  "ValueSet of GDHCN Trust Network Participants"
+Description:  "ValueSet of GDHCN Trust Network Participants for Production environment"
 
 * ^status = #active
 * ^experimental = true
@@ -8,11 +8,11 @@ Description:  "ValueSet of GDHCN Trust Network Participants"
 * include codes from system Participants
 
 
-// To generate this list of codes
+// To generate this list of codes for PROD environment
 // execute the following on tng-participants-prod repo:
 //     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z]' -printf "* \$RefMartCountryList#%P\n"  | grep -v WHO
 //
-// in the future, will need to exclude more than just WHO as not being from the ISO set.
+// in the future, will need to exclude more than just WHO as not being from the RefMart set.
 
 * $RefMartCountryList#BRA
 * $RefMartCountryList#SVN

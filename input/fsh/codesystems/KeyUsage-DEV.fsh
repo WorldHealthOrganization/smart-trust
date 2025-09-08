@@ -1,7 +1,7 @@
-CodeSystem: KeyUsage
-Title:        "WHO GDHCN Key Usage CodeSystem"
+CodeSystem: KeyUsage-DEV
+Title:        "WHO GDHCN Key Usage CodeSystem - DEV"
 Description:  """
-CodeSystem for GDHCN Key Usage that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.html) for Production environment
+CodeSystem for GDHCN Key Usage that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.html) for Development environment
 """
 
 * ^experimental = true
