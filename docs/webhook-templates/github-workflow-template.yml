@@ -1,0 +1,68 @@
+name: Trigger WHO SMART Trust Update
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      force_environment:
+        description: 'Force specific environment (leave empty for auto-detection)'
+        required: false
+        type: choice
+        options:
+        - ''
+        - PROD
+        - UAT
+        - DEV
+
+jobs:
+  trigger-smart-trust-update:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Determine environment
+      id: env
+      run: |
+        REPO_NAME="${{ github.repository }}"
+        
+        # Use manual input if provided
+        if [ -n "${{ github.event.inputs.force_environment }}" ]; then
+          ENV="${{ github.event.inputs.force_environment }}"
+        else
+          # Auto-detect from repository name
+          if [[ "$REPO_NAME" == *"-prod" ]]; then
+            ENV="PROD"
+          elif [[ "$REPO_NAME" == *"-uat" ]]; then
+            ENV="UAT"
+          elif [[ "$REPO_NAME" == *"-dev" ]]; then
+            ENV="DEV"
+          else
+            ENV="PROD"
+          fi
+        fi
+        
+        echo "environment=$ENV" >> $GITHUB_OUTPUT
+        echo "Detected environment: $ENV for repository: $REPO_NAME"
+        
+    - name: Trigger WHO SMART Trust participant generation
+      uses: peter-evans/repository-dispatch@v3
+      with:
+        token: ${{ secrets.SMART_TRUST_WEBHOOK_TOKEN }}
+        repository: WorldHealthOrganization/smart-trust
+        event-type: participant-update
+        client-payload: |
+          {
+            "environment": "${{ steps.env.outputs.environment }}",
+            "source_repository": "${{ github.repository }}",
+            "triggered_by": "${{ github.actor }}",
+            "commit_sha": "${{ github.sha }}",
+            "ref": "${{ github.ref }}",
+            "timestamp": "${{ github.event.head_commit.timestamp }}"
+          }
+          
+    - name: Log webhook trigger
+      run: |
+        echo "Successfully triggered WHO SMART Trust update"
+        echo "Environment: ${{ steps.env.outputs.environment }}"
+        echo "Repository: ${{ github.repository }}"
+        echo "Commit: ${{ github.sha }}"

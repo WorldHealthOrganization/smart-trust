@@ -11,6 +11,23 @@ The WHO SMART Trust repository now supports environment-specific participant lis
 
 When changes are made to the main branch of any participant repository, a webhook should trigger the generation of updated participant files in this repository.
 
+## Quick Start
+
+For detailed setup instructions and multiple webhook options, see the **[webhook-templates/](webhook-templates/)** directory which contains:
+
+- **Template files** for easy setup in participant repositories
+- **Multiple webhook methods** (GitHub Actions, shell scripts, direct API calls)
+- **Comprehensive setup guide** with step-by-step instructions
+- **Troubleshooting guide** for common issues
+
+## Webhook Scripts
+
+The repository now includes several webhook handling scripts:
+
+- `input/scripts/webhook_handler.py` - Python webhook handler for processing GitHub webhook payloads
+- `input/scripts/trigger_webhook.sh` - Shell script for manual webhook triggers  
+- `input/scripts/test_webhook.py` - Test script for validating webhook setup
+
 ## Setup Instructions
 
 ### 1. In Each Participant Repository
