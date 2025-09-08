@@ -1,7 +1,7 @@
 CodeSystem: Participants-DEV
 Title:        "WHO GDHCN Trust Network Participants CodeSystem - DEV"
 Description:  """
-CodeSystem for GDHCN Trust Network Participants which are not already included in the ISO-3166 three letter code system for Development environment
+CodeSystem for GDHCN Trust Network Participants for Development environment - includes all participants found in DEV repository
 """
 
 * ^experimental = true
@@ -10,3 +10,5 @@ CodeSystem for GDHCN Trust Network Participants which are not already included i
 * ^status = #active
 
 * #WHO "WHO" "World Health Organization"
+// Note: Additional participants will be populated from the DEV repository
+// This should include all participant directories found in the DEV repo

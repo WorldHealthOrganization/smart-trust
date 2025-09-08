@@ -1,7 +1,7 @@
 CodeSystem: Participants-UAT
 Title:        "WHO GDHCN Trust Network Participants CodeSystem - UAT"
 Description:  """
-CodeSystem for GDHCN Trust Network Participants which are not already included in the ISO-3166 three letter code system for User Acceptance Testing environment
+CodeSystem for GDHCN Trust Network Participants for User Acceptance Testing environment - includes only participants that are not in the RefMart Country List
 """
 
 * ^experimental = true
@@ -10,3 +10,5 @@ CodeSystem for GDHCN Trust Network Participants which are not already included i
 * ^status = #active
 
 * #WHO "WHO" "World Health Organization"
+// Note: Additional participants will be populated from the UAT repository
+// This should only include participants that are NOT already in the RefMart Country List

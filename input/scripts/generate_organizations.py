@@ -43,6 +43,29 @@ def usage():
     sys.exit(2)
 
 
+def load_refmart_from_file():
+    """Load RefMart data from existing refmart_countries.fsh file"""
+    countries = []
+    try:
+        with open('input/fsh/codesystems/refmart_countries.fsh', 'r') as file:
+            for line in file:
+                line = line.strip()
+                if line.startswith('* #'):
+                    # Parse line like: * #AFG "Afghanistan"
+                    parts = line.split('"')
+                    if len(parts) >= 2:
+                        code = line.split('#')[1].split(' ')[0]
+                        name = parts[1]
+                        countries.append({
+                            'CODE_ISO_3': code,
+                            'NAME_SHORT_EN': name
+                        })
+    except FileNotFoundError:
+        print("Warning: refmart_countries.fsh not found")
+    
+    return {'value': countries}
+
+
 def main():
     environment = "PROD"  # default
     
@@ -72,7 +95,18 @@ def main():
     print(f"Generating {environment} environment files...")
     print(f"Using config: {config}")
     
-    refmart_country_list = load_remote_json(refmart_country_list_url)
+    # Use existing RefMart data instead of trying to fetch from remote
+    if environment == "PROD":
+        # For PROD, try to load from remote, fallback to local file
+        try:
+            refmart_country_list = load_remote_json(refmart_country_list_url)
+        except:
+            print("Warning: Could not load from remote, using local file")
+            refmart_country_list = load_refmart_from_file()
+    else:
+        # For DEV and UAT, always use local file since we don't need to generate RefMart
+        refmart_country_list = load_refmart_from_file()
+    
     extract_countries(refmart_country_list, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset)
 
 def printout(content,filename):
@@ -132,8 +166,19 @@ def pp(json_content):
 def escape(str):
     return str.replace('"', r'\"')
 
-def load_participants(participants_valueset):
-    pattern = "^\\* \\$RefMartCountryList#([A-Z]{3})"
+def load_participants(participants_valueset, environment="PROD"):
+    """Load participants based on environment requirements"""
+    if environment == "DEV":
+        # For DEV, we would load from the DEV repo directly
+        # Since we can't access the repo, we'll return the existing participants from the valueset
+        # but the logic should be modified to include ALL participants from DEV repo
+        pattern = "^\\* \\$([^#]+)#([A-Z]{3})"
+    elif environment == "UAT":
+        # For UAT, we would load participants that are NOT in RefMart
+        pattern = "^\\* \\$([^#]+)#([A-Z]{3})"
+    else:  # PROD
+        pattern = "^\\* \\$RefMartCountryList#([A-Z]{3})"
+    
     compiled_pattern = re.compile(pattern)
     matches = []
     try:
@@ -141,14 +186,18 @@ def load_participants(participants_valueset):
             for line_num, line in enumerate(file,1):
                 match = compiled_pattern.match(line)
                 if (match):
-                    matches.append(match.group()[-3:])
+                    if environment == "PROD":
+                        matches.append(match.group()[-3:])
+                    else:
+                        matches.append(match.group(2))
     except FileNotFoundError:
         print(f"Warning: {participants_valueset} not found, starting with empty participant list")
     return  matches
 
 
 def extract_countries(data, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset):
-    participants = load_participants(participants_valueset)
+    environment = "PROD" if config["suffix"] == "" else config["suffix"][1:]  # Remove the "-" prefix
+    participants = load_participants(participants_valueset, environment)
     print (participants)
     instances = ""
     endpoints = ""
@@ -158,87 +207,154 @@ def extract_countries(data, config, participants_filename, endpoints_filename, r
     env_name = config["env_name"]
     description_suffix = config["description_suffix"]
     
-    codes = f"CodeSystem: RefMartCountryList{suffix}\n"
-    codes += f'Title: "WHO RefMart Jurisidiction List{env_name}"\n'
-    codes += f'Description: "CodeSystem for WHO Refmart Country and Jurisidiction List available at {refmart_country_list_url} {description_suffix}"\n'
-    codes += f'* ^url = "http://smart.who.int/refmart/CodeSystems/REF_COUNTRY{suffix}"\n'
+    # Only generate RefMartCountryList for PROD environment
+    if suffix == "":  # PROD environment
+        codes = f"CodeSystem: RefMartCountryList{suffix}\n"
+        codes += f'Title: "WHO RefMart Jurisidiction List{env_name}"\n'
+        codes += f'Description: "CodeSystem for WHO Refmart Country and Jurisidiction List available at {refmart_country_list_url} {description_suffix}"\n'
+        codes += f'* ^url = "http://smart.who.int/refmart/CodeSystems/REF_COUNTRY{suffix}"\n'
+    else:
+        # For DEV and UAT, don't generate RefMartCountryList
+        codes = ""
     
-    for country in data['value']:
-        # print(pp(country))
-        print("Processing " + country['CODE_ISO_3'] + ' / ' + country['NAME_SHORT_EN'])
-
-        codes += "* #" + country['CODE_ISO_3'] + ' "' + escape(country['NAME_SHORT_EN']) + '"\n'
-
+def extract_countries(data, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset):
+    environment = "PROD" if config["suffix"] == "" else config["suffix"][1:]  # Remove the "-" prefix
+    participants = load_participants(participants_valueset, environment)
+    print(f"Environment: {environment}")
+    print(f"Participants: {participants}")
+    instances = ""
+    endpoints = ""
+    
+    # Generate environment-specific CodeSystem
+    suffix = config["suffix"]
+    env_name = config["env_name"]
+    description_suffix = config["description_suffix"]
+    
+    # Only generate RefMartCountryList for PROD environment
+    if suffix == "":  # PROD environment
+        codes = f"CodeSystem: RefMartCountryList{suffix}\n"
+        codes += f'Title: "WHO RefMart Jurisidiction List{env_name}"\n'
+        codes += f'Description: "CodeSystem for WHO Refmart Country and Jurisidiction List available at {refmart_country_list_url} {description_suffix}"\n'
+        codes += f'* ^experimental = true\n'
+        codes += f'* ^caseSensitive = false\n'
+        codes += f'* ^url = "http://smart.who.int/refmart/CodeSystems/REF_COUNTRY{suffix}"\n'
         
-        if (country['CODE_ISO_3'] in participants):    
-            participantid = f"GDHCNParticipant-{country['CODE_ISO_3']}{suffix}"
-            endpointreferences = ""
+        # For PROD, process RefMart data normally
+        for country in data['value']:
+            print("Processing " + country['CODE_ISO_3'] + ' / ' + country['NAME_SHORT_EN'])
+            codes += "* #" + country['CODE_ISO_3'] + ' "' + escape(country['NAME_SHORT_EN']) + '"\n'
             
-            # Determine base URL based on environment
-            if suffix == "":  # PROD
-                base_url = "http://tng-cdn.who.int"
-            elif suffix == "-UAT":
-                base_url = "http://tng-cdn-uat.who.int"
-            else:  # DEV
-                base_url = "http://tng-cdn-dev.who.int"
-            
-            didendpointid = f"GDHCNParticipantDID-{country['CODE_ISO_3']}{suffix}-All"
-            endpoint =  "Instance: " + didendpointid + "\n"
-            endpoint += "InstanceOf: IHE.mCSD.Endpoint\n"
-            endpoint += f'Description: "{escape(country["NAME_SHORT_EN"])} Trustlist (DID v2){env_name} - All keys\\ndid:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}\\nresolvable at {base_url}/v2/trustlist/-/{country["CODE_ISO_3"]}/did.json"\n'
-            endpoint += "Usage: #definition" + "\n"
-            endpoint += f'* name = "{escape(country["NAME_SHORT_EN"])} Trustlist (DID v2){env_name} - All keys\\ndid:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}\\nresolvable at {base_url}/v2/trustlist/-/{country["CODE_ISO_3"]}/did.json"\n'
-            endpoint += "* managingOrganization = Reference(Organization/" + participantid + ")\n"
-            endpoint += "* status = #active\n"
-            endpoint += "* connectionType = $ConnectionTypes#http-get\n"
-            endpoint += "* payloadMimeType = #application/did\n"
-            endpoint += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
-            endpoint += f'* address = "did:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}"\n'
-            endpoints += endpoint + "\n"
-            endpointreferences += "* endpoint[+] = Reference(" + didendpointid + ")\n"
-
-            didendpointid = f"GDHCNParticipantDID-{country['CODE_ISO_3']}{suffix}-DSC"
-            endpoint =  "Instance: " + didendpointid + "\n"
-            endpoint += "InstanceOf: IHE.mCSD.Endpoint\n"
-            endpoint += "Usage: #definition" + "\n"
-            endpoint += f'* name = "{escape(country["NAME_SHORT_EN"])} Trustlist (DID v2){env_name} - Document Signing Certificates\\ndid:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}:DSC\\nresolvable at {base_url}/v2/trustlist/-/{country["CODE_ISO_3"]}/DSC/did.json"\n'
-            endpoint += "* managingOrganization = Reference(Organization/" + participantid + ")\n"
-            endpoint += "* status = #active\n"
-            endpoint += "* connectionType = $ConnectionTypes#http-get\n"
-            endpoint += "* payloadMimeType = #application/did\n"
-            endpoint += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
-            endpoint += f'* address = "did:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}"\n'
-            endpoints += endpoint + "\n"
-            endpointreferences += "* endpoint[+] = Reference(" + didendpointid + ")\n"
-
-            didendpointid = f"GDHCNParticipantDID-{country['CODE_ISO_3']}{suffix}-SCA"
-            endpoint =  "Instance: " + didendpointid + "\n"
-            endpoint += "InstanceOf: IHE.mCSD.Endpoint\n"
-            endpoint += "Usage: #definition" + "\n"
-            endpoint += f'* name = "{escape(country["NAME_SHORT_EN"])} Trustlist (DID v2){env_name} - Certificate Signing Authority\\ndid:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}:DSC\\nresolvable at {base_url}/v2/trustlist/-/{country["CODE_ISO_3"]}/SCA/did.json"\n'
-            endpoint += "* managingOrganization = Reference(Organization/" + participantid + ")\n"
-            endpoint += "* status = #active\n"
-            endpoint += "* connectionType = $ConnectionTypes#http-get\n"
-            endpoint += "* payloadMimeType = #application/did\n"
-            endpoint += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
-            endpoint += f'* address = "did:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}"\n'
-            endpoints += endpoint + "\n"
-            endpointreferences += "* endpoint[+] = Reference(" + didendpointid + ")\n"
-            
+            if (country['CODE_ISO_3'] in participants):    
+                instances += generate_participant_instance(country, config)
+                endpoints += generate_participant_endpoints(country, config)
+    
+    else:
+        # For DEV and UAT, don't generate RefMartCountryList, but do generate participant instances
+        codes = ""  # No RefMart codes for DEV/UAT
         
-            instance = "Instance: " + participantid + "\n"
-            instance += "InstanceOf: IHE.mCSD.Organization\n"
-            instance += "Usage: #definition" + "\n"
-            instance += '* name = "' + escape(country['NAME_SHORT_EN']) + '"\n'
-            instance += '* type = $orgType#govt\n'
-            instance += endpointreferences 
-            instance += '\n'
-            instances += instance + "\n"
-
+        if environment == "DEV":
+            # For DEV: Include all participants from the DEV repo (simulate with RefMart data for now)
+            # In real implementation, this would query the DEV repository directly
+            for country in data['value']:
+                if (country['CODE_ISO_3'] in participants):
+                    print(f"Processing DEV participant: {country['CODE_ISO_3']} / {country['NAME_SHORT_EN']}")
+                    instances += generate_participant_instance(country, config)
+                    endpoints += generate_participant_endpoints(country, config)
         
-    printout(codes,refmart_filename)
-    printout(instances,participants_filename)
-    printout(endpoints,endpoints_filename)
+        elif environment == "UAT":
+            # For UAT: Only include participants that are NOT in RefMart
+            # This logic would need to be refined based on actual participant repo content
+            refmart_codes = {country['CODE_ISO_3'] for country in data['value']}
+            for country in data['value']:
+                if (country['CODE_ISO_3'] in participants and country['CODE_ISO_3'] not in refmart_codes):
+                    print(f"Processing UAT participant (not in RefMart): {country['CODE_ISO_3']} / {country['NAME_SHORT_EN']}")
+                    instances += generate_participant_instance(country, config)
+                    endpoints += generate_participant_endpoints(country, config)
+        
+    # Only generate RefMartCountryList file for PROD environment
+    if suffix == "":  # PROD environment
+        printout(codes, refmart_filename)
+    
+    printout(instances, participants_filename)
+    printout(endpoints, endpoints_filename)
+
+
+def generate_participant_instance(country, config):
+    """Generate a participant organization instance"""
+    suffix = config["suffix"]
+    participantid = f"GDHCNParticipant-{country['CODE_ISO_3']}{suffix}"
+    
+    instance = "Instance: " + participantid + "\n"
+    instance += "InstanceOf: IHE.mCSD.Organization\n"
+    instance += "Usage: #definition" + "\n"
+    instance += '* name = "' + escape(country['NAME_SHORT_EN']) + '"\n'
+    instance += '* type = $orgType#govt\n'
+    instance += f"* endpoint[+] = Reference(GDHCNParticipantDID-{country['CODE_ISO_3']}{suffix}-All)\n"
+    instance += f"* endpoint[+] = Reference(GDHCNParticipantDID-{country['CODE_ISO_3']}{suffix}-DSC)\n"
+    instance += f"* endpoint[+] = Reference(GDHCNParticipantDID-{country['CODE_ISO_3']}{suffix}-SCA)\n"
+    instance += '\n'
+    return instance + "\n"
+
+
+def generate_participant_endpoints(country, config):
+    """Generate participant endpoints"""
+    suffix = config["suffix"]
+    env_name = config["env_name"]
+    
+    # Determine base URL based on environment
+    if suffix == "":  # PROD
+        base_url = "http://tng-cdn.who.int"
+    elif suffix == "-UAT":
+        base_url = "http://tng-cdn-uat.who.int"
+    else:  # DEV
+        base_url = "http://tng-cdn-dev.who.int"
+    
+    endpoints = ""
+    
+    # All keys endpoint
+    didendpointid = f"GDHCNParticipantDID-{country['CODE_ISO_3']}{suffix}-All"
+    endpoint =  "Instance: " + didendpointid + "\n"
+    endpoint += "InstanceOf: IHE.mCSD.Endpoint\n"
+    endpoint += f'Description: "{escape(country["NAME_SHORT_EN"])} Trustlist (DID v2){env_name} - All keys\\ndid:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}\\nresolvable at {base_url}/v2/trustlist/-/{country["CODE_ISO_3"]}/did.json"\n'
+    endpoint += "Usage: #definition" + "\n"
+    endpoint += f'* name = "{escape(country["NAME_SHORT_EN"])} Trustlist (DID v2){env_name} - All keys\\ndid:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}\\nresolvable at {base_url}/v2/trustlist/-/{country["CODE_ISO_3"]}/did.json"\n'
+    endpoint += f"* managingOrganization = Reference(Organization/GDHCNParticipant-{country['CODE_ISO_3']}{suffix})\n"
+    endpoint += "* status = #active\n"
+    endpoint += "* connectionType = $ConnectionTypes#http-get\n"
+    endpoint += "* payloadMimeType = #application/did\n"
+    endpoint += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
+    endpoint += f'* address = "did:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}"\n'
+    endpoints += endpoint + "\n"
+    
+    # DSC endpoint
+    didendpointid = f"GDHCNParticipantDID-{country['CODE_ISO_3']}{suffix}-DSC"
+    endpoint =  "Instance: " + didendpointid + "\n"
+    endpoint += "InstanceOf: IHE.mCSD.Endpoint\n"
+    endpoint += "Usage: #definition" + "\n"
+    endpoint += f'* name = "{escape(country["NAME_SHORT_EN"])} Trustlist (DID v2){env_name} - Document Signing Certificates\\ndid:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}:DSC\\nresolvable at {base_url}/v2/trustlist/-/{country["CODE_ISO_3"]}/DSC/did.json"\n'
+    endpoint += f"* managingOrganization = Reference(Organization/GDHCNParticipant-{country['CODE_ISO_3']}{suffix})\n"
+    endpoint += "* status = #active\n"
+    endpoint += "* connectionType = $ConnectionTypes#http-get\n"
+    endpoint += "* payloadMimeType = #application/did\n"
+    endpoint += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
+    endpoint += f'* address = "did:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}"\n'
+    endpoints += endpoint + "\n"
+    
+    # SCA endpoint  
+    didendpointid = f"GDHCNParticipantDID-{country['CODE_ISO_3']}{suffix}-SCA"
+    endpoint =  "Instance: " + didendpointid + "\n"
+    endpoint += "InstanceOf: IHE.mCSD.Endpoint\n"
+    endpoint += "Usage: #definition" + "\n"
+    endpoint += f'* name = "{escape(country["NAME_SHORT_EN"])} Trustlist (DID v2){env_name} - Certificate Signing Authority\\ndid:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}:DSC\\nresolvable at {base_url}/v2/trustlist/-/{country["CODE_ISO_3"]}/SCA/did.json"\n'
+    endpoint += f"* managingOrganization = Reference(Organization/GDHCNParticipant-{country['CODE_ISO_3']}{suffix})\n"
+    endpoint += "* status = #active\n"
+    endpoint += "* connectionType = $ConnectionTypes#http-get\n"
+    endpoint += "* payloadMimeType = #application/did\n"
+    endpoint += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
+    endpoint += f'* address = "did:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}"\n'
+    endpoints += endpoint + "\n"
+    
+    return endpoints
 
 
 

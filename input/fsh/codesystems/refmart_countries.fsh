@@ -1,7 +1,6 @@
 CodeSystem: RefMartCountryList
 Title: "WHO RefMart Jurisidiction List"
-Description: "CodeSystem for WHO Refmart Country and Jurisidiction List available at https://xmart-api-public.who.int/REFMART/REF_COUNTRY"
-
+Description: "CodeSystem for WHO Refmart Country and Jurisidiction List available at https://xmart-api-public.who.int/REFMART/REF_COUNTRY for Production environment"
 * ^experimental = true
 * ^caseSensitive = false
 * ^url = "http://smart.who.int/refmart/CodeSystems/REF_COUNTRY"
