@@ -95,7 +95,7 @@ def main():
     print(f"Generating {environment} environment files...")
     print(f"Using config: {config}")
     
-    # Use existing RefMart data instead of trying to fetch from remote
+    # Load RefMart data based on environment requirements
     if environment == "PROD":
         # For PROD, try to load from remote, fallback to local file
         try:
@@ -103,9 +103,12 @@ def main():
         except:
             print("Warning: Could not load from remote, using local file")
             refmart_country_list = load_refmart_from_file()
-    else:
-        # For DEV and UAT, always use local file since we don't need to generate RefMart
+    elif environment == "UAT":
+        # For UAT, load PROD's RefMart to exclude those participants
         refmart_country_list = load_refmart_from_file()
+    else:  # DEV
+        # For DEV, don't load RefMart at all since we include ALL participants from DEV repo
+        refmart_country_list = None
     
     extract_countries(refmart_country_list, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset)
 
@@ -195,27 +198,7 @@ def load_participants(participants_valueset, environment="PROD"):
     return  matches
 
 
-def extract_countries(data, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset):
-    environment = "PROD" if config["suffix"] == "" else config["suffix"][1:]  # Remove the "-" prefix
-    participants = load_participants(participants_valueset, environment)
-    print (participants)
-    instances = ""
-    endpoints = ""
-    
-    # Generate environment-specific CodeSystem
-    suffix = config["suffix"]
-    env_name = config["env_name"]
-    description_suffix = config["description_suffix"]
-    
-    # Only generate RefMartCountryList for PROD environment
-    if suffix == "":  # PROD environment
-        codes = f"CodeSystem: RefMartCountryList{suffix}\n"
-        codes += f'Title: "WHO RefMart Jurisidiction List{env_name}"\n'
-        codes += f'Description: "CodeSystem for WHO Refmart Country and Jurisidiction List available at {refmart_country_list_url} {description_suffix}"\n'
-        codes += f'* ^url = "http://smart.who.int/refmart/CodeSystems/REF_COUNTRY{suffix}"\n'
-    else:
-        # For DEV and UAT, don't generate RefMartCountryList
-        codes = ""
+
     
 def extract_countries(data, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset):
     environment = "PROD" if config["suffix"] == "" else config["suffix"][1:]  # Remove the "-" prefix
@@ -240,36 +223,50 @@ def extract_countries(data, config, participants_filename, endpoints_filename, r
         codes += f'* ^url = "http://smart.who.int/refmart/CodeSystems/REF_COUNTRY{suffix}"\n'
         
         # For PROD, process RefMart data normally
-        for country in data['value']:
-            print("Processing " + country['CODE_ISO_3'] + ' / ' + country['NAME_SHORT_EN'])
-            codes += "* #" + country['CODE_ISO_3'] + ' "' + escape(country['NAME_SHORT_EN']) + '"\n'
-            
-            if (country['CODE_ISO_3'] in participants):    
-                instances += generate_participant_instance(country, config)
-                endpoints += generate_participant_endpoints(country, config)
-    
-    else:
-        # For DEV and UAT, don't generate RefMartCountryList, but do generate participant instances
-        codes = ""  # No RefMart codes for DEV/UAT
-        
-        if environment == "DEV":
-            # For DEV: Include all participants from the DEV repo (simulate with RefMart data for now)
-            # In real implementation, this would query the DEV repository directly
+        if data and 'value' in data:
             for country in data['value']:
-                if (country['CODE_ISO_3'] in participants):
-                    print(f"Processing DEV participant: {country['CODE_ISO_3']} / {country['NAME_SHORT_EN']}")
+                print("Processing " + country['CODE_ISO_3'] + ' / ' + country['NAME_SHORT_EN'])
+                codes += "* #" + country['CODE_ISO_3'] + ' "' + escape(country['NAME_SHORT_EN']) + '"\n'
+                
+                if (country['CODE_ISO_3'] in participants):    
                     instances += generate_participant_instance(country, config)
                     endpoints += generate_participant_endpoints(country, config)
+    
+    else:
+        # For DEV and UAT, don't generate RefMartCountryList
+        codes = ""
+        
+        if environment == "DEV":
+            # For DEV: Include all participants from the DEV repo
+            # Since we don't have access to the actual repo, we simulate with participants list
+            # In real implementation, this would query the DEV repository directly
+            for participant_code in participants:
+                # Create a mock country object for DEV participants
+                mock_country = {
+                    'CODE_ISO_3': participant_code,
+                    'NAME_SHORT_EN': f"DEV Participant {participant_code}"
+                }
+                print(f"Processing DEV participant: {participant_code}")
+                instances += generate_participant_instance(mock_country, config)
+                endpoints += generate_participant_endpoints(mock_country, config)
         
         elif environment == "UAT":
             # For UAT: Only include participants that are NOT in RefMart
-            # This logic would need to be refined based on actual participant repo content
-            refmart_codes = {country['CODE_ISO_3'] for country in data['value']}
-            for country in data['value']:
-                if (country['CODE_ISO_3'] in participants and country['CODE_ISO_3'] not in refmart_codes):
-                    print(f"Processing UAT participant (not in RefMart): {country['CODE_ISO_3']} / {country['NAME_SHORT_EN']}")
-                    instances += generate_participant_instance(country, config)
-                    endpoints += generate_participant_endpoints(country, config)
+            # Load PROD's RefMart to filter against
+            if data and 'value' in data:
+                refmart_codes = {country['CODE_ISO_3'] for country in data['value']}
+                for participant_code in participants:
+                    if participant_code not in refmart_codes:
+                        # Create a mock country object for UAT participants not in RefMart
+                        mock_country = {
+                            'CODE_ISO_3': participant_code,
+                            'NAME_SHORT_EN': f"UAT Participant {participant_code}"
+                        }
+                        print(f"Processing UAT participant (not in RefMart): {participant_code}")
+                        instances += generate_participant_instance(mock_country, config)
+                        endpoints += generate_participant_endpoints(mock_country, config)
+                    else:
+                        print(f"Skipping UAT participant {participant_code} (found in RefMart)")
         
     # Only generate RefMartCountryList file for PROD environment
     if suffix == "":  # PROD environment
