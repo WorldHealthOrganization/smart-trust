@@ -1,0 +1,77 @@
+name: Generate Participants
+
+on:
+  # Allows manual triggering
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to generate (PROD, UAT, DEV)'
+        required: true
+        default: 'PROD'
+        type: choice
+        options:
+        - PROD
+        - UAT
+        - DEV
+  
+  # Webhook trigger from participant repositories
+  repository_dispatch:
+    types: [participant-update]
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        pip install pandas urllib3
+        
+    - name: Determine environment
+      id: env
+      run: |
+        if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+          # Extract environment from webhook payload
+          ENV="${{ github.event.client_payload.environment }}"
+          if [ -z "$ENV" ]; then
+            ENV="PROD"
+          fi
+        else
+          # Use manual input
+          ENV="${{ github.event.inputs.environment }}"
+        fi
+        echo "environment=$ENV" >> $GITHUB_OUTPUT
+        echo "Using environment: $ENV"
+        
+    - name: Generate organization files
+      run: |
+        python3 input/scripts/generate_organizations.py --env ${{ steps.env.outputs.environment }}
+        
+    - name: Check for changes
+      id: changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "changes=true" >> $GITHUB_OUTPUT
+          echo "Changes detected"
+        else
+          echo "changes=false" >> $GITHUB_OUTPUT
+          echo "No changes detected"
+        fi
+        
+    - name: Commit and push changes
+      if: steps.changes.outputs.changes == 'true'
+      run: |
+        git add input/fsh/instances/ input/fsh/codesystems/refmart_countries*.fsh
+        git commit -m "Auto-update ${{ steps.env.outputs.environment }} participants from repository changes"
+        git push
