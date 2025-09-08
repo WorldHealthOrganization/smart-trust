@@ -44,10 +44,10 @@ def usage():
 
 
 def load_refmart_from_file():
-    """Load RefMart data from existing RefMartList.fsh file"""
+    """Load RefMart data from existing RefMartCountryList.fsh file"""
     countries = []
     try:
-        with open('input/fsh/codesystems/RefMartList.fsh', 'r') as file:
+        with open('input/fsh/codesystems/RefMartCountryList.fsh', 'r') as file:
             for line in file:
                 line = line.strip()
                 if line.startswith('* #'):
@@ -61,7 +61,7 @@ def load_refmart_from_file():
                             'NAME_SHORT_EN': name
                         })
     except FileNotFoundError:
-        print("Warning: RefMartList.fsh not found")
+        print("Warning: RefMartCountryList.fsh not found")
     
     return {'value': countries}
 
@@ -89,7 +89,7 @@ def main():
     suffix = config["suffix"]
     participants_filename = f"input/fsh/instances/participants{suffix}.fsh"
     endpoints_filename = f"input/fsh/instances/endpoints{suffix}.fsh"
-    refmart_filename = f"input/fsh/codesystems/RefMartList{suffix}.fsh"
+    refmart_filename = f"input/fsh/codesystems/RefMartCountryList{suffix}.fsh"
     participants_valueset = f"input/fsh/valuesets/Participants{suffix}.fsh"
     
     print(f"Generating {environment} environment files...")

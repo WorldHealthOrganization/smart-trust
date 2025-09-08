@@ -108,17 +108,17 @@ The workflow generates environment-specific files:
 ### PROD Environment (default)
 - `input/fsh/instances/participants.fsh`
 - `input/fsh/instances/endpoints.fsh`
-- `input/fsh/codesystems/RefMartList.fsh`
+- `input/fsh/codesystems/RefMartCountryList.fsh`
 
 ### UAT Environment  
 - `input/fsh/instances/participants-UAT.fsh`
 - `input/fsh/instances/endpoints-UAT.fsh`
-- `input/fsh/codesystems/RefMartList-UAT.fsh`
+- `input/fsh/codesystems/RefMartCountryList-UAT.fsh`
 
 ### DEV Environment
 - `input/fsh/instances/participants-DEV.fsh`
 - `input/fsh/instances/endpoints-DEV.fsh`
-- `input/fsh/codesystems/RefMartList-DEV.fsh`
+- `input/fsh/codesystems/RefMartCountryList-DEV.fsh`
 
 ## Script Usage
 
