@@ -3,7 +3,7 @@
 import glob as glob
 import re
 # import pandas lib as pd
-import pandas as pd
+# import pandas as pd
 #import string
 import sys
 import getopt
@@ -301,13 +301,13 @@ def generate_participant_endpoints(country, config):
     suffix = config["suffix"]
     env_name = config["env_name"]
     
-    # Determine base URL based on environment
+    # Determine base URL based on environment (use HTTPS and documented endpoints)
     if suffix == "":  # PROD
-        base_url = "http://tng-cdn.who.int"
+        base_url = "https://tng-cdn.who.int"
     elif suffix == "-UAT":
-        base_url = "http://tng-cdn-uat.who.int"
+        base_url = "https://tng-cdn-uat.who.int"
     else:  # DEV
-        base_url = "http://tng-cdn-dev.who.int"
+        base_url = "https://tng-cdn-dev.who.int"
     
     endpoints = ""
     

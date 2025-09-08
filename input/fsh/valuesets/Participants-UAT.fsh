@@ -10,7 +10,7 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 
 // To generate this list of codes for UAT environment
 // execute the following on tng-participants-uat repo:
-//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z]' -printf "* \$Participants-UAT#%P\n"  | grep -v WHO
+//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*' -printf "* \$Participants-UAT#%P\n"  | grep -v WHO
 //
 // UAT environment includes only participants that are NOT already in the RefMart Country List.
 

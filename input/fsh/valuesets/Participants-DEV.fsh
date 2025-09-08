@@ -10,7 +10,7 @@ Description:  "ValueSet of GDHCN Trust Network Participants for Development envi
 
 // To generate this list of codes for DEV environment
 // execute the following on tng-participants-dev repo:
-//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z]' -printf "* \$Participants-DEV#%P\n"  | grep -v WHO
+//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*' -printf "* \$Participants-DEV#%P\n"  | grep -v WHO
 //
 // DEV environment includes ALL participants found in the DEV repository, 
 // without any reference to RefMart list.

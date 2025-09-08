@@ -10,7 +10,7 @@ Description:  "ValueSet of GDHCN Trust Network Participants for Production envir
 
 // To generate this list of codes for PROD environment
 // execute the following on tng-participants-prod repo:
-//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z]' -printf "* \$RefMartCountryList#%P\n"  | grep -v WHO
+//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*' -printf "* \$RefMartCountryList#%P\n"  | grep -v WHO
 //
 // in the future, will need to exclude more than just WHO as not being from the RefMart set.
 
