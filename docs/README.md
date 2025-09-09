@@ -1,31 +1,26 @@
 # WHO SMART Trust Documentation
 
-## Participant Repository Webhook Configuration
+## Quick Navigation
 
-### 🎯 Quick Start: GitHub Workflow Setup
+**For setting up participant repository webhooks (most common need):**
+📖 [GitHub Workflow Configuration Guide](webhook-templates/setup-instructions.md)
 
-**For configuring GitHub workflows in participant repositories, use:**
+**For webhook security and alternative authentication methods:**
+📖 [Webhook Alternatives to PATs](webhook-alternatives.md)
 
-📁 **[webhook-templates/setup-instructions.md](webhook-templates/setup-instructions.md)**
+**For overview and context:**
+📖 [Participant Webhook Setup Overview](participant-webhook-setup.md)
 
-This provides complete step-by-step instructions for setting up automatic webhook triggers when participants change.
+## Documentation Structure
 
-### 📚 Documentation Structure
+- **webhook-templates/setup-instructions.md** - Complete step-by-step setup guide for GitHub workflows
+- **webhook-alternatives.md** - Alternatives to Personal Access Tokens (GitHub Apps, etc.)
+- **participant-webhook-setup.md** - Overview and context about webhook functionality
+- **webhook-templates/** - Template files and examples for easy setup
 
-| File | Purpose | Audience |
-|------|---------|----------|
-| **[participant-webhook-setup.md](participant-webhook-setup.md)** | Overview and quick reference | Repository administrators |
-| **[webhook-templates/setup-instructions.md](webhook-templates/setup-instructions.md)** | **Main configuration guide** | **Implementers** |
-| **[webhook-templates/README.md](webhook-templates/README.md)** | Template directory guide | Implementers |
-| **[webhook-templates/github-workflow-template.yml](webhook-templates/github-workflow-template.yml)** | GitHub Actions workflow template | Copy to participant repos |
-| **[webhook-templates/simple-webhook-template.sh](webhook-templates/simple-webhook-template.sh)** | Shell script template | Alternative to GitHub Actions |
+## Key Features
 
-### 🔧 What You Need
-
-**For each participant repository (`tng-participants-prod/uat/dev`):**
-
-1. **GitHub workflow file** - Copy from `webhook-templates/github-workflow-template.yml`
-2. **Repository secret** - Add `SMART_TRUST_WEBHOOK_TOKEN` with GitHub token
-3. **Token permissions** - GitHub Personal Access Token with `repo` scope
-
-**Complete instructions:** [webhook-templates/setup-instructions.md](webhook-templates/setup-instructions.md)
+- **Environment-specific resources**: Separate DEV, UAT, and PROD valuesets and codesystems
+- **Automated participant updates**: Webhooks trigger automatic updates when participants change
+- **Security validation**: Repository and organization whitelist enforcement
+- **Multiple authentication methods**: PAT, GitHub Apps, and other secure options

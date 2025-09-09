@@ -1,23 +1,49 @@
-# GitHub Workflow Configuration for Participant Repositories
+# Webhook Templates Directory
 
-**This directory contains the templates and instructions for configuring GitHub workflows in participant repositories.**
+This directory contains templates and setup instructions for configuring webhooks between WHO SMART Trust participant repositories and the smart-trust repository.
 
-## 📋 Primary Configuration Guide
+## Template Files
 
-**For complete GitHub workflow setup, follow:** 
-📖 **[setup-instructions.md](setup-instructions.md)**
+### GitHub Actions Workflows
 
-## 📁 Template Files
+- **`github-workflow-template.yml`** - Standard GitHub Actions workflow using Personal Access Token
+- **`github-app-workflow-template.yml`** - Enhanced GitHub Actions workflow using GitHub App (recommended for security)
 
-- **`github-workflow-template.yml`** - GitHub Actions workflow template (copy to `.github/workflows/`)
-- **`simple-webhook-template.sh`** - Shell script template for manual triggers
-- **`setup-instructions.md`** - Complete step-by-step configuration guide
+### Scripts
 
-## 🚀 Quick Setup
+- **`simple-webhook-template.sh`** - Shell script for direct webhook calls
 
-1. Copy `github-workflow-template.yml` to `.github/workflows/trigger-smart-trust-update.yml` in your participant repository
-2. Create GitHub token with `repo` permissions
-3. Add token as repository secret `SMART_TRUST_WEBHOOK_TOKEN`
-4. Test by pushing changes to main branch
+### Documentation
 
-**For detailed instructions, see [setup-instructions.md](setup-instructions.md)**
+- **`setup-instructions.md`** - Complete step-by-step setup guide for all methods
+
+## Quick Start
+
+1. **Read the setup guide**: [setup-instructions.md](setup-instructions.md)
+2. **Choose authentication method**:
+   - **PAT (current)**: Use `github-workflow-template.yml`  
+   - **GitHub App (recommended)**: Use `github-app-workflow-template.yml` and see [webhook alternatives guide](../webhook-alternatives.md)
+3. **Copy template** to your participant repository
+4. **Follow setup instructions** for your chosen method
+
+## Security Recommendations
+
+For enhanced security, consider migrating from Personal Access Tokens to GitHub Apps. See the [webhook alternatives documentation](../webhook-alternatives.md) for detailed comparison and setup instructions.
+
+## Repository Structure
+
+Copy templates to participant repositories following this structure:
+
+```
+tng-participants-{env}/
+├── .github/
+│   └── workflows/
+│       └── trigger-smart-trust-update.yml  # Copy from template
+├── XXX/                                     # Participant directories
+├── YYY-ZZZ/
+└── ...
+```
+
+## Support
+
+For setup assistance or troubleshooting, refer to the troubleshooting section in [setup-instructions.md](setup-instructions.md).

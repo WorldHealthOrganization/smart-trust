@@ -26,6 +26,13 @@ All webhook sources must be from the `WorldHealthOrganization` organization. Web
 
 This method uses GitHub Actions workflows to trigger webhooks when changes are pushed to the main branch.
 
+### Alternative Authentication Methods
+
+**Personal Access Token (PAT)**: Current method described below
+**GitHub App**: More secure alternative - see [Webhook Alternatives Guide](../webhook-alternatives.md) for GitHub App setup
+
+> **Note**: For enhanced security, WHO recommends migrating to GitHub Apps instead of Personal Access Tokens. See the [webhook alternatives documentation](../webhook-alternatives.md) for details.
+
 ### Step-by-Step Setup
 
 #### 1. Create Webhook Token
@@ -260,9 +267,12 @@ python3 input/scripts/test_webhook.py --env DEV --verbose
 
 All template files are available in the `docs/webhook-templates/` directory:
 
-- `github-workflow-template.yml` - Complete GitHub Actions workflow
+- `github-workflow-template.yml` - GitHub Actions workflow using Personal Access Token
+- `github-app-workflow-template.yml` - GitHub Actions workflow using GitHub App (recommended)
 - `simple-webhook-template.sh` - Shell script for manual triggers
 - `setup-instructions.md` - This document
+
+For security best practices, see [webhook-alternatives.md](../webhook-alternatives.md) for GitHub App setup.
 
 ## Support
 
