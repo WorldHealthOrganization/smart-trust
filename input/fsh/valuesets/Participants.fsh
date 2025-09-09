@@ -14,39 +14,4 @@ Description:  "ValueSet of GDHCN Trust Network Participants for Production envir
 //
 // in the future, will need to exclude more than just WHO as not being from the RefMart set.
 
-* $RefMartCountryList#BRA
-* $RefMartCountryList#SVN
-* $RefMartCountryList#OMN
-* $RefMartCountryList#POL
-* $RefMartCountryList#FRO
-* $RefMartCountryList#FRA
-* $RefMartCountryList#ESP
-* $RefMartCountryList#PRT
-* $RefMartCountryList#FIN
-* $RefMartCountryList#SMR
-* $RefMartCountryList#UKR
-* $RefMartCountryList#MYS
-* $RefMartCountryList#BEL
-* $RefMartCountryList#TUR
-* $RefMartCountryList#IRL
-* $RefMartCountryList#ALB
-* $RefMartCountryList#LVA
-* $RefMartCountryList#TGO
-* $RefMartCountryList#SWE
-* $RefMartCountryList#MLT
-* $RefMartCountryList#LTU
-* $RefMartCountryList#AND
-* $RefMartCountryList#SVK
-* $RefMartCountryList#IDN
-* $RefMartCountryList#CZE
-* $RefMartCountryList#NLD
-* $RefMartCountryList#EST
-* $RefMartCountryList#BEN
-* $RefMartCountryList#SGP
-* $RefMartCountryList#ISL
-* $RefMartCountryList#CYP
-* $RefMartCountryList#ARM
-* $RefMartCountryList#THA
-* $RefMartCountryList#MCO
-* $RefMartCountryList#NZL
- 
+
