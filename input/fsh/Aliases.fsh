@@ -4,6 +4,8 @@ Alias: $SGTransactionDef = http://smart.who.int/base/StructureDefinition/SGTrans
 
 
 Alias: $Participants = http://smart.who.int/trust/CodeSystem/Participants
+Alias: $Participants-DEV = http://smart.who.int/trust/CodeSystems/Participants-DEV
+Alias: $Participants-UAT = http://smart.who.int/trust/CodeSystems/Participants-UAT
 Alias: $ConnectionTypes = http://smart.who.int/trust/CodeSystem/ConnectionTypes
 Alias: $PayloadTypes = http://smart.who.int/trust/CodeSystem/PayloadTypes
 
