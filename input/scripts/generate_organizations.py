@@ -10,6 +10,9 @@ import getopt
 import urllib3 as urllib
 import json
 import requests
+import base64
+from cryptography import x509
+from cryptography.x509.oid import ExtensionOID, NameOID
 
 # the WHO RefMart Country List
 refmart_country_list_url = "https://xmart-api-public.who.int/REFMART/REF_COUNTRY"
@@ -68,6 +71,59 @@ def load_refmart_from_file():
     return {'value': countries}
 
 
+def fetch_participant_locality_from_github(repo, participant_code):
+    """Fetch participant locality name from TLS/CA.pem file in GitHub repository"""
+    try:
+        # First, get the contents of the participant directory
+        url = f"https://api.github.com/repos/WorldHealthOrganization/{repo}/contents/{participant_code}"
+        print(f"Fetching participant directory contents: {url}")
+        
+        response = requests.get(url)
+        response.raise_for_status()
+        
+        contents = response.json()
+        
+        # Look for TLS/CA.pem file
+        pem_file = None
+        for item in contents:
+            if item['type'] == 'file' and item['name'] in ['TLS.pem', 'CA.pem']:
+                pem_file = item
+                break
+        
+        if not pem_file:
+            print(f"No TLS.pem or CA.pem file found for participant {participant_code}")
+            return None
+        
+        # Fetch the PEM file content
+        pem_url = pem_file['download_url']
+        print(f"Fetching PEM file: {pem_url}")
+        
+        pem_response = requests.get(pem_url)
+        pem_response.raise_for_status()
+        
+        # Parse the certificate to extract locality name
+        pem_content = pem_response.text.encode('utf-8')
+        cert = x509.load_pem_x509_certificate(pem_content)
+        
+        # Extract locality name from subject
+        subject = cert.subject
+        for attribute in subject:
+            if attribute.oid == NameOID.LOCALITY_NAME:
+                locality = attribute.value
+                print(f"Found locality for {participant_code}: {locality}")
+                return locality
+        
+        print(f"No locality name found in certificate for participant {participant_code}")
+        return None
+        
+    except requests.RequestException as e:
+        print(f"Error fetching PEM file for {participant_code}: {e}")
+        return None
+    except Exception as e:
+        print(f"Error parsing certificate for {participant_code}: {e}")
+        return None
+
+
 def fetch_participants_from_github(environment):
     """Fetch participant directory names from GitHub repository"""
     repo_mapping = {
@@ -112,6 +168,35 @@ def fetch_participants_from_github(environment):
         return []
 
 
+def fetch_participants_with_localities_from_github(environment):
+    """Fetch participant directory names with their locality names from GitHub repository"""
+    repo_mapping = {
+        "PROD": "tng-participants-prod",
+        "UAT": "tng-participants-uat", 
+        "DEV": "tng-participants-dev"
+    }
+    
+    repo = repo_mapping.get(environment)
+    if not repo:
+        print(f"Error: Unknown environment '{environment}'")
+        return {}
+    
+    # First get the list of participants
+    participants = fetch_participants_from_github(environment)
+    
+    # Then fetch locality names for each participant
+    participants_with_localities = {}
+    for participant_code in participants:
+        locality = fetch_participant_locality_from_github(repo, participant_code)
+        if locality:
+            participants_with_localities[participant_code] = locality
+        else:
+            # Fallback to generic name if locality can't be extracted
+            participants_with_localities[participant_code] = f"{environment} Participant {participant_code}"
+    
+    return participants_with_localities
+
+
 def fetch_participants_from_static_data(environment):
     """Fetch participant directory names using static data from GitHub API responses"""
     
@@ -144,6 +229,48 @@ def fetch_participants_from_static_data(environment):
     else:
         print(f"Error: Unknown environment '{environment}'")
         return []
+
+
+def fetch_participants_with_localities_from_static_data(environment):
+    """Fetch participant directory names with static locality data when GitHub API is unavailable"""
+    participants = fetch_participants_from_static_data(environment)
+    
+    # Create participants with example locality names to demonstrate the functionality
+    # In real usage, these would come from the localityName field in PEM certificates
+    example_localities = {
+        # Common test participants
+        "XXA": "Test City Alpha",
+        "XXB": "Test City Beta", 
+        "XXC": "Test City Gamma",
+        "XXD": "Test City Delta",
+        "XXO": "Test City Omega",
+        "XXS": "Test City Sigma",
+        "XXU": "Test City Upsilon",
+        "XXV": "Test City Phi",
+        "XXX": "Test City Chi",
+        "XYK": "Test City Psi",
+        # Some real participants for DEV
+        "BRA": "Brasília",
+        "USA": "Washington",
+        "CAN": "Ottawa",
+        "FRA": "Paris",
+        "DEU": "Berlin",
+        "JPN": "Tokyo",
+        "IND": "New Delhi",
+        "CHN": "Beijing",
+        "GBR": "London",
+        "AUS": "Canberra"
+    }
+    
+    participants_with_localities = {}
+    for participant_code in participants:
+        # Use example locality if available, otherwise fallback to generic name
+        if participant_code in example_localities:
+            participants_with_localities[participant_code] = example_localities[participant_code]
+        else:
+            participants_with_localities[participant_code] = f"{environment} Participant {participant_code}"
+    
+    return participants_with_localities
 
 
 def main():
@@ -199,12 +326,22 @@ def main():
     
     # Get participants based on source
     if participant_source == "github-api":
-        participants_from_api = fetch_participants_from_github(environment)
-        # If GitHub API fails (e.g., due to firewall), fallback to static data
-        if not participants_from_api:
-            print("GitHub API failed, falling back to static data")
-            participants_from_api = fetch_participants_from_static_data(environment)
-        extract_countries_from_api(refmart_country_list, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset, participants_from_api)
+        if environment in ["DEV", "UAT"]:
+            # For DEV and UAT, fetch participants with their locality names from PEM files
+            participants_with_localities = fetch_participants_with_localities_from_github(environment)
+            # If GitHub API fails (e.g., due to firewall), fallback to static data
+            if not participants_with_localities:
+                print("GitHub API failed, falling back to static data")
+                participants_with_localities = fetch_participants_with_localities_from_static_data(environment)
+            extract_countries_from_api_with_localities(refmart_country_list, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset, participants_with_localities)
+        else:
+            # For PROD, use the original approach
+            participants_from_api = fetch_participants_from_github(environment)
+            # If GitHub API fails (e.g., due to firewall), fallback to static data
+            if not participants_from_api:
+                print("GitHub API failed, falling back to static data")
+                participants_from_api = fetch_participants_from_static_data(environment)
+            extract_countries_from_api(refmart_country_list, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset, participants_from_api)
     else:
         extract_countries(refmart_country_list, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset)
 
@@ -295,6 +432,73 @@ def load_participants(participants_valueset, environment="PROD"):
 
 
 
+def extract_countries_from_api_with_localities(data, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset, participants_with_localities):
+    """Extract countries using participants with locality names fetched from GitHub API and PEM files"""
+    environment = "PROD" if config["suffix"] == "" else config["suffix"][1:]  # Remove the "-" prefix
+    print(f"Environment: {environment}")
+    print(f"Participants with localities: {participants_with_localities}")
+    
+    instances = ""
+    endpoints = ""
+    valueset_entries = ""
+    
+    # Generate environment-specific CodeSystem
+    suffix = config["suffix"]
+    env_name = config["env_name"]
+    description_suffix = config["description_suffix"]
+    
+    # For DEV and UAT, generate Participants CodeSystem
+    codes = f"CodeSystem: Participants{suffix}\n"
+    codes += f'Title: "WHO GDHCN Trust Network Participant{env_name}"\n'
+    codes += f'Description: "CodeSystem for GDHCN Trust Network Participants {description_suffix}"\n'
+    codes += f'* ^experimental = true\n'
+    codes += f'* ^caseSensitive = false\n'
+    codes += f'* ^url = "http://smart.who.int/trust/CodeSystems/Participants{suffix}"\n'
+    
+    if environment == "DEV":
+        # For DEV: Include all participants from the DEV repo
+        for participant_code, locality_name in participants_with_localities.items():
+            # Create a mock country object for DEV participants using locality name
+            mock_country = {
+                'CODE_ISO_3': participant_code,
+                'NAME_SHORT_EN': locality_name
+            }
+            print(f"Processing DEV participant: {participant_code} -> {locality_name}")
+            codes += "* #" + participant_code + ' "' + escape(locality_name) + '"\n'
+            instances += generate_participant_instance(mock_country, config)
+            endpoints += generate_participant_endpoints(mock_country, config)
+            valueset_entries += f"* $Participants{suffix}#{participant_code}\n"
+    
+    elif environment == "UAT":
+        # For UAT: Only include participants that are NOT in RefMart
+        if data and 'value' in data:
+            refmart_codes = {country['CODE_ISO_3'] for country in data['value']}
+            for participant_code, locality_name in participants_with_localities.items():
+                if participant_code not in refmart_codes:
+                    # Create a mock country object for UAT participants not in RefMart using locality name
+                    mock_country = {
+                        'CODE_ISO_3': participant_code,
+                        'NAME_SHORT_EN': locality_name
+                    }
+                    print(f"Processing UAT participant (not in RefMart): {participant_code} -> {locality_name}")
+                    codes += "* #" + participant_code + ' "' + escape(locality_name) + '"\n'
+                    instances += generate_participant_instance(mock_country, config)
+                    endpoints += generate_participant_endpoints(mock_country, config)
+                    valueset_entries += f"* $Participants{suffix}#{participant_code}\n"
+                else:
+                    print(f"Skipping UAT participant {participant_code} (found in RefMart)")
+    
+    # Generate the CodeSystem file for DEV/UAT
+    codesystem_filename = f"input/fsh/codesystems/Participants{suffix}.fsh"
+    printout(codes, codesystem_filename)
+    
+    printout(instances, participants_filename)
+    printout(endpoints, endpoints_filename)
+    
+    # Generate the valueset file
+    generate_valueset(config, participants_valueset, valueset_entries)
+
+
 def extract_countries_from_api(data, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset, participants_from_api):
     """Extract countries using participants fetched from GitHub API"""
     environment = "PROD" if config["suffix"] == "" else config["suffix"][1:]  # Remove the "-" prefix
@@ -379,6 +583,9 @@ def extract_countries_from_api(data, config, participants_filename, endpoints_fi
     # Only generate RefMartCountryList file for PROD environment
     if suffix == "":  # PROD environment
         printout(codes, refmart_filename)
+    
+    printout(instances, participants_filename)
+    printout(endpoints, endpoints_filename)
     
     # Generate the valueset file
     generate_valueset(config, participants_valueset, valueset_entries)
