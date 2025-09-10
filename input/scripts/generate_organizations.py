@@ -565,7 +565,7 @@ def generate_participant_endpoints(country, config):
     endpoint += "* connectionType = $ConnectionTypes#http-get\n"
     endpoint += "* payloadMimeType = #application/did\n"
     endpoint += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
-    endpoint += f'* address = "did:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}"\n'
+    endpoint += f'* address = "did:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}:DSC"\n'
     endpoints += endpoint + "\n"
     
     # SCA endpoint  
@@ -573,13 +573,13 @@ def generate_participant_endpoints(country, config):
     endpoint =  "Instance: " + didendpointid + "\n"
     endpoint += "InstanceOf: IHE.mCSD.Endpoint\n"
     endpoint += "Usage: #definition" + "\n"
-    endpoint += f'* name = "{escape(country["NAME_SHORT_EN"])} Trustlist (DID v2){env_name} - Certificate Signing Authority\\ndid:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}:DSC\\nresolvable at {base_url}/v2/trustlist/-/{country["CODE_ISO_3"]}/SCA/did.json"\n'
+    endpoint += f'* name = "{escape(country["NAME_SHORT_EN"])} Trustlist (DID v2){env_name} - Certificate Signing Authority\\ndid:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}:SCA\\nresolvable at {base_url}/v2/trustlist/-/{country["CODE_ISO_3"]}/SCA/did.json"\n'
     endpoint += f"* managingOrganization = Reference(Organization/GDHCNParticipant-{country['CODE_ISO_3']}{suffix})\n"
     endpoint += "* status = #active\n"
     endpoint += "* connectionType = $ConnectionTypes#http-get\n"
     endpoint += "* payloadMimeType = #application/did\n"
     endpoint += "* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2\n"
-    endpoint += f'* address = "did:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}"\n'
+    endpoint += f'* address = "did:web:tng-cdn.who.int:v2:trustlist:-:{country["CODE_ISO_3"]}:SCA"\n'
     endpoints += endpoint + "\n"
     
     return endpoints

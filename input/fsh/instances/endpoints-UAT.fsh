@@ -19,18 +19,18 @@ Usage: #definition
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:TST"
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:TST:DSC"
 
 Instance: GDHCNParticipantDID-TST-UAT-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "UAT Participant TST Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:TST:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/TST/SCA/did.json"
+* name = "UAT Participant TST Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:TST:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/TST/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TST-UAT)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:TST"
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:TST:SCA"
 
 Instance: GDHCNParticipantDID-DEV-UAT-All
 InstanceOf: IHE.mCSD.Endpoint
@@ -53,17 +53,17 @@ Usage: #definition
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:DEV"
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:DEV:DSC"
 
 Instance: GDHCNParticipantDID-DEV-UAT-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "UAT Participant DEV Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:DEV:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/DEV/SCA/did.json"
+* name = "UAT Participant DEV Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:DEV:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/DEV/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-DEV-UAT)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:DEV"
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:DEV:SCA"
 
 
