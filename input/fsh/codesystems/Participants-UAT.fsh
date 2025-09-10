@@ -4,6 +4,14 @@ Description: "CodeSystem for GDHCN Trust Network Participants for User Acceptanc
 * ^experimental = true
 * ^caseSensitive = false
 * ^url = "http://smart.who.int/trust/CodeSystems/Participants-UAT"
-* #TST "UAT Participant TST"
-* #DEV "UAT Participant DEV"
+* #XXA "UAT Participant XXA"
+* #XXB "UAT Participant XXB"
+* #XXC "UAT Participant XXC"
+* #XXD "UAT Participant XXD"
+* #XXO "UAT Participant XXO"
+* #XXS "UAT Participant XXS"
+* #XXU "UAT Participant XXU"
+* #XXV "UAT Participant XXV"
+* #XXX "UAT Participant XXX"
+* #XYK "UAT Participant XYK"
 

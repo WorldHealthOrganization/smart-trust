@@ -13,6 +13,14 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 //     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*' -printf "* \$Participants-UAT#%P\n"  | grep -v WHO
 // Note: Only includes participants NOT found in RefMart
 
-* $Participants-UAT#TST
-* $Participants-UAT#DEV
+* $Participants-UAT#XXA
+* $Participants-UAT#XXB
+* $Participants-UAT#XXC
+* $Participants-UAT#XXD
+* $Participants-UAT#XXO
+* $Participants-UAT#XXS
+* $Participants-UAT#XXU
+* $Participants-UAT#XXV
+* $Participants-UAT#XXX
+* $Participants-UAT#XYK
 

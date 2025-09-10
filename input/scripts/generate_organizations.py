@@ -112,6 +112,40 @@ def fetch_participants_from_github(environment):
         return []
 
 
+def fetch_participants_from_static_data(environment):
+    """Fetch participant directory names using static data from GitHub API responses"""
+    
+    # Static data based on actual GitHub API responses (as of the time of this script)
+    dev_participants = [
+        "AND", "ARG", "ARM", "BHS", "BLZ", "BRA", "BRB", "CHL", "COL", "CRI", 
+        "CYP", "DOM", "ECU", "EST", "GTM", "HND", "IDN", "LVA", "OMN", "PAN", 
+        "PER", "PRY", "SGP", "SLV", "SMR", "SUR", "SVN", "TGO", "URY", "USA", 
+        "XCL", "XML", "XXA", "XXB", "XXC", "XXD", "XXE", "XXF", "XXG", "XXH", 
+        "XXI", "XXJ", "XXK", "XXO", "XXP", "XXU", "XXV", "XXX", "XYK"
+    ]
+    
+    uat_participants = [
+        "ALB", "AND", "ARM", "BEL", "BEN", "BRA", "CAN", "CYP", "CZE", "ESP", 
+        "EST", "FIN", "FRA", "FRO", "HRV", "IDN", "IRL", "LTU", "LVA", "MCO", 
+        "MLT", "MYS", "NLD", "NZL", "OMN", "POL", "PRT", "SAU", "SGP", "SMR", 
+        "SVK", "SVN", "SWE", "TGO", "THA", "TUR", "XXA", "XXB", "XXC", "XXD", 
+        "XXO", "XXS", "XXU", "XXV", "XXX", "XYK"
+    ]
+    
+    if environment == "DEV":
+        print(f"Using static data for DEV: Found {len(dev_participants)} participants")
+        return dev_participants
+    elif environment == "UAT":
+        print(f"Using static data for UAT: Found {len(uat_participants)} participants") 
+        return uat_participants
+    elif environment == "PROD":
+        # For PROD, we don't use this function - it uses RefMart data
+        return []
+    else:
+        print(f"Error: Unknown environment '{environment}'")
+        return []
+
+
 def main():
     environment = "PROD"  # default
     participant_source = "local"  # default
@@ -166,6 +200,10 @@ def main():
     # Get participants based on source
     if participant_source == "github-api":
         participants_from_api = fetch_participants_from_github(environment)
+        # If GitHub API fails (e.g., due to firewall), fallback to static data
+        if not participants_from_api:
+            print("GitHub API failed, falling back to static data")
+            participants_from_api = fetch_participants_from_static_data(environment)
         extract_countries_from_api(refmart_country_list, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset, participants_from_api)
     else:
         extract_countries(refmart_country_list, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset)
