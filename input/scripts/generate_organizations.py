@@ -355,6 +355,7 @@ def extract_countries(data, config, participants_filename, endpoints_filename, r
     print(f"Participants: {participants}")
     instances = ""
     endpoints = ""
+    valueset_entries = ""
     
     # Generate environment-specific CodeSystem
     suffix = config["suffix"]
@@ -379,6 +380,7 @@ def extract_countries(data, config, participants_filename, endpoints_filename, r
                 if (country['CODE_ISO_3'] in participants):    
                     instances += generate_participant_instance(country, config)
                     endpoints += generate_participant_endpoints(country, config)
+                    valueset_entries += f"* $RefMartCountryList{suffix}#{country['CODE_ISO_3']}\n"
     
     else:
         # For DEV and UAT, generate Participants CodeSystem
@@ -403,6 +405,7 @@ def extract_countries(data, config, participants_filename, endpoints_filename, r
                 codes += "* #" + participant_code + ' "' + escape(mock_country['NAME_SHORT_EN']) + '"\n'
                 instances += generate_participant_instance(mock_country, config)
                 endpoints += generate_participant_endpoints(mock_country, config)
+                valueset_entries += f"* $Participants{suffix}#{participant_code}\n"
         
         elif environment == "UAT":
             # For UAT: Only include participants that are NOT in RefMart
@@ -420,6 +423,7 @@ def extract_countries(data, config, participants_filename, endpoints_filename, r
                         codes += "* #" + participant_code + ' "' + escape(mock_country['NAME_SHORT_EN']) + '"\n'
                         instances += generate_participant_instance(mock_country, config)
                         endpoints += generate_participant_endpoints(mock_country, config)
+                        valueset_entries += f"* $Participants{suffix}#{participant_code}\n"
                     else:
                         print(f"Skipping UAT participant {participant_code} (found in RefMart)")
             else:
@@ -434,6 +438,7 @@ def extract_countries(data, config, participants_filename, endpoints_filename, r
                     codes += "* #" + participant_code + ' "' + escape(mock_country['NAME_SHORT_EN']) + '"\n'
                     instances += generate_participant_instance(mock_country, config)
                     endpoints += generate_participant_endpoints(mock_country, config)
+                    valueset_entries += f"* $Participants{suffix}#{participant_code}\n"
         
         # Generate the CodeSystem file for DEV/UAT
         codesystem_filename = f"input/fsh/codesystems/Participants{suffix}.fsh"
@@ -445,6 +450,9 @@ def extract_countries(data, config, participants_filename, endpoints_filename, r
     
     printout(instances, participants_filename)
     printout(endpoints, endpoints_filename)
+    
+    # Generate the valueset file
+    generate_valueset(config, participants_valueset, valueset_entries)
 
 
 def generate_valueset(config, participants_valueset, valueset_entries):
