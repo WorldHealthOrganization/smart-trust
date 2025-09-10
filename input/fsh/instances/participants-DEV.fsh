@@ -1,7 +1,7 @@
 Instance: GDHCNParticipant-AND-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "AND"
+* name = "DEV Participant AND"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-AND-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-AND-DEV-DSC)
@@ -11,7 +11,7 @@ Usage: #definition
 Instance: GDHCNParticipant-ARG-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "ARG"
+* name = "DEV Participant ARG"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-ARG-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-ARG-DEV-DSC)
@@ -21,7 +21,7 @@ Usage: #definition
 Instance: GDHCNParticipant-ARM-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "ARM"
+* name = "DEV Participant ARM"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-ARM-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-ARM-DEV-DSC)
@@ -31,7 +31,7 @@ Usage: #definition
 Instance: GDHCNParticipant-BHS-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "BHS"
+* name = "DEV Participant BHS"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-BHS-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-BHS-DEV-DSC)
@@ -41,7 +41,7 @@ Usage: #definition
 Instance: GDHCNParticipant-BLZ-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "BLZ"
+* name = "DEV Participant BLZ"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-BLZ-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-BLZ-DEV-DSC)
@@ -51,7 +51,7 @@ Usage: #definition
 Instance: GDHCNParticipant-BRA-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "BRA"
+* name = "DEV Participant BRA"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-BRA-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-BRA-DEV-DSC)
@@ -61,7 +61,7 @@ Usage: #definition
 Instance: GDHCNParticipant-BRB-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "BRB"
+* name = "DEV Participant BRB"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-BRB-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-BRB-DEV-DSC)
@@ -71,7 +71,7 @@ Usage: #definition
 Instance: GDHCNParticipant-CHL-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "CHL"
+* name = "DEV Participant CHL"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-CHL-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-CHL-DEV-DSC)
@@ -81,7 +81,7 @@ Usage: #definition
 Instance: GDHCNParticipant-COL-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "COL"
+* name = "DEV Participant COL"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-COL-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-COL-DEV-DSC)
@@ -91,7 +91,7 @@ Usage: #definition
 Instance: GDHCNParticipant-CRI-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "CRI"
+* name = "DEV Participant CRI"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-CRI-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-CRI-DEV-DSC)
@@ -101,7 +101,7 @@ Usage: #definition
 Instance: GDHCNParticipant-CYP-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "CYP"
+* name = "DEV Participant CYP"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-CYP-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-CYP-DEV-DSC)
@@ -111,7 +111,7 @@ Usage: #definition
 Instance: GDHCNParticipant-DOM-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "DOM"
+* name = "DEV Participant DOM"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-DOM-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-DOM-DEV-DSC)
@@ -121,7 +121,7 @@ Usage: #definition
 Instance: GDHCNParticipant-ECU-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "ECU"
+* name = "DEV Participant ECU"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-ECU-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-ECU-DEV-DSC)
@@ -131,7 +131,7 @@ Usage: #definition
 Instance: GDHCNParticipant-EST-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "EST"
+* name = "DEV Participant EST"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-EST-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-EST-DEV-DSC)
@@ -141,7 +141,7 @@ Usage: #definition
 Instance: GDHCNParticipant-GTM-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "GTM"
+* name = "DEV Participant GTM"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-GTM-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-GTM-DEV-DSC)
@@ -151,7 +151,7 @@ Usage: #definition
 Instance: GDHCNParticipant-HND-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "HND"
+* name = "DEV Participant HND"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-HND-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-HND-DEV-DSC)
@@ -161,7 +161,7 @@ Usage: #definition
 Instance: GDHCNParticipant-IDN-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "IDN"
+* name = "DEV Participant IDN"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-IDN-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-IDN-DEV-DSC)
@@ -171,7 +171,7 @@ Usage: #definition
 Instance: GDHCNParticipant-LVA-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "LVA"
+* name = "DEV Participant LVA"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-LVA-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-LVA-DEV-DSC)
@@ -181,7 +181,7 @@ Usage: #definition
 Instance: GDHCNParticipant-OMN-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "OMN"
+* name = "DEV Participant OMN"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-OMN-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-OMN-DEV-DSC)
@@ -191,7 +191,7 @@ Usage: #definition
 Instance: GDHCNParticipant-PAN-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "PAN"
+* name = "DEV Participant PAN"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-PAN-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-PAN-DEV-DSC)
@@ -201,7 +201,7 @@ Usage: #definition
 Instance: GDHCNParticipant-PER-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "PER"
+* name = "DEV Participant PER"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-PER-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-PER-DEV-DSC)
@@ -211,7 +211,7 @@ Usage: #definition
 Instance: GDHCNParticipant-PRY-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "PRY"
+* name = "DEV Participant PRY"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-PRY-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-PRY-DEV-DSC)
@@ -221,7 +221,7 @@ Usage: #definition
 Instance: GDHCNParticipant-SGP-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "SGP"
+* name = "DEV Participant SGP"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-SGP-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-SGP-DEV-DSC)
@@ -231,7 +231,7 @@ Usage: #definition
 Instance: GDHCNParticipant-SLV-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "SLV"
+* name = "DEV Participant SLV"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-SLV-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-SLV-DEV-DSC)
@@ -241,7 +241,7 @@ Usage: #definition
 Instance: GDHCNParticipant-SMR-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "SMR"
+* name = "DEV Participant SMR"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-SMR-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-SMR-DEV-DSC)
@@ -251,7 +251,7 @@ Usage: #definition
 Instance: GDHCNParticipant-SUR-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "SUR"
+* name = "DEV Participant SUR"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-SUR-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-SUR-DEV-DSC)
@@ -261,7 +261,7 @@ Usage: #definition
 Instance: GDHCNParticipant-SVN-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "SVN"
+* name = "DEV Participant SVN"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-SVN-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-SVN-DEV-DSC)
@@ -271,7 +271,7 @@ Usage: #definition
 Instance: GDHCNParticipant-TGO-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "TGO"
+* name = "DEV Participant TGO"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-TGO-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-TGO-DEV-DSC)
@@ -281,7 +281,7 @@ Usage: #definition
 Instance: GDHCNParticipant-URY-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "URY"
+* name = "DEV Participant URY"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-URY-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-URY-DEV-DSC)
@@ -291,7 +291,7 @@ Usage: #definition
 Instance: GDHCNParticipant-USA-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "USA"
+* name = "DEV Participant USA"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-USA-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-USA-DEV-DSC)
@@ -301,7 +301,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XCL-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XCL"
+* name = "DEV Participant XCL"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XCL-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XCL-DEV-DSC)
@@ -311,7 +311,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XML-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XML"
+* name = "DEV Participant XML"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XML-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XML-DEV-DSC)
@@ -321,7 +321,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXA-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXA"
+* name = "DEV Participant XXA"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXA-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXA-DEV-DSC)
@@ -331,7 +331,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXB-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXB"
+* name = "DEV Participant XXB"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXB-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXB-DEV-DSC)
@@ -341,7 +341,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXC-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXC"
+* name = "DEV Participant XXC"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXC-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXC-DEV-DSC)
@@ -351,7 +351,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXD-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXD"
+* name = "DEV Participant XXD"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXD-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXD-DEV-DSC)
@@ -361,7 +361,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXE-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXE"
+* name = "DEV Participant XXE"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXE-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXE-DEV-DSC)
@@ -371,7 +371,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXF-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXF"
+* name = "DEV Participant XXF"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXF-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXF-DEV-DSC)
@@ -381,7 +381,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXG-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXG"
+* name = "DEV Participant XXG"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXG-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXG-DEV-DSC)
@@ -391,7 +391,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXH-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXH"
+* name = "DEV Participant XXH"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXH-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXH-DEV-DSC)
@@ -401,7 +401,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXI-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXI"
+* name = "DEV Participant XXI"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXI-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXI-DEV-DSC)
@@ -411,7 +411,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXJ-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXJ"
+* name = "DEV Participant XXJ"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXJ-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXJ-DEV-DSC)
@@ -421,7 +421,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXK-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXK"
+* name = "DEV Participant XXK"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXK-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXK-DEV-DSC)
@@ -431,7 +431,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXO-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXO"
+* name = "DEV Participant XXO"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXO-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXO-DEV-DSC)
@@ -441,7 +441,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXP-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXP"
+* name = "DEV Participant XXP"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXP-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXP-DEV-DSC)
@@ -451,7 +451,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXU-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXU"
+* name = "DEV Participant XXU"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXU-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXU-DEV-DSC)
@@ -461,7 +461,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXV-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXV"
+* name = "DEV Participant XXV"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXV-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXV-DEV-DSC)
@@ -471,7 +471,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXX-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XXX"
+* name = "DEV Participant XXX"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXX-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXX-DEV-DSC)
@@ -481,7 +481,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XYK-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "XYK"
+* name = "DEV Participant XYK"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XYK-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XYK-DEV-DSC)

@@ -281,10 +281,11 @@ def fetch_participants_with_localities_from_github(environment):
             successful_extractions += 1
             print(f"[PHASE 2] ✓ SUCCESS: {participant_code} -> '{locality}'")
         else:
-            # Fallback to directory name if locality can't be extracted
-            participants_with_localities[participant_code] = participant_code
+            # Fallback to environment + participant format if locality can't be extracted
+            fallback_name = f"{environment} Participant {participant_code}"
+            participants_with_localities[participant_code] = fallback_name
             failed_extractions += 1
-            print(f"[PHASE 2] ✗ FAILED: {participant_code} -> fallback to directory name '{participant_code}'")
+            print(f"[PHASE 2] ✗ FAILED: {participant_code} -> fallback to '{fallback_name}'")
     
     print(f"\n[PHASE 2] SUMMARY:")
     print(f"  - Total participants processed: {len(participants)}")
