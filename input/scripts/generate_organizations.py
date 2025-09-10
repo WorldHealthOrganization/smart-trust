@@ -73,54 +73,125 @@ def load_refmart_from_file():
 
 def fetch_participant_locality_from_github(repo, participant_code):
     """Fetch participant locality name from TLS/CA.pem file in GitHub repository"""
+    print(f"\n=== LOCALITY EXTRACTION LOG for {participant_code} ===")
     try:
         # First, get the contents of the participant directory
         url = f"https://api.github.com/repos/WorldHealthOrganization/{repo}/contents/{participant_code}"
-        print(f"Fetching participant directory contents: {url}")
+        print(f"[STEP 1] Fetching participant directory contents from: {url}")
         
         response = requests.get(url)
+        print(f"[STEP 1] HTTP Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"[STEP 1] ERROR: Failed to fetch directory contents. Status: {response.status_code}, Response: {response.text[:200]}")
+            return None
+            
         response.raise_for_status()
         
         contents = response.json()
+        print(f"[STEP 1] SUCCESS: Found {len(contents)} items in {participant_code} directory")
+        
+        # Log all files found in the directory
+        file_list = []
+        dir_list = []
+        for item in contents:
+            if item['type'] == 'file':
+                file_list.append(item['name'])
+            else:
+                dir_list.append(item['name'])
+        print(f"[STEP 1] Files found: {file_list}")
+        print(f"[STEP 1] Directories found: {dir_list}")
         
         # Look for TLS/CA.pem file
         pem_file = None
+        pem_files_found = []
         for item in contents:
             if item['type'] == 'file' and item['name'] in ['TLS.pem', 'CA.pem']:
-                pem_file = item
-                break
+                pem_files_found.append(item['name'])
+                if not pem_file:  # Use the first one found
+                    pem_file = item
+        
+        print(f"[STEP 2] PEM files found: {pem_files_found}")
         
         if not pem_file:
-            print(f"No TLS.pem or CA.pem file found for participant {participant_code}")
+            print(f"[STEP 2] ERROR: No TLS.pem or CA.pem file found for participant {participant_code}")
+            print(f"[STEP 2] Available files were: {file_list}")
             return None
+        
+        print(f"[STEP 2] SUCCESS: Using PEM file: {pem_file['name']}")
         
         # Fetch the PEM file content
         pem_url = pem_file['download_url']
-        print(f"Fetching PEM file: {pem_url}")
+        print(f"[STEP 3] Fetching PEM file content from: {pem_url}")
         
         pem_response = requests.get(pem_url)
+        print(f"[STEP 3] PEM file HTTP Response Status: {pem_response.status_code}")
+        
+        if pem_response.status_code != 200:
+            print(f"[STEP 3] ERROR: Failed to fetch PEM file. Status: {pem_response.status_code}")
+            return None
+            
         pem_response.raise_for_status()
         
+        pem_content_text = pem_response.text
+        print(f"[STEP 3] SUCCESS: Downloaded PEM file, size: {len(pem_content_text)} characters")
+        print(f"[STEP 3] PEM file starts with: {pem_content_text[:100]}...")
+        
         # Parse the certificate to extract locality name
-        pem_content = pem_response.text.encode('utf-8')
-        cert = x509.load_pem_x509_certificate(pem_content)
+        print(f"[STEP 4] Attempting to parse X.509 certificate...")
+        pem_content = pem_content_text.encode('utf-8')
+        
+        try:
+            cert = x509.load_pem_x509_certificate(pem_content)
+            print(f"[STEP 4] SUCCESS: Certificate loaded successfully")
+        except Exception as cert_error:
+            print(f"[STEP 4] ERROR: Failed to parse certificate: {cert_error}")
+            # Try to determine if this looks like a certificate
+            if "BEGIN CERTIFICATE" in pem_content_text:
+                print(f"[STEP 4] Certificate markers found but parsing failed")
+            else:
+                print(f"[STEP 4] No certificate markers found in PEM content")
+            return None
         
         # Extract locality name from subject
+        print(f"[STEP 5] Extracting subject information from certificate...")
         subject = cert.subject
-        for attribute in subject:
-            if attribute.oid == NameOID.LOCALITY_NAME:
-                locality = attribute.value
-                print(f"Found locality for {participant_code}: {locality}")
-                return locality
+        print(f"[STEP 5] Certificate subject: {subject}")
         
-        print(f"No locality name found in certificate for participant {participant_code}")
-        return None
+        # Log all subject attributes
+        subject_attributes = []
+        locality_found = None
+        
+        for attribute in subject:
+            attr_name = attribute.oid._name if hasattr(attribute.oid, '_name') else str(attribute.oid)
+            attr_value = attribute.value
+            subject_attributes.append(f"{attr_name}: {attr_value}")
+            
+            if attribute.oid == NameOID.LOCALITY_NAME:
+                locality_found = attribute.value
+                print(f"[STEP 5] ✓ LOCALITY NAME FOUND: {locality_found}")
+        
+        print(f"[STEP 5] All subject attributes: {subject_attributes}")
+        
+        if locality_found:
+            print(f"[STEP 6] SUCCESS: Extracted locality for {participant_code}: '{locality_found}'")
+            print(f"=== END LOCALITY EXTRACTION LOG for {participant_code} ===\n")
+            return locality_found
+        else:
+            print(f"[STEP 6] ERROR: No locality name (localityName) found in certificate subject")
+            print(f"[STEP 6] Available subject fields: {[attr.split(':')[0] for attr in subject_attributes]}")
+            print(f"=== END LOCALITY EXTRACTION LOG for {participant_code} ===\n")
+            return None
         
     except requests.RequestException as e:
-        print(f"Error fetching PEM file for {participant_code}: {e}")
+        print(f"[ERROR] Network/HTTP error fetching data for {participant_code}: {e}")
+        print(f"=== END LOCALITY EXTRACTION LOG for {participant_code} ===\n")
         return None
     except Exception as e:
-        print(f"Error parsing certificate for {participant_code}: {e}")
+        print(f"[ERROR] Unexpected error processing {participant_code}: {e}")
+        import traceback
+        print(f"[ERROR] Traceback: {traceback.format_exc()}")
+        print(f"=== END LOCALITY EXTRACTION LOG for {participant_code} ===\n")
         return None
 
 
@@ -170,6 +241,8 @@ def fetch_participants_from_github(environment):
 
 def fetch_participants_with_localities_from_github(environment):
     """Fetch participant directory names with their locality names from GitHub repository"""
+    print(f"\n=== FETCHING PARTICIPANTS WITH LOCALITIES for {environment} ===")
+    
     repo_mapping = {
         "PROD": "tng-participants-prod",
         "UAT": "tng-participants-uat", 
@@ -178,21 +251,53 @@ def fetch_participants_with_localities_from_github(environment):
     
     repo = repo_mapping.get(environment)
     if not repo:
-        print(f"Error: Unknown environment '{environment}'")
+        print(f"ERROR: Unknown environment '{environment}'")
         return {}
     
+    print(f"Target repository: {repo}")
+    
     # First get the list of participants
+    print(f"[PHASE 1] Getting list of participants from {repo}")
     participants = fetch_participants_from_github(environment)
     
+    if not participants:
+        print(f"[PHASE 1] ERROR: No participants found, falling back to static data")
+        return fetch_participants_with_localities_from_static_data(environment)
+    
+    print(f"[PHASE 1] SUCCESS: Found {len(participants)} participants: {participants}")
+    
     # Then fetch locality names for each participant
+    print(f"[PHASE 2] Extracting locality names from PEM certificates for each participant")
     participants_with_localities = {}
-    for participant_code in participants:
+    successful_extractions = 0
+    failed_extractions = 0
+    
+    for i, participant_code in enumerate(participants, 1):
+        print(f"\n[PHASE 2] Processing participant {i}/{len(participants)}: {participant_code}")
         locality = fetch_participant_locality_from_github(repo, participant_code)
+        
         if locality:
             participants_with_localities[participant_code] = locality
+            successful_extractions += 1
+            print(f"[PHASE 2] ✓ SUCCESS: {participant_code} -> '{locality}'")
         else:
             # Fallback to generic name if locality can't be extracted
-            participants_with_localities[participant_code] = f"{environment} Participant {participant_code}"
+            fallback_name = f"{environment} Participant {participant_code}"
+            participants_with_localities[participant_code] = fallback_name
+            failed_extractions += 1
+            print(f"[PHASE 2] ✗ FAILED: {participant_code} -> fallback to '{fallback_name}'")
+    
+    print(f"\n[PHASE 2] SUMMARY:")
+    print(f"  - Total participants processed: {len(participants)}")
+    print(f"  - Successful locality extractions: {successful_extractions}")
+    print(f"  - Failed extractions (using fallback): {failed_extractions}")
+    print(f"  - Success rate: {(successful_extractions/len(participants)*100):.1f}%")
+    
+    print(f"\n[FINAL RESULT] Participants with localities:")
+    for code, locality in sorted(participants_with_localities.items()):
+        print(f"  {code}: '{locality}'")
+    
+    print(f"=== END FETCHING PARTICIPANTS WITH LOCALITIES for {environment} ===\n")
     
     return participants_with_localities
 
@@ -233,6 +338,9 @@ def fetch_participants_from_static_data(environment):
 
 def fetch_participants_with_localities_from_static_data(environment):
     """Fetch participant directory names with static locality data when GitHub API is unavailable"""
+    print(f"\n=== USING STATIC FALLBACK DATA for {environment} ===")
+    print(f"GitHub API is unavailable, using pre-defined static data")
+    
     participants = fetch_participants_from_static_data(environment)
     
     # Create participants with example locality names to demonstrate the functionality
@@ -262,13 +370,30 @@ def fetch_participants_with_localities_from_static_data(environment):
         "AUS": "Canberra"
     }
     
+    print(f"Available example localities: {len(example_localities)} entries")
+    
     participants_with_localities = {}
+    example_used = 0
+    fallback_used = 0
+    
     for participant_code in participants:
         # Use example locality if available, otherwise fallback to generic name
         if participant_code in example_localities:
-            participants_with_localities[participant_code] = example_localities[participant_code]
+            locality = example_localities[participant_code]
+            participants_with_localities[participant_code] = locality
+            example_used += 1
+            print(f"[STATIC] {participant_code} -> '{locality}' (from example data)")
         else:
-            participants_with_localities[participant_code] = f"{environment} Participant {participant_code}"
+            fallback_name = f"{environment} Participant {participant_code}"
+            participants_with_localities[participant_code] = fallback_name
+            fallback_used += 1
+            print(f"[STATIC] {participant_code} -> '{fallback_name}' (generic fallback)")
+    
+    print(f"\n[STATIC SUMMARY]:")
+    print(f"  - Total participants: {len(participants)}")
+    print(f"  - Used example localities: {example_used}")
+    print(f"  - Used generic fallback: {fallback_used}")
+    print(f"=== END STATIC FALLBACK DATA for {environment} ===\n")
     
     return participants_with_localities
 
@@ -435,8 +560,12 @@ def load_participants(participants_valueset, environment="PROD"):
 def extract_countries_from_api_with_localities(data, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset, participants_with_localities):
     """Extract countries using participants with locality names fetched from GitHub API and PEM files"""
     environment = "PROD" if config["suffix"] == "" else config["suffix"][1:]  # Remove the "-" prefix
+    print(f"\n=== PROCESSING PARTICIPANTS WITH LOCALITIES for {environment} ===")
     print(f"Environment: {environment}")
-    print(f"Participants with localities: {participants_with_localities}")
+    print(f"Received {len(participants_with_localities)} participants with localities:")
+    
+    for code, locality in sorted(participants_with_localities.items()):
+        print(f"  {code}: '{locality}'")
     
     instances = ""
     endpoints = ""
@@ -455,7 +584,10 @@ def extract_countries_from_api_with_localities(data, config, participants_filena
     codes += f'* ^caseSensitive = false\n'
     codes += f'* ^url = "http://smart.who.int/trust/CodeSystems/Participants{suffix}"\n'
     
+    processed_count = 0
+    
     if environment == "DEV":
+        print(f"[DEV PROCESSING] Including all participants from DEV repo")
         # For DEV: Include all participants from the DEV repo
         for participant_code, locality_name in participants_with_localities.items():
             # Create a mock country object for DEV participants using locality name
@@ -463,16 +595,21 @@ def extract_countries_from_api_with_localities(data, config, participants_filena
                 'CODE_ISO_3': participant_code,
                 'NAME_SHORT_EN': locality_name
             }
-            print(f"Processing DEV participant: {participant_code} -> {locality_name}")
+            print(f"[DEV] Processing participant: {participant_code} -> '{locality_name}'")
             codes += "* #" + participant_code + ' "' + escape(locality_name) + '"\n'
             instances += generate_participant_instance(mock_country, config)
             endpoints += generate_participant_endpoints(mock_country, config)
             valueset_entries += f"* $Participants{suffix}#{participant_code}\n"
+            processed_count += 1
     
     elif environment == "UAT":
+        print(f"[UAT PROCESSING] Including only participants NOT in RefMart")
         # For UAT: Only include participants that are NOT in RefMart
         if data and 'value' in data:
             refmart_codes = {country['CODE_ISO_3'] for country in data['value']}
+            print(f"[UAT] RefMart contains {len(refmart_codes)} country codes")
+            print(f"[UAT] RefMart codes: {sorted(refmart_codes)}")
+            
             for participant_code, locality_name in participants_with_localities.items():
                 if participant_code not in refmart_codes:
                     # Create a mock country object for UAT participants not in RefMart using locality name
@@ -480,23 +617,46 @@ def extract_countries_from_api_with_localities(data, config, participants_filena
                         'CODE_ISO_3': participant_code,
                         'NAME_SHORT_EN': locality_name
                     }
-                    print(f"Processing UAT participant (not in RefMart): {participant_code} -> {locality_name}")
+                    print(f"[UAT] ✓ Processing participant (not in RefMart): {participant_code} -> '{locality_name}'")
                     codes += "* #" + participant_code + ' "' + escape(locality_name) + '"\n'
                     instances += generate_participant_instance(mock_country, config)
                     endpoints += generate_participant_endpoints(mock_country, config)
                     valueset_entries += f"* $Participants{suffix}#{participant_code}\n"
+                    processed_count += 1
                 else:
-                    print(f"Skipping UAT participant {participant_code} (found in RefMart)")
+                    print(f"[UAT] ✗ Skipping participant {participant_code} (found in RefMart)")
+        else:
+            print(f"[UAT] WARNING: No RefMart data available, including all participants")
+            for participant_code, locality_name in participants_with_localities.items():
+                mock_country = {
+                    'CODE_ISO_3': participant_code,
+                    'NAME_SHORT_EN': locality_name
+                }
+                print(f"[UAT] Processing participant: {participant_code} -> '{locality_name}'")
+                codes += "* #" + participant_code + ' "' + escape(locality_name) + '"\n'
+                instances += generate_participant_instance(mock_country, config)
+                endpoints += generate_participant_endpoints(mock_country, config)
+                valueset_entries += f"* $Participants{suffix}#{participant_code}\n"
+                processed_count += 1
+    
+    print(f"\n[SUMMARY] Processed {processed_count} participants for {environment} environment")
     
     # Generate the CodeSystem file for DEV/UAT
     codesystem_filename = f"input/fsh/codesystems/Participants{suffix}.fsh"
+    print(f"[OUTPUT] Writing CodeSystem to: {codesystem_filename}")
     printout(codes, codesystem_filename)
     
+    print(f"[OUTPUT] Writing participants to: {participants_filename}")
     printout(instances, participants_filename)
+    
+    print(f"[OUTPUT] Writing endpoints to: {endpoints_filename}")
     printout(endpoints, endpoints_filename)
     
     # Generate the valueset file
+    print(f"[OUTPUT] Writing valueset to: {participants_valueset}")
     generate_valueset(config, participants_valueset, valueset_entries)
+    
+    print(f"=== END PROCESSING PARTICIPANTS WITH LOCALITIES for {environment} ===\n")
 
 
 def extract_countries_from_api(data, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset, participants_from_api):
