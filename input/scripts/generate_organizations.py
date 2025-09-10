@@ -281,11 +281,10 @@ def fetch_participants_with_localities_from_github(environment):
             successful_extractions += 1
             print(f"[PHASE 2] ✓ SUCCESS: {participant_code} -> '{locality}'")
         else:
-            # Fallback to generic name if locality can't be extracted
-            fallback_name = f"{environment} Participant {participant_code}"
-            participants_with_localities[participant_code] = fallback_name
+            # Fallback to directory name if locality can't be extracted
+            participants_with_localities[participant_code] = participant_code
             failed_extractions += 1
-            print(f"[PHASE 2] ✗ FAILED: {participant_code} -> fallback to '{fallback_name}'")
+            print(f"[PHASE 2] ✗ FAILED: {participant_code} -> fallback to directory name '{participant_code}'")
     
     print(f"\n[PHASE 2] SUMMARY:")
     print(f"  - Total participants processed: {len(participants)}")
@@ -343,56 +342,18 @@ def fetch_participants_with_localities_from_static_data(environment):
     
     participants = fetch_participants_from_static_data(environment)
     
-    # Create participants with example locality names to demonstrate the functionality
-    # In real usage, these would come from the localityName field in PEM certificates
-    example_localities = {
-        # Common test participants
-        "XXA": "Test City Alpha",
-        "XXB": "Test City Beta", 
-        "XXC": "Test City Gamma",
-        "XXD": "Test City Delta",
-        "XXO": "Test City Omega",
-        "XXS": "Test City Sigma",
-        "XXU": "Test City Upsilon",
-        "XXV": "Test City Phi",
-        "XXX": "Test City Chi",
-        "XYK": "Test City Psi",
-        # Some real participants for DEV
-        "BRA": "Brasília",
-        "USA": "Washington",
-        "CAN": "Ottawa",
-        "FRA": "Paris",
-        "DEU": "Berlin",
-        "JPN": "Tokyo",
-        "IND": "New Delhi",
-        "CHN": "Beijing",
-        "GBR": "London",
-        "AUS": "Canberra"
-    }
-    
-    print(f"Available example localities: {len(example_localities)} entries")
-    
+    # When GitHub API is unavailable, use directory names as fallback
+    # In real usage, locality names would come from the localityName field in PEM certificates
     participants_with_localities = {}
-    example_used = 0
-    fallback_used = 0
     
     for participant_code in participants:
-        # Use example locality if available, otherwise fallback to generic name
-        if participant_code in example_localities:
-            locality = example_localities[participant_code]
-            participants_with_localities[participant_code] = locality
-            example_used += 1
-            print(f"[STATIC] {participant_code} -> '{locality}' (from example data)")
-        else:
-            fallback_name = f"{environment} Participant {participant_code}"
-            participants_with_localities[participant_code] = fallback_name
-            fallback_used += 1
-            print(f"[STATIC] {participant_code} -> '{fallback_name}' (generic fallback)")
+        # Use directory name as fallback when PEM certificates are not accessible
+        participants_with_localities[participant_code] = participant_code
+        print(f"[STATIC] {participant_code} -> '{participant_code}' (directory name fallback)")
     
     print(f"\n[STATIC SUMMARY]:")
     print(f"  - Total participants: {len(participants)}")
-    print(f"  - Used example localities: {example_used}")
-    print(f"  - Used generic fallback: {fallback_used}")
+    print(f"  - All using directory name fallback: {len(participants)}")
     print(f"=== END STATIC FALLBACK DATA for {environment} ===\n")
     
     return participants_with_localities

@@ -1,7 +1,7 @@
 Instance: GDHCNParticipant-XXA-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Test City Alpha"
+* name = "XXA"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXA-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXA-UAT-DSC)
@@ -11,7 +11,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXB-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Test City Beta"
+* name = "XXB"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXB-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXB-UAT-DSC)
@@ -21,7 +21,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXC-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Test City Gamma"
+* name = "XXC"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXC-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXC-UAT-DSC)
@@ -31,7 +31,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXD-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Test City Delta"
+* name = "XXD"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXD-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXD-UAT-DSC)
@@ -41,7 +41,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXO-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Test City Omega"
+* name = "XXO"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXO-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXO-UAT-DSC)
@@ -51,7 +51,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXS-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Test City Sigma"
+* name = "XXS"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXS-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXS-UAT-DSC)
@@ -61,7 +61,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXU-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Test City Upsilon"
+* name = "XXU"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXU-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXU-UAT-DSC)
@@ -71,7 +71,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXV-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Test City Phi"
+* name = "XXV"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXV-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXV-UAT-DSC)
@@ -81,7 +81,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXX-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Test City Chi"
+* name = "XXX"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXX-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXX-UAT-DSC)
@@ -91,7 +91,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XYK-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Test City Psi"
+* name = "XYK"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XYK-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XYK-UAT-DSC)
