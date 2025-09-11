@@ -14,7 +14,6 @@ Description:  "ValueSet of GDHCN Trust Network Participants for Production envir
 //
 // in the future, will need to exclude more than just WHO as not being from the RefMart set.
 
-* $Participants#WHO
 * $RefMartCountryList#ALB
 * $RefMartCountryList#AND
 * $RefMartCountryList#ARM

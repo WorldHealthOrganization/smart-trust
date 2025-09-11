@@ -1122,9 +1122,9 @@ Usage: #definition
 
 Instance: GDHCNParticipantDID-TUR-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "T�rkiye Trustlist (DID v2) - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/TUR/did.json"
+Description: "Türkiye Trustlist (DID v2) - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/TUR/did.json"
 Usage: #definition
-* name = "T�rkiye Trustlist (DID v2) - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/TUR/did.json"
+* name = "Türkiye Trustlist (DID v2) - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/TUR/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TUR)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1135,7 +1135,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-TUR-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "T�rkiye Trustlist (DID v2) - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR:DSC\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/TUR/DSC/did.json"
+* name = "Türkiye Trustlist (DID v2) - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR:DSC\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/TUR/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TUR)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1146,7 +1146,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-TUR-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "T�rkiye Trustlist (DID v2) - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR:SCA\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/TUR/SCA/did.json"
+* name = "Türkiye Trustlist (DID v2) - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR:SCA\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/TUR/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TUR)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
