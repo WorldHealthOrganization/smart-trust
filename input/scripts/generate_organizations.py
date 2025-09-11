@@ -875,7 +875,6 @@ Description:  "ValueSet of GDHCN Trust Network Participants {description_suffix}
 * ^status = #active
 * ^experimental = true
 
-* include codes from system RefMartCountryList
 * include codes from system Participants{suffix}
 
 {comment}

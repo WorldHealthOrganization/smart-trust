@@ -5,7 +5,6 @@ Description:  "ValueSet of GDHCN Trust Network Participants for Development envi
 * ^status = #active
 * ^experimental = true
 
-* include codes from system RefMartCountryList
 * include codes from system Participants-DEV
 
 // New logic for DEV environment:

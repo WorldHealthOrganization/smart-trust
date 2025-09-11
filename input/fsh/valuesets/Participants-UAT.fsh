@@ -5,7 +5,6 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 * ^status = #active
 * ^experimental = true
 
-* include codes from system RefMartCountryList
 * include codes from system Participants-UAT
 
 // New logic for UAT environment:
