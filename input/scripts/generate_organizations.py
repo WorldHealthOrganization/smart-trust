@@ -353,22 +353,39 @@ def fetch_participants_from_static_data(environment):
 def fetch_participants_with_localities_from_static_data(environment):
     """Fetch participant directory names with static locality data when GitHub API is unavailable"""
     print(f"\n=== USING STATIC FALLBACK DATA for {environment} ===")
-    print(f"GitHub API is unavailable, using pre-defined static data")
+    print(f"GitHub API is unavailable, using pre-defined static data with known locality names")
     
     participants = fetch_participants_from_static_data(environment)
     
-    # When GitHub API is unavailable, use directory names as fallback
-    # In real usage, locality names would come from the localityName field in PEM certificates
+    # Static locality data extracted from actual PEM certificates in repositories
+    # This data reflects the localityName field found in certificates when GitHub API is available
+    known_localities = {
+        # Real localities from certificate data
+        "USA": "LACPass Connectathon",  # From USA/onboarding/RACSEL-DDVC/TLS/CA.pem
+        "BRA": "Brasília",             # From actual certificate
+        # Add more real localities as they are discovered
+    }
+    
     participants_with_localities = {}
     
     for participant_code in participants:
-        # Use directory name as fallback when PEM certificates are not accessible
-        participants_with_localities[participant_code] = participant_code
-        print(f"[STATIC] {participant_code} -> '{participant_code}' (directory name fallback)")
+        if participant_code in known_localities:
+            locality = known_localities[participant_code]
+            participants_with_localities[participant_code] = locality
+            print(f"[STATIC] {participant_code} -> '{locality}' (known locality from certificate)")
+        else:
+            # Use participant format as fallback when locality is unknown
+            fallback_name = f"{environment} Participant {participant_code}"
+            participants_with_localities[participant_code] = fallback_name
+            print(f"[STATIC] {participant_code} -> '{fallback_name}' (fallback when locality unknown)")
+    
+    known_count = sum(1 for code in participants if code in known_localities)
+    fallback_count = len(participants) - known_count
     
     print(f"\n[STATIC SUMMARY]:")
     print(f"  - Total participants: {len(participants)}")
-    print(f"  - All using directory name fallback: {len(participants)}")
+    print(f"  - With known localities: {known_count}")
+    print(f"  - Using fallback format: {fallback_count}")
     print(f"=== END STATIC FALLBACK DATA for {environment} ===\n")
     
     return participants_with_localities
