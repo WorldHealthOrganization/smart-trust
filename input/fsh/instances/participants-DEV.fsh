@@ -298,6 +298,16 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-USA-DEV-SCA)
 
 
+Instance: GDHCNParticipant-WHO-DEV
+InstanceOf: IHE.mCSD.Organization
+Usage: #definition
+* name = "World Health Organization"
+* type = $orgType#govt
+* endpoint[+] = Reference(GDHCNParticipantDID-WHO-DEV-All)
+* endpoint[+] = Reference(GDHCNParticipantDID-WHO-DEV-DSC)
+* endpoint[+] = Reference(GDHCNParticipantDID-WHO-DEV-SCA)
+
+
 Instance: GDHCNParticipant-XCL-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition

@@ -5,10 +5,8 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 * ^status = #active
 * ^experimental = true
 
-// Include ALL codes from Participants-UAT CodeSystem (new participants not in RefMart)
+* include codes from system RefMartCountryList
 * include codes from system Participants-UAT
-
-// Include ONLY specific RefMart codes for participants found in UAT repo
 
 // New logic for UAT environment:
 // 1. If participant exists in RefMart, use RefMart code
@@ -17,10 +15,10 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 //
 // Current composition:
 //   - RefMart codes (participants found in RefMart): 36
-//   - Participants-UAT codes (participants NOT in RefMart): 10
+//   - Participants-UAT codes (participants NOT in RefMart): 11
 //
 // To regenerate, execute on tng-participants-uat repo:
-//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*' | grep -v WHO
+//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*'
 
 * $RefMartCountryList#ALB
 * $RefMartCountryList#AND
@@ -58,4 +56,15 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 * $RefMartCountryList#TGO
 * $RefMartCountryList#THA
 * $RefMartCountryList#TUR
+* $Participants-UAT#WHO
+* $Participants-UAT#XXA
+* $Participants-UAT#XXB
+* $Participants-UAT#XXC
+* $Participants-UAT#XXD
+* $Participants-UAT#XXO
+* $Participants-UAT#XXS
+* $Participants-UAT#XXU
+* $Participants-UAT#XXV
+* $Participants-UAT#XXX
+* $Participants-UAT#XYK
 

@@ -4,6 +4,7 @@ Description: "CodeSystem for GDHCN Trust Network Participants for User Acceptanc
 * ^experimental = true
 * ^caseSensitive = false
 * ^url = "http://smart.who.int/trust/CodeSystems/Participants-UAT"
+* #WHO "World Health Organization"
 * #XXA "UAT Participant XXA"
 * #XXB "UAT Participant XXB"
 * #XXC "UAT Participant XXC"

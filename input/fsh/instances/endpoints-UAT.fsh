@@ -1222,6 +1222,40 @@ Usage: #definition
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
 * address = "did:web:tng-cdn.who.int:v2:trustlist:-:TUR:SCA"
 
+Instance: GDHCNParticipantDID-WHO-UAT-All
+InstanceOf: IHE.mCSD.Endpoint
+Description: "World Health Organization Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/WHO/did.json"
+Usage: #definition
+* name = "World Health Organization Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/WHO/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-WHO-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:WHO"
+
+Instance: GDHCNParticipantDID-WHO-UAT-DSC
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "World Health Organization Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/WHO/DSC/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-WHO-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:WHO:DSC"
+
+Instance: GDHCNParticipantDID-WHO-UAT-SCA
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "World Health Organization Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/WHO/SCA/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-WHO-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:WHO:SCA"
+
 Instance: GDHCNParticipantDID-XXA-UAT-All
 InstanceOf: IHE.mCSD.Endpoint
 Description: "UAT Participant XXA Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XXA/did.json"

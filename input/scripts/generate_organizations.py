@@ -238,9 +238,7 @@ def fetch_participants_from_github(environment):
         
         for item in contents:
             if item['type'] == 'dir' and participant_pattern.match(item['name']):
-                # Exclude WHO as it's not a participant country
-                if item['name'] != 'WHO':
-                    participants.append(item['name'])
+                participants.append(item['name'])
         
         participants.sort()
         print(f"Found {len(participants)} participants in {repo}: {participants}")
@@ -325,7 +323,7 @@ def fetch_participants_from_static_data(environment):
         "AND", "ARG", "ARM", "BHS", "BLZ", "BRA", "BRB", "CHL", "COL", "CRI", 
         "CYP", "DOM", "ECU", "EST", "GTM", "HND", "IDN", "LVA", "OMN", "PAN", 
         "PER", "PRY", "SGP", "SLV", "SMR", "SUR", "SVN", "TGO", "URY", "USA", 
-        "XCL", "XML", "XXA", "XXB", "XXC", "XXD", "XXE", "XXF", "XXG", "XXH", 
+        "WHO", "XCL", "XML", "XXA", "XXB", "XXC", "XXD", "XXE", "XXF", "XXG", "XXH", 
         "XXI", "XXJ", "XXK", "XXO", "XXP", "XXU", "XXV", "XXX", "XYK"
     ]
     
@@ -333,7 +331,7 @@ def fetch_participants_from_static_data(environment):
         "ALB", "AND", "ARM", "BEL", "BEN", "BRA", "CAN", "CYP", "CZE", "ESP", 
         "EST", "FIN", "FRA", "FRO", "HRV", "IDN", "IRL", "LTU", "LVA", "MCO", 
         "MLT", "MYS", "NLD", "NZL", "OMN", "POL", "PRT", "SAU", "SGP", "SMR", 
-        "SVK", "SVN", "SWE", "TGO", "THA", "TUR", "XXA", "XXB", "XXC", "XXD", 
+        "SVK", "SVN", "SWE", "TGO", "THA", "TUR", "WHO", "XXA", "XXB", "XXC", "XXD", 
         "XXO", "XXS", "XXU", "XXV", "XXX", "XYK"
     ]
     
@@ -364,6 +362,7 @@ def fetch_participants_with_localities_from_static_data(environment):
         # Real localities from certificate data
         "USA": "LACPass Connectathon",  # From USA/onboarding/RACSEL-DDVC/TLS/CA.pem
         "BRA": "Brasília",             # From actual certificate
+        "WHO": "World Health Organization",  # WHO headquarters
         # Add more real localities as they are discovered
     }
     
@@ -883,7 +882,7 @@ Description:  "ValueSet of GDHCN Trust Network Participants {description_suffix}
 //   - Participants{suffix} codes (participants NOT in RefMart): {env_specific_count}
 //
 // To regenerate, execute on tng-participants-{environment.lower()} repo:
-//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*' | grep -v WHO"""
+//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*'"""
 
         valueset_content = f"""ValueSet:     Participants{suffix}
 Title:        "WHO GDHCN Trust Network Participant{env_name}"

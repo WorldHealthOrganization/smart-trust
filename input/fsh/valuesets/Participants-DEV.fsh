@@ -5,10 +5,8 @@ Description:  "ValueSet of GDHCN Trust Network Participants for Development envi
 * ^status = #active
 * ^experimental = true
 
-// Include ALL codes from Participants-DEV CodeSystem (new participants not in RefMart)
+* include codes from system RefMartCountryList
 * include codes from system Participants-DEV
-
-// Include ONLY specific RefMart codes for participants found in DEV repo
 
 // New logic for DEV environment:
 // 1. If participant exists in RefMart, use RefMart code
@@ -17,10 +15,10 @@ Description:  "ValueSet of GDHCN Trust Network Participants for Development envi
 //
 // Current composition:
 //   - RefMart codes (participants found in RefMart): 30
-//   - Participants-DEV codes (participants NOT in RefMart): 19
+//   - Participants-DEV codes (participants NOT in RefMart): 20
 //
 // To regenerate, execute on tng-participants-dev repo:
-//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*' | grep -v WHO
+//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*'
 
 * $RefMartCountryList#AND
 * $RefMartCountryList#ARG
@@ -52,4 +50,24 @@ Description:  "ValueSet of GDHCN Trust Network Participants for Development envi
 * $RefMartCountryList#TGO
 * $RefMartCountryList#URY
 * $RefMartCountryList#USA
+* $Participants-DEV#WHO
+* $Participants-DEV#XCL
+* $Participants-DEV#XML
+* $Participants-DEV#XXA
+* $Participants-DEV#XXB
+* $Participants-DEV#XXC
+* $Participants-DEV#XXD
+* $Participants-DEV#XXE
+* $Participants-DEV#XXF
+* $Participants-DEV#XXG
+* $Participants-DEV#XXH
+* $Participants-DEV#XXI
+* $Participants-DEV#XXJ
+* $Participants-DEV#XXK
+* $Participants-DEV#XXO
+* $Participants-DEV#XXP
+* $Participants-DEV#XXU
+* $Participants-DEV#XXV
+* $Participants-DEV#XXX
+* $Participants-DEV#XYK
 
