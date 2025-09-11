@@ -71,8 +71,8 @@ def load_refmart_from_file():
     return {'value': countries}
 
 
-def find_pem_file_in_directory(repo, path, depth=0, max_depth=3):
-    """Recursively search for TLS.pem or CA.pem files in a directory"""
+def find_pem_file_in_directory(repo, path, depth=0, max_depth=4):
+    """Recursively search for CA.pem, TLS.pem or other .pem files in a directory"""
     print(f"[SEARCH] Searching in directory: {path} (depth {depth})")
     
     if depth > max_depth:
@@ -98,7 +98,8 @@ def find_pem_file_in_directory(repo, path, depth=0, max_depth=3):
             if item['type'] == 'file':
                 files.append(item['name'])
                 # Check if this is a PEM file we're looking for
-                if item['name'] in ['TLS.pem', 'CA.pem'] or item['name'].endswith('.pem'):
+                # Look for files named CA.pem, TLS.pem, or any .pem file
+                if item['name'] in ['CA.pem', 'TLS.pem'] or item['name'].endswith('.pem'):
                     print(f"[SEARCH] ✓ Found PEM file: {item['path']}")
                     return item
             else:
@@ -122,14 +123,14 @@ def find_pem_file_in_directory(repo, path, depth=0, max_depth=3):
 
 
 def fetch_participant_locality_from_github(repo, participant_code):
-    """Fetch participant locality name from TLS/CA.pem file in GitHub repository"""
+    """Fetch participant locality name from CA.pem, TLS.pem or other .pem file in GitHub repository"""
     print(f"\n=== LOCALITY EXTRACTION LOG for {participant_code} ===")
     try:
-        # Recursively search for TLS.pem or CA.pem files in participant directory
+        # Recursively search for CA.pem, TLS.pem or other .pem files in participant directory
         pem_file = find_pem_file_in_directory(repo, participant_code)
         
         if not pem_file:
-            print(f"[STEP 2] ERROR: No TLS.pem or CA.pem file found for participant {participant_code}")
+            print(f"[STEP 2] ERROR: No CA.pem, TLS.pem or other .pem file found for participant {participant_code}")
             return None
         
         print(f"[STEP 2] SUCCESS: Using PEM file: {pem_file['path']}")
