@@ -436,11 +436,10 @@ def main():
         except:
             print("Warning: Could not load from remote, using local file")
             refmart_country_list = load_refmart_from_file()
-    elif environment == "UAT":
-        # For UAT, load PROD's RefMart to exclude those participants
+    elif environment in ["UAT", "DEV"]:
+        # For UAT and DEV, load PROD's RefMart to check against existing participants
         refmart_country_list = load_refmart_from_file()
-    else:  # DEV
-        # For DEV, don't load RefMart at all since we include ALL participants from DEV repo
+    else:
         refmart_country_list = None
     
     # Get participants based on source
@@ -570,7 +569,7 @@ def extract_countries_from_api_with_localities(data, config, participants_filena
     env_name = config["env_name"]
     description_suffix = config["description_suffix"]
     
-    # For DEV and UAT, generate Participants CodeSystem
+    # For DEV and UAT, generate Participants CodeSystem for codes NOT in RefMart
     codes = f"CodeSystem: Participants{suffix}\n"
     codes += f'Title: "WHO GDHCN Trust Network Participant{env_name}"\n'
     codes += f'Description: "CodeSystem for GDHCN Trust Network Participants {description_suffix}"\n'
@@ -579,66 +578,59 @@ def extract_countries_from_api_with_localities(data, config, participants_filena
     codes += f'* ^url = "http://smart.who.int/trust/CodeSystems/Participants{suffix}"\n'
     
     processed_count = 0
+    refmart_participants = []  # Track participants found in RefMart
     
-    if environment == "DEV":
-        print(f"[DEV PROCESSING] Including all participants from DEV repo")
-        # For DEV: Include all participants from the DEV repo
-        for participant_code, locality_name in participants_with_localities.items():
-            # Create a mock country object for DEV participants using locality name
-            mock_country = {
-                'CODE_ISO_3': participant_code,
-                'NAME_SHORT_EN': locality_name
-            }
-            print(f"[DEV] Processing participant: {participant_code} -> '{locality_name}'")
-            codes += "* #" + participant_code + ' "' + escape(locality_name) + '"\n'
-            instances += generate_participant_instance(mock_country, config)
-            endpoints += generate_participant_endpoints(mock_country, config)
-            valueset_entries += f"* $Participants{suffix}#{participant_code}\n"
-            processed_count += 1
-    
-    elif environment == "UAT":
-        print(f"[UAT PROCESSING] Including only participants NOT in RefMart")
-        # For UAT: Only include participants that are NOT in RefMart
+    if environment in ["DEV", "UAT"]:
+        print(f"[{environment} PROCESSING] NEW LOGIC: Using RefMart for existing codes, adding only new codes to Participants{suffix}")
+        
+        # Get RefMart codes if available
+        refmart_codes = set()
+        refmart_country_dict = {}
         if data and 'value' in data:
             refmart_codes = {country['CODE_ISO_3'] for country in data['value']}
-            print(f"[UAT] RefMart contains {len(refmart_codes)} country codes")
-            print(f"[UAT] RefMart codes: {sorted(refmart_codes)}")
-            
-            for participant_code, locality_name in participants_with_localities.items():
-                if participant_code not in refmart_codes:
-                    # Create a mock country object for UAT participants not in RefMart using locality name
-                    mock_country = {
-                        'CODE_ISO_3': participant_code,
-                        'NAME_SHORT_EN': locality_name
-                    }
-                    print(f"[UAT] ✓ Processing participant (not in RefMart): {participant_code} -> '{locality_name}'")
-                    codes += "* #" + participant_code + ' "' + escape(locality_name) + '"\n'
-                    instances += generate_participant_instance(mock_country, config)
-                    endpoints += generate_participant_endpoints(mock_country, config)
-                    valueset_entries += f"* $Participants{suffix}#{participant_code}\n"
-                    processed_count += 1
-                else:
-                    print(f"[UAT] ✗ Skipping participant {participant_code} (found in RefMart)")
+            refmart_country_dict = {country['CODE_ISO_3']: country for country in data['value']}
+            print(f"[{environment}] RefMart contains {len(refmart_codes)} country codes")
+            print(f"[{environment}] RefMart codes: {sorted(refmart_codes)}")
         else:
-            print(f"[UAT] WARNING: No RefMart data available, including all participants")
-            for participant_code, locality_name in participants_with_localities.items():
+            print(f"[{environment}] WARNING: No RefMart data available")
+        
+        # Process each participant
+        for participant_code, locality_name in participants_with_localities.items():
+            if participant_code in refmart_codes:
+                # Use RefMart data for this participant
+                refmart_country = refmart_country_dict[participant_code]
+                print(f"[{environment}] ✓ Using RefMart data for: {participant_code} -> '{refmart_country['NAME_SHORT_EN']}'")
+                instances += generate_participant_instance(refmart_country, config)
+                endpoints += generate_participant_endpoints(refmart_country, config)
+                valueset_entries += f"* $RefMartCountryList#{participant_code}\n"
+                refmart_participants.append(participant_code)
+            else:
+                # Add to environment-specific CodeSystem
                 mock_country = {
                     'CODE_ISO_3': participant_code,
                     'NAME_SHORT_EN': locality_name
                 }
-                print(f"[UAT] Processing participant: {participant_code} -> '{locality_name}'")
+                print(f"[{environment}] ✓ Adding to Participants{suffix}: {participant_code} -> '{locality_name}' (not in RefMart)")
                 codes += "* #" + participant_code + ' "' + escape(locality_name) + '"\n'
                 instances += generate_participant_instance(mock_country, config)
                 endpoints += generate_participant_endpoints(mock_country, config)
                 valueset_entries += f"* $Participants{suffix}#{participant_code}\n"
                 processed_count += 1
     
-    print(f"\n[SUMMARY] Processed {processed_count} participants for {environment} environment")
+    print(f"\n[{environment} SUMMARY]:")
+    print(f"  - Total participants processed: {len(participants_with_localities)}")
+    print(f"  - Participants from RefMart: {len(refmart_participants)} - {sorted(refmart_participants)}")
+    print(f"  - Participants added to Participants{suffix}: {processed_count}")
     
-    # Generate the CodeSystem file for DEV/UAT
+    # Generate the CodeSystem file for DEV/UAT (only if we have codes not in RefMart)
     codesystem_filename = f"input/fsh/codesystems/Participants{suffix}.fsh"
-    print(f"[OUTPUT] Writing CodeSystem to: {codesystem_filename}")
-    printout(codes, codesystem_filename)
+    if processed_count > 0:
+        print(f"[OUTPUT] Writing CodeSystem to: {codesystem_filename}")
+        printout(codes, codesystem_filename)
+    else:
+        print(f"[OUTPUT] No codes to add to Participants{suffix} CodeSystem - all participants found in RefMart")
+        # Still create the file but with no codes
+        printout(codes, codesystem_filename)
     
     print(f"[OUTPUT] Writing participants to: {participants_filename}")
     printout(instances, participants_filename)
@@ -646,9 +638,9 @@ def extract_countries_from_api_with_localities(data, config, participants_filena
     print(f"[OUTPUT] Writing endpoints to: {endpoints_filename}")
     printout(endpoints, endpoints_filename)
     
-    # Generate the valueset file
+    # Generate the valueset file with updated logic
     print(f"[OUTPUT] Writing valueset to: {participants_valueset}")
-    generate_valueset(config, participants_valueset, valueset_entries)
+    generate_valueset_new_logic(config, participants_valueset, valueset_entries, len(refmart_participants), processed_count)
     
     print(f"=== END PROCESSING PARTICIPANTS WITH LOCALITIES for {environment} ===\n")
 
@@ -854,8 +846,64 @@ def extract_countries(data, config, participants_filename, endpoints_filename, r
     generate_valueset(config, participants_valueset, valueset_entries)
 
 
+def generate_valueset_new_logic(config, participants_valueset, valueset_entries, refmart_count, env_specific_count):
+    """Generate the participants valueset file with new logic for DEV/UAT environments"""
+    suffix = config["suffix"]
+    env_name = config["env_name"]
+    description_suffix = config["description_suffix"]
+    environment = suffix[1:] if suffix else "PROD"  # Remove the "-" prefix
+    
+    if suffix == "":  # PROD
+        valueset_content = f"""ValueSet:     Participants
+Title:        "WHO GDHCN Trust Network Participant"
+Description:  "ValueSet of GDHCN Trust Network Participants {description_suffix}"
+
+* ^status = #active
+* ^experimental = true
+
+* include codes from system Participants
+
+
+// To generate this list of codes for PROD environment
+// execute the following on tng-participants-prod repo:
+//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*' -printf "* \\$RefMartCountryList#%P\\n"  | grep -v WHO
+//
+// in the future, will need to exclude more than just WHO as not being from the RefMart set.
+
+{valueset_entries}"""
+    else:
+        # For DEV and UAT with new logic
+        comment = f"""// New logic for {environment} environment:
+// 1. If participant exists in RefMart, use RefMart code
+// 2. If participant does NOT exist in RefMart, add to Participants{suffix} CodeSystem
+// 3. ValueSet includes codes from BOTH sources
+//
+// Current composition:
+//   - RefMart codes (participants found in RefMart): {refmart_count}
+//   - Participants{suffix} codes (participants NOT in RefMart): {env_specific_count}
+//
+// To regenerate, execute on tng-participants-{environment.lower()} repo:
+//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*' | grep -v WHO"""
+
+        valueset_content = f"""ValueSet:     Participants{suffix}
+Title:        "WHO GDHCN Trust Network Participant{env_name}"
+Description:  "ValueSet of GDHCN Trust Network Participants {description_suffix}"
+
+* ^status = #active
+* ^experimental = true
+
+* include codes from system RefMartCountryList
+* include codes from system Participants{suffix}
+
+{comment}
+
+{valueset_entries}"""
+    
+    printout(valueset_content, participants_valueset)
+
+
 def generate_valueset(config, participants_valueset, valueset_entries):
-    """Generate the participants valueset file"""
+    """Generate the participants valueset file (backward compatibility)"""
     suffix = config["suffix"]
     env_name = config["env_name"]
     description_suffix = config["description_suffix"]
