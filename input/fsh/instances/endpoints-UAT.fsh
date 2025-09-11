@@ -1190,9 +1190,9 @@ Usage: #definition
 
 Instance: GDHCNParticipantDID-TUR-UAT-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "T�rkiye Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/TUR/did.json"
+Description: "Türkiye Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/TUR/did.json"
 Usage: #definition
-* name = "T�rkiye Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/TUR/did.json"
+* name = "Türkiye Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/TUR/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TUR-UAT)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1203,7 +1203,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-TUR-UAT-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "T�rkiye Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/TUR/DSC/did.json"
+* name = "Türkiye Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/TUR/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TUR-UAT)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1214,7 +1214,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-TUR-UAT-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "T�rkiye Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/TUR/SCA/did.json"
+* name = "Türkiye Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:TUR:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/TUR/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TUR-UAT)
 * status = #active
 * connectionType = $ConnectionTypes#http-get

@@ -52,7 +52,7 @@ def load_refmart_from_file():
     """Load RefMart data from existing RefMartCountryList.fsh file"""
     countries = []
     try:
-        with open('input/fsh/codesystems/RefMartCountryList.fsh', 'r') as file:
+        with open('input/fsh/codesystems/RefMartCountryList.fsh', 'r', encoding='utf-8') as file:
             for line in file:
                 line = line.strip()
                 if line.startswith('* #'):
@@ -447,14 +447,22 @@ def main():
         extract_countries(refmart_country_list, config, participants_filename, endpoints_filename, refmart_filename, participants_valueset)
 
 def printout(content,filename):
-    file = open(filename,"w")
-    print(content, file=file)
-    file.close
+    """Write content to file with proper UTF-8 encoding"""
+    with open(filename, "w", encoding='utf-8') as file:
+        print(content, file=file)
 
 
 def load_remote_json(url):
-    response = urllib.request("GET",url)
-    return json.loads(response.data)
+    """Load JSON data from a URL with proper UTF-8 encoding handling"""
+    http = urllib.PoolManager()
+    response = http.request("GET", url)
+    
+    if response.status != 200:
+        raise Exception(f"HTTP {response.status}: Failed to fetch data from {url}")
+    
+    # Properly decode the response data as UTF-8 before parsing JSON
+    json_data = json.loads(response.data.decode('utf-8'))
+    return json_data
 
 
 # the WHO refmart Country List
