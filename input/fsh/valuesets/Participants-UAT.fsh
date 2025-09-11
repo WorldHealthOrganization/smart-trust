@@ -5,8 +5,10 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 * ^status = #active
 * ^experimental = true
 
-* include codes from system RefMartCountryList
+// Include ALL codes from Participants-UAT CodeSystem (new participants not in RefMart)
 * include codes from system Participants-UAT
+
+// Include ONLY specific RefMart codes for participants found in UAT repo
 
 // New logic for UAT environment:
 // 1. If participant exists in RefMart, use RefMart code
@@ -56,14 +58,4 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 * $RefMartCountryList#TGO
 * $RefMartCountryList#THA
 * $RefMartCountryList#TUR
-* $Participants-UAT#XXA
-* $Participants-UAT#XXB
-* $Participants-UAT#XXC
-* $Participants-UAT#XXD
-* $Participants-UAT#XXO
-* $Participants-UAT#XXS
-* $Participants-UAT#XXU
-* $Participants-UAT#XXV
-* $Participants-UAT#XXX
-* $Participants-UAT#XYK
 

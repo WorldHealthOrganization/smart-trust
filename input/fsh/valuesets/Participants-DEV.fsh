@@ -5,8 +5,10 @@ Description:  "ValueSet of GDHCN Trust Network Participants for Development envi
 * ^status = #active
 * ^experimental = true
 
-* include codes from system RefMartCountryList
+// Include ALL codes from Participants-DEV CodeSystem (new participants not in RefMart)
 * include codes from system Participants-DEV
+
+// Include ONLY specific RefMart codes for participants found in DEV repo
 
 // New logic for DEV environment:
 // 1. If participant exists in RefMart, use RefMart code
@@ -50,23 +52,4 @@ Description:  "ValueSet of GDHCN Trust Network Participants for Development envi
 * $RefMartCountryList#TGO
 * $RefMartCountryList#URY
 * $RefMartCountryList#USA
-* $Participants-DEV#XCL
-* $Participants-DEV#XML
-* $Participants-DEV#XXA
-* $Participants-DEV#XXB
-* $Participants-DEV#XXC
-* $Participants-DEV#XXD
-* $Participants-DEV#XXE
-* $Participants-DEV#XXF
-* $Participants-DEV#XXG
-* $Participants-DEV#XXH
-* $Participants-DEV#XXI
-* $Participants-DEV#XXJ
-* $Participants-DEV#XXK
-* $Participants-DEV#XXO
-* $Participants-DEV#XXP
-* $Participants-DEV#XXU
-* $Participants-DEV#XXV
-* $Participants-DEV#XXX
-* $Participants-DEV#XYK
 
