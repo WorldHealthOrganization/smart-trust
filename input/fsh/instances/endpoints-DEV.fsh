@@ -1020,9 +1020,9 @@ Usage: #definition
 
 Instance: GDHCNParticipantDID-WHO-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "World Health Organization Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/did.json"
+Description: "DEV Participant WHO Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/did.json"
 Usage: #definition
-* name = "World Health Organization Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/did.json"
+* name = "DEV Participant WHO Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-WHO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1033,7 +1033,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-WHO-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "World Health Organization Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/DSC/did.json"
+* name = "DEV Participant WHO Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-WHO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1044,7 +1044,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-WHO-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "World Health Organization Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/SCA/did.json"
+* name = "DEV Participant WHO Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-WHO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get

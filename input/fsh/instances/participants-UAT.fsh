@@ -361,7 +361,7 @@ Usage: #definition
 Instance: GDHCNParticipant-WHO-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "World Health Organization"
+* name = "UAT Participant WHO"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-WHO-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-WHO-UAT-DSC)
