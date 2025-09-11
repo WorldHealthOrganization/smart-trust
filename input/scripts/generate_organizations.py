@@ -71,54 +71,68 @@ def load_refmart_from_file():
     return {'value': countries}
 
 
+def find_pem_file_in_directory(repo, path, depth=0, max_depth=3):
+    """Recursively search for TLS.pem or CA.pem files in a directory"""
+    print(f"[SEARCH] Searching in directory: {path} (depth {depth})")
+    
+    if depth > max_depth:
+        print(f"[SEARCH] Max depth reached, stopping search")
+        return None
+    
+    try:
+        url = f"https://api.github.com/repos/WorldHealthOrganization/{repo}/contents/{path}"
+        print(f"[SEARCH] Fetching contents from: {url}")
+        
+        response = requests.get(url)
+        if response.status_code != 200:
+            print(f"[SEARCH] ERROR: Failed to fetch directory contents. Status: {response.status_code}")
+            return None
+            
+        contents = response.json()
+        print(f"[SEARCH] Found {len(contents)} items in {path}")
+        
+        # Log all files and directories found
+        files = []
+        directories = []
+        for item in contents:
+            if item['type'] == 'file':
+                files.append(item['name'])
+                # Check if this is a PEM file we're looking for
+                if item['name'] in ['TLS.pem', 'CA.pem'] or item['name'].endswith('.pem'):
+                    print(f"[SEARCH] ✓ Found PEM file: {item['path']}")
+                    return item
+            else:
+                directories.append(item['name'])
+        
+        print(f"[SEARCH] Files in {path}: {files}")
+        print(f"[SEARCH] Directories in {path}: {directories}")
+        
+        # If no PEM file found at this level, search subdirectories
+        for item in contents:
+            if item['type'] == 'dir':
+                pem_file = find_pem_file_in_directory(repo, item['path'], depth + 1, max_depth)
+                if pem_file:
+                    return pem_file
+        
+        return None
+        
+    except Exception as e:
+        print(f"[SEARCH] ERROR: Exception while searching {path}: {e}")
+        return None
+
+
 def fetch_participant_locality_from_github(repo, participant_code):
     """Fetch participant locality name from TLS/CA.pem file in GitHub repository"""
     print(f"\n=== LOCALITY EXTRACTION LOG for {participant_code} ===")
     try:
-        # First, get the contents of the participant directory
-        url = f"https://api.github.com/repos/WorldHealthOrganization/{repo}/contents/{participant_code}"
-        print(f"[STEP 1] Fetching participant directory contents from: {url}")
-        
-        response = requests.get(url)
-        print(f"[STEP 1] HTTP Response Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            print(f"[STEP 1] ERROR: Failed to fetch directory contents. Status: {response.status_code}, Response: {response.text[:200]}")
-            return None
-            
-        response.raise_for_status()
-        
-        contents = response.json()
-        print(f"[STEP 1] SUCCESS: Found {len(contents)} items in {participant_code} directory")
-        
-        # Log all files found in the directory
-        file_list = []
-        dir_list = []
-        for item in contents:
-            if item['type'] == 'file':
-                file_list.append(item['name'])
-            else:
-                dir_list.append(item['name'])
-        print(f"[STEP 1] Files found: {file_list}")
-        print(f"[STEP 1] Directories found: {dir_list}")
-        
-        # Look for TLS/CA.pem file
-        pem_file = None
-        pem_files_found = []
-        for item in contents:
-            if item['type'] == 'file' and item['name'] in ['TLS.pem', 'CA.pem']:
-                pem_files_found.append(item['name'])
-                if not pem_file:  # Use the first one found
-                    pem_file = item
-        
-        print(f"[STEP 2] PEM files found: {pem_files_found}")
+        # Recursively search for TLS.pem or CA.pem files in participant directory
+        pem_file = find_pem_file_in_directory(repo, participant_code)
         
         if not pem_file:
             print(f"[STEP 2] ERROR: No TLS.pem or CA.pem file found for participant {participant_code}")
-            print(f"[STEP 2] Available files were: {file_list}")
             return None
         
-        print(f"[STEP 2] SUCCESS: Using PEM file: {pem_file['name']}")
+        print(f"[STEP 2] SUCCESS: Using PEM file: {pem_file['path']}")
         
         # Fetch the PEM file content
         pem_url = pem_file['download_url']
