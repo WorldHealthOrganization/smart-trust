@@ -331,7 +331,7 @@ Usage: #definition
 Instance: GDHCNParticipant-TUR
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Türkiye"
+* name = "Tï¿½rkiye"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-TUR-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-TUR-DSC)

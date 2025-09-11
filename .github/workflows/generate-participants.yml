@@ -1,0 +1,115 @@
+name: Generate Participants
+
+on:
+  # Allows manual triggering
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to generate (PROD, UAT, DEV)'
+        required: true
+        default: 'PROD'
+        type: choice
+        options:
+        - PROD
+        - UAT
+        - DEV
+  
+  # Webhook trigger from participant repositories
+  repository_dispatch:
+    types: [participant-update]
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        pip install pandas urllib3 requests cryptography
+        
+    - name: Validate webhook source
+      if: github.event_name == 'repository_dispatch'
+      id: validate
+      run: |
+        # Security: Validate webhook source repository
+        SOURCE_REPO="${{ github.event.client_payload.source_repository }}"
+        
+        # List of allowed repositories
+        ALLOWED_REPOS=(
+          "WorldHealthOrganization/tng-participants-prod"
+          "WorldHealthOrganization/tng-participants-uat" 
+          "WorldHealthOrganization/tng-participants-dev"
+        )
+        
+        # Check if source repository is in allowed list
+        REPO_ALLOWED=false
+        for allowed_repo in "${ALLOWED_REPOS[@]}"; do
+          if [ "$SOURCE_REPO" = "$allowed_repo" ]; then
+            REPO_ALLOWED=true
+            break
+          fi
+        done
+        
+        if [ "$REPO_ALLOWED" = "false" ]; then
+          echo "ERROR: Webhook rejected - repository '$SOURCE_REPO' is not in allowed list"
+          echo "Allowed repositories: ${ALLOWED_REPOS[*]}"
+          exit 1
+        fi
+        
+        # Validate organization
+        ORG=$(echo "$SOURCE_REPO" | cut -d'/' -f1)
+        if [ "$ORG" != "WorldHealthOrganization" ]; then
+          echo "ERROR: Webhook rejected - organization '$ORG' is not 'WorldHealthOrganization'"
+          exit 1
+        fi
+        
+        echo "Webhook source validated: $SOURCE_REPO"
+        echo "source_repo=$SOURCE_REPO" >> $GITHUB_OUTPUT
+        
+    - name: Determine environment
+      id: env
+      run: |
+        if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+          # Extract environment from repository name (part after last dash)
+          SOURCE_REPO="${{ steps.validate.outputs.source_repo }}"
+          ENV_SUFFIX=$(echo "$SOURCE_REPO" | sed 's/.*-//')
+          ENV=$(echo "$ENV_SUFFIX" | tr '[:lower:]' '[:upper:]')
+        else
+          # Use manual input
+          ENV="${{ github.event.inputs.environment }}"
+        fi
+        echo "environment=$ENV" >> $GITHUB_OUTPUT
+        echo "Using environment: $ENV"
+        
+    - name: Generate organization files
+      run: |
+        python3 input/scripts/generate_organizations.py --env ${{ steps.env.outputs.environment }} --source github-api
+        
+    - name: Check for changes
+      id: changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "changes=true" >> $GITHUB_OUTPUT
+          echo "Changes detected"
+        else
+          echo "changes=false" >> $GITHUB_OUTPUT
+          echo "No changes detected"
+        fi
+        
+    - name: Commit and push changes
+      if: steps.changes.outputs.changes == 'true'
+      run: |
+        git add input/fsh/instances/ input/fsh/codesystems/ input/fsh/valuesets/
+        git commit -m "Auto-update ${{ steps.env.outputs.environment }} participants from repository changes"
+        git push

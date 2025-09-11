@@ -1,0 +1,100 @@
+name: Generate Participants - Nightly
+
+on:
+  # Run nightly at 2 AM UTC
+  schedule:
+    - cron: '0 2 * * *'
+  
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      environments:
+        description: 'Environments to generate (comma-separated: PROD,UAT,DEV or "all")'
+        required: false
+        default: 'all'
+        type: string
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        pip install pandas urllib3 requests cryptography
+        
+    - name: Configure Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+    - name: Determine environments
+      id: environments
+      run: |
+        INPUT="${{ github.event.inputs.environments }}"
+        if [ -z "$INPUT" ] || [ "$INPUT" = "all" ]; then
+          echo "envs=PROD,UAT,DEV" >> $GITHUB_OUTPUT
+        else
+          echo "envs=$INPUT" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Generate participants for all environments
+      run: |
+        ENVIRONMENTS="${{ steps.environments.outputs.envs }}"
+        IFS=',' read -ra ENV_ARRAY <<< "$ENVIRONMENTS"
+        
+        OVERALL_CHANGES=false
+        
+        for ENV in "${ENV_ARRAY[@]}"; do
+          ENV=$(echo "$ENV" | tr '[:lower:]' '[:upper:]' | xargs) # Trim whitespace and uppercase
+          echo "Processing environment: $ENV"
+          
+          # Store git status before generation
+          BEFORE_HASH=$(git rev-parse HEAD)
+          
+          # Generate for this environment
+          python3 input/scripts/generate_organizations.py --env "$ENV" --source github-api
+          
+          # Check if there are any changes for this environment
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Changes detected for $ENV environment"
+            
+            # Stage the changes
+            git add input/fsh/instances/ input/fsh/codesystems/RefMartCountryList*.fsh input/fsh/valuesets/Participants*.fsh
+            
+            # Check if there are staged changes (substantive changes, not just whitespace)
+            if [ -n "$(git diff --cached --name-only)" ]; then
+              # Commit the changes for this environment
+              git commit -m "Auto-update $ENV participants from nightly generation ($(date -u +%Y-%m-%d))"
+              OVERALL_CHANGES=true
+              echo "Committed changes for $ENV environment"
+            else
+              echo "No substantive changes for $ENV environment after staging"
+              git reset --hard HEAD  # Reset any unstaged changes
+            fi
+          else
+            echo "No changes detected for $ENV environment"
+          fi
+        done
+        
+        # Push all commits if any changes were made
+        if [ "$OVERALL_CHANGES" = "true" ]; then
+          git push
+          echo "Pushed all environment updates"
+        else
+          echo "No changes to push"
+        fi
+        
+    - name: Summary
+      run: |
+        echo "Nightly participant generation completed"
+        echo "Processed environments: ${{ steps.environments.outputs.envs }}"
+        git log --oneline -5

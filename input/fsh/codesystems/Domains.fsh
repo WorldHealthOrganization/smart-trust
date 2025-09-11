@@ -1,6 +1,6 @@
 CodeSystem: Domains
 Title: "WHO GDHCN Trust Domains"
-Description: "CodeSystem for define WHO GDHCN Trust Domains."
+Description: "CodeSystem for define WHO GDHCN Trust Domains for Production environment."
 * ^experimental = false
 * ^caseSensitive = true
 

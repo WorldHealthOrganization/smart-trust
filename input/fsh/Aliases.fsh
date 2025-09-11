@@ -4,6 +4,8 @@ Alias: $SGTransactionDef = http://smart.who.int/base/StructureDefinition/SGTrans
 
 
 Alias: $Participants = http://smart.who.int/trust/CodeSystem/Participants
+Alias: $Participants-DEV = http://smart.who.int/trust/CodeSystems/Participants-DEV
+Alias: $Participants-UAT = http://smart.who.int/trust/CodeSystems/Participants-UAT
 Alias: $ConnectionTypes = http://smart.who.int/trust/CodeSystem/ConnectionTypes
 Alias: $PayloadTypes = http://smart.who.int/trust/CodeSystem/PayloadTypes
 
@@ -32,4 +34,4 @@ Alias: $DDCCVS = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetVS
 Alias: $DDCCTR = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetTR
 Alias: $DVC = http://smart.who.int/trust-phw/StructureDefinition/DVC
 
-Alias: $RefMartCountryList = http://smart.who.int/refmart/CodeSystem/REF_COUNTRY
+Alias: $RefMartCountryList = http://smart.who.int/refmart/CodeSystems/REF_COUNTRY

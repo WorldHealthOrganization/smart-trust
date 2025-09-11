@@ -1,0 +1,27 @@
+CodeSystem: Participants-DEV
+Title: "WHO GDHCN Trust Network Participant - DEV"
+Description: "CodeSystem for GDHCN Trust Network Participants for Development environment"
+* ^experimental = true
+* ^caseSensitive = false
+* ^url = "http://smart.who.int/trust/CodeSystems/Participants-DEV"
+* #WHO "DEV Participant WHO"
+* #XCL "DEV Participant XCL"
+* #XML "DEV Participant XML"
+* #XXA "DEV Participant XXA"
+* #XXB "DEV Participant XXB"
+* #XXC "DEV Participant XXC"
+* #XXD "DEV Participant XXD"
+* #XXE "DEV Participant XXE"
+* #XXF "DEV Participant XXF"
+* #XXG "DEV Participant XXG"
+* #XXH "DEV Participant XXH"
+* #XXI "DEV Participant XXI"
+* #XXJ "DEV Participant XXJ"
+* #XXK "DEV Participant XXK"
+* #XXO "DEV Participant XXO"
+* #XXP "DEV Participant XXP"
+* #XXU "DEV Participant XXU"
+* #XXV "DEV Participant XXV"
+* #XXX "DEV Participant XXX"
+* #XYK "DEV Participant XYK"
+

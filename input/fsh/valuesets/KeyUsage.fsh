@@ -1,6 +1,6 @@
 ValueSet:     KeyUsage
 Title:        "WHO GDHCN  Key Usage ValueSet"
-Description:  "ValueSet of codes for key usage codes"
+Description:  "ValueSet of codes for key usage codes for Production environment"
 
 * ^status = #active
 * ^experimental = true
