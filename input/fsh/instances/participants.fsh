@@ -338,14 +338,4 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-TUR-SCA)
 
 
-Instance: GDHCNParticipant-UKR
-InstanceOf: IHE.mCSD.Organization
-Usage: #definition
-* name = "Ukraine"
-* type = $orgType#govt
-* endpoint[+] = Reference(GDHCNParticipantDID-UKR-All)
-* endpoint[+] = Reference(GDHCNParticipantDID-UKR-DSC)
-* endpoint[+] = Reference(GDHCNParticipantDID-UKR-SCA)
-
-
 

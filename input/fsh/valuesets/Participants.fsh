@@ -48,5 +48,4 @@ Description:  "ValueSet of GDHCN Trust Network Participants for Production envir
 * $RefMartCountryList#THA
 * $RefMartCountryList#TGO
 * $RefMartCountryList#TUR
-* $RefMartCountryList#UKR
 

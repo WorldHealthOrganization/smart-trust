@@ -112,7 +112,7 @@ Description: "CodeSystem for WHO Refmart Country and Jurisidiction List availabl
 * #IRL "Ireland"
 * #ISR "Israel"
 * #ITA "Italy"
-* #CIV "Côte d'Ivoire"
+* #CIV "Côte d’Ivoire"
 * #JAM "Jamaica"
 * #JPN "Japan"
 * #KAZ "Kazakhstan"

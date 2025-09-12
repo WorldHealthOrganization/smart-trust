@@ -1154,38 +1154,4 @@ Usage: #definition
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
 * address = "did:web:tng-cdn.who.int:v2:trustlist:-:TUR:SCA"
 
-Instance: GDHCNParticipantDID-UKR-All
-InstanceOf: IHE.mCSD.Endpoint
-Description: "Ukraine Trustlist (DID v2) - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:UKR\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/UKR/did.json"
-Usage: #definition
-* name = "Ukraine Trustlist (DID v2) - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:UKR\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/UKR/did.json"
-* managingOrganization = Reference(Organization/GDHCNParticipant-UKR)
-* status = #active
-* connectionType = $ConnectionTypes#http-get
-* payloadMimeType = #application/did
-* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:UKR"
-
-Instance: GDHCNParticipantDID-UKR-DSC
-InstanceOf: IHE.mCSD.Endpoint
-Usage: #definition
-* name = "Ukraine Trustlist (DID v2) - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:UKR:DSC\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/UKR/DSC/did.json"
-* managingOrganization = Reference(Organization/GDHCNParticipant-UKR)
-* status = #active
-* connectionType = $ConnectionTypes#http-get
-* payloadMimeType = #application/did
-* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:UKR:DSC"
-
-Instance: GDHCNParticipantDID-UKR-SCA
-InstanceOf: IHE.mCSD.Endpoint
-Usage: #definition
-* name = "Ukraine Trustlist (DID v2) - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:UKR:SCA\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/UKR/SCA/did.json"
-* managingOrganization = Reference(Organization/GDHCNParticipant-UKR)
-* status = #active
-* connectionType = $ConnectionTypes#http-get
-* payloadMimeType = #application/did
-* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:UKR:SCA"
-
 
