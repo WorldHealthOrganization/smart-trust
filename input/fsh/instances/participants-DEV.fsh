@@ -1,7 +1,7 @@
 Instance: GDHCNParticipant-AND-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Andorra"
+* name = "DEV Participant AND"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-AND-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-AND-DEV-DSC)
@@ -11,7 +11,7 @@ Usage: #definition
 Instance: GDHCNParticipant-ARG-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Argentina"
+* name = "DEV Participant ARG"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-ARG-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-ARG-DEV-DSC)
@@ -21,7 +21,7 @@ Usage: #definition
 Instance: GDHCNParticipant-ARM-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Armenia"
+* name = "DEV Participant ARM"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-ARM-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-ARM-DEV-DSC)
@@ -31,7 +31,7 @@ Usage: #definition
 Instance: GDHCNParticipant-BHS-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Bahamas"
+* name = "DEV Participant BHS"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-BHS-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-BHS-DEV-DSC)
@@ -41,7 +41,7 @@ Usage: #definition
 Instance: GDHCNParticipant-BLZ-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Belize"
+* name = "DEV Participant BLZ"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-BLZ-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-BLZ-DEV-DSC)
@@ -51,7 +51,7 @@ Usage: #definition
 Instance: GDHCNParticipant-BRA-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Brazil"
+* name = "DEV Participant BRA"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-BRA-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-BRA-DEV-DSC)
@@ -61,7 +61,7 @@ Usage: #definition
 Instance: GDHCNParticipant-BRB-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Barbados"
+* name = "DEV Participant BRB"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-BRB-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-BRB-DEV-DSC)
@@ -71,7 +71,7 @@ Usage: #definition
 Instance: GDHCNParticipant-CHL-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Chile"
+* name = "DEV Participant CHL"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-CHL-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-CHL-DEV-DSC)
@@ -81,7 +81,7 @@ Usage: #definition
 Instance: GDHCNParticipant-COL-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Colombia"
+* name = "DEV Participant COL"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-COL-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-COL-DEV-DSC)
@@ -91,7 +91,7 @@ Usage: #definition
 Instance: GDHCNParticipant-CRI-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Costa Rica"
+* name = "DEV Participant CRI"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-CRI-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-CRI-DEV-DSC)
@@ -101,7 +101,7 @@ Usage: #definition
 Instance: GDHCNParticipant-CYP-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Cyprus"
+* name = "DEV Participant CYP"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-CYP-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-CYP-DEV-DSC)
@@ -111,7 +111,7 @@ Usage: #definition
 Instance: GDHCNParticipant-DOM-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Dominican Republic"
+* name = "DEV Participant DOM"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-DOM-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-DOM-DEV-DSC)
@@ -121,7 +121,7 @@ Usage: #definition
 Instance: GDHCNParticipant-ECU-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Ecuador"
+* name = "DEV Participant ECU"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-ECU-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-ECU-DEV-DSC)
@@ -131,7 +131,7 @@ Usage: #definition
 Instance: GDHCNParticipant-EST-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Estonia"
+* name = "DEV Participant EST"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-EST-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-EST-DEV-DSC)
@@ -141,7 +141,7 @@ Usage: #definition
 Instance: GDHCNParticipant-GTM-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Guatemala"
+* name = "DEV Participant GTM"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-GTM-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-GTM-DEV-DSC)
@@ -151,7 +151,7 @@ Usage: #definition
 Instance: GDHCNParticipant-HND-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Honduras"
+* name = "DEV Participant HND"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-HND-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-HND-DEV-DSC)
@@ -161,7 +161,7 @@ Usage: #definition
 Instance: GDHCNParticipant-IDN-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Indonesia"
+* name = "DEV Participant IDN"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-IDN-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-IDN-DEV-DSC)
@@ -171,7 +171,7 @@ Usage: #definition
 Instance: GDHCNParticipant-LVA-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Latvia"
+* name = "DEV Participant LVA"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-LVA-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-LVA-DEV-DSC)
@@ -181,7 +181,7 @@ Usage: #definition
 Instance: GDHCNParticipant-OMN-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Oman"
+* name = "DEV Participant OMN"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-OMN-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-OMN-DEV-DSC)
@@ -191,7 +191,7 @@ Usage: #definition
 Instance: GDHCNParticipant-PAN-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Panama"
+* name = "DEV Participant PAN"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-PAN-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-PAN-DEV-DSC)
@@ -201,7 +201,7 @@ Usage: #definition
 Instance: GDHCNParticipant-PER-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Peru"
+* name = "DEV Participant PER"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-PER-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-PER-DEV-DSC)
@@ -211,7 +211,7 @@ Usage: #definition
 Instance: GDHCNParticipant-PRY-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Paraguay"
+* name = "DEV Participant PRY"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-PRY-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-PRY-DEV-DSC)
@@ -221,7 +221,7 @@ Usage: #definition
 Instance: GDHCNParticipant-SGP-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Singapore"
+* name = "DEV Participant SGP"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-SGP-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-SGP-DEV-DSC)
@@ -231,7 +231,7 @@ Usage: #definition
 Instance: GDHCNParticipant-SLV-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "El Salvador"
+* name = "DEV Participant SLV"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-SLV-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-SLV-DEV-DSC)
@@ -241,7 +241,7 @@ Usage: #definition
 Instance: GDHCNParticipant-SMR-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "San Marino"
+* name = "DEV Participant SMR"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-SMR-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-SMR-DEV-DSC)
@@ -251,7 +251,7 @@ Usage: #definition
 Instance: GDHCNParticipant-SUR-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Suriname"
+* name = "DEV Participant SUR"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-SUR-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-SUR-DEV-DSC)
@@ -261,7 +261,7 @@ Usage: #definition
 Instance: GDHCNParticipant-SVN-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Slovenia"
+* name = "DEV Participant SVN"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-SVN-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-SVN-DEV-DSC)
@@ -271,7 +271,7 @@ Usage: #definition
 Instance: GDHCNParticipant-TGO-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Togo"
+* name = "DEV Participant TGO"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-TGO-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-TGO-DEV-DSC)
@@ -281,7 +281,7 @@ Usage: #definition
 Instance: GDHCNParticipant-URY-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Uruguay"
+* name = "DEV Participant URY"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-URY-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-URY-DEV-DSC)
@@ -291,7 +291,7 @@ Usage: #definition
 Instance: GDHCNParticipant-USA-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "United States of America"
+* name = "DEV Participant USA"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-USA-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-USA-DEV-DSC)
