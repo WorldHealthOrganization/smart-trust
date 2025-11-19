@@ -599,7 +599,8 @@ Signing tags and commits is great, but if you decide to use this in your normal 
     - The GPG key ( Beginning with -----BEGIN PGP PUBLIC KEY BLOCK----- and ending with -----END PGP PUBLIC KEY BLOCK-----) exported in Step [1.8.6.4](#generate-gpg-key)
   
 #### Validate the connection
-- Once the confirmation of successful onboarding is received from the TNG Support Team ( gdhcn-support@who.int), please do the following 
+- Once the confirmation of successful onboarding is received from the TNG Support Team ( gdhcn-support@who.int), please do the following.
+  
 
 
 
@@ -614,6 +615,8 @@ THe following are the endpoints for the [Trust Network Gateway](concepts.html#tr
 **Please ensure you replace with your actual environment's endpoint URL wherever indicated.**
 
 - After onboarding in the DEV/UAT/PROD Environment, check the connectivity with the Trust Network Gateway using its [API](https://smart.who.int/trust/openapi/). This can be achieved with following command:
+ 
+**Note**: The below CURL commands provided are compatible only with Linux/Unix OS Platform, not on Windows.
 
 ```
 curl -v <<EndpointURL>>/trustList --cert TLS.pem --key TLS.key
