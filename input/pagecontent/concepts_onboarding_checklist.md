@@ -600,7 +600,6 @@ Signing tags and commits is great, but if you decide to use this in your normal 
   
 #### Validate the connection
 - Once the confirmation of successful onboarding is received from the TNG Support Team ( gdhcn-support@who.int), please do the following.
-  
 
 
 
