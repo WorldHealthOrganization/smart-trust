@@ -614,7 +614,7 @@ THe following are the endpoints for the [Trust Network Gateway](concepts.html#tr
 **Please ensure you replace with your actual environment's endpoint URL wherever indicated.**
 
 - After onboarding in the DEV/UAT/PROD Environment, check the connectivity with the Trust Network Gateway using its [API](https://smart.who.int/trust/openapi/). This can be achieved with following command:
- 
+  
 **Note**: The below CURL commands provided are compatible only with Linux/Unix OS Platform, not on Windows.
 
 ```
