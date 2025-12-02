@@ -611,12 +611,22 @@ THe following are the endpoints for the [Trust Network Gateway](concepts.html#tr
 | UAT |	 https://tng-uat.who.int |
 | DEV |	 https://tng-dev.who.int |
 
+
+
 **Please ensure you replace with your actual environment's endpoint URL wherever indicated.**
+
+**Windows Users – cURL Certificate Validation Note:**
+
+Windows ships with cURL that uses Schannel, which does not support PKI/KEY certificates. To avoid validation errors, use a cURL build with OpenSSL.
+Users should check their current version with curl --version and download an OpenSSL-based build if necessary.
+[DownloadLink](https://curl.se/windows/dl-8.17.0_3/curl-8.17.0_3-win64-mingw.zip)
+After extracting, go to the **bin** folder and verify with ./curl.exe --version (it should show LibreSSL or OpenSSL).
+
+**Windows User Only:** Run all below validation commands using ./curl.exe ... to ensure the correct SSL backend is used.
+
 
 - After onboarding in the DEV/UAT/PROD Environment, check the connectivity with the Trust Network Gateway using its [API](https://smart.who.int/trust/openapi/). This can be achieved with following command:
   
-**Note**: The below CURL commands provided are compatible only with Linux/Unix OS Platform, not on Windows.
-
 ```
 curl -v <<EndpointURL>>/trustList --cert TLS.pem --key TLS.key
 ```
