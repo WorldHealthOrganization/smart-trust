@@ -7,48 +7,41 @@ Description:  "ValueSet of GDHCN Trust Network Participants for Development envi
 
 * include codes from system Participants-DEV
 
-// New logic for DEV environment:
-// 1. If participant exists in RefMart, use RefMart code
-// 2. If participant does NOT exist in RefMart, add to Participants-DEV CodeSystem
-// 3. ValueSet includes codes from BOTH sources
-//
-// Current composition:
-//   - RefMart codes (participants found in RefMart): 30
-//   - Participants-DEV codes (participants NOT in RefMart): 20
-//
-// To regenerate, execute on tng-participants-dev repo:
-//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*'
 
-* $RefMartCountryList#AND
-* $RefMartCountryList#ARG
-* $RefMartCountryList#ARM
-* $RefMartCountryList#BHS
-* $RefMartCountryList#BLZ
-* $RefMartCountryList#BRA
-* $RefMartCountryList#BRB
-* $RefMartCountryList#CHL
-* $RefMartCountryList#COL
-* $RefMartCountryList#CRI
-* $RefMartCountryList#CYP
-* $RefMartCountryList#DOM
-* $RefMartCountryList#ECU
-* $RefMartCountryList#EST
-* $RefMartCountryList#GTM
-* $RefMartCountryList#HND
-* $RefMartCountryList#IDN
-* $RefMartCountryList#LVA
-* $RefMartCountryList#OMN
-* $RefMartCountryList#PAN
-* $RefMartCountryList#PER
-* $RefMartCountryList#PRY
-* $RefMartCountryList#SGP
-* $RefMartCountryList#SLV
-* $RefMartCountryList#SMR
-* $RefMartCountryList#SUR
-* $RefMartCountryList#SVN
-* $RefMartCountryList#TGO
-* $RefMartCountryList#URY
-* $RefMartCountryList#USA
+// To generate this list of codes for DEV environment
+// execute the following on tng-participants-dev repo:
+//     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*' -printf "* \$Participants-DEV#%P\n"  | grep -v WHO
+
+* $Participants-DEV#AND
+* $Participants-DEV#ARG
+* $Participants-DEV#ARM
+* $Participants-DEV#BHS
+* $Participants-DEV#BLZ
+* $Participants-DEV#BRA
+* $Participants-DEV#BRB
+* $Participants-DEV#CHL
+* $Participants-DEV#COL
+* $Participants-DEV#CRI
+* $Participants-DEV#CYP
+* $Participants-DEV#DOM
+* $Participants-DEV#ECU
+* $Participants-DEV#EST
+* $Participants-DEV#GTM
+* $Participants-DEV#HND
+* $Participants-DEV#IDN
+* $Participants-DEV#LVA
+* $Participants-DEV#OMN
+* $Participants-DEV#PAN
+* $Participants-DEV#PER
+* $Participants-DEV#PRY
+* $Participants-DEV#SGP
+* $Participants-DEV#SLV
+* $Participants-DEV#SMR
+* $Participants-DEV#SUR
+* $Participants-DEV#SVN
+* $Participants-DEV#TGO
+* $Participants-DEV#URY
+* $Participants-DEV#USA
 * $Participants-DEV#WHO
 * $Participants-DEV#XCL
 * $Participants-DEV#XML
