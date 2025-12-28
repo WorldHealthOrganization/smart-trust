@@ -8,6 +8,16 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-AND-DEV-SCA)
 
 
+Instance: GDHCNParticipant-ARE-DEV
+InstanceOf: IHE.mCSD.Organization
+Usage: #definition
+* name = "United Arab Emirates"
+* type = $orgType#govt
+* endpoint[+] = Reference(GDHCNParticipantDID-ARE-DEV-All)
+* endpoint[+] = Reference(GDHCNParticipantDID-ARE-DEV-DSC)
+* endpoint[+] = Reference(GDHCNParticipantDID-ARE-DEV-SCA)
+
+
 Instance: GDHCNParticipant-ARG-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
@@ -168,6 +178,16 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-IDN-DEV-SCA)
 
 
+Instance: GDHCNParticipant-IOM-DEV
+InstanceOf: IHE.mCSD.Organization
+Usage: #definition
+* name = "DEV Participant IOM"
+* type = $orgType#govt
+* endpoint[+] = Reference(GDHCNParticipantDID-IOM-DEV-All)
+* endpoint[+] = Reference(GDHCNParticipantDID-IOM-DEV-DSC)
+* endpoint[+] = Reference(GDHCNParticipantDID-IOM-DEV-SCA)
+
+
 Instance: GDHCNParticipant-LVA-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
@@ -176,6 +196,16 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-LVA-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-LVA-DEV-DSC)
 * endpoint[+] = Reference(GDHCNParticipantDID-LVA-DEV-SCA)
+
+
+Instance: GDHCNParticipant-NIC-DEV
+InstanceOf: IHE.mCSD.Organization
+Usage: #definition
+* name = "Nicaragua"
+* type = $orgType#govt
+* endpoint[+] = Reference(GDHCNParticipantDID-NIC-DEV-All)
+* endpoint[+] = Reference(GDHCNParticipantDID-NIC-DEV-DSC)
+* endpoint[+] = Reference(GDHCNParticipantDID-NIC-DEV-SCA)
 
 
 Instance: GDHCNParticipant-OMN-DEV
@@ -436,6 +466,16 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-XXK-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXK-DEV-DSC)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXK-DEV-SCA)
+
+
+Instance: GDHCNParticipant-XXN-DEV
+InstanceOf: IHE.mCSD.Organization
+Usage: #definition
+* name = "DEV Participant XXN"
+* type = $orgType#govt
+* endpoint[+] = Reference(GDHCNParticipantDID-XXN-DEV-All)
+* endpoint[+] = Reference(GDHCNParticipantDID-XXN-DEV-DSC)
+* endpoint[+] = Reference(GDHCNParticipantDID-XXN-DEV-SCA)
 
 
 Instance: GDHCNParticipant-XXO-DEV
