@@ -22,6 +22,11 @@ Description:    "Logical Model for the HCERT"
 //* 2 0..* $RACSEL_DDVC "RACSEL Vaccination Certficate Data Set claim" "RACSEL Vaccination Certificate (PROPOSED)" 
 * 3 0..* $DDCCVS "Vaccination Core Data Set claim" "DDCC Vaccination claim (PROPOSED)"
 * 4 0..* $DDCCTR "Test Result Core Data Set claim" "DDCC Test Result claim (PROPOSED)"
+<<<<<<< Updated upstream
 * 5 0..* string "VHL" "URI of a Verifiable Health Link.  Of the form 'vhlink:/eyJ1cmwiOiJodHRwczovL2Vo....' "
 * -6 0..* $DVC "DVC" "Digital Vaccination Certificate (Proposed)"
+=======
+* 5 0..* string "URI" "URI of the Smart Health Link.  Of the form 'shlink:/eyJ1cmwiOiJodHRwczovL2Vo....' "
+* -6 0..* string "DVC" "Digital Vaccination Certificate (Proposed)"
+>>>>>>> Stashed changes
 

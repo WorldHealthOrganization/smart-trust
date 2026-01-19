@@ -1,6 +1,21 @@
 #!/bin/bash
 publisher_jar=publisher.jar
 input_cache_path=./input-cache/
+
+# Run pre-sushi scripts (before IG Publisher/sushi starts)
+pre_sushi_dir="./local-template/scripts/pre-sushi"
+if [ -d "$pre_sushi_dir" ]; then
+    echo "Running pre-sushi scripts..."
+    for script in $(ls -1 "$pre_sushi_dir"/*.py 2>/dev/null | sort); do
+        if [ -f "$script" ]; then
+            echo "  Running $script"
+            python "$script" "$(pwd)"
+        fi
+    done
+else
+    echo "No pre-sushi scripts directory found, skipping..."
+fi
+
 echo Checking internet connection...
 curl -sSf tx.fhir.org > /dev/null
 
@@ -19,7 +34,6 @@ export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS -Dfile.encoding=UTF-8"
 publisher=$input_cache_path/$publisher_jar
 if test -f "$publisher"; then
 	java -jar $publisher -ig . $txoption $*
-
 else
 	publisher=../$publisher_jar
 	if test -f "$publisher"; then

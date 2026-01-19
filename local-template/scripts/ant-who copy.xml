@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Custom ant-who.xml extensions for local-template.
+
+  This file imports the base ant.xml and adds extension targets.
+  Python scripts in the following folders will be executed in alphabetical order:
+    - pre-sushi/   : runs BEFORE sushi (via _genonce.sh/_genonce.bat)
+    - post-sushi/  : runs after sushi, during onLoad.extend
+    - post-generate/: runs after onGenerate.extend (after artifact generation)
+    - post-check/  : runs after onCheck.extend (after validation)
+
+  Each script receives appropriate arguments based on its needs.
+-->
+<project name="ProcessIg">
+
+  <!-- Import the base template's ant.xml -->
+  <import file="ant.xml"/>
+
+  <!-- Macrodef to run a Python script with standard args -->
+  <macrodef name="runPythonScript">
+    <attribute name="script"/>
+    <sequential>
+      <echo message="Running: @{script}"/>
+      <exec executable="python" failonerror="true">
+        <arg value="@{script}"/>
+        <arg value="${ig.root}"/>
+      </exec>
+    </sequential>
+  </macrodef>
+
+  <!-- Macrodef to run DAK processor with its specific args -->
+  <macrodef name="runDakProcessor">
+    <attribute name="script"/>
+    <sequential>
+      <echo message="Running DAK processor: @{script}"/>
+      <exec executable="python" failonerror="false">
+        <arg value="@{script}"/>
+        <arg value="--output-dir"/>
+        <arg value="${ig.root}/output"/>
+        <arg value="--source-dir"/>
+        <arg value="${ig.root}"/>
+      </exec>
+    </sequential>
+  </macrodef>
+
+  <!-- Post-Sushi: runs after FSH compilation, before IG Publisher processing -->
+  <target name="onLoad.runPostSushiScripts" extensionOf="onLoad.extend">
+    <echo level="error" message="*************************************************************"/>
+    <echo level="error" message="*** ANT-WHO.XML: onLoad.runPostSushiScripts IS RUNNING! ***"/>
+    <echo level="error" message="*************************************************************"/>
+    <property name="post.sushi.scripts.dir" value="${ig.scripts}/post-sushi"/>
+    <echo message="Running post-sushi scripts from ${post.sushi.scripts.dir}"/>
+    <apply executable="python" failonerror="true" parallel="false">
+      <srcfile/>
+      <arg value="${ig.root}"/>
+      <sort>
+        <fileset dir="${post.sushi.scripts.dir}" includes="*.py" erroronmissingdir="false"/>
+        <name/>
+      </sort>
+    </apply>
+  </target>
+
+  <!-- Post-Generate: runs after IG Publisher generates artifacts -->
+  <target name="onGenerate.runPostGenerateScripts" extensionOf="onGenerate.extend">
+    <echo level="error" message="*************************************************************"/>
+    <echo level="error" message="*** ANT-WHO.XML: onGenerate.runPostGenerateScripts IS RUNNING! ***"/>
+    <echo level="error" message="*************************************************************"/>
+
+    <!-- Run all post-generate scripts in alphabetical order -->
+    <property name="post.generate.scripts.dir" value="${ig.scripts}/post-generate"/>
+    <echo message="Running post-generate scripts from ${post.generate.scripts.dir}"/>
+    <echo message="ig.scripts = ${ig.scripts}"/>
+    <echo message="ig.root = ${ig.root}"/>
+    <apply executable="python" failonerror="true" parallel="false">
+      <srcfile/>
+      <arg value="${ig.root}"/>
+      <sort>
+        <fileset dir="${post.generate.scripts.dir}" includes="*.py" erroronmissingdir="false"/>
+        <name/>
+      </sort>
+    </apply>
+  </target>
+
+  <!-- Post-Check: runs after validation/QA checks -->
+  <!-- First run standard scripts (01_*), then DAK processor (02_*) with special args -->
+  <target name="onCheck.runPostCheckScripts" extensionOf="onCheck.extend">
+    <echo level="error" message="*************************************************************"/>
+    <echo level="error" message="*** ANT-WHO.XML: onCheck.runPostCheckScripts IS RUNNING! ***"/>
+    <echo level="error" message="*************************************************************"/>
+    <property name="post.check.scripts.dir" value="${ig.scripts}/post-check"/>
+    <echo message="Running post-check scripts from ${post.check.scripts.dir}"/>
+    <echo message="ig.scripts = ${ig.scripts}"/>
+    <echo message="ig.root = ${ig.root}"/>
+
+    <!-- Run standard scripts (01_*) with ig.root argument -->
+    <apply executable="python" failonerror="true" parallel="false">
+      <srcfile/>
+      <arg value="${ig.root}"/>
+      <sort>
+        <fileset dir="${post.check.scripts.dir}" includes="01_*.py" erroronmissingdir="false"/>
+        <name/>
+      </sort>
+    </apply>
+
+    <!-- Run DAK processor (02_*) with its specific arguments -->
+    <echo message="Running DAK processor scripts..."/>
+    <apply executable="python" failonerror="false" parallel="false">
+      <srcfile/>
+      <arg value="--output-dir"/>
+      <arg value="${ig.root}/output"/>
+      <arg value="--source-dir"/>
+      <arg value="${ig.root}"/>
+      <sort>
+        <fileset dir="${post.check.scripts.dir}" includes="02_*.py" erroronmissingdir="false"/>
+        <name/>
+      </sort>
+    </apply>
+
+    <!-- Run remaining scripts (03_* and beyond) with ig.root argument -->
+    <apply executable="python" failonerror="true" parallel="false">
+      <srcfile/>
+      <arg value="${ig.root}"/>
+      <sort>
+        <fileset dir="${post.check.scripts.dir}" erroronmissingdir="false">
+          <include name="0[3-9]_*.py"/>
+          <include name="[1-9][0-9]_*.py"/>
+        </fileset>
+        <name/>
+      </sort>
+    </apply>
+  </target>
+
+</project>
