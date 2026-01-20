@@ -152,30 +152,173 @@ class QAReporter:
 def load_expansions_json(file_path: str) -> Optional[Dict[str, Any]]:
     """
     Load and parse the expansions.json file.
-    
+
     Args:
         file_path: Path to the expansions.json file
-        
+
     Returns:
         Parsed JSON data or None if failed to load
     """
     logger = logging.getLogger(__name__)
-    
+
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        
+
         logger.info(f"Successfully loaded expansions.json from {file_path}")
         return data
-    
+
     except FileNotFoundError:
-        logger.error(f"Expansions file not found: {file_path}")
+        logger.warning(f"Expansions file not found: {file_path}")
         return None
     except json.JSONDecodeError as e:
         logger.error(f"Invalid JSON in expansions file: {e}")
         return None
     except Exception as e:
         logger.error(f"Error loading expansions file: {e}")
+        return None
+
+
+def load_valueset_codesystem_fallback(output_dir: str) -> Optional[Dict[str, Any]]:
+    """
+    Fallback method: Build expansions data from ValueSet-*.json and CodeSystem-*.json files.
+
+    This is used when expansions.json is not available (e.g., during Ant onCheck phase).
+
+    Args:
+        output_dir: Directory containing the ValueSet and CodeSystem JSON files
+
+    Returns:
+        A Bundle-like structure matching expansions.json format, or None if failed
+    """
+    logger = logging.getLogger(__name__)
+    logger.info(f"Using fallback: Loading ValueSet and CodeSystem files from {output_dir}")
+
+    # Find all ValueSet files (including -DEV, -UAT variants)
+    valueset_files = []
+    codesystem_cache = {}
+
+    try:
+        for filename in os.listdir(output_dir):
+            if filename.startswith('ValueSet-') and filename.endswith('.json'):
+                # Skip generated files (schema, displays, openapi) and HTML representation files
+                if '.schema.json' in filename or '.displays.json' in filename or '.openapi.json' in filename or '.json.' in filename:
+                    continue
+                valueset_files.append(os.path.join(output_dir, filename))
+
+        logger.info(f"Found {len(valueset_files)} ValueSet files")
+
+        if not valueset_files:
+            logger.warning("No ValueSet files found in output directory")
+            return None
+
+        # Build a Bundle-like structure
+        entries = []
+
+        for vs_path in valueset_files:
+            try:
+                with open(vs_path, 'r', encoding='utf-8') as f:
+                    valueset = json.load(f)
+
+                if valueset.get('resourceType') != 'ValueSet':
+                    continue
+
+                vs_name = valueset.get('name', 'Unknown')
+                logger.info(f"Processing ValueSet: {vs_name}")
+
+                # Get the CodeSystem URL from compose.include
+                compose = valueset.get('compose', {})
+                includes = compose.get('include', [])
+
+                if not includes:
+                    logger.warning(f"ValueSet {vs_name} has no compose.include, skipping")
+                    continue
+
+                # Build expansion from CodeSystem(s)
+                expansion_contains = []
+
+                for include in includes:
+                    system_url = include.get('system', '')
+
+                    if not system_url:
+                        continue
+
+                    # Try to find and load the CodeSystem
+                    # Extract CodeSystem name from URL (last part after /CodeSystem/)
+                    if '/CodeSystem/' in system_url:
+                        cs_name = system_url.split('/CodeSystem/')[-1]
+                        cs_filename = f"CodeSystem-{cs_name}.json"
+                        cs_path = os.path.join(output_dir, cs_filename)
+
+                        # Use cache to avoid reloading
+                        if cs_path not in codesystem_cache:
+                            if os.path.exists(cs_path):
+                                with open(cs_path, 'r', encoding='utf-8') as f:
+                                    codesystem_cache[cs_path] = json.load(f)
+                                logger.info(f"  Loaded CodeSystem: {cs_filename}")
+                            else:
+                                logger.warning(f"  CodeSystem file not found: {cs_filename}")
+                                codesystem_cache[cs_path] = None
+
+                        codesystem = codesystem_cache.get(cs_path)
+
+                        if codesystem and codesystem.get('concept'):
+                            # Extract codes from CodeSystem
+                            for concept in codesystem.get('concept', []):
+                                expansion_contains.append({
+                                    'system': system_url,
+                                    'code': concept.get('code', ''),
+                                    'display': concept.get('display', concept.get('code', ''))
+                                })
+
+                    # Handle explicit concept list in include
+                    if include.get('concept'):
+                        for concept in include.get('concept', []):
+                            expansion_contains.append({
+                                'system': system_url,
+                                'code': concept.get('code', ''),
+                                'display': concept.get('display', concept.get('code', ''))
+                            })
+
+                if expansion_contains:
+                    # Add synthetic expansion to the ValueSet
+                    valueset_with_expansion = valueset.copy()
+                    valueset_with_expansion['expansion'] = {
+                        'identifier': f"urn:uuid:fallback-{vs_name}",
+                        'timestamp': datetime.now().isoformat(),
+                        'total': len(expansion_contains),
+                        'contains': expansion_contains
+                    }
+
+                    entries.append({
+                        'fullUrl': valueset.get('url', ''),
+                        'resource': valueset_with_expansion
+                    })
+                    logger.info(f"  Built expansion with {len(expansion_contains)} codes")
+                else:
+                    logger.warning(f"  No codes found for ValueSet {vs_name}")
+
+            except Exception as e:
+                logger.error(f"Error processing {vs_path}: {e}")
+                continue
+
+        if not entries:
+            logger.warning("No ValueSet entries could be processed")
+            return None
+
+        # Return Bundle-like structure
+        result = {
+            'resourceType': 'Bundle',
+            'id': 'fallback-expansions',
+            'type': 'collection',
+            'entry': entries
+        }
+
+        logger.info(f"Fallback method: Built {len(entries)} ValueSet expansions")
+        return result
+
+    except Exception as e:
+        logger.error(f"Error in fallback loading: {e}")
         return None
 
 
@@ -1088,20 +1231,28 @@ def main():
         logger.info(f"DEBUG: JSON files in output: {json_files[:10]}...")  # First 10
     qa_reporter.add_success(f"Configured paths - Expansions: {expansions_path}, Output: {output_dir}")
     
-    # Load expansions.json
+    # Load expansions.json (primary method)
     qa_reporter.add_file_expected(expansions_path)
     expansions_data = load_expansions_json(expansions_path)
+    used_fallback = False
+
     if not expansions_data:
-        logger.error("Failed to load expansions data")
-        logger.error(f"DEBUG: File exists check again: {os.path.exists(expansions_path)}")
-        if os.path.exists(expansions_path):
-            with open(expansions_path, 'r') as f:
-                content = f.read()
-            logger.error(f"DEBUG: File size: {len(content)} bytes")
-            logger.error(f"DEBUG: First 200 chars: {content[:200]}")
-        qa_reporter.add_error(f"Failed to load expansions data from {expansions_path}")
-        qa_reporter.add_file_processed(expansions_path, "failed_to_load")
-    else:
+        logger.warning(f"expansions.json not found at {expansions_path}")
+        logger.info("Attempting fallback: loading from ValueSet-*.json and CodeSystem-*.json files")
+
+        # Try fallback method
+        expansions_data = load_valueset_codesystem_fallback(output_dir)
+        if expansions_data:
+            used_fallback = True
+            qa_reporter.add_success("Used fallback method: loaded ValueSet/CodeSystem files directly")
+            logger.info("Fallback successful: built expansions from ValueSet/CodeSystem files")
+        else:
+            logger.error("Fallback method also failed - no data available")
+            qa_reporter.add_error(f"Failed to load expansions data from {expansions_path}")
+            qa_reporter.add_error("Fallback method (ValueSet/CodeSystem files) also failed")
+            qa_reporter.add_file_processed(expansions_path, "failed_to_load")
+
+    if expansions_data:
         logger.info(f"DEBUG: expansions_data resourceType = {expansions_data.get('resourceType')}")
         logger.info(f"DEBUG: expansions_data has 'entry' = {'entry' in expansions_data}")
         if 'entry' in expansions_data:
@@ -1109,10 +1260,11 @@ def main():
             # Count ValueSets
             valueset_count = sum(1 for e in expansions_data['entry'] if e.get('resource', {}).get('resourceType') == 'ValueSet')
             logger.info(f"DEBUG: Number of ValueSet entries = {valueset_count}")
-        qa_reporter.add_success(f"Successfully loaded expansions data from {expansions_path}")
-        qa_reporter.add_file_processed(expansions_path, "loaded")
-    
-    # Process expansions and generate schemas (continue even if expansions_data is None)
+        if not used_fallback:
+            qa_reporter.add_success(f"Successfully loaded expansions data from {expansions_path}")
+            qa_reporter.add_file_processed(expansions_path, "loaded")
+
+    # Process expansions and generate schemas
     try:
         if expansions_data:
             schemas_count = process_expansions(expansions_data, output_dir)
@@ -1180,19 +1332,17 @@ def main():
 <div style="background-color: #FFA500; color: black; padding: 15px; margin: 10px 0; border: 3px solid #FF8C00; font-weight: bold;">
     🟠 ORANGE RIBBON: 03_generate_valueset_schemas.py executed!<br>
     <b>Generated:</b> {schemas_count} ValueSet schemas<br>
+    <b>Used fallback method:</b> {used_fallback}<br>
     <b>expansions.json found:</b> {expansions_exists}<br>
     <b>expansions.json path:</b> {expansions_path}<br>
-    <b>expansions.json size:</b> {expansions_size} bytes<br>
-    <b>Working directory:</b> {cwd}<br>
-    <b>ig_root arg:</b> {ig_root}
+    <b>Working directory:</b> {cwd}
 </div>
 '''.format(
                 schemas_count=schemas_count,
+                used_fallback=used_fallback,
                 expansions_exists=expansions_exists,
                 expansions_path=expansions_path,
-                expansions_size=expansions_size,
-                cwd=cwd,
-                ig_root=str(ig_root)
+                cwd=cwd
             )
 
             # Try to inject after <body> tag

@@ -2860,7 +2860,19 @@ def main():
         logger.info("✅ DAK API documentation generation completed successfully")
     else:
         logger.warning("⚠️ DAK API documentation generation completed with errors - see QA report for details")
-    
+
+    # DEBUG: Pause for inspection if DEBUG_PAUSE environment variable is set
+    # To enable:  set DEBUG_PAUSE=1  (Windows) or export DEBUG_PAUSE=1 (Linux/Mac)
+    # To disable: set DEBUG_PAUSE=   (Windows) or unset DEBUG_PAUSE (Linux/Mac)
+    if os.environ.get('DEBUG_PAUSE'):
+        logger.info("=" * 60)
+        logger.info("DEBUG_PAUSE is set - pausing for file inspection")
+        logger.info(f"Output directory: {output_dir}")
+        logger.info(f"Working directory: {os.getcwd()}")
+        logger.info("=" * 60)
+        input("Press ENTER to continue (or Ctrl+C to abort)...")
+        logger.info("Continuing after pause...")
+
     logger.info("Exiting with success code 0 - check qa.json for detailed status")
     sys.exit(0)
 
