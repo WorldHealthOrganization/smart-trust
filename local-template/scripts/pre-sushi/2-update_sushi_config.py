@@ -46,13 +46,10 @@ def create_dak_api_md_if_needed(ig_root: Path) -> bool:
         return False
 
     # Create the dak-api.md content with a div placeholder that survives HTML conversion
-    dak_api_content = """# DAK API Documentation Hub
+    dak_api_content = """
 
 This page provides access to Data Access Kit (DAK) API documentation and schemas.
 
-{: .no_toc}
-
-## Table of Contents
 {: .no_toc .text-delta }
 
 1. TOC

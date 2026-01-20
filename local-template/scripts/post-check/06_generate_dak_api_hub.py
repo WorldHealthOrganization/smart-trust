@@ -1616,18 +1616,10 @@ class DAKApiHubGenerator:
             jsonld_docs = []
         
         # Start building the HTML content
+        # Note: No h2 heading here - the page title comes from the markdown file (dak-api.md)
+        # and the intro text is also in the markdown, so we just add the dynamic content
         html_content = """
 <div class="dak-api-hub">
-    <h2>DAK API Documentation Hub</h2>
-
-    <div style="background-color: #ff0; padding: 20px; border: 5px solid red; margin: 20px 0;">
-        <h3 style="color: red;">🚀 SCRIPT INJECTION SUCCESSFUL! 🚀</h3>
-        <p><strong>This content was injected by 06_generate_dak_api_hub.py during the build process.</strong></p>
-        <p>If you see this message, the post-generate scripts are working correctly!</p>
-    </div>
-
-    <p>This page provides comprehensive documentation for all available DAK (Data Access Kit) API endpoints and schemas.
-    The DAK API provides structured access to ValueSet enumerations and Logical Model definitions used throughout this implementation guide.</p>
 """
         
         # Add API Enumeration Endpoints section
