@@ -2192,6 +2192,12 @@ def main():
     """Main entry point for the script."""
     logger = setup_logging()
 
+    # Check if DAK processing is enabled (dak.json must exist)
+    if not os.path.exists("dak.json"):
+        logger.info("No dak.json found - DAK processing disabled, skipping DAK API hub generation")
+        sys.exit(0)
+    logger.info("Found dak.json - DAK processing enabled")
+
     # Parse command line arguments
     # When run from template: first arg is ig_root directory
     # When run standalone: first arg is output_dir, second is openapi_dir

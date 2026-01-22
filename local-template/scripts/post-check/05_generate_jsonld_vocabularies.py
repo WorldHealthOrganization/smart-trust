@@ -790,6 +790,12 @@ def main():
     logger = setup_logging()
     logger.info("Starting 05_generate_jsonld_vocabularies.py")
 
+    # Check if DAK processing is enabled (dak.json must exist)
+    if not os.path.exists("dak.json"):
+        logger.info("No dak.json found - DAK processing disabled, skipping JSON-LD vocabulary generation")
+        sys.exit(0)
+    logger.info("Found dak.json - DAK processing enabled")
+
     # Initialize QA reporter
     qa_reporter = QAReporter("jsonld_vocabularies")
 
@@ -882,50 +888,33 @@ def main():
         except Exception as e:
             logger.error(f"Error saving QA report: {e}")
 
-        # DEBUG: Add purple ribbon to dak-api.html to confirm script execution
-        dak_api_path = os.path.join(output_dir, "dak-api.html")
-        logger.info(f"DEBUG: Attempting to add purple ribbon to {dak_api_path}")
-        if os.path.exists(dak_api_path):
-            try:
-                with open(dak_api_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-
-                # Gather debug info for ribbon
-                expansions_exists = os.path.exists(expansions_path)
-                cwd = os.getcwd()
-
-                purple_ribbon = '''
-<div style="background-color: #9B59B6; color: white; padding: 15px; margin: 10px 0; border: 3px solid #8E44AD; font-weight: bold;">
-    🟣 PURPLE RIBBON: 05_generate_jsonld_vocabularies.py executed!<br>
-    <b>Generated:</b> {vocabularies_count} JSON-LD vocabularies<br>
-    <b>Used fallback method:</b> {used_fallback}<br>
-    <b>expansions.json found:</b> {expansions_exists}<br>
-    <b>Working directory:</b> {cwd}
-</div>
-'''.format(
-                    vocabularies_count=vocabularies_count,
-                    used_fallback=used_fallback,
-                    expansions_exists=expansions_exists,
-                    cwd=cwd
-                )
-
-                # Try to inject after <body> tag
-                if '<body' in content:
-                    # Find end of body tag
-                    body_end = content.find('>', content.find('<body'))
-                    if body_end != -1:
-                        content = content[:body_end+1] + purple_ribbon + content[body_end+1:]
-                        with open(dak_api_path, 'w', encoding='utf-8') as f:
-                            f.write(content)
-                        logger.info("DEBUG: Successfully added purple ribbon to dak-api.html")
-                    else:
-                        logger.warning("DEBUG: Could not find body tag end in dak-api.html")
-                else:
-                    logger.warning("DEBUG: No body tag found in dak-api.html")
-            except Exception as e:
-                logger.error(f"DEBUG: Failed to add purple ribbon: {e}")
-        else:
-            logger.warning(f"DEBUG: dak-api.html not found at {dak_api_path}")
+        # DEBUG: Purple ribbon code commented out
+        # To re-enable, uncomment the block below
+        # dak_api_path = os.path.join(output_dir, "dak-api.html")
+        # logger.info(f"DEBUG: Attempting to add purple ribbon to {dak_api_path}")
+        # if os.path.exists(dak_api_path):
+        #     try:
+        #         with open(dak_api_path, 'r', encoding='utf-8') as f:
+        #             content = f.read()
+        #         expansions_exists = os.path.exists(expansions_path)
+        #         cwd = os.getcwd()
+        #         purple_ribbon = '''
+        # <div style="background-color: #9B59B6; color: white; padding: 15px; margin: 10px 0; border: 3px solid #8E44AD; font-weight: bold;">
+        #     🟣 PURPLE RIBBON: 05_generate_jsonld_vocabularies.py executed!<br>
+        #     <b>Generated:</b> {vocabularies_count} JSON-LD vocabularies<br>
+        #     <b>Used fallback method:</b> {used_fallback}<br>
+        #     <b>expansions.json found:</b> {expansions_exists}<br>
+        #     <b>Working directory:</b> {cwd}
+        # </div>
+        # '''.format(vocabularies_count=vocabularies_count, used_fallback=used_fallback, expansions_exists=expansions_exists, cwd=cwd)
+        #         if '<body' in content:
+        #             body_end = content.find('>', content.find('<body'))
+        #             if body_end != -1:
+        #                 content = content[:body_end+1] + purple_ribbon + content[body_end+1:]
+        #                 with open(dak_api_path, 'w', encoding='utf-8') as f:
+        #                     f.write(content)
+        #     except Exception as e:
+        #         logger.error(f"DEBUG: Failed to add purple ribbon: {e}")
 
         # Exit with 0 to avoid failing the workflow
         sys.exit(0)

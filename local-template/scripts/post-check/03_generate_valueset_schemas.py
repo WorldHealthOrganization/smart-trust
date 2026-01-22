@@ -1193,6 +1193,12 @@ def main():
     logger = setup_logging()
     logger.info("Starting 03_generate_valueset_schemas.py")
 
+    # Check if DAK processing is enabled (dak.json must exist)
+    if not os.path.exists("dak.json"):
+        logger.info("No dak.json found - DAK processing disabled, skipping ValueSet schema generation")
+        sys.exit(0)
+    logger.info("Found dak.json - DAK processing enabled")
+
     qa_reporter = QAReporter("valueset_schemas")
     qa_reporter.add_success("Starting ValueSet schema generation")
 
@@ -1315,53 +1321,35 @@ def main():
     else:
         logger.warning("⚠️ ValueSet schema generation completed with errors - see QA report for details")
 
-    # DEBUG: Add orange ribbon to dak-api.html to confirm script execution
-    dak_api_path = os.path.join(output_dir, "dak-api.html")
-    logger.info(f"DEBUG: Attempting to add orange ribbon to {dak_api_path}")
-    if os.path.exists(dak_api_path):
-        try:
-            with open(dak_api_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-
-            # Gather debug info for ribbon
-            expansions_exists = os.path.exists(expansions_path)
-            expansions_size = os.path.getsize(expansions_path) if expansions_exists else 0
-            cwd = os.getcwd()
-
-            orange_ribbon = '''
-<div style="background-color: #FFA500; color: black; padding: 15px; margin: 10px 0; border: 3px solid #FF8C00; font-weight: bold;">
-    🟠 ORANGE RIBBON: 03_generate_valueset_schemas.py executed!<br>
-    <b>Generated:</b> {schemas_count} ValueSet schemas<br>
-    <b>Used fallback method:</b> {used_fallback}<br>
-    <b>expansions.json found:</b> {expansions_exists}<br>
-    <b>expansions.json path:</b> {expansions_path}<br>
-    <b>Working directory:</b> {cwd}
-</div>
-'''.format(
-                schemas_count=schemas_count,
-                used_fallback=used_fallback,
-                expansions_exists=expansions_exists,
-                expansions_path=expansions_path,
-                cwd=cwd
-            )
-
-            # Try to inject after <body> tag
-            if '<body' in content:
-                # Find end of body tag
-                body_end = content.find('>', content.find('<body'))
-                if body_end != -1:
-                    content = content[:body_end+1] + orange_ribbon + content[body_end+1:]
-                    with open(dak_api_path, 'w', encoding='utf-8') as f:
-                        f.write(content)
-                    logger.info("DEBUG: Successfully added orange ribbon to dak-api.html")
-                else:
-                    logger.warning("DEBUG: Could not find body tag end in dak-api.html")
-            else:
-                logger.warning("DEBUG: No body tag found in dak-api.html")
-        except Exception as e:
-            logger.error(f"DEBUG: Failed to add orange ribbon: {e}")
-    else:
-        logger.warning(f"DEBUG: dak-api.html not found at {dak_api_path}")
+    # DEBUG: Orange ribbon code commented out
+    # To re-enable, uncomment the block below
+    # dak_api_path = os.path.join(output_dir, "dak-api.html")
+    # logger.info(f"DEBUG: Attempting to add orange ribbon to {dak_api_path}")
+    # if os.path.exists(dak_api_path):
+    #     try:
+    #         with open(dak_api_path, 'r', encoding='utf-8') as f:
+    #             content = f.read()
+    #         expansions_exists = os.path.exists(expansions_path)
+    #         expansions_size = os.path.getsize(expansions_path) if expansions_exists else 0
+    #         cwd = os.getcwd()
+    #         orange_ribbon = '''
+    # <div style="background-color: #FFA500; color: black; padding: 15px; margin: 10px 0; border: 3px solid #FF8C00; font-weight: bold;">
+    #     🟠 ORANGE RIBBON: 03_generate_valueset_schemas.py executed!<br>
+    #     <b>Generated:</b> {schemas_count} ValueSet schemas<br>
+    #     <b>Used fallback method:</b> {used_fallback}<br>
+    #     <b>expansions.json found:</b> {expansions_exists}<br>
+    #     <b>expansions.json path:</b> {expansions_path}<br>
+    #     <b>Working directory:</b> {cwd}
+    # </div>
+    # '''.format(schemas_count=schemas_count, used_fallback=used_fallback, expansions_exists=expansions_exists, expansions_path=expansions_path, cwd=cwd)
+    #         if '<body' in content:
+    #             body_end = content.find('>', content.find('<body'))
+    #             if body_end != -1:
+    #                 content = content[:body_end+1] + orange_ribbon + content[body_end+1:]
+    #                 with open(dak_api_path, 'w', encoding='utf-8') as f:
+    #                     f.write(content)
+    #     except Exception as e:
+    #         logger.error(f"DEBUG: Failed to add orange ribbon: {e}")
 
     logger.info("Exiting with success code 0 - check QA report for detailed status")
     sys.exit(0)
