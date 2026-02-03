@@ -20,7 +20,7 @@
     },
     {
       "url" : "http://hl7.org/fhir/5.0/StructureDefinition/extension-Requirements.version",
-      "valueString" : "1.3.0"
+      "valueString" : "1.4.0"
     },
     {
       "url" : "http://hl7.org/fhir/5.0/StructureDefinition/extension-Requirements.name",
@@ -40,7 +40,7 @@
     },
     {
       "url" : "http://hl7.org/fhir/5.0/StructureDefinition/extension-Requirements.date",
-      "valueDateTime" : "2025-10-27T08:38:34+00:00"
+      "valueDateTime" : "2026-02-03T22:38:59+00:00"
     },
     {
       "url" : "http://hl7.org/fhir/5.0/StructureDefinition/extension-Requirements.publisher",

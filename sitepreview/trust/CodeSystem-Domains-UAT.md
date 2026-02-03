@@ -1,4 +1,4 @@
-# WHO GDHCN Trust Domains - UAT - WHO SMART Trust v1.3.0
+# WHO GDHCN Trust Domains - UAT - WHO SMART Trust v1.4.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/CodeSystem/Domains-UAT | *Version*:1.3.0 |
-| Active as of 2025-10-27 | *Computable Name*:Domains-UAT |
+| *Official URL*:http://smart.who.int/trust/CodeSystem/Domains-UAT | *Version*:1.4.0 |
+| Active as of 2026-02-03 | *Computable Name*:Domains-UAT |
 
  
 CodeSystem for define WHO GDHCN Trust Domains for User Acceptance Testing environment. 
@@ -28,12 +28,12 @@ CodeSystem for define WHO GDHCN Trust Domains for User Acceptance Testing enviro
   "resourceType" : "CodeSystem",
   "id" : "Domains-UAT",
   "url" : "http://smart.who.int/trust/CodeSystem/Domains-UAT",
-  "version" : "1.3.0",
+  "version" : "1.4.0",
   "name" : "Domains-UAT",
   "title" : "WHO GDHCN Trust Domains - UAT",
   "status" : "active",
   "experimental" : false,
-  "date" : "2025-10-27T08:38:34+00:00",
+  "date" : "2026-02-03T22:38:59+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

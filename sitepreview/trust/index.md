@@ -1,4 +1,4 @@
-# Home - WHO SMART Trust v1.3.0
+# Home - WHO SMART Trust v1.4.0
 
 * [**Table of Contents**](toc.md)
 * **Home**
@@ -7,14 +7,14 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ImplementationGuide/smart.who.int.trust | *Version*:1.3.0 |
-| Active as of 2025-10-27 | *Computable Name*:Trust |
+| *Official URL*:http://smart.who.int/trust/ImplementationGuide/smart.who.int.trust | *Version*:1.4.0 |
+| Active as of 2026-02-03 | *Computable Name*:Trust |
 
 ### Summary
 
  This guide describes the specifications and on-boarding procedures for WHO's Global Digital Health Certification Network (GDHCN). The GDHCN is a mechanism to support verification of health documents and certifications that are exchanged between participants of the GDHCN. These health certifications may include COVID-19 certificates, routine immunization cards, and home-based records consistent with International Patient Summary standards. This mechanism provides means of harmonizing global health protocol standards and establishing a system for recognition of digital certificates for continuity of care and at point of entry. The GDHCN is designed to leverage existing investments by jurisdictions that were made under the COVID-19 response and provide the digital health infrastructure needed for resiliency in future epidemic and pandemic responses. 
 
- The GDHCN is a digital reflection of the trust WHO already has with Member States. The GDHCN is a digital trust network is based on proven [concepts](concepts.md) which are used to describe the specifications and mechanisms for establishing trust, which allow eligible participants to establish new [trust domains](concepts.md#trust-domain) for exchange of verifiable digital health records. Eligible participants of the trust network may apply to join by following an [on-boarding process](concepts_onboarding.md). The GDHCN is operated under the [GDHCN Administrative and Operational Framework](GDHCN_Administrative_and_Operational_Framework.pdf). 
+ The GDHCN is a digital reflection of the trust WHO already has with Member States. The GDHCN is a digital trust network is based on proven [ concepts](concepts.md) which are used to describe the specifications and mechanisms for establishing trust, which allow eligible participants to establish new [trust domains](concepts.md#trust-domain) for exchange of verifiable digital health records. Eligible participants of the trust network may apply to join by following an [on-boarding process](concepts_onboarding.md). The GDHCN is operated under the [GDHCN Administrative and Operational Framework](GDHCN_Administrative_and_Operational_Framework.pdf). 
 
 **Trust Network**
 
@@ -105,12 +105,12 @@ WHO also hosts weekly calls on authoring and implementing WHO SMART Guidelines w
     ]
   },
   "url" : "http://smart.who.int/trust/ImplementationGuide/smart.who.int.trust",
-  "version" : "1.3.0",
+  "version" : "1.4.0",
   "name" : "Trust",
   "title" : "WHO SMART Trust",
   "status" : "active",
   "experimental" : false,
-  "date" : "2025-10-27T08:38:34+00:00",
+  "date" : "2026-02-03T22:38:59+00:00",
   "publisher" : "WHO",
   "contact" : [
     {
@@ -148,7 +148,7 @@ WHO also hosts weekly calls on authoring and implementing WHO SMART Guidelines w
       ],
       "uri" : "http://terminology.hl7.org/ImplementationGuide/hl7.terminology",
       "packageId" : "hl7.terminology.r4",
-      "version" : "6.5.0"
+      "version" : "7.0.1"
     },
     {
       "id" : "hl7_fhir_uv_extensions_r5",
@@ -575,7 +575,7 @@ WHO also hosts weekly calls on authoring and implementing WHO SMART Guidelines w
       },
       {
         "url" : "http://hl7.org/fhir/tools/StructureDefinition/ig-internal-dependency",
-        "valueCode" : "hl7.fhir.uv.tools.r4#0.8.0"
+        "valueCode" : "hl7.fhir.uv.tools.r4#0.9.0"
       },
       {
         "extension" : [
@@ -1704,6 +1704,19 @@ WHO also hosts weekly calls on authoring and implementing WHO SMART Guidelines w
           "reference" : "Organization/GDHCNParticipant-IDN-UAT"
         },
         "name" : "GDHCNParticipant-IDN-UAT",
+        "exampleBoolean" : false
+      },
+      {
+        "extension" : [
+          {
+            "url" : "http://hl7.org/fhir/tools/StructureDefinition/resource-information",
+            "valueString" : "Organization"
+          }
+        ],
+        "reference" : {
+          "reference" : "Organization/GDHCNParticipant-IOM-UAT"
+        },
+        "name" : "GDHCNParticipant-IOM-UAT",
         "exampleBoolean" : false
       },
       {
@@ -4689,6 +4702,46 @@ WHO also hosts weekly calls on authoring and implementing WHO SMART Guidelines w
           "reference" : "Endpoint/GDHCNParticipantDID-IDN-UAT-SCA"
         },
         "name" : "GDHCNParticipantDID-IDN-UAT-SCA",
+        "exampleBoolean" : false
+      },
+      {
+        "extension" : [
+          {
+            "url" : "http://hl7.org/fhir/tools/StructureDefinition/resource-information",
+            "valueString" : "Endpoint"
+          }
+        ],
+        "reference" : {
+          "reference" : "Endpoint/GDHCNParticipantDID-IOM-UAT-All"
+        },
+        "name" : "GDHCNParticipantDID-IOM-UAT-All",
+        "description" : "UAT Participant IOM Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/IOM/did.json",
+        "exampleBoolean" : false
+      },
+      {
+        "extension" : [
+          {
+            "url" : "http://hl7.org/fhir/tools/StructureDefinition/resource-information",
+            "valueString" : "Endpoint"
+          }
+        ],
+        "reference" : {
+          "reference" : "Endpoint/GDHCNParticipantDID-IOM-UAT-DSC"
+        },
+        "name" : "GDHCNParticipantDID-IOM-UAT-DSC",
+        "exampleBoolean" : false
+      },
+      {
+        "extension" : [
+          {
+            "url" : "http://hl7.org/fhir/tools/StructureDefinition/resource-information",
+            "valueString" : "Endpoint"
+          }
+        ],
+        "reference" : {
+          "reference" : "Endpoint/GDHCNParticipantDID-IOM-UAT-SCA"
+        },
+        "name" : "GDHCNParticipantDID-IOM-UAT-SCA",
         "exampleBoolean" : false
       },
       {

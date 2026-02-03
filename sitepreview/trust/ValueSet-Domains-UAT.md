@@ -1,4 +1,4 @@
-# WHO GDHCN Trust Domains - UAT - WHO SMART Trust v1.3.0
+# WHO GDHCN Trust Domains - UAT - WHO SMART Trust v1.4.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ValueSet/Domains-UAT | *Version*:1.3.0 |
-| Active as of 2025-10-27 | *Computable Name*:Domains-UAT |
+| *Official URL*:http://smart.who.int/trust/ValueSet/Domains-UAT | *Version*:1.4.0 |
+| Active as of 2026-02-03 | *Computable Name*:Domains-UAT |
 
  
 ValueSet of WHO GDHCN Trust Domains for User Acceptance Testing environment 
@@ -20,8 +20,6 @@ ValueSet of WHO GDHCN Trust Domains for User Acceptance Testing environment
 This value set is not used here; it may be used elsewhere (e.g. specifications and/or implementations that use this content)
 
 ### Logical Definition (CLD)
-
-* Include all codes defined in [`http://smart.who.int/trust/CodeSystem/Domains-UAT`](CodeSystem-Domains-UAT.md)version 📦1.3.0
 
  
 
@@ -49,12 +47,12 @@ This value set is not used here; it may be used elsewhere (e.g. specifications a
   "resourceType" : "ValueSet",
   "id" : "Domains-UAT",
   "url" : "http://smart.who.int/trust/ValueSet/Domains-UAT",
-  "version" : "1.3.0",
+  "version" : "1.4.0",
   "name" : "Domains-UAT",
   "title" : "WHO GDHCN Trust Domains - UAT",
   "status" : "active",
   "experimental" : false,
-  "date" : "2025-10-27T08:38:34+00:00",
+  "date" : "2026-02-03T22:38:59+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

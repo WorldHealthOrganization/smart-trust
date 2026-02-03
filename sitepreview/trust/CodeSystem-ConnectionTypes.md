@@ -1,4 +1,4 @@
-# WHO GDHCN Connection Types - WHO SMART Trust v1.3.0
+# WHO GDHCN Connection Types - WHO SMART Trust v1.4.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/CodeSystem/ConnectionTypes | *Version*:1.3.0 |
-| Active as of 2025-10-27 | *Computable Name*:ConnectionTypes |
+| *Official URL*:http://smart.who.int/trust/CodeSystem/ConnectionTypes | *Version*:1.4.0 |
+| Active as of 2026-02-03 | *Computable Name*:ConnectionTypes |
 
  
 CodeSystem for GDHCN connection types 
@@ -28,12 +28,12 @@ CodeSystem for GDHCN connection types
   "resourceType" : "CodeSystem",
   "id" : "ConnectionTypes",
   "url" : "http://smart.who.int/trust/CodeSystem/ConnectionTypes",
-  "version" : "1.3.0",
+  "version" : "1.4.0",
   "name" : "ConnectionTypes",
   "title" : "WHO GDHCN Connection Types",
   "status" : "active",
   "experimental" : true,
-  "date" : "2025-10-27T08:38:34+00:00",
+  "date" : "2026-02-03T22:38:59+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

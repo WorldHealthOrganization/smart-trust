@@ -1,4 +1,4 @@
-# WHO GDHCN Trust Network Participant - WHO SMART Trust v1.3.0
+# WHO GDHCN Trust Network Participant - WHO SMART Trust v1.4.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ValueSet/Participants | *Version*:1.3.0 |
-| Active as of 2025-10-27 | *Computable Name*:Participants |
+| *Official URL*:http://smart.who.int/trust/ValueSet/Participants | *Version*:1.4.0 |
+| Active as of 2026-02-03 | *Computable Name*:Participants |
 
  
 ValueSet of GDHCN Trust Network Participants for Production environment 
@@ -24,8 +24,6 @@ This value set is not used here; it may be used elsewhere (e.g. specifications a
  
 
 ### Expansion
-
-This value set contains 35 concepts
 
 -------
 
@@ -49,12 +47,12 @@ This value set contains 35 concepts
   "resourceType" : "ValueSet",
   "id" : "Participants",
   "url" : "http://smart.who.int/trust/ValueSet/Participants",
-  "version" : "1.3.0",
+  "version" : "1.4.0",
   "name" : "Participants",
   "title" : "WHO GDHCN Trust Network Participant",
   "status" : "active",
   "experimental" : true,
-  "date" : "2025-10-27T08:38:34+00:00",
+  "date" : "2026-02-03T22:38:59+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

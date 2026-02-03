@@ -1,4 +1,4 @@
-# WHO RefMart Jurisidiction List - WHO SMART Trust v1.3.0
+# WHO RefMart Jurisidiction List - WHO SMART Trust v1.4.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/refmart/CodeSystems/REF_COUNTRY | *Version*:1.3.0 |
-| Active as of 2025-10-27 | *Computable Name*:RefMartCountryList |
+| *Official URL*:http://smart.who.int/refmart/CodeSystems/REF_COUNTRY | *Version*:1.4.0 |
+| Active as of 2026-02-03 | *Computable Name*:RefMartCountryList |
 
  
 CodeSystem for WHO Refmart Country and Jurisidiction List available at https://xmart-api-public.who.int/REFMART/REF_COUNTRY for Production environment 
@@ -30,12 +30,12 @@ CodeSystem for WHO Refmart Country and Jurisidiction List available at https://x
   "resourceType" : "CodeSystem",
   "id" : "RefMartCountryList",
   "url" : "http://smart.who.int/refmart/CodeSystems/REF_COUNTRY",
-  "version" : "1.3.0",
+  "version" : "1.4.0",
   "name" : "RefMartCountryList",
   "title" : "WHO RefMart Jurisidiction List",
   "status" : "active",
   "experimental" : true,
-  "date" : "2025-10-27T08:38:34+00:00",
+  "date" : "2026-02-03T22:38:59+00:00",
   "publisher" : "WHO",
   "contact" : [
     {
