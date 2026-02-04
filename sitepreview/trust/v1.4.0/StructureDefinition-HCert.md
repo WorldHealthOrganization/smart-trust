@@ -42,7 +42,7 @@ Other representations of profile: [CSV](StructureDefinition-HCert.csv), [Excel](
   "name" : "HCert",
   "title" : "Health Certificate",
   "status" : "active",
-  "date" : "2026-02-04T21:49:31+00:00",
+  "date" : "2026-02-04T22:45:13+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

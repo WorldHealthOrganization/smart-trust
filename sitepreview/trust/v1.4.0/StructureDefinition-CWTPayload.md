@@ -42,7 +42,7 @@ Other representations of profile: [CSV](StructureDefinition-CWTPayload.csv), [Ex
   "name" : "CWTPayload",
   "title" : "CBOR Web Token (CWT) Payload (Common)",
   "status" : "active",
-  "date" : "2026-02-04T21:49:31+00:00",
+  "date" : "2026-02-04T22:45:13+00:00",
   "publisher" : "WHO",
   "contact" : [
     {
