@@ -110,7 +110,7 @@ WHO also hosts weekly calls on authoring and implementing WHO SMART Guidelines w
   "title" : "WHO SMART Trust",
   "status" : "active",
   "experimental" : false,
-  "date" : "2026-02-04T22:45:13+00:00",
+  "date" : "2026-02-04T23:20:29+00:00",
   "publisher" : "WHO",
   "contact" : [
     {
