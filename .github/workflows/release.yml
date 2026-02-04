@@ -1,65 +1,61 @@
-name: Release build
+name: ReleaseBuild
+
+on:
+  workflow_call:  # Reusable by other workflows
+  workflow_dispatch:  # Manual trigger by user
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
   pull-requests: write
-  
-on:
-  release:
-    types: [created]
-  workflow_dispatch:
 
 jobs:
-  check:
+  build:
     runs-on: ubuntu-latest
-    outputs:
-      file_exists: ${{ steps.checkfile.outputs.exists }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.release.tag_name }}
 
-      - name: Check for publication-request.json
-        id: checkfile
-        run: |
-          if [[ -f "publication-request.json" ]]; then
-            echo "::set-output name=exists::true"
-          else
-            echo "::set-output name=exists::false"
-          fi
-
-  preprocess:
-    needs: check
-    if: needs.check.outputs.file_exists == 'true'
-    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout current repo to ./source
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          path: source
+          fetch-depth: 0  # Fetch all history for all branches and tags.
+
+      - name: Checkout HL7/fhir-ig-history-template to ./history-template
+        uses: actions/checkout@v4
+        with:
+          repository: HL7/fhir-ig-history-template
+          path: history-template
+
+      - name: Checkout WorldHealthOrganization/smart-html to ./webroot
+        uses: actions/checkout@v4
+        with:
+          repository: WorldHealthOrganization/smart-html
+          path: webroot
+          fetch-depth: 0  # Fetch all history for all branches and tags.
+
+      - name: Checkout FHIR/ig-registry to ./ig-registry
+        uses: actions/checkout@v4
+        with:
+          repository: FHIR/ig-registry
+          path: ig-registry
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: pip install pyyaml
 
-      - name: Download pre-sushi scripts from smart-ig-template
+      - name: Download and run pre-sushi scripts
         run: |
-          mkdir -p input/scripts
+          mkdir -p source/input/scripts
           BASE_URL="https://raw.githubusercontent.com/WorldHealthOrganization/smart-ig-template/master/scripts/pre-sushi"
-          curl -L -f -o "input/scripts/1-generate_dak_from_sushi.py" "$BASE_URL/1-generate_dak_from_sushi.py" 2>/dev/null || echo "Failed to download 1-generate_dak_from_sushi.py"
-          curl -L -f -o "input/scripts/2-update_sushi_config.py" "$BASE_URL/2-update_sushi_config.py" 2>/dev/null || echo "Failed to download 2-update_sushi_config.py"
-          curl -L -f -o "input/scripts/3-dmn_questionnaire_generator.py" "$BASE_URL/3-dmn_questionnaire_generator.py" 2>/dev/null || echo "Failed to download 3-dmn_questionnaire_generator.py"
-          curl -L -f -o "input/scripts/4-transform_dmn.py" "$BASE_URL/4-transform_dmn.py" 2>/dev/null || echo "Failed to download 4-transform_dmn.py"
-
-      - name: Run pre-sushi scripts
-        run: |
+          curl -L -f -o "source/input/scripts/1-generate_dak_from_sushi.py" "$BASE_URL/1-generate_dak_from_sushi.py" 2>/dev/null || echo "Failed to download 1-generate_dak_from_sushi.py"
+          curl -L -f -o "source/input/scripts/2-update_sushi_config.py" "$BASE_URL/2-update_sushi_config.py" 2>/dev/null || echo "Failed to download 2-update_sushi_config.py"
+          curl -L -f -o "source/input/scripts/3-dmn_questionnaire_generator.py" "$BASE_URL/3-dmn_questionnaire_generator.py" 2>/dev/null || echo "Failed to download 3-dmn_questionnaire_generator.py"
+          curl -L -f -o "source/input/scripts/4-transform_dmn.py" "$BASE_URL/4-transform_dmn.py" 2>/dev/null || echo "Failed to download 4-transform_dmn.py"
+          
+          cd source
           for script in 1-generate_dak_from_sushi.py 2-update_sushi_config.py 3-dmn_questionnaire_generator.py 4-transform_dmn.py; do
             if [[ -f "input/scripts/$script" ]]; then
               echo "Running $script..."
@@ -67,20 +63,75 @@ jobs:
             fi
           done
 
-      - name: Commit preprocessing changes
+      - name: Setup publisher and install dependencies
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --staged --quiet; then
-            echo "No preprocessing changes to commit"
-          else
-            git commit -m "Preprocess: update generated files"
-            git push
-          fi
+          docker run --rm -v $(pwd):/workspace -w /workspace hl7fhir/ig-publisher-base:latest /bin/sh -c "
+            npm install -g fsh-sushi &&
+            curl -L https://github.com/HL7/fhir-ig-publisher/releases/latest/download/publisher.jar -o ./publisher.jar --create-dirs
+          "
 
-  trigger:
-    needs: preprocess
-    uses: WorldHealthOrganization/smart-html/.github/workflows/release.yml@main
-#    with:
-#      tag_name: ${{ github.event.release.tag_name }}
+      - name: Create package cache folder
+        run: |
+          docker run --rm -v $(pwd):/workspace -w /workspace hl7fhir/ig-publisher-base:latest /bin/sh -c "
+            mkdir -p ./fhir-package-cache && chmod 777 ./fhir-package-cache
+          "
+
+      - name: Ensure write permissions for webroot and source directories
+        run: |
+          chmod -R 777 webroot
+          chmod -R 777 source
+          chmod -R 777 fhir-package-cache
+          
+      - name: Run the IG publisher
+        run: |
+          docker run --rm -v $(pwd):/workspace -w /workspace hl7fhir/ig-publisher-base:latest /bin/sh -c "
+            apt-get update && apt-get install -y python3 python3-pip && ln -sf /usr/bin/python3 /usr/bin/python &&
+            pip3 install pyyaml &&
+            java -Xmx4g -jar ./publisher.jar publisher -ig source -package-cache-folder fhir-package-cache
+          "
+
+      - name: Run publisher command for publishing release
+        run: |
+          docker run --rm -v $(pwd):/workspace -w /workspace hl7fhir/ig-publisher-base:latest /bin/sh -c "
+            apt-get update && apt-get install -y python3 python3-pip && ln -sf /usr/bin/python3 /usr/bin/python &&
+            pip3 install pyyaml &&
+            ls -la /workspace/webroot &&
+            java -Xmx4g -Dfile.encoding=UTF-8 -jar /workspace/publisher.jar -go-publish -package-cache-folder /workspace/fhir-package-cache -source /workspace/source -web /workspace/webroot -temp /workspace/temp -registry /workspace/ig-registry/fhir-ig-list.json -history /workspace/history-template -templates /workspace/webroot/templates
+          "
+
+      - name: Exclude files > 100MB from gh-pages and move to release-assets
+        run: |
+          mkdir -p ./release-assets
+          # Move all files larger than 100 MB to release-assets
+          find ./webroot/ -type f -size +100M -exec mv {} ./release-assets/ \;
+          
+          # Prepare the deploy folder, only with files ≤ 100MB
+          mkdir -p ./deploy
+          rsync -av --exclude-from=<(find ./webroot/ -type f -size +100M -printf "%P\n") ./webroot/ ./deploy/
+
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./deploy
+          destination_dir: sitepreview
+
+
+      - name: Upload release assets ( package.tgz)
+        run: |
+          mkdir -p ./release-assets
+          mv ./source/output/package.tgz ./release-assets/
+
+
+      - name: Upload updated fhir-ig-list.json as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fhir-ig-list.json
+          path: ig-registry/fhir-ig-list.json
+
+      - name: Upload updated fhir-ig-list.json as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-feeds.json
+          path: ig-registry/package-feeds.json
