@@ -33,7 +33,7 @@ CodeSystem for GDHCN transactions that has usage codes for verification keys pub
   "title" : "WHO GDHCN Transactions CodeSystem",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-02-04T15:12:10+00:00",
+  "date" : "2026-02-04T18:47:28+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

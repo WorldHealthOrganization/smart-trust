@@ -1,0 +1,732 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library xmlns="urn:hl7-org:elm:r1" xmlns:t="urn:hl7-org:elm-types:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fhir="http://hl7.org/fhir" xmlns:qdm43="urn:healthit-gov:qdm:v4_3" xmlns:qdm53="urn:healthit-gov:qdm:v5_3" xmlns:a="urn:hl7-org:cql-annotations:r1" localId="0">
+   <annotation translatorOptions="EnableAnnotations,EnableLocators,DisableListDemotion,DisableListPromotion" signatureLevel="Overloads" xsi:type="a:CqlToElmInfo"/>
+   <annotation message="An operand identifier [reference] is hiding another identifier of the same name." errorType="semantic" errorSeverity="warning" xsi:type="a:CqlToElmError"/>
+   <annotation message="An operand identifier [reference] is hiding another identifier of the same name." errorType="semantic" errorSeverity="warning" xsi:type="a:CqlToElmError"/>
+   <annotation message="An operand identifier [reference] is hiding another identifier of the same name." errorType="semantic" errorSeverity="warning" xsi:type="a:CqlToElmError"/>
+   <annotation xsi:type="a:Annotation">
+      <a:s r="328">
+         <a:s>/**
+ * Library: HIV.IND.56 Logic
+ * Ref No: DSD.4
+ * Short Name: Retention in DSD ART models
+ *
+ * Definition: % of people retained in DSD ART models during the reporting period
+ *
+ * Numerator: Number of people on ART known to be on treatment 12 months after enrolling in a DSD ART model* (also at 24, 36, 48, 60 months, etc. after enrolment in the model)
+ * Numerator Calculation: COUNT of clients with &quot;HIV status&quot;='HIV-positive' AND &quot;On ART&quot;=True AND &quot;DSD ART start date&quot;>X months before reporting period end date AND &quot;Currently enrolled in DSD ART model&quot;=True |  | Reported where 'X' is 12, 24, 36, 48, or 60 months
+ * Numerator Exclusions: Clients with an &quot;HIV treatment outcome&quot;='Transferred out'
+ *
+ * Denominator: Number of people on ART enrolled in a DSD ART model 12 months ago, excluding individuals who transferred out (also 24, 36, 48, 60 months ago, etc.)
+ * Denominator Calculation: COUNT of clients with &quot;HIV status&quot;='HIV-positive' AND &quot;On ART&quot;=True AND &quot;DSD ART start date&quot;>X months before reporting period end date |  | Reported where 'X' is 12, 24, 36, 48, or 60 months
+ * Denominator Exclusions: Clients with an &quot;HIV treatment outcome&quot;='Transferred out'
+ *
+ * Disaggregations:
+ * • Gender (female, male, other**) 
+ *  • Age (0–4, 5–14, 15–24, 25+ years) 
+ *  • Key populations (men who have sex with men, people living in prisons and other closed settings, people who inject drugs, sex workers, trans and gender diverse people)*** 
+ *  • Cities and other administrative regions of epidemiologic importance
+ *
+ * Disaggregation Elements: Gender | Age | Key population member type
+ *
+ * Numerator and Denominator Elements:
+ * Currently enrolled in DSD ART model 
+ *  DSD ART start date 
+ *  HIV status 
+ *  On ART
+ *
+ * Reference: Consolidated guidelines on person-centred HIV strategic information: strengthening routine data for impact. Geneva: World Health Organization; 2022
+ * 
+ * Data Concepts:
+ * HIV.A.DE17: Age | Calculated age (number of years) of the client based on date of birth
+ * HIV.A.DE18: Gender* | Gender of the client*
+ * HIV.A.DE19: Female | Client identifies as female
+ * HIV.A.DE20: Male | Client identifies as male
+ * HIV.A.DE21: Transgender male | Client identifies as transgender male
+ * HIV.A.DE22: Transgender female | Client identifies as transgender female
+ * HIV.A.DE23: Other | Additional category
+ * HIV.B.DE50: Key population member type* | The type of key population that the client is included in
+ * HIV.B.DE51: Sex worker | Client is a sex worker
+ * HIV.B.DE52: Men who have sex with men | Client is a man who has sex with men
+ * HIV.B.DE53: Trans and gender-diverse people | Client identifies as trans and gender-diverse
+ * HIV.B.DE54: People who inject drugs | Client is a person who injects drugs
+ * HIV.B.DE55: People living in prisons and other closed settings | Client lives in a prison or another closed setting
+ * HIV.B.DE115: HIV status | HIV status reported after applying the national HIV testing algorithm. No single HIV test can provide an HIV-positive diagnosis.
+ * HIV.B.DE116: HIV-positive | Client is HIV-positive
+ * HIV.B.DE117: HIV-negative | Client is HIV-negative
+ * HIV.B.DE118: Unknown | Client has unknown HIV status
+ * HIV.D.DE38: On ART | Client is currently taking ART
+ * HIV.D.DE762: Currently enrolled in DSD ART model | Client currently enrolled in differentiated service delivery (DSD) ART model
+ * HIV.D.DE763: DSD ART start date | Date client started on differentiated service delivery (DSD) for ART
+ * HIV.E.DE114: Key population member type* | The type of key population that the infant's mother is included in
+ * HIV.E.DE115: Sex worker | Infant's mother is a sex worker
+ * HIV.E.DE116: People who inject drugs | Infant's mother is a person who injects drugs
+ * HIV.E.DE117: Trans and gender-diverse people | Infant's mother identifies as trans and gender-diverse
+ * HIV.E.DE118: People living in prisons and other closed setting | Infant's mother is in a prison or closed setting
+ * HIV.H.DE47: On ART | Client is currently taking ART 
+ *
+ * Additional Context
+ * - what it measures: Retention in DSD ART models among people living with HIV every 12 months after enrolment |  | This indicator is limited to facilities with electronic health information systems, as reporting would be onerous for facilities with paper-based reporting systems.
+ * - rationale: As DSD ART is scaled up, it is important to monitor retention on treatment to ensure clinical outcomes at least equivalent with conventional care.
+ * - method: EMR/electronic information systems |  | Measurement frequency: quarterly where feasible, maximum annually
+ * 
+ * Suggested Scoring Method: proportion | http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/proportion-measure-cqfm
+ */
+
+library HIVIND56Logic</a:s>
+      </a:s>
+   </annotation>
+   <identifier id="HIVIND56Logic" system="http://smart.who.int/hiv"/>
+   <schemaIdentifier id="urn:hl7-org:elm" version="r1"/>
+   <usings>
+      <def localId="1" localIdentifier="System" uri="urn:hl7-org:elm-types:r1"/>
+      <def localId="206" locator="71:1-71:26" localIdentifier="FHIR" uri="http://hl7.org/fhir" version="4.0.1">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="206">
+               <a:s>// Included Libraries
+using </a:s>
+               <a:s>
+                  <a:s>FHIR</a:s>
+               </a:s>
+               <a:s> version '4.0.1'</a:s>
+            </a:s>
+         </annotation>
+      </def>
+   </usings>
+   <includes>
+      <def localId="207" locator="73:1-73:44" localIdentifier="HIC" path="http://smart.who.int/hiv/HIVCommon" version="0.0.1">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="207">
+               <a:s>include </a:s>
+               <a:s>
+                  <a:s>HIVCommon</a:s>
+               </a:s>
+               <a:s> version '0.0.1' called HIC</a:s>
+            </a:s>
+         </annotation>
+      </def>
+      <def localId="208" locator="74:1-74:35" localIdentifier="FHIRHelpers" path="http://hl7.org/fhir/FHIRHelpers" version="4.0.1">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="208">
+               <a:s>include </a:s>
+               <a:s>
+                  <a:s>FHIRHelpers</a:s>
+               </a:s>
+               <a:s> version '4.0.1'</a:s>
+            </a:s>
+         </annotation>
+      </def>
+      <def localId="209" locator="76:1-76:29" localIdentifier="WCom" path="http://smart.who.int/hiv/WHOCommon">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="209">
+               <a:s>include </a:s>
+               <a:s>
+                  <a:s>WHOCommon</a:s>
+               </a:s>
+               <a:s> called WCom</a:s>
+            </a:s>
+         </annotation>
+      </def>
+      <def localId="210" locator="77:1-77:29" localIdentifier="HE" path="http://smart.who.int/hiv/HIVElements">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="210">
+               <a:s>include </a:s>
+               <a:s>
+                  <a:s>HIVElements</a:s>
+               </a:s>
+               <a:s> called HE</a:s>
+            </a:s>
+         </annotation>
+      </def>
+      <def localId="211" locator="78:1-78:39" localIdentifier="HIE" path="http://smart.who.int/hiv/HIVIndicatorElements">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="211">
+               <a:s>include </a:s>
+               <a:s>
+                  <a:s>HIVIndicatorElements</a:s>
+               </a:s>
+               <a:s> called HIE</a:s>
+            </a:s>
+         </annotation>
+      </def>
+      <def localId="212" locator="79:1-79:31" localIdentifier="Config" path="http://smart.who.int/hiv/HIVConfig">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="212">
+               <a:s>include </a:s>
+               <a:s>
+                  <a:s>HIVConfig</a:s>
+               </a:s>
+               <a:s> called Config</a:s>
+            </a:s>
+         </annotation>
+      </def>
+   </includes>
+   <parameters>
+      <def localId="213" locator="82:1-82:88" name="Measurement Period" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="213">
+               <a:s>// Indicator Definition
+parameter &quot;Measurement Period&quot; </a:s>
+               <a:s r="225">
+                  <a:s>Interval&lt;</a:s>
+                  <a:s r="226">
+                     <a:s>Date</a:s>
+                  </a:s>
+                  <a:s>></a:s>
+               </a:s>
+               <a:s> default </a:s>
+               <a:s r="224">
+                  <a:s r="218">Interval[@2023-01-01, @2023-01-30]</a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <default localId="224" locator="82:55-82:88" lowClosed="true" highClosed="true" xsi:type="Interval">
+            <low localId="218" locator="82:64-82:74" xsi:type="Date">
+               <year localId="215" valueType="t:Integer" value="2023" xsi:type="Literal"/>
+               <month localId="216" valueType="t:Integer" value="1" xsi:type="Literal"/>
+               <day localId="217" valueType="t:Integer" value="1" xsi:type="Literal"/>
+            </low>
+            <high localId="223" locator="82:77-82:87" xsi:type="Date">
+               <year localId="220" valueType="t:Integer" value="2023" xsi:type="Literal"/>
+               <month localId="221" valueType="t:Integer" value="1" xsi:type="Literal"/>
+               <day localId="222" valueType="t:Integer" value="30" xsi:type="Literal"/>
+            </high>
+         </default>
+         <parameterTypeSpecifier localId="225" locator="82:32-82:45" xsi:type="IntervalTypeSpecifier">
+            <pointType localId="226" locator="82:41-82:44" name="t:Date" xsi:type="NamedTypeSpecifier"/>
+         </parameterTypeSpecifier>
+      </def>
+   </parameters>
+   <contexts>
+      <def localId="230" locator="84:1-84:15" name="Patient"/>
+   </contexts>
+   <statements>
+      <def localId="228" locator="84:1-84:15" name="Patient" context="Patient">
+         <expression localId="229" xsi:type="SingletonFrom">
+            <operand localId="227" locator="84:1-84:15" dataType="fhir:Patient" templateId="http://hl7.org/fhir/StructureDefinition/Patient" xsi:type="Retrieve"/>
+         </expression>
+      </def>
+      <def localId="232" locator="91:1-92:6" name="Initial Population" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="232">
+               <a:s r="233">/* Populations */
+
+/*
+ *Initial Population
+ */
+
+define &quot;Initial Population&quot;:
+  true</a:s>
+            </a:s>
+         </annotation>
+         <expression localId="233" locator="92:3-92:6" valueType="t:Boolean" value="true" xsi:type="Literal"/>
+      </def>
+      <def localId="235" locator="102:1-106:48" name="Numerator" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="235">
+               <a:s>/**
+ * Numerator
+ * 
+ * Definition: Number of people on ART known to be on treatment 12 months after enrolling in a DSD ART model* (also at 24, 36, 48, 60 months, etc. after enrolment in the model)
+ * Calculation: COUNT of clients with &quot;HIV status&quot;='HIV-positive' AND &quot;On ART&quot;=True AND &quot;DSD ART start date&quot;>X months before reporting period end date AND &quot;Currently enrolled in DSD ART model&quot;=True |  | Reported where 'X' is 12, 24, 36, 48, or 60 months
+ */
+  
+
+define &quot;Numerator&quot;:
+  </a:s>
+               <a:s r="236">
+                  <a:s r="237">
+                     <a:s r="238">
+                        <a:s r="240">
+                           <a:s r="239">
+                              <a:s>HIE</a:s>
+                           </a:s>
+                           <a:s>.</a:s>
+                           <a:s r="240">
+                              <a:s>&quot;Has HIV-positive Status&quot;</a:s>
+                           </a:s>
+                        </a:s>
+                        <a:s>
+   and </a:s>
+                        <a:s r="242">
+                           <a:s r="241">
+                              <a:s>HIE</a:s>
+                           </a:s>
+                           <a:s>.</a:s>
+                           <a:s r="242">
+                              <a:s>&quot;On ART H.DE47&quot;</a:s>
+                           </a:s>
+                        </a:s>
+                     </a:s>
+                     <a:s>
+   and </a:s>
+                     <a:s r="243">
+                        <a:s>exists</a:s>
+                        <a:s r="267">
+                           <a:s>(</a:s>
+                           <a:s r="267">
+                              <a:s>
+                                 <a:s r="244">
+                                    <a:s r="246">
+                                       <a:s>
+                                          <a:s>HE.&quot;DSD ART start date&quot;</a:s>
+                                       </a:s>
+                                    </a:s>
+                                    <a:s> t</a:s>
+                                 </a:s>
+                              </a:s>
+                              <a:s> </a:s>
+                              <a:s r="247">
+                                 <a:s>where </a:s>
+                                 <a:s r="247">
+                                    <a:s r="248">
+                                       <a:s>months between </a:s>
+                                       <a:s r="249">
+                                          <a:s>start of </a:s>
+                                          <a:s r="250">
+                                             <a:s>t</a:s>
+                                          </a:s>
+                                       </a:s>
+                                       <a:s> and </a:s>
+                                       <a:s r="253">
+                                          <a:s>end of </a:s>
+                                          <a:s r="254">
+                                             <a:s>&quot;Measurement Period&quot;</a:s>
+                                          </a:s>
+                                       </a:s>
+                                    </a:s>
+                                    <a:s> >= </a:s>
+                                    <a:s r="261">
+                                       <a:s r="260">
+                                          <a:s>Config</a:s>
+                                       </a:s>
+                                       <a:s>.</a:s>
+                                       <a:s r="261">
+                                          <a:s>&quot;DSD Retention Interval&quot;</a:s>
+                                       </a:s>
+                                    </a:s>
+                                 </a:s>
+                              </a:s>
+                           </a:s>
+                           <a:s>)</a:s>
+                        </a:s>
+                     </a:s>
+                  </a:s>
+                  <a:s>
+   and </a:s>
+                  <a:s r="269">
+                     <a:s r="268">
+                        <a:s>HIE</a:s>
+                     </a:s>
+                     <a:s>.</a:s>
+                     <a:s r="269">
+                        <a:s>&quot;Currently enrolled in DSD ART model&quot;</a:s>
+                     </a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="236" locator="103:3-106:48" xsi:type="And">
+            <operand localId="237" locator="103:3-105:139" xsi:type="And">
+               <operand localId="238" locator="103:3-104:26" xsi:type="And">
+                  <operand localId="240" locator="103:3-103:31" name="Has HIV-positive Status" libraryName="HIE" xsi:type="ExpressionRef"/>
+                  <operand localId="242" locator="104:8-104:26" name="On ART H.DE47" libraryName="HIE" xsi:type="ExpressionRef"/>
+               </operand>
+               <operand localId="243" locator="105:8-105:139" xsi:type="Exists">
+                  <operand localId="267" locator="105:14-105:139" xsi:type="Query">
+                     <source localId="244" locator="105:15-105:39" alias="t">
+                        <expression localId="246" locator="105:15-105:37" name="DSD ART start date" libraryName="HE" xsi:type="ExpressionRef"/>
+                     </source>
+                     <where localId="247" locator="105:41-105:138" xsi:type="GreaterOrEqual">
+                        <signature localId="265" name="t:Quantity" xsi:type="NamedTypeSpecifier"/>
+                        <signature localId="266" name="t:Quantity" xsi:type="NamedTypeSpecifier"/>
+                        <operand localId="263" xsi:type="ToQuantity">
+                           <signature localId="264" name="t:Integer" xsi:type="NamedTypeSpecifier"/>
+                           <operand localId="248" locator="105:47-105:103" precision="Month" xsi:type="DurationBetween">
+                              <signature localId="258" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                              <signature localId="259" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                              <operand localId="249" locator="105:62-105:71" xsi:type="Start">
+                                 <operand localId="251" name="ToInterval" libraryName="FHIRHelpers" xsi:type="FunctionRef">
+                                    <signature localId="252" name="fhir:Period" xsi:type="NamedTypeSpecifier"/>
+                                    <operand localId="250" locator="105:71" name="t" xsi:type="AliasRef"/>
+                                 </operand>
+                              </operand>
+                              <operand localId="256" xsi:type="ToDateTime">
+                                 <signature localId="257" name="t:Date" xsi:type="NamedTypeSpecifier"/>
+                                 <operand localId="253" locator="105:77-105:103" xsi:type="End">
+                                    <operand localId="254" locator="105:84-105:103" name="Measurement Period" xsi:type="ParameterRef"/>
+                                 </operand>
+                              </operand>
+                           </operand>
+                        </operand>
+                        <operand localId="261" locator="105:108-105:138" name="DSD Retention Interval" libraryName="Config" xsi:type="ExpressionRef"/>
+                     </where>
+                  </operand>
+               </operand>
+            </operand>
+            <operand localId="269" locator="106:8-106:48" name="Currently enrolled in DSD ART model" libraryName="HIE" xsi:type="ExpressionRef"/>
+         </expression>
+      </def>
+      <def localId="271" locator="115:1-116:27" name="Numerator Exclusions" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="271">
+               <a:s>/**
+ * Numerator Exclusions
+ *
+ * Calculation: Clients with an &quot;HIV treatment outcome&quot;='Transferred out'
+ */
+    
+define &quot;Numerator Exclusions&quot;:
+  </a:s>
+               <a:s r="273">
+                  <a:s r="272">
+                     <a:s>HIE</a:s>
+                  </a:s>
+                  <a:s>.</a:s>
+                  <a:s r="273">
+                     <a:s>&quot;Has transferred out&quot;</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="273" locator="116:3-116:27" name="Has transferred out" libraryName="HIE" xsi:type="ExpressionRef"/>
+      </def>
+      <def localId="275" locator="125:1-128:139" name="Denominator" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="275">
+               <a:s>/**
+ * Denominator
+ *
+ * Definition: Number of people on ART enrolled in a DSD ART model 12 months ago, excluding individuals who transferred out (also 24, 36, 48, 60 months ago, etc.)
+ * Calculation: COUNT of clients with &quot;HIV status&quot;='HIV-positive' AND &quot;On ART&quot;=True AND &quot;DSD ART start date&quot;>X months before reporting period end date |  | Reported where 'X' is 12, 24, 36, 48, or 60 months
+ */
+
+define &quot;Denominator&quot;:
+  </a:s>
+               <a:s r="276">
+                  <a:s r="277">
+                     <a:s r="279">
+                        <a:s r="278">
+                           <a:s>HIE</a:s>
+                        </a:s>
+                        <a:s>.</a:s>
+                        <a:s r="279">
+                           <a:s>&quot;Has HIV-positive Status&quot;</a:s>
+                        </a:s>
+                     </a:s>
+                     <a:s>
+   and </a:s>
+                     <a:s r="281">
+                        <a:s r="280">
+                           <a:s>HIE</a:s>
+                        </a:s>
+                        <a:s>.</a:s>
+                        <a:s r="281">
+                           <a:s>&quot;On ART H.DE47&quot;</a:s>
+                        </a:s>
+                     </a:s>
+                  </a:s>
+                  <a:s>
+   and </a:s>
+                  <a:s r="282">
+                     <a:s>exists</a:s>
+                     <a:s r="306">
+                        <a:s>(</a:s>
+                        <a:s r="306">
+                           <a:s>
+                              <a:s r="283">
+                                 <a:s r="285">
+                                    <a:s>
+                                       <a:s>HE.&quot;DSD ART start date&quot;</a:s>
+                                    </a:s>
+                                 </a:s>
+                                 <a:s> t</a:s>
+                              </a:s>
+                           </a:s>
+                           <a:s> </a:s>
+                           <a:s r="286">
+                              <a:s>where </a:s>
+                              <a:s r="286">
+                                 <a:s r="287">
+                                    <a:s>months between </a:s>
+                                    <a:s r="288">
+                                       <a:s>start of </a:s>
+                                       <a:s r="289">
+                                          <a:s>t</a:s>
+                                       </a:s>
+                                    </a:s>
+                                    <a:s> and </a:s>
+                                    <a:s r="292">
+                                       <a:s>end of </a:s>
+                                       <a:s r="293">
+                                          <a:s>&quot;Measurement Period&quot;</a:s>
+                                       </a:s>
+                                    </a:s>
+                                 </a:s>
+                                 <a:s> >= </a:s>
+                                 <a:s r="300">
+                                    <a:s r="299">
+                                       <a:s>Config</a:s>
+                                    </a:s>
+                                    <a:s>.</a:s>
+                                    <a:s r="300">
+                                       <a:s>&quot;DSD Retention Interval&quot;</a:s>
+                                    </a:s>
+                                 </a:s>
+                              </a:s>
+                           </a:s>
+                        </a:s>
+                        <a:s>)</a:s>
+                     </a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="276" locator="126:3-128:139" xsi:type="And">
+            <operand localId="277" locator="126:3-127:26" xsi:type="And">
+               <operand localId="279" locator="126:3-126:31" name="Has HIV-positive Status" libraryName="HIE" xsi:type="ExpressionRef"/>
+               <operand localId="281" locator="127:8-127:26" name="On ART H.DE47" libraryName="HIE" xsi:type="ExpressionRef"/>
+            </operand>
+            <operand localId="282" locator="128:8-128:139" xsi:type="Exists">
+               <operand localId="306" locator="128:14-128:139" xsi:type="Query">
+                  <source localId="283" locator="128:15-128:39" alias="t">
+                     <expression localId="285" locator="128:15-128:37" name="DSD ART start date" libraryName="HE" xsi:type="ExpressionRef"/>
+                  </source>
+                  <where localId="286" locator="128:41-128:138" xsi:type="GreaterOrEqual">
+                     <signature localId="304" name="t:Quantity" xsi:type="NamedTypeSpecifier"/>
+                     <signature localId="305" name="t:Quantity" xsi:type="NamedTypeSpecifier"/>
+                     <operand localId="302" xsi:type="ToQuantity">
+                        <signature localId="303" name="t:Integer" xsi:type="NamedTypeSpecifier"/>
+                        <operand localId="287" locator="128:47-128:103" precision="Month" xsi:type="DurationBetween">
+                           <signature localId="297" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                           <signature localId="298" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                           <operand localId="288" locator="128:62-128:71" xsi:type="Start">
+                              <operand localId="290" name="ToInterval" libraryName="FHIRHelpers" xsi:type="FunctionRef">
+                                 <signature localId="291" name="fhir:Period" xsi:type="NamedTypeSpecifier"/>
+                                 <operand localId="289" locator="128:71" name="t" xsi:type="AliasRef"/>
+                              </operand>
+                           </operand>
+                           <operand localId="295" xsi:type="ToDateTime">
+                              <signature localId="296" name="t:Date" xsi:type="NamedTypeSpecifier"/>
+                              <operand localId="292" locator="128:77-128:103" xsi:type="End">
+                                 <operand localId="293" locator="128:84-128:103" name="Measurement Period" xsi:type="ParameterRef"/>
+                              </operand>
+                           </operand>
+                        </operand>
+                     </operand>
+                     <operand localId="300" locator="128:108-128:138" name="DSD Retention Interval" libraryName="Config" xsi:type="ExpressionRef"/>
+                  </where>
+               </operand>
+            </operand>
+         </expression>
+      </def>
+      <def localId="308" locator="136:1-137:27" name="Denominator Exclusions" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="308">
+               <a:s>/**
+* Denominator Exclusions
+*
+* Calculation: Clients with an &quot;HIV treatment outcome&quot;='Transferred out'
+*/
+
+define &quot;Denominator Exclusions&quot;:
+  </a:s>
+               <a:s r="310">
+                  <a:s r="309">
+                     <a:s>HIE</a:s>
+                  </a:s>
+                  <a:s>.</a:s>
+                  <a:s r="310">
+                     <a:s>&quot;Has transferred out&quot;</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="310" locator="137:3-137:27" name="Has transferred out" libraryName="HIE" xsi:type="ExpressionRef"/>
+      </def>
+      <def localId="312" locator="145:1-146:42" name="Administrative Gender Stratifier" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="312">
+               <a:s>/* end Populations */
+
+/*
+ * Disaggregators
+ */
+
+define &quot;Administrative Gender Stratifier&quot;:
+	</a:s>
+               <a:s r="314">
+                  <a:s r="313">
+                     <a:s>HIE</a:s>
+                  </a:s>
+                  <a:s>.</a:s>
+                  <a:s r="314">
+                     <a:s>&quot;By Administrative Gender Stratifier&quot;</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="314" locator="146:2-146:42" name="By Administrative Gender Stratifier" libraryName="HIE" xsi:type="ExpressionRef"/>
+      </def>
+      <def localId="316" locator="148:1-149:26" name="Age Stratifier" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="316">
+               <a:s>define &quot;Age Stratifier&quot;:
+	</a:s>
+               <a:s r="318">
+                  <a:s r="317">
+                     <a:s>HIE</a:s>
+                  </a:s>
+                  <a:s>.</a:s>
+                  <a:s r="318">
+                     <a:s>&quot;By Age Stratifier 8&quot;</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="318" locator="149:2-149:26" name="By Age Stratifier 8" libraryName="HIE" xsi:type="ExpressionRef"/>
+      </def>
+      <def localId="320" locator="151:1-152:38" name="Geographic Region Stratifier" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="320">
+               <a:s>define &quot;Geographic Region Stratifier&quot;:
+	</a:s>
+               <a:s r="322">
+                  <a:s r="321">
+                     <a:s>HIE</a:s>
+                  </a:s>
+                  <a:s>.</a:s>
+                  <a:s r="322">
+                     <a:s>&quot;By Geographic Region Stratifier&quot;</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="322" locator="152:2-152:38" name="By Geographic Region Stratifier" libraryName="HIE" xsi:type="ExpressionRef"/>
+      </def>
+      <def localId="324" locator="154:1-155:20" name="patientGroups Stratifier" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="324">
+               <a:s>define &quot;patientGroups Stratifier&quot;:
+	</a:s>
+               <a:s r="326">
+                  <a:s r="325">
+                     <a:s>HIE</a:s>
+                  </a:s>
+                  <a:s>.</a:s>
+                  <a:s r="326">
+                     <a:s>&quot;patientGroups&quot;</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="326" locator="155:2-155:20" name="patientGroups" libraryName="HIE" xsi:type="ExpressionRef"/>
+      </def>
+      <def localId="328" locator="157:1-161:33" name="Stratification" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="328">
+               <a:s>define &quot;Stratification&quot;:
+ </a:s>
+               <a:s r="365">
+                  <a:s r="356">
+                     <a:s r="349">
+                        <a:s r="345">
+                           <a:s r="340">
+                              <a:s r="336">
+                                 <a:s r="335">
+                                    <a:s r="334">
+                                       <a:s>HIE</a:s>
+                                    </a:s>
+                                    <a:s>.</a:s>
+                                    <a:s r="335">
+                                       <a:s>&quot;By Administrative Gender Stratifier&quot;</a:s>
+                                    </a:s>
+                                 </a:s>
+                                 <a:s>.</a:s>
+                                 <a:s r="336">
+                                    <a:s>code</a:s>
+                                 </a:s>
+                              </a:s>
+                              <a:s> 
+  + </a:s>
+                              <a:s r="337">
+                                 <a:s>':'</a:s>
+                              </a:s>
+                           </a:s>
+                           <a:s> + </a:s>
+                           <a:s r="342">
+                              <a:s r="341">
+                                 <a:s>HIE</a:s>
+                              </a:s>
+                              <a:s>.</a:s>
+                              <a:s r="342">
+                                 <a:s>&quot;By Age Stratifier 8&quot;</a:s>
+                              </a:s>
+                           </a:s>
+                        </a:s>
+                        <a:s>
++ </a:s>
+                        <a:s r="346">
+                           <a:s>':'</a:s>
+                        </a:s>
+                     </a:s>
+                     <a:s> + </a:s>
+                     <a:s r="351">
+                        <a:s r="350">
+                           <a:s>HIE</a:s>
+                        </a:s>
+                        <a:s>.</a:s>
+                        <a:s r="351">
+                           <a:s>&quot;By Geographic Region Stratifier&quot;</a:s>
+                        </a:s>
+                     </a:s>
+                  </a:s>
+                  <a:s>
++ </a:s>
+                  <a:s r="362">
+                     <a:s>Combine(</a:s>
+                     <a:s r="358">
+                        <a:s r="357">
+                           <a:s>HIE</a:s>
+                        </a:s>
+                        <a:s>.</a:s>
+                        <a:s r="358">
+                           <a:s>patientGroups</a:s>
+                        </a:s>
+                     </a:s>
+                     <a:s>, </a:s>
+                     <a:s r="359">
+                        <a:s>':'</a:s>
+                     </a:s>
+                     <a:s>)</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="365" locator="158:2-161:33" xsi:type="Concatenate">
+            <operand localId="356" locator="158:2-160:45" xsi:type="Concatenate">
+               <operand localId="349" locator="158:2-160:5" xsi:type="Concatenate">
+                  <operand localId="345" locator="158:2-159:35" xsi:type="Concatenate">
+                     <operand localId="340" locator="158:2-159:7" xsi:type="Concatenate">
+                        <operand localId="336" locator="158:2-158:47" path="code" xsi:type="Property">
+                           <source localId="335" locator="158:2-158:42" name="By Administrative Gender Stratifier" libraryName="HIE" xsi:type="ExpressionRef"/>
+                        </operand>
+                        <operand localId="337" locator="159:5-159:7" valueType="t:String" value=":" xsi:type="Literal"/>
+                     </operand>
+                     <operand localId="342" locator="159:11-159:35" name="By Age Stratifier 8" libraryName="HIE" xsi:type="ExpressionRef"/>
+                  </operand>
+                  <operand localId="346" locator="160:3-160:5" valueType="t:String" value=":" xsi:type="Literal"/>
+               </operand>
+               <operand localId="352" name="ToString" libraryName="FHIRHelpers" xsi:type="FunctionRef">
+                  <signature localId="353" name="fhir:string" xsi:type="NamedTypeSpecifier"/>
+                  <operand localId="351" locator="160:9-160:45" name="By Geographic Region Stratifier" libraryName="HIE" xsi:type="ExpressionRef"/>
+               </operand>
+            </operand>
+            <operand localId="362" locator="161:3-161:33" xsi:type="Combine">
+               <source localId="358" locator="161:11-161:27" name="patientGroups" libraryName="HIE" xsi:type="ExpressionRef"/>
+               <separator localId="359" locator="161:30-161:32" valueType="t:String" value=":" xsi:type="Literal"/>
+            </operand>
+         </expression>
+      </def>
+   </statements>
+</library>

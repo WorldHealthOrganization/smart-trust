@@ -1,0 +1,1441 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library xmlns="urn:hl7-org:elm:r1" xmlns:t="urn:hl7-org:elm-types:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fhir="http://hl7.org/fhir" xmlns:qdm43="urn:healthit-gov:qdm:v4_3" xmlns:qdm53="urn:healthit-gov:qdm:v5_3" xmlns:a="urn:hl7-org:cql-annotations:r1" localId="0">
+   <annotation translatorOptions="EnableAnnotations,EnableLocators,DisableListDemotion,DisableListPromotion" signatureLevel="Overloads" xsi:type="a:CqlToElmInfo"/>
+   <annotation message="An operand identifier [reference] is hiding another identifier of the same name." errorType="semantic" errorSeverity="warning" xsi:type="a:CqlToElmError"/>
+   <annotation message="An operand identifier [reference] is hiding another identifier of the same name." errorType="semantic" errorSeverity="warning" xsi:type="a:CqlToElmError"/>
+   <annotation message="An operand identifier [reference] is hiding another identifier of the same name." errorType="semantic" errorSeverity="warning" xsi:type="a:CqlToElmError"/>
+   <annotation xsi:type="a:Annotation">
+      <a:s r="454">
+         <a:s>/**
+ * Library: HIV.IND.24 Logic
+ * Ref No: HTS.7
+ * Short Name: HTS linkage to prevention
+ *
+ * Definition: Among those testing HIV-negative and identified as being at elevated risk for HIV acquisition, % of people who receive an HIV prevention intervention within defined period
+ *
+ * Numerator: Number of people who receive an HIV prevention intervention within a defined period after receiving a negative HIV test result
+ * Numerator Calculation: COUNT of clients with &quot;At elevated risk for HIV acquisition&quot;=True and with &quot;Date accessed HIV prevention intervention&quot; within X days of &quot;HIV test date&quot; in the reporting period with &quot;HIV test result&quot;='HIV-negative' |  | where X is 7, 14, or 28 days
+ * Numerator Exclusions: 
+ *
+ * Denominator: Number of people testing negative for HIV in the reporting period and identified as being at elevated risk for HIV acquisition (includes people requesting/receiving any HIV prevention intervention, people from key populations, people with known risk factors or those assessed as being at risk of HIV acquisition)
+ * Denominator Calculation: COUNT of clients with &quot;At elevated risk for HIV acquisition&quot;=True AND with an &quot;HIV test date&quot; in the reporting period with &quot;HIV test result&quot;='HIV-negative'
+ * Denominator Exclusions: 
+ *
+ * Disaggregations:
+ * • Gender (female, male, other*) 
+ *  • Age (&lt;15, 15–19, 20–24, 25–49, 50+ years)** 
+ *  • Key populations (men who have sex with men, people living in prisons and other closed settings, people who inject drugs, sex workers, trans and gender diverse people)*** 
+ *  • HIV prevention intervention (including PrEP, OAMT, NSP, STI services, VMMC) 
+ *  • Provider type (key population-led or community-led organization, public sector provider, other entities such as private for-profit and not-for-profit organizations, including faith-based, international, nongovernmental) 
+ *  • Cities and other administrative regions of epidemiologic importance
+ *
+ * Disaggregation Elements: Gender | Age | Key population member type | HIV prevention intervention
+ *
+ * Numerator and Denominator Elements:
+ * At elevated risk for HIV acquisition 
+ *  Date accessed HIV prevention intervention 
+ *  HIV test date 
+ *  HIV test result
+ *
+ * Reference: Consolidated guidelines on person-centred HIV strategic information: strengthening routine data for impact. Geneva: World Health Organization; 2022
+ * 
+ * Data Concepts:
+ * HIV.A.DE17: Age | Calculated age (number of years) of the client based on date of birth
+ * HIV.A.DE18: Gender* | Gender of the client*
+ * HIV.A.DE19: Female | Client identifies as female
+ * HIV.A.DE20: Male | Client identifies as male
+ * HIV.A.DE21: Transgender male | Client identifies as transgender male
+ * HIV.A.DE22: Transgender female | Client identifies as transgender female
+ * HIV.A.DE23: Other | Additional category
+ * HIV.B.DE50: Key population member type* | The type of key population that the client is included in
+ * HIV.B.DE51: Sex worker | Client is a sex worker
+ * HIV.B.DE52: Men who have sex with men | Client is a man who has sex with men
+ * HIV.B.DE53: Trans and gender-diverse people | Client identifies as trans and gender-diverse
+ * HIV.B.DE54: People who inject drugs | Client is a person who injects drugs
+ * HIV.B.DE55: People living in prisons and other closed settings | Client lives in a prison or another closed setting
+ * HIV.B.DE110: HIV test date | Date of the HIV test
+ * HIV.B.DE111: HIV test result | The result from HIV testing after applying the testing algorithm
+ * HIV.B.DE112: HIV-positive | Test result is HIV-positive
+ * HIV.B.DE113: HIV-negative | Test result is HIV-negative
+ * HIV.B.DE114: HIV-inconclusive | Test result is HIV-inconclusive
+ * HIV.B.DE225: At elevated risk for HIV acquisition | Client is at elevated risk for HIV acquisition
+ * HIV.E.DE114: Key population member type* | The type of key population that the infant's mother is included in
+ * HIV.E.DE115: Sex worker | Infant's mother is a sex worker
+ * HIV.E.DE116: People who inject drugs | Infant's mother is a person who injects drugs
+ * HIV.E.DE117: Trans and gender-diverse people | Infant's mother identifies as trans and gender-diverse
+ * HIV.E.DE118: People living in prisons and other closed setting | Infant's mother is in a prison or closed setting
+ * HIV.E.DE224: HIV test date | Date of the HIV test
+ * HIV.PRV.DE1: At elevated risk for HIV acquisition | Client is at elevated risk for HIV acquisition, defined according to country/programme context
+ * HIV.PRV.DE2: HIV prevention intervention | HIV prevention intervention that client accessed
+ * HIV.PRV.DE3: PrEP service | Client accessed PrEP services
+ * HIV.PRV.DE4: OAMT | Client accessed opioid agonist maintenance treatment (OAMT) services
+ * HIV.PRV.DE5: NSP | Client accessed needle-syringe programme (NSP) services
+ * HIV.PRV.DE6: STI services | Client accessed sexually transmitted infection (STI) services
+ * HIV.PRV.DE7: VMMC | Client accessed voluntary medical male circumcision (VMMC) services
+ * HIV.PRV.DE8: Other | Client accessed other HIV prevention services
+ * HIV.PRV.DE10: Date accessed HIV prevention intervention | Date the client accessed HIV prevention intervention
+ * HIV.SRV.DE1: HIV test date | Date of the HIV test
+ * HIV.SRV.DE2: HIV test result | The result from HIV testing after applying the testing algorithm
+ *
+ * Additional Context
+ * - what it measures: Measures the proportion of people receiving HIV prevention within set period (for example, same day, 7, 14 or 28 days) after receiving a negative HIV test result.
+ * - rationale: Access to HIV prevention interventions is important to reduce the risk of HIV acquisition among individuals testing HIV-negative. Ensuring individuals at ongoing risk are successfully linked to relevant HIV prevention is an important outcome following HIV testing.
+ * - method: Individual-level data obtained from programme records |  | The indicator should exclude current PrEP recipients, as they are tested on a regular basis. As ongoing PrEP recipients are engaged in prevention, the number of days to intervention uptake is 0.
+ * 
+ * Suggested Scoring Method: proportion | http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/proportion-measure-cqfm
+ */
+
+library HIVIND24Logic</a:s>
+      </a:s>
+   </annotation>
+   <identifier id="HIVIND24Logic" system="http://smart.who.int/hiv"/>
+   <schemaIdentifier id="urn:hl7-org:elm" version="r1"/>
+   <usings>
+      <def localId="1" localIdentifier="System" uri="urn:hl7-org:elm-types:r1"/>
+      <def localId="206" locator="83:1-83:26" localIdentifier="FHIR" uri="http://hl7.org/fhir" version="4.0.1">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="206">
+               <a:s>// Included Libraries
+using </a:s>
+               <a:s>
+                  <a:s>FHIR</a:s>
+               </a:s>
+               <a:s> version '4.0.1'</a:s>
+            </a:s>
+         </annotation>
+      </def>
+   </usings>
+   <includes>
+      <def localId="207" locator="85:1-85:44" localIdentifier="HIC" path="http://smart.who.int/hiv/HIVCommon" version="0.0.1">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="207">
+               <a:s>include </a:s>
+               <a:s>
+                  <a:s>HIVCommon</a:s>
+               </a:s>
+               <a:s> version '0.0.1' called HIC</a:s>
+            </a:s>
+         </annotation>
+      </def>
+      <def localId="208" locator="86:1-86:35" localIdentifier="FHIRHelpers" path="http://hl7.org/fhir/FHIRHelpers" version="4.0.1">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="208">
+               <a:s>include </a:s>
+               <a:s>
+                  <a:s>FHIRHelpers</a:s>
+               </a:s>
+               <a:s> version '4.0.1'</a:s>
+            </a:s>
+         </annotation>
+      </def>
+      <def localId="209" locator="87:1-87:29" localIdentifier="WCom" path="http://smart.who.int/hiv/WHOCommon">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="209">
+               <a:s>include </a:s>
+               <a:s>
+                  <a:s>WHOCommon</a:s>
+               </a:s>
+               <a:s> called WCom</a:s>
+            </a:s>
+         </annotation>
+      </def>
+      <def localId="210" locator="88:1-88:29" localIdentifier="HE" path="http://smart.who.int/hiv/HIVElements">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="210">
+               <a:s>include </a:s>
+               <a:s>
+                  <a:s>HIVElements</a:s>
+               </a:s>
+               <a:s> called HE</a:s>
+            </a:s>
+         </annotation>
+      </def>
+      <def localId="211" locator="89:1-89:39" localIdentifier="HIE" path="http://smart.who.int/hiv/HIVIndicatorElements">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="211">
+               <a:s>include </a:s>
+               <a:s>
+                  <a:s>HIVIndicatorElements</a:s>
+               </a:s>
+               <a:s> called HIE</a:s>
+            </a:s>
+         </annotation>
+      </def>
+   </includes>
+   <parameters>
+      <def localId="212" locator="92:1-92:88" name="Measurement Period" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="212">
+               <a:s>// Indicator Definition
+parameter &quot;Measurement Period&quot; </a:s>
+               <a:s r="224">
+                  <a:s>Interval&lt;</a:s>
+                  <a:s r="225">
+                     <a:s>Date</a:s>
+                  </a:s>
+                  <a:s>></a:s>
+               </a:s>
+               <a:s> default </a:s>
+               <a:s r="223">
+                  <a:s r="217">Interval[@2023-01-01, @2023-01-30]</a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <default localId="223" locator="92:55-92:88" lowClosed="true" highClosed="true" xsi:type="Interval">
+            <low localId="217" locator="92:64-92:74" xsi:type="Date">
+               <year localId="214" valueType="t:Integer" value="2023" xsi:type="Literal"/>
+               <month localId="215" valueType="t:Integer" value="1" xsi:type="Literal"/>
+               <day localId="216" valueType="t:Integer" value="1" xsi:type="Literal"/>
+            </low>
+            <high localId="222" locator="92:77-92:87" xsi:type="Date">
+               <year localId="219" valueType="t:Integer" value="2023" xsi:type="Literal"/>
+               <month localId="220" valueType="t:Integer" value="1" xsi:type="Literal"/>
+               <day localId="221" valueType="t:Integer" value="30" xsi:type="Literal"/>
+            </high>
+         </default>
+         <parameterTypeSpecifier localId="224" locator="92:32-92:45" xsi:type="IntervalTypeSpecifier">
+            <pointType localId="225" locator="92:41-92:44" name="t:Date" xsi:type="NamedTypeSpecifier"/>
+         </parameterTypeSpecifier>
+      </def>
+      <def localId="226" locator="93:1-93:64" name="Intervention Interval" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="226">
+               <a:s>parameter &quot;Intervention Interval&quot; </a:s>
+               <a:s r="228">
+                  <a:s>System.Quantity</a:s>
+               </a:s>
+               <a:s> default </a:s>
+               <a:s r="227">
+                  <a:s>7 days</a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <default localId="227" locator="93:59-93:64" value="7" unit="days" xsi:type="Quantity"/>
+         <parameterTypeSpecifier localId="228" locator="93:35-93:49" name="t:Quantity" xsi:type="NamedTypeSpecifier"/>
+      </def>
+   </parameters>
+   <contexts>
+      <def localId="232" locator="95:1-95:15" name="Patient"/>
+   </contexts>
+   <statements>
+      <def localId="230" locator="95:1-95:15" name="Patient" context="Patient">
+         <expression localId="231" xsi:type="SingletonFrom">
+            <operand localId="229" locator="95:1-95:15" dataType="fhir:Patient" templateId="http://hl7.org/fhir/StructureDefinition/Patient" xsi:type="Retrieve"/>
+         </expression>
+      </def>
+      <def localId="234" locator="102:1-103:6" name="Initial Population" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="234">
+               <a:s r="235">/* Populations */
+
+/*
+ *Initial Population
+ */
+
+define &quot;Initial Population&quot;:
+  true</a:s>
+            </a:s>
+         </annotation>
+         <expression localId="235" locator="103:3-103:6" valueType="t:Boolean" value="true" xsi:type="Literal"/>
+      </def>
+      <def localId="237" locator="113:1-136:52" name="Numerator" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="237">
+               <a:s>/**
+ * Numerator
+ * 
+ * Definition: Number of people who receive an HIV prevention intervention within a defined period after receiving a negative HIV test result
+ * Calculation: COUNT of clients with &quot;At elevated risk for HIV acquisition&quot;=True and with &quot;Date accessed HIV prevention intervention&quot; within X days of &quot;HIV test date&quot; in the reporting period with &quot;HIV test result&quot;='HIV-negative' |  | where X is 7, 14, or 28 days
+ */
+
+define &quot;Numerator&quot;:
+  </a:s>
+               <a:s r="238">
+                  <a:s r="239">
+                     <a:s>(</a:s>
+                     <a:s r="239">
+                        <a:s r="240">
+                           <a:s r="241">
+                              <a:s r="242">
+                                 <a:s r="243">
+                                    <a:s>exists</a:s>
+                                    <a:s r="276">
+                                       <a:s>(</a:s>
+                                       <a:s r="276">
+                                          <a:s>
+                                             <a:s r="244">
+                                                <a:s r="246">
+                                                   <a:s>
+                                                      <a:s>HE.&quot;PrEP service&quot;</a:s>
+                                                   </a:s>
+                                                </a:s>
+                                                <a:s> prep</a:s>
+                                             </a:s>
+                                          </a:s>
+                                          <a:s>
+   </a:s>
+                                          <a:s r="247">
+                                             <a:s>where </a:s>
+                                             <a:s r="247">
+                                                <a:s r="261">
+                                                   <a:s r="250">
+                                                      <a:s r="249">
+                                                         <a:s r="248">
+                                                            <a:s>prep</a:s>
+                                                         </a:s>
+                                                         <a:s>.</a:s>
+                                                         <a:s r="249">
+                                                            <a:s>effective</a:s>
+                                                         </a:s>
+                                                      </a:s>
+                                                      <a:s>.</a:s>
+                                                      <a:s r="250">
+                                                         <a:s>toInterval()</a:s>
+                                                      </a:s>
+                                                   </a:s>
+                                                   <a:s r="261"> starts before </a:s>
+                                                   <a:s r="251">
+                                                      <a:s>(</a:s>
+                                                      <a:s r="251">
+                                                         <a:s r="252">
+                                                            <a:s>start of </a:s>
+                                                            <a:s r="256">
+                                                               <a:s r="255">
+                                                                  <a:s r="254">
+                                                                     <a:s r="253">
+                                                                        <a:s>HIE</a:s>
+                                                                     </a:s>
+                                                                     <a:s>.</a:s>
+                                                                     <a:s r="254">
+                                                                        <a:s>&quot;First Negative Test within Measurement Period&quot;</a:s>
+                                                                     </a:s>
+                                                                  </a:s>
+                                                                  <a:s>.</a:s>
+                                                                  <a:s r="255">
+                                                                     <a:s>effective</a:s>
+                                                                  </a:s>
+                                                               </a:s>
+                                                               <a:s>.</a:s>
+                                                               <a:s r="256">
+                                                                  <a:s>toInterval()</a:s>
+                                                               </a:s>
+                                                            </a:s>
+                                                         </a:s>
+                                                         <a:s> + </a:s>
+                                                         <a:s r="257">
+                                                            <a:s>&quot;Intervention Interval&quot;</a:s>
+                                                         </a:s>
+                                                      </a:s>
+                                                      <a:s>)</a:s>
+                                                   </a:s>
+                                                </a:s>
+                                                <a:s>
+  and </a:s>
+                                                <a:s r="273">
+                                                   <a:s r="266">
+                                                      <a:s r="265">
+                                                         <a:s r="264">
+                                                            <a:s>prep</a:s>
+                                                         </a:s>
+                                                         <a:s>.</a:s>
+                                                         <a:s r="265">
+                                                            <a:s>effective</a:s>
+                                                         </a:s>
+                                                      </a:s>
+                                                      <a:s>.</a:s>
+                                                      <a:s r="266">
+                                                         <a:s>toInterval()</a:s>
+                                                      </a:s>
+                                                   </a:s>
+                                                   <a:s r="273"> starts after </a:s>
+                                                   <a:s r="267">
+                                                      <a:s>(</a:s>
+                                                      <a:s r="267">
+                                                         <a:s>start of </a:s>
+                                                         <a:s r="271">
+                                                            <a:s r="270">
+                                                               <a:s r="269">
+                                                                  <a:s r="268">
+                                                                     <a:s>HIE</a:s>
+                                                                  </a:s>
+                                                                  <a:s>.</a:s>
+                                                                  <a:s r="269">
+                                                                     <a:s>&quot;First Negative Test within Measurement Period&quot;</a:s>
+                                                                  </a:s>
+                                                               </a:s>
+                                                               <a:s>.</a:s>
+                                                               <a:s r="270">
+                                                                  <a:s>effective</a:s>
+                                                               </a:s>
+                                                            </a:s>
+                                                            <a:s>.</a:s>
+                                                            <a:s r="271">
+                                                               <a:s>toInterval()</a:s>
+                                                            </a:s>
+                                                         </a:s>
+                                                      </a:s>
+                                                      <a:s>)</a:s>
+                                                   </a:s>
+                                                </a:s>
+                                             </a:s>
+                                          </a:s>
+                                       </a:s>
+                                       <a:s>
+   )</a:s>
+                                    </a:s>
+                                 </a:s>
+                                 <a:s>
+  or 
+  </a:s>
+                                 <a:s r="277">
+                                    <a:s>exists</a:s>
+                                    <a:s r="310">
+                                       <a:s>(</a:s>
+                                       <a:s r="310">
+                                          <a:s>
+                                             <a:s r="278">
+                                                <a:s r="280">
+                                                   <a:s>
+                                                      <a:s>HE.&quot;OAMT&quot;</a:s>
+                                                   </a:s>
+                                                </a:s>
+                                                <a:s> t</a:s>
+                                             </a:s>
+                                          </a:s>
+                                          <a:s> </a:s>
+                                          <a:s r="281">
+                                             <a:s>where </a:s>
+                                             <a:s r="281">
+                                                <a:s r="295">
+                                                   <a:s r="282">
+                                                      <a:s>t</a:s>
+                                                   </a:s>
+                                                   <a:s r="295"> starts before </a:s>
+                                                   <a:s r="283">
+                                                      <a:s>(</a:s>
+                                                      <a:s r="283">
+                                                         <a:s r="284">
+                                                            <a:s>start of </a:s>
+                                                            <a:s r="288">
+                                                               <a:s r="287">
+                                                                  <a:s r="286">
+                                                                     <a:s r="285">
+                                                                        <a:s>HIE</a:s>
+                                                                     </a:s>
+                                                                     <a:s>.</a:s>
+                                                                     <a:s r="286">
+                                                                        <a:s>&quot;First Negative Test within Measurement Period&quot;</a:s>
+                                                                     </a:s>
+                                                                  </a:s>
+                                                                  <a:s>.</a:s>
+                                                                  <a:s r="287">
+                                                                     <a:s>effective</a:s>
+                                                                  </a:s>
+                                                               </a:s>
+                                                               <a:s>.</a:s>
+                                                               <a:s r="288">
+                                                                  <a:s>toInterval()</a:s>
+                                                               </a:s>
+                                                            </a:s>
+                                                         </a:s>
+                                                         <a:s> + </a:s>
+                                                         <a:s r="289">
+                                                            <a:s>&quot;Intervention Interval&quot;</a:s>
+                                                         </a:s>
+                                                      </a:s>
+                                                      <a:s>)</a:s>
+                                                   </a:s>
+                                                </a:s>
+                                                <a:s>
+      and </a:s>
+                                                <a:s r="307">
+                                                   <a:s r="298">
+                                                      <a:s>t</a:s>
+                                                   </a:s>
+                                                   <a:s r="307"> starts after </a:s>
+                                                   <a:s r="299">
+                                                      <a:s>(</a:s>
+                                                      <a:s r="299">
+                                                         <a:s>start of </a:s>
+                                                         <a:s r="303">
+                                                            <a:s r="302">
+                                                               <a:s r="301">
+                                                                  <a:s r="300">
+                                                                     <a:s>HIE</a:s>
+                                                                  </a:s>
+                                                                  <a:s>.</a:s>
+                                                                  <a:s r="301">
+                                                                     <a:s>&quot;First Negative Test within Measurement Period&quot;</a:s>
+                                                                  </a:s>
+                                                               </a:s>
+                                                               <a:s>.</a:s>
+                                                               <a:s r="302">
+                                                                  <a:s>effective</a:s>
+                                                               </a:s>
+                                                            </a:s>
+                                                            <a:s>.</a:s>
+                                                            <a:s r="303">
+                                                               <a:s>toInterval()</a:s>
+                                                            </a:s>
+                                                         </a:s>
+                                                      </a:s>
+                                                      <a:s>)</a:s>
+                                                   </a:s>
+                                                </a:s>
+                                             </a:s>
+                                          </a:s>
+                                       </a:s>
+                                       <a:s>)</a:s>
+                                    </a:s>
+                                 </a:s>
+                              </a:s>
+                              <a:s>
+  or 
+  // TODO: DeviceUseStatement causing translation issue
+  // exists(HE.&quot;NSP&quot; DUS where DUS.timing.toInterval() starts before (start of HIE.&quot;First Negative Test within Measurement Period&quot;.effective.toInterval() + &quot;Intervention Interval&quot;)
+  // and DUS.timing.toInterval() starts after (start of HIE.&quot;First Negative Test within Measurement Period&quot;.effective.toInterval()))
+  // or 
+  </a:s>
+                              <a:s r="313">
+                                 <a:s>exists</a:s>
+                                 <a:s r="346">
+                                    <a:s>(</a:s>
+                                    <a:s r="346">
+                                       <a:s>
+                                          <a:s r="314">
+                                             <a:s r="316">
+                                                <a:s>
+                                                   <a:s>HE.&quot;STI services&quot;</a:s>
+                                                </a:s>
+                                             </a:s>
+                                             <a:s> STI</a:s>
+                                          </a:s>
+                                       </a:s>
+                                       <a:s> </a:s>
+                                       <a:s r="317">
+                                          <a:s>where </a:s>
+                                          <a:s r="317">
+                                             <a:s r="331">
+                                                <a:s r="320">
+                                                   <a:s r="319">
+                                                      <a:s r="318">
+                                                         <a:s>STI</a:s>
+                                                      </a:s>
+                                                      <a:s>.</a:s>
+                                                      <a:s r="319">
+                                                         <a:s>performed</a:s>
+                                                      </a:s>
+                                                   </a:s>
+                                                   <a:s>.</a:s>
+                                                   <a:s r="320">
+                                                      <a:s>toInterval()</a:s>
+                                                   </a:s>
+                                                </a:s>
+                                                <a:s r="331"> starts before </a:s>
+                                                <a:s r="321">
+                                                   <a:s>(</a:s>
+                                                   <a:s r="321">
+                                                      <a:s r="322">
+                                                         <a:s>start of </a:s>
+                                                         <a:s r="326">
+                                                            <a:s r="325">
+                                                               <a:s r="324">
+                                                                  <a:s r="323">
+                                                                     <a:s>HIE</a:s>
+                                                                  </a:s>
+                                                                  <a:s>.</a:s>
+                                                                  <a:s r="324">
+                                                                     <a:s>&quot;First Negative Test within Measurement Period&quot;</a:s>
+                                                                  </a:s>
+                                                               </a:s>
+                                                               <a:s>.</a:s>
+                                                               <a:s r="325">
+                                                                  <a:s>effective</a:s>
+                                                               </a:s>
+                                                            </a:s>
+                                                            <a:s>.</a:s>
+                                                            <a:s r="326">
+                                                               <a:s>toInterval()</a:s>
+                                                            </a:s>
+                                                         </a:s>
+                                                      </a:s>
+                                                      <a:s> + </a:s>
+                                                      <a:s r="327">
+                                                         <a:s>&quot;Intervention Interval&quot;</a:s>
+                                                      </a:s>
+                                                   </a:s>
+                                                   <a:s>)</a:s>
+                                                </a:s>
+                                             </a:s>
+                                             <a:s>
+  and </a:s>
+                                             <a:s r="343">
+                                                <a:s r="336">
+                                                   <a:s r="335">
+                                                      <a:s r="334">
+                                                         <a:s>STI</a:s>
+                                                      </a:s>
+                                                      <a:s>.</a:s>
+                                                      <a:s r="335">
+                                                         <a:s>performed</a:s>
+                                                      </a:s>
+                                                   </a:s>
+                                                   <a:s>.</a:s>
+                                                   <a:s r="336">
+                                                      <a:s>toInterval()</a:s>
+                                                   </a:s>
+                                                </a:s>
+                                                <a:s r="343"> starts after </a:s>
+                                                <a:s r="337">
+                                                   <a:s>(</a:s>
+                                                   <a:s r="337">
+                                                      <a:s>start of </a:s>
+                                                      <a:s r="341">
+                                                         <a:s r="340">
+                                                            <a:s r="339">
+                                                               <a:s r="338">
+                                                                  <a:s>HIE</a:s>
+                                                               </a:s>
+                                                               <a:s>.</a:s>
+                                                               <a:s r="339">
+                                                                  <a:s>&quot;First Negative Test within Measurement Period&quot;</a:s>
+                                                               </a:s>
+                                                            </a:s>
+                                                            <a:s>.</a:s>
+                                                            <a:s r="340">
+                                                               <a:s>effective</a:s>
+                                                            </a:s>
+                                                         </a:s>
+                                                         <a:s>.</a:s>
+                                                         <a:s r="341">
+                                                            <a:s>toInterval()</a:s>
+                                                         </a:s>
+                                                      </a:s>
+                                                   </a:s>
+                                                   <a:s>)</a:s>
+                                                </a:s>
+                                             </a:s>
+                                          </a:s>
+                                       </a:s>
+                                    </a:s>
+                                    <a:s>)</a:s>
+                                 </a:s>
+                              </a:s>
+                           </a:s>
+                           <a:s>
+  or 
+  </a:s>
+                           <a:s r="349">
+                              <a:s>exists</a:s>
+                              <a:s r="382">
+                                 <a:s>(</a:s>
+                                 <a:s r="382">
+                                    <a:s>
+                                       <a:s r="350">
+                                          <a:s r="352">
+                                             <a:s>
+                                                <a:s>HE.&quot;VMMC&quot;</a:s>
+                                             </a:s>
+                                          </a:s>
+                                          <a:s> V</a:s>
+                                       </a:s>
+                                    </a:s>
+                                    <a:s> </a:s>
+                                    <a:s r="353">
+                                       <a:s>where </a:s>
+                                       <a:s r="353">
+                                          <a:s r="367">
+                                             <a:s r="356">
+                                                <a:s r="355">
+                                                   <a:s r="354">
+                                                      <a:s>V</a:s>
+                                                   </a:s>
+                                                   <a:s>.</a:s>
+                                                   <a:s r="355">
+                                                      <a:s>performed</a:s>
+                                                   </a:s>
+                                                </a:s>
+                                                <a:s>.</a:s>
+                                                <a:s r="356">
+                                                   <a:s>toInterval()</a:s>
+                                                </a:s>
+                                             </a:s>
+                                             <a:s r="367"> starts before </a:s>
+                                             <a:s r="357">
+                                                <a:s>(</a:s>
+                                                <a:s r="357">
+                                                   <a:s r="358">
+                                                      <a:s>start of </a:s>
+                                                      <a:s r="362">
+                                                         <a:s r="361">
+                                                            <a:s r="360">
+                                                               <a:s r="359">
+                                                                  <a:s>HIE</a:s>
+                                                               </a:s>
+                                                               <a:s>.</a:s>
+                                                               <a:s r="360">
+                                                                  <a:s>&quot;First Negative Test within Measurement Period&quot;</a:s>
+                                                               </a:s>
+                                                            </a:s>
+                                                            <a:s>.</a:s>
+                                                            <a:s r="361">
+                                                               <a:s>effective</a:s>
+                                                            </a:s>
+                                                         </a:s>
+                                                         <a:s>.</a:s>
+                                                         <a:s r="362">
+                                                            <a:s>toInterval()</a:s>
+                                                         </a:s>
+                                                      </a:s>
+                                                   </a:s>
+                                                   <a:s> + </a:s>
+                                                   <a:s r="363">
+                                                      <a:s>&quot;Intervention Interval&quot;</a:s>
+                                                   </a:s>
+                                                </a:s>
+                                                <a:s>)</a:s>
+                                             </a:s>
+                                          </a:s>
+                                          <a:s>
+  and </a:s>
+                                          <a:s r="379">
+                                             <a:s r="372">
+                                                <a:s r="371">
+                                                   <a:s r="370">
+                                                      <a:s>V</a:s>
+                                                   </a:s>
+                                                   <a:s>.</a:s>
+                                                   <a:s r="371">
+                                                      <a:s>performed</a:s>
+                                                   </a:s>
+                                                </a:s>
+                                                <a:s>.</a:s>
+                                                <a:s r="372">
+                                                   <a:s>toInterval()</a:s>
+                                                </a:s>
+                                             </a:s>
+                                             <a:s r="379"> starts after </a:s>
+                                             <a:s r="373">
+                                                <a:s>(</a:s>
+                                                <a:s r="373">
+                                                   <a:s>start of </a:s>
+                                                   <a:s r="377">
+                                                      <a:s r="376">
+                                                         <a:s r="375">
+                                                            <a:s r="374">
+                                                               <a:s>HIE</a:s>
+                                                            </a:s>
+                                                            <a:s>.</a:s>
+                                                            <a:s r="375">
+                                                               <a:s>&quot;First Negative Test within Measurement Period&quot;</a:s>
+                                                            </a:s>
+                                                         </a:s>
+                                                         <a:s>.</a:s>
+                                                         <a:s r="376">
+                                                            <a:s>effective</a:s>
+                                                         </a:s>
+                                                      </a:s>
+                                                      <a:s>.</a:s>
+                                                      <a:s r="377">
+                                                         <a:s>toInterval()</a:s>
+                                                      </a:s>
+                                                   </a:s>
+                                                </a:s>
+                                                <a:s>)</a:s>
+                                             </a:s>
+                                          </a:s>
+                                       </a:s>
+                                    </a:s>
+                                 </a:s>
+                                 <a:s>)</a:s>
+                              </a:s>
+                           </a:s>
+                        </a:s>
+                        <a:s>
+  or
+  </a:s>
+                        <a:s r="385">
+                           <a:s>exists</a:s>
+                           <a:s r="418">
+                              <a:s>(</a:s>
+                              <a:s r="418">
+                                 <a:s>
+                                    <a:s r="386">
+                                       <a:s r="388">
+                                          <a:s>
+                                             <a:s>HE.&quot;Other PRV.DE8&quot;</a:s>
+                                          </a:s>
+                                       </a:s>
+                                       <a:s> O</a:s>
+                                    </a:s>
+                                 </a:s>
+                                 <a:s>
+    </a:s>
+                                 <a:s r="389">
+                                    <a:s>where </a:s>
+                                    <a:s r="389">
+                                       <a:s r="403">
+                                          <a:s r="392">
+                                             <a:s r="391">
+                                                <a:s r="390">
+                                                   <a:s>O</a:s>
+                                                </a:s>
+                                                <a:s>.</a:s>
+                                                <a:s r="391">
+                                                   <a:s>effective</a:s>
+                                                </a:s>
+                                             </a:s>
+                                             <a:s>.</a:s>
+                                             <a:s r="392">
+                                                <a:s>toInterval()</a:s>
+                                             </a:s>
+                                          </a:s>
+                                          <a:s r="403"> starts before </a:s>
+                                          <a:s r="393">
+                                             <a:s>(</a:s>
+                                             <a:s r="393">
+                                                <a:s r="394">
+                                                   <a:s>start of </a:s>
+                                                   <a:s r="398">
+                                                      <a:s r="397">
+                                                         <a:s r="396">
+                                                            <a:s r="395">
+                                                               <a:s>HIE</a:s>
+                                                            </a:s>
+                                                            <a:s>.</a:s>
+                                                            <a:s r="396">
+                                                               <a:s>&quot;First Negative Test within Measurement Period&quot;</a:s>
+                                                            </a:s>
+                                                         </a:s>
+                                                         <a:s>.</a:s>
+                                                         <a:s r="397">
+                                                            <a:s>effective</a:s>
+                                                         </a:s>
+                                                      </a:s>
+                                                      <a:s>.</a:s>
+                                                      <a:s r="398">
+                                                         <a:s>toInterval()</a:s>
+                                                      </a:s>
+                                                   </a:s>
+                                                </a:s>
+                                                <a:s> + </a:s>
+                                                <a:s r="399">
+                                                   <a:s>&quot;Intervention Interval&quot;</a:s>
+                                                </a:s>
+                                             </a:s>
+                                             <a:s>)</a:s>
+                                          </a:s>
+                                       </a:s>
+                                       <a:s>
+    and </a:s>
+                                       <a:s r="415">
+                                          <a:s r="408">
+                                             <a:s r="407">
+                                                <a:s r="406">
+                                                   <a:s>O</a:s>
+                                                </a:s>
+                                                <a:s>.</a:s>
+                                                <a:s r="407">
+                                                   <a:s>effective</a:s>
+                                                </a:s>
+                                             </a:s>
+                                             <a:s>.</a:s>
+                                             <a:s r="408">
+                                                <a:s>toInterval()</a:s>
+                                             </a:s>
+                                          </a:s>
+                                          <a:s r="415"> starts after </a:s>
+                                          <a:s r="409">
+                                             <a:s>(</a:s>
+                                             <a:s r="409">
+                                                <a:s>start of </a:s>
+                                                <a:s r="413">
+                                                   <a:s r="412">
+                                                      <a:s r="411">
+                                                         <a:s r="410">
+                                                            <a:s>HIE</a:s>
+                                                         </a:s>
+                                                         <a:s>.</a:s>
+                                                         <a:s r="411">
+                                                            <a:s>&quot;First Negative Test within Measurement Period&quot;</a:s>
+                                                         </a:s>
+                                                      </a:s>
+                                                      <a:s>.</a:s>
+                                                      <a:s r="412">
+                                                         <a:s>effective</a:s>
+                                                      </a:s>
+                                                   </a:s>
+                                                   <a:s>.</a:s>
+                                                   <a:s r="413">
+                                                      <a:s>toInterval()</a:s>
+                                                   </a:s>
+                                                </a:s>
+                                             </a:s>
+                                             <a:s>)</a:s>
+                                          </a:s>
+                                       </a:s>
+                                    </a:s>
+                                 </a:s>
+                              </a:s>
+                              <a:s>)</a:s>
+                           </a:s>
+                        </a:s>
+                     </a:s>
+                     <a:s>)</a:s>
+                  </a:s>
+                  <a:s>
+  and
+  </a:s>
+                  <a:s r="422">
+                     <a:s r="421">
+                        <a:s>HIE</a:s>
+                     </a:s>
+                     <a:s>.</a:s>
+                     <a:s r="422">
+                        <a:s>&quot;At elevated risk for HIV acquisition B.DE225&quot;</a:s>
+                     </a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="238" locator="114:3-136:52" xsi:type="And">
+            <operand localId="239" locator="114:3-134:133" xsi:type="Or">
+               <operand localId="240" locator="114:4-130:130" xsi:type="Or">
+                  <operand localId="241" locator="114:4-127:132" xsi:type="Or">
+                     <operand localId="242" locator="114:4-120:111" xsi:type="Or">
+                        <operand localId="243" locator="114:4-117:4" xsi:type="Exists">
+                           <operand localId="276" locator="114:10-117:4" xsi:type="Query">
+                              <source localId="244" locator="114:11-114:32" alias="prep">
+                                 <expression localId="246" locator="114:11-114:27" name="PrEP service" libraryName="HE" xsi:type="ExpressionRef"/>
+                              </source>
+                              <where localId="247" locator="115:4-116:132" xsi:type="And">
+                                 <operand localId="261" locator="115:10-115:162" xsi:type="Before">
+                                    <signature localId="262" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                    <signature localId="263" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                    <operand localId="260" locator="115:38-115:43" xsi:type="Start">
+                                       <operand localId="250" locator="115:10-115:36" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                          <operand localId="249" locator="115:10-115:23" path="effective" scope="prep" xsi:type="Property"/>
+                                       </operand>
+                                    </operand>
+                                    <operand localId="251" locator="115:52-115:162" xsi:type="Add">
+                                       <signature localId="258" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                       <signature localId="259" name="t:Quantity" xsi:type="NamedTypeSpecifier"/>
+                                       <operand localId="252" locator="115:53-115:135" xsi:type="Start">
+                                          <operand localId="256" locator="115:62-115:135" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                             <operand localId="255" locator="115:62-115:122" path="effective" xsi:type="Property">
+                                                <source localId="254" locator="115:62-115:112" name="First Negative Test within Measurement Period" libraryName="HIE" xsi:type="ExpressionRef"/>
+                                             </operand>
+                                          </operand>
+                                       </operand>
+                                       <operand localId="257" locator="115:139-115:161" name="Intervention Interval" xsi:type="ParameterRef"/>
+                                    </operand>
+                                 </operand>
+                                 <operand localId="273" locator="116:7-116:132" xsi:type="After">
+                                    <signature localId="274" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                    <signature localId="275" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                    <operand localId="272" locator="116:35-116:40" xsi:type="Start">
+                                       <operand localId="266" locator="116:7-116:33" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                          <operand localId="265" locator="116:7-116:20" path="effective" scope="prep" xsi:type="Property"/>
+                                       </operand>
+                                    </operand>
+                                    <operand localId="267" locator="116:48-116:132" xsi:type="Start">
+                                       <operand localId="271" locator="116:58-116:131" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                          <operand localId="270" locator="116:58-116:118" path="effective" xsi:type="Property">
+                                             <source localId="269" locator="116:58-116:108" name="First Negative Test within Measurement Period" libraryName="HIE" xsi:type="ExpressionRef"/>
+                                          </operand>
+                                       </operand>
+                                    </operand>
+                                 </operand>
+                              </where>
+                           </operand>
+                        </operand>
+                        <operand localId="277" locator="119:3-120:111" xsi:type="Exists">
+                           <signature localId="311" xsi:type="ListTypeSpecifier">
+                              <elementType localId="312" name="fhir:Period" xsi:type="NamedTypeSpecifier"/>
+                           </signature>
+                           <operand localId="310" locator="119:9-120:111" xsi:type="Query">
+                              <source localId="278" locator="119:10-119:20" alias="t">
+                                 <expression localId="280" locator="119:10-119:18" name="OAMT" libraryName="HE" xsi:type="ExpressionRef"/>
+                              </source>
+                              <where localId="281" locator="119:22-120:110" xsi:type="And">
+                                 <operand localId="295" locator="119:28-119:154" xsi:type="Before">
+                                    <signature localId="296" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                    <signature localId="297" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                    <operand localId="292" locator="119:30-119:35" xsi:type="Start">
+                                       <operand localId="293" name="ToInterval" libraryName="FHIRHelpers" xsi:type="FunctionRef">
+                                          <signature localId="294" name="fhir:Period" xsi:type="NamedTypeSpecifier"/>
+                                          <operand localId="282" locator="119:28" name="t" xsi:type="AliasRef"/>
+                                       </operand>
+                                    </operand>
+                                    <operand localId="283" locator="119:44-119:154" xsi:type="Add">
+                                       <signature localId="290" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                       <signature localId="291" name="t:Quantity" xsi:type="NamedTypeSpecifier"/>
+                                       <operand localId="284" locator="119:45-119:127" xsi:type="Start">
+                                          <operand localId="288" locator="119:54-119:127" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                             <operand localId="287" locator="119:54-119:114" path="effective" xsi:type="Property">
+                                                <source localId="286" locator="119:54-119:104" name="First Negative Test within Measurement Period" libraryName="HIE" xsi:type="ExpressionRef"/>
+                                             </operand>
+                                          </operand>
+                                       </operand>
+                                       <operand localId="289" locator="119:131-119:153" name="Intervention Interval" xsi:type="ParameterRef"/>
+                                    </operand>
+                                 </operand>
+                                 <operand localId="307" locator="120:11-120:110" xsi:type="After">
+                                    <signature localId="308" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                    <signature localId="309" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                    <operand localId="304" locator="120:13-120:18" xsi:type="Start">
+                                       <operand localId="305" name="ToInterval" libraryName="FHIRHelpers" xsi:type="FunctionRef">
+                                          <signature localId="306" name="fhir:Period" xsi:type="NamedTypeSpecifier"/>
+                                          <operand localId="298" locator="120:11" name="t" xsi:type="AliasRef"/>
+                                       </operand>
+                                    </operand>
+                                    <operand localId="299" locator="120:26-120:110" xsi:type="Start">
+                                       <operand localId="303" locator="120:36-120:109" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                          <operand localId="302" locator="120:36-120:96" path="effective" xsi:type="Property">
+                                             <source localId="301" locator="120:36-120:86" name="First Negative Test within Measurement Period" libraryName="HIE" xsi:type="ExpressionRef"/>
+                                          </operand>
+                                       </operand>
+                                    </operand>
+                                 </operand>
+                              </where>
+                           </operand>
+                        </operand>
+                     </operand>
+                     <operand localId="313" locator="126:3-127:132" xsi:type="Exists">
+                        <signature localId="347" xsi:type="ListTypeSpecifier">
+                           <elementType localId="348" name="fhir:Procedure" xsi:type="NamedTypeSpecifier"/>
+                        </signature>
+                        <operand localId="346" locator="126:9-127:132" xsi:type="Query">
+                           <source localId="314" locator="126:10-126:30" alias="STI">
+                              <expression localId="316" locator="126:10-126:26" name="STI services" libraryName="HE" xsi:type="ExpressionRef"/>
+                           </source>
+                           <where localId="317" locator="126:32-127:131" xsi:type="And">
+                              <operand localId="331" locator="126:38-126:189" xsi:type="Before">
+                                 <signature localId="332" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                 <signature localId="333" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                 <operand localId="330" locator="126:65-126:70" xsi:type="Start">
+                                    <operand localId="320" locator="126:38-126:63" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                       <operand localId="319" locator="126:38-126:50" path="performed" scope="STI" xsi:type="Property"/>
+                                    </operand>
+                                 </operand>
+                                 <operand localId="321" locator="126:79-126:189" xsi:type="Add">
+                                    <signature localId="328" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                    <signature localId="329" name="t:Quantity" xsi:type="NamedTypeSpecifier"/>
+                                    <operand localId="322" locator="126:80-126:162" xsi:type="Start">
+                                       <operand localId="326" locator="126:89-126:162" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                          <operand localId="325" locator="126:89-126:149" path="effective" xsi:type="Property">
+                                             <source localId="324" locator="126:89-126:139" name="First Negative Test within Measurement Period" libraryName="HIE" xsi:type="ExpressionRef"/>
+                                          </operand>
+                                       </operand>
+                                    </operand>
+                                    <operand localId="327" locator="126:166-126:188" name="Intervention Interval" xsi:type="ParameterRef"/>
+                                 </operand>
+                              </operand>
+                              <operand localId="343" locator="127:7-127:131" xsi:type="After">
+                                 <signature localId="344" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                 <signature localId="345" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                 <operand localId="342" locator="127:34-127:39" xsi:type="Start">
+                                    <operand localId="336" locator="127:7-127:32" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                       <operand localId="335" locator="127:7-127:19" path="performed" scope="STI" xsi:type="Property"/>
+                                    </operand>
+                                 </operand>
+                                 <operand localId="337" locator="127:47-127:131" xsi:type="Start">
+                                    <operand localId="341" locator="127:57-127:130" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                       <operand localId="340" locator="127:57-127:117" path="effective" xsi:type="Property">
+                                          <source localId="339" locator="127:57-127:107" name="First Negative Test within Measurement Period" libraryName="HIE" xsi:type="ExpressionRef"/>
+                                       </operand>
+                                    </operand>
+                                 </operand>
+                              </operand>
+                           </where>
+                        </operand>
+                     </operand>
+                  </operand>
+                  <operand localId="349" locator="129:3-130:130" xsi:type="Exists">
+                     <signature localId="383" xsi:type="ListTypeSpecifier">
+                        <elementType localId="384" name="fhir:Procedure" xsi:type="NamedTypeSpecifier"/>
+                     </signature>
+                     <operand localId="382" locator="129:9-130:130" xsi:type="Query">
+                        <source localId="350" locator="129:10-129:20" alias="V">
+                           <expression localId="352" locator="129:10-129:18" name="VMMC" libraryName="HE" xsi:type="ExpressionRef"/>
+                        </source>
+                        <where localId="353" locator="129:22-130:129" xsi:type="And">
+                           <operand localId="367" locator="129:28-129:177" xsi:type="Before">
+                              <signature localId="368" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                              <signature localId="369" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                              <operand localId="366" locator="129:53-129:58" xsi:type="Start">
+                                 <operand localId="356" locator="129:28-129:51" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                    <operand localId="355" locator="129:28-129:38" path="performed" scope="V" xsi:type="Property"/>
+                                 </operand>
+                              </operand>
+                              <operand localId="357" locator="129:67-129:177" xsi:type="Add">
+                                 <signature localId="364" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                                 <signature localId="365" name="t:Quantity" xsi:type="NamedTypeSpecifier"/>
+                                 <operand localId="358" locator="129:68-129:150" xsi:type="Start">
+                                    <operand localId="362" locator="129:77-129:150" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                       <operand localId="361" locator="129:77-129:137" path="effective" xsi:type="Property">
+                                          <source localId="360" locator="129:77-129:127" name="First Negative Test within Measurement Period" libraryName="HIE" xsi:type="ExpressionRef"/>
+                                       </operand>
+                                    </operand>
+                                 </operand>
+                                 <operand localId="363" locator="129:154-129:176" name="Intervention Interval" xsi:type="ParameterRef"/>
+                              </operand>
+                           </operand>
+                           <operand localId="379" locator="130:7-130:129" xsi:type="After">
+                              <signature localId="380" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                              <signature localId="381" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                              <operand localId="378" locator="130:32-130:37" xsi:type="Start">
+                                 <operand localId="372" locator="130:7-130:30" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                    <operand localId="371" locator="130:7-130:17" path="performed" scope="V" xsi:type="Property"/>
+                                 </operand>
+                              </operand>
+                              <operand localId="373" locator="130:45-130:129" xsi:type="Start">
+                                 <operand localId="377" locator="130:55-130:128" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                    <operand localId="376" locator="130:55-130:115" path="effective" xsi:type="Property">
+                                       <source localId="375" locator="130:55-130:105" name="First Negative Test within Measurement Period" libraryName="HIE" xsi:type="ExpressionRef"/>
+                                    </operand>
+                                 </operand>
+                              </operand>
+                           </operand>
+                        </where>
+                     </operand>
+                  </operand>
+               </operand>
+               <operand localId="385" locator="132:3-134:132" xsi:type="Exists">
+                  <signature localId="419" xsi:type="ListTypeSpecifier">
+                     <elementType localId="420" name="fhir:Observation" xsi:type="NamedTypeSpecifier"/>
+                  </signature>
+                  <operand localId="418" locator="132:9-134:132" xsi:type="Query">
+                     <source localId="386" locator="132:10-132:29" alias="O">
+                        <expression localId="388" locator="132:10-132:27" name="Other PRV.DE8" libraryName="HE" xsi:type="ExpressionRef"/>
+                     </source>
+                     <where localId="389" locator="133:5-134:131" xsi:type="And">
+                        <operand localId="403" locator="133:11-133:160" xsi:type="Before">
+                           <signature localId="404" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                           <signature localId="405" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                           <operand localId="402" locator="133:36-133:41" xsi:type="Start">
+                              <operand localId="392" locator="133:11-133:34" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                 <operand localId="391" locator="133:11-133:21" path="effective" scope="O" xsi:type="Property"/>
+                              </operand>
+                           </operand>
+                           <operand localId="393" locator="133:50-133:160" xsi:type="Add">
+                              <signature localId="400" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                              <signature localId="401" name="t:Quantity" xsi:type="NamedTypeSpecifier"/>
+                              <operand localId="394" locator="133:51-133:133" xsi:type="Start">
+                                 <operand localId="398" locator="133:60-133:133" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                    <operand localId="397" locator="133:60-133:120" path="effective" xsi:type="Property">
+                                       <source localId="396" locator="133:60-133:110" name="First Negative Test within Measurement Period" libraryName="HIE" xsi:type="ExpressionRef"/>
+                                    </operand>
+                                 </operand>
+                              </operand>
+                              <operand localId="399" locator="133:137-133:159" name="Intervention Interval" xsi:type="ParameterRef"/>
+                           </operand>
+                        </operand>
+                        <operand localId="415" locator="134:9-134:131" xsi:type="After">
+                           <signature localId="416" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                           <signature localId="417" name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+                           <operand localId="414" locator="134:34-134:39" xsi:type="Start">
+                              <operand localId="408" locator="134:9-134:32" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                 <operand localId="407" locator="134:9-134:19" path="effective" scope="O" xsi:type="Property"/>
+                              </operand>
+                           </operand>
+                           <operand localId="409" locator="134:47-134:131" xsi:type="Start">
+                              <operand localId="413" locator="134:57-134:130" name="toInterval" libraryName="WCom" xsi:type="FunctionRef">
+                                 <operand localId="412" locator="134:57-134:117" path="effective" xsi:type="Property">
+                                    <source localId="411" locator="134:57-134:107" name="First Negative Test within Measurement Period" libraryName="HIE" xsi:type="ExpressionRef"/>
+                                 </operand>
+                              </operand>
+                           </operand>
+                        </operand>
+                     </where>
+                  </operand>
+               </operand>
+            </operand>
+            <operand localId="422" locator="136:3-136:52" name="At elevated risk for HIV acquisition B.DE225" libraryName="HIE" xsi:type="ExpressionRef"/>
+         </expression>
+      </def>
+      <def localId="424" locator="147:1-149:56" name="Denominator" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="424">
+               <a:s>/**
+ * Denominator
+ *
+ * Definition: Number of people testing negative for HIV in the reporting period and identified as being at elevated risk for HIV acquisition (includes people requesting/receiving any HIV prevention intervention, people from key populations, people with known risk factors or those assessed as being at risk of HIV acquisition)
+ * Calculation: COUNT of clients with &quot;At elevated risk for HIV acquisition&quot;=True AND with an &quot;HIV test date&quot; in the reporting period with &quot;HIV test result&quot;='HIV-negative'
+ */
+
+define &quot;Denominator&quot;:
+  </a:s>
+               <a:s r="425">
+                  <a:s r="426">
+                     <a:s>exists</a:s>
+                     <a:s r="428">
+                        <a:s>(</a:s>
+                        <a:s r="428">
+                           <a:s r="427">
+                              <a:s>HIE</a:s>
+                           </a:s>
+                           <a:s>.</a:s>
+                           <a:s r="428">
+                              <a:s>&quot;Negative Tests within Measurement Period&quot;</a:s>
+                           </a:s>
+                        </a:s>
+                        <a:s>)</a:s>
+                     </a:s>
+                  </a:s>
+                  <a:s>
+  and </a:s>
+                  <a:s r="432">
+                     <a:s r="431">
+                        <a:s>HIE</a:s>
+                     </a:s>
+                     <a:s>.</a:s>
+                     <a:s r="432">
+                        <a:s>&quot;At elevated risk for HIV acquisition B.DE225&quot;</a:s>
+                     </a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="425" locator="148:3-149:56" xsi:type="And">
+            <operand localId="426" locator="148:3-148:56" xsi:type="Exists">
+               <signature localId="429" xsi:type="ListTypeSpecifier">
+                  <elementType localId="430" name="fhir:Observation" xsi:type="NamedTypeSpecifier"/>
+               </signature>
+               <operand localId="428" locator="148:9-148:56" name="Negative Tests within Measurement Period" libraryName="HIE" xsi:type="ExpressionRef"/>
+            </operand>
+            <operand localId="432" locator="149:7-149:56" name="At elevated risk for HIV acquisition B.DE225" libraryName="HIE" xsi:type="ExpressionRef"/>
+         </expression>
+      </def>
+      <def localId="434" locator="159:1-160:42" name="Administrative Gender Stratifier" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="434">
+               <a:s>/* end Populations */
+
+
+/*
+ * Disaggregators
+ */
+
+define &quot;Administrative Gender Stratifier&quot;:
+	</a:s>
+               <a:s r="436">
+                  <a:s r="435">
+                     <a:s>HIE</a:s>
+                  </a:s>
+                  <a:s>.</a:s>
+                  <a:s r="436">
+                     <a:s>&quot;By Administrative Gender Stratifier&quot;</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="436" locator="160:2-160:42" name="By Administrative Gender Stratifier" libraryName="HIE" xsi:type="ExpressionRef"/>
+      </def>
+      <def localId="438" locator="162:1-163:26" name="Age Stratifier" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="438">
+               <a:s>define &quot;Age Stratifier&quot;:
+	</a:s>
+               <a:s r="440">
+                  <a:s r="439">
+                     <a:s>HIE</a:s>
+                  </a:s>
+                  <a:s>.</a:s>
+                  <a:s r="440">
+                     <a:s>&quot;By Age Stratifier 5&quot;</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="440" locator="163:2-163:26" name="By Age Stratifier 5" libraryName="HIE" xsi:type="ExpressionRef"/>
+      </def>
+      <def localId="442" locator="165:1-166:38" name="Geographic Region Stratifier" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="442">
+               <a:s>define &quot;Geographic Region Stratifier&quot;:
+	</a:s>
+               <a:s r="444">
+                  <a:s r="443">
+                     <a:s>HIE</a:s>
+                  </a:s>
+                  <a:s>.</a:s>
+                  <a:s r="444">
+                     <a:s>&quot;By Geographic Region Stratifier&quot;</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="444" locator="166:2-166:38" name="By Geographic Region Stratifier" libraryName="HIE" xsi:type="ExpressionRef"/>
+      </def>
+      <def localId="446" locator="168:1-169:20" name="patientGroups Stratifier" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="446">
+               <a:s>define &quot;patientGroups Stratifier&quot;:
+	</a:s>
+               <a:s r="448">
+                  <a:s r="447">
+                     <a:s>HIE</a:s>
+                  </a:s>
+                  <a:s>.</a:s>
+                  <a:s r="448">
+                     <a:s>&quot;patientGroups&quot;</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="448" locator="169:2-169:20" name="patientGroups" libraryName="HIE" xsi:type="ExpressionRef"/>
+      </def>
+      <def localId="450" locator="171:1-172:34" name="HIV prevention intervention" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="450">
+               <a:s>define &quot;HIV prevention intervention&quot;:
+	</a:s>
+               <a:s r="452">
+                  <a:s r="451">
+                     <a:s>HIE</a:s>
+                  </a:s>
+                  <a:s>.</a:s>
+                  <a:s r="452">
+                     <a:s>&quot;HIV prevention intervention&quot;</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="452" locator="172:2-172:34" name="HIV prevention intervention" libraryName="HIE" xsi:type="ExpressionRef"/>
+      </def>
+      <def localId="454" locator="174:1-179:49" name="Stratification" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="454">
+               <a:s>define &quot;Stratification&quot;:
+ </a:s>
+               <a:s r="501">
+                  <a:s r="492">
+                     <a:s r="483">
+                        <a:s r="476">
+                           <a:s r="472">
+                              <a:s r="467">
+                                 <a:s r="463">
+                                    <a:s r="462">
+                                       <a:s r="461">
+                                          <a:s>HIE</a:s>
+                                       </a:s>
+                                       <a:s>.</a:s>
+                                       <a:s r="462">
+                                          <a:s>&quot;By Administrative Gender Stratifier&quot;</a:s>
+                                       </a:s>
+                                    </a:s>
+                                    <a:s>.</a:s>
+                                    <a:s r="463">
+                                       <a:s>code</a:s>
+                                    </a:s>
+                                 </a:s>
+                                 <a:s> 
+  + </a:s>
+                                 <a:s r="464">
+                                    <a:s>':'</a:s>
+                                 </a:s>
+                              </a:s>
+                              <a:s> + </a:s>
+                              <a:s r="469">
+                                 <a:s r="468">
+                                    <a:s>HIE</a:s>
+                                 </a:s>
+                                 <a:s>.</a:s>
+                                 <a:s r="469">
+                                    <a:s>&quot;By Age Stratifier 5&quot;</a:s>
+                                 </a:s>
+                              </a:s>
+                           </a:s>
+                           <a:s>
++ </a:s>
+                           <a:s r="473">
+                              <a:s>':'</a:s>
+                           </a:s>
+                        </a:s>
+                        <a:s> + </a:s>
+                        <a:s r="478">
+                           <a:s r="477">
+                              <a:s>HIE</a:s>
+                           </a:s>
+                           <a:s>.</a:s>
+                           <a:s r="478">
+                              <a:s>&quot;By Geographic Region Stratifier&quot;</a:s>
+                           </a:s>
+                        </a:s>
+                     </a:s>
+                     <a:s>
++ </a:s>
+                     <a:s r="489">
+                        <a:s>Combine(</a:s>
+                        <a:s r="485">
+                           <a:s r="484">
+                              <a:s>HIE</a:s>
+                           </a:s>
+                           <a:s>.</a:s>
+                           <a:s r="485">
+                              <a:s>patientGroups</a:s>
+                           </a:s>
+                        </a:s>
+                        <a:s>, </a:s>
+                        <a:s r="486">
+                           <a:s>':'</a:s>
+                        </a:s>
+                        <a:s>)</a:s>
+                     </a:s>
+                  </a:s>
+                  <a:s>
++ </a:s>
+                  <a:s r="498">
+                     <a:s>Combine(</a:s>
+                     <a:s r="494">
+                        <a:s r="493">
+                           <a:s>HIE</a:s>
+                        </a:s>
+                        <a:s>.</a:s>
+                        <a:s r="494">
+                           <a:s>&quot;HIV prevention intervention&quot;</a:s>
+                        </a:s>
+                     </a:s>
+                     <a:s>, </a:s>
+                     <a:s r="495">
+                        <a:s>':'</a:s>
+                     </a:s>
+                     <a:s>)</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="501" locator="175:2-179:49" xsi:type="Concatenate">
+            <operand localId="492" locator="175:2-178:33" xsi:type="Concatenate">
+               <operand localId="483" locator="175:2-177:45" xsi:type="Concatenate">
+                  <operand localId="476" locator="175:2-177:5" xsi:type="Concatenate">
+                     <operand localId="472" locator="175:2-176:35" xsi:type="Concatenate">
+                        <operand localId="467" locator="175:2-176:7" xsi:type="Concatenate">
+                           <operand localId="463" locator="175:2-175:47" path="code" xsi:type="Property">
+                              <source localId="462" locator="175:2-175:42" name="By Administrative Gender Stratifier" libraryName="HIE" xsi:type="ExpressionRef"/>
+                           </operand>
+                           <operand localId="464" locator="176:5-176:7" valueType="t:String" value=":" xsi:type="Literal"/>
+                        </operand>
+                        <operand localId="469" locator="176:11-176:35" name="By Age Stratifier 5" libraryName="HIE" xsi:type="ExpressionRef"/>
+                     </operand>
+                     <operand localId="473" locator="177:3-177:5" valueType="t:String" value=":" xsi:type="Literal"/>
+                  </operand>
+                  <operand localId="479" name="ToString" libraryName="FHIRHelpers" xsi:type="FunctionRef">
+                     <signature localId="480" name="fhir:string" xsi:type="NamedTypeSpecifier"/>
+                     <operand localId="478" locator="177:9-177:45" name="By Geographic Region Stratifier" libraryName="HIE" xsi:type="ExpressionRef"/>
+                  </operand>
+               </operand>
+               <operand localId="489" locator="178:3-178:33" xsi:type="Combine">
+                  <source localId="485" locator="178:11-178:27" name="patientGroups" libraryName="HIE" xsi:type="ExpressionRef"/>
+                  <separator localId="486" locator="178:30-178:32" valueType="t:String" value=":" xsi:type="Literal"/>
+               </operand>
+            </operand>
+            <operand localId="498" locator="179:3-179:49" xsi:type="Combine">
+               <source localId="494" locator="179:11-179:43" name="HIV prevention intervention" libraryName="HIE" xsi:type="ExpressionRef"/>
+               <separator localId="495" locator="179:46-179:48" valueType="t:String" value=":" xsi:type="Literal"/>
+            </operand>
+         </expression>
+      </def>
+   </statements>
+</library>
