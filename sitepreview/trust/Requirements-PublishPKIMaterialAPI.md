@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/PublishPKIMaterialAPI | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Publish Public Keys via API |
+| Active as of 2026-02-04 | *Computable Name*:Publish Public Keys via API |
 
  
 Publish trust material to a Trust Anchor via API 

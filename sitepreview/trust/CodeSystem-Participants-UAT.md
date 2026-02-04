@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/CodeSystems/Participants-UAT | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Participants-UAT |
+| Active as of 2026-02-04 | *Computable Name*:Participants-UAT |
 
  
 CodeSystem for GDHCN Trust Network Participants for User Acceptance Testing environment 
@@ -33,7 +33,7 @@ CodeSystem for GDHCN Trust Network Participants for User Acceptance Testing envi
   "title" : "WHO GDHCN Trust Network Participant - UAT",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-02-03T22:38:59+00:00",
+  "date" : "2026-02-04T13:15:56+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

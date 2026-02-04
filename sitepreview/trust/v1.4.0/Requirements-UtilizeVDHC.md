@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/UtilizeVDHC | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Utilize VDHC |
+| Active as of 2026-02-04 | *Computable Name*:Utilize VDHC |
 
  
 Utilize a Verifiable Digital Health Certificate that was provided by a Holder 

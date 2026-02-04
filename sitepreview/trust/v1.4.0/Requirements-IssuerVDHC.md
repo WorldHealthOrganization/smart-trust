@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/IssuerVDHC | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Issue VDHC |
+| Active as of 2026-02-04 | *Computable Name*:Issue VDHC |
 
  
 Issue a Verifiable Digital Health Certificate to a Holder 

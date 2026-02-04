@@ -9,7 +9,7 @@
 
 | |
 | :--- |
-| Active as of 2026-02-03 |
+| Active as of 2026-02-04 |
 
 [Raw json](ActorDefinition-Receiver.json) | [Download](ActorDefinition-Receiver.json)
 

@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/DistributePKIMaterialAPI | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Distribute Public Keys via API |
+| Active as of 2026-02-04 | *Computable Name*:Distribute Public Keys via API |
 
  
 Make received trust material available through a distrubution point to a Trust Network Participant via API 

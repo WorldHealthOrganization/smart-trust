@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/CodeSystem/Transactions | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Transactions |
+| Active as of 2026-02-04 | *Computable Name*:Transactions |
 
  
 CodeSystem for GDHCN transactions that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.md) 
@@ -33,7 +33,7 @@ CodeSystem for GDHCN transactions that has usage codes for verification keys pub
   "title" : "WHO GDHCN Transactions CodeSystem",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-02-03T22:38:59+00:00",
+  "date" : "2026-02-04T13:15:56+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

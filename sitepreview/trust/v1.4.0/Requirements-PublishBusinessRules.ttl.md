@@ -9,7 +9,7 @@
 
 | |
 | :--- |
-| Active as of 2026-02-03 |
+| Active as of 2026-02-04 |
 
 [Raw ttl](Requirements-PublishBusinessRules.ttl) | [Download](Requirements-PublishBusinessRules.ttl)
 

@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/ValueSet/Domains-DEV | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Domains-DEV |
+| Active as of 2026-02-04 | *Computable Name*:Domains-DEV |
 
  
 ValueSet of WHO GDHCN Trust Domains for Development environment 
@@ -52,7 +52,7 @@ This value set is not used here; it may be used elsewhere (e.g. specifications a
   "title" : "WHO GDHCN Trust Domains - DEV",
   "status" : "active",
   "experimental" : false,
-  "date" : "2026-02-03T22:38:59+00:00",
+  "date" : "2026-02-04T13:15:56+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

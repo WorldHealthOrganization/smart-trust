@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/ActorDefinition/Holder | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Holder |
+| Active as of 2026-02-04 | *Computable Name*:Holder |
 
  
 A Holder is an individual that has Verifiable Digtial Health Certificate in their possesion, received from an Issuer. The Holder may choose to share the Verifiable Digital Health Certificate with a Receiver. 

@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/ValueSet/Domains-UAT | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Domains-UAT |
+| Active as of 2026-02-04 | *Computable Name*:Domains-UAT |
 
  
 ValueSet of WHO GDHCN Trust Domains for User Acceptance Testing environment 
@@ -52,7 +52,7 @@ This value set is not used here; it may be used elsewhere (e.g. specifications a
   "title" : "WHO GDHCN Trust Domains - UAT",
   "status" : "active",
   "experimental" : false,
-  "date" : "2026-02-03T22:33:34+00:00",
+  "date" : "2026-02-04T13:10:34+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

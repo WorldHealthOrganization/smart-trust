@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/RetrievePKIMaterialAPI | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Retrieve Public Keys via API |
+| Active as of 2026-02-04 | *Computable Name*:Retrieve Public Keys via API |
 
  
 Retrieve PKI material from a distribution point via API 

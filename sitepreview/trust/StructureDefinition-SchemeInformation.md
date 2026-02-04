@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/StructureDefinition/SchemeInformation | *Version*:1.4.0 |
-| Draft as of 2026-02-03 | *Computable Name*:SchemeInformation |
+| Draft as of 2026-02-04 | *Computable Name*:SchemeInformation |
 
  
 Logical Model for Information on the trusted list and its issuing scheme 
@@ -42,7 +42,7 @@ Other representations of profile: [CSV](StructureDefinition-SchemeInformation.cs
   "name" : "SchemeInformation",
   "title" : "Scheme Information",
   "status" : "draft",
-  "date" : "2026-02-03T22:38:59+00:00",
+  "date" : "2026-02-04T13:15:56+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

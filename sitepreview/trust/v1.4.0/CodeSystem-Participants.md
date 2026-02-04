@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/CodeSystem/Participants | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Participants |
+| Active as of 2026-02-04 | *Computable Name*:Participants |
 
  
 CodeSystem for GDHCN Trust Network Participants which are not already included in the ISO-3166 three letter code system for Production environment 
@@ -33,7 +33,7 @@ CodeSystem for GDHCN Trust Network Participants which are not already included i
   "title" : "WHO GDHCN Trust Network Participants CodeSystem",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-02-03T22:33:34+00:00",
+  "date" : "2026-02-04T13:10:34+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

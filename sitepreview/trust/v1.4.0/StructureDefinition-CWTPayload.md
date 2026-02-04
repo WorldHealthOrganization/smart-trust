@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/StructureDefinition/CWTPayload | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:CWTPayload |
+| Active as of 2026-02-04 | *Computable Name*:CWTPayload |
 
  
 Logical Model for CBOR Web Token (CWT) Payload Logical Modelin CWT Payload https://www.iana.org/assignments/cwt/cwt.xhtml 
@@ -42,7 +42,7 @@ Other representations of profile: [CSV](StructureDefinition-CWTPayload.csv), [Ex
   "name" : "CWTPayload",
   "title" : "CBOR Web Token (CWT) Payload (Common)",
   "status" : "active",
-  "date" : "2026-02-03T22:33:34+00:00",
+  "date" : "2026-02-04T13:10:34+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

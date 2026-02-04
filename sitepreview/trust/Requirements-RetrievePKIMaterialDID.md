@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/RetrievePKIMaterialDID | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Retrieve Public Keys as DID |
+| Active as of 2026-02-04 | *Computable Name*:Retrieve Public Keys as DID |
 
  
 Retrieve PKI material from a distribution point as DID 

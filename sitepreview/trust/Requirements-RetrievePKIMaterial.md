@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/RetrievePKIMaterial | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Retrieve Public Keys |
+| Active as of 2026-02-04 | *Computable Name*:Retrieve Public Keys |
 
  
 Retrieve PKI material from a distribution point 

@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/RetrieveBusinessRules | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Retrieve Business Rules |
+| Active as of 2026-02-04 | *Computable Name*:Retrieve Business Rules |
 
  
 Retrieve business rules from a distribution point using 

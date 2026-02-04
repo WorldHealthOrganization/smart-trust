@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/refmart/CodeSystems/REF_COUNTRY | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:RefMartCountryList |
+| Active as of 2026-02-04 | *Computable Name*:RefMartCountryList |
 
  
 CodeSystem for WHO Refmart Country and Jurisidiction List available at https://xmart-api-public.who.int/REFMART/REF_COUNTRY for Production environment 
@@ -35,7 +35,7 @@ CodeSystem for WHO Refmart Country and Jurisidiction List available at https://x
   "title" : "WHO RefMart Jurisidiction List",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-02-03T22:33:34+00:00",
+  "date" : "2026-02-04T13:10:34+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

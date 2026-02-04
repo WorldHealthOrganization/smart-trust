@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/StructureDefinition/COSEHeader | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:COSEHeader |
+| Active as of 2026-02-04 | *Computable Name*:COSEHeader |
 
  
 Data elements for COSE Headers https://www.iana.org/assignments/cose/cose.xhtml#header-parameters 
@@ -42,7 +42,7 @@ Other representations of profile: [CSV](StructureDefinition-COSEHeader.csv), [Ex
   "name" : "COSEHeader",
   "title" : "COSE Headers (DRAFT)",
   "status" : "active",
-  "date" : "2026-02-03T22:33:34+00:00",
+  "date" : "2026-02-04T13:10:34+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

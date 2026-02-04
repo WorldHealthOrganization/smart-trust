@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/DistributePKIMaterial | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Distribute Public Keys |
+| Active as of 2026-02-04 | *Computable Name*:Distribute Public Keys |
 
  
 Make received trust material available through a distrubution point to a Trust Network Participant 

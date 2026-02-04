@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/ReceivePKUMaterialAPI | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Receive Public Keys via API |
+| Active as of 2026-02-04 | *Computable Name*:Receive Public Keys via API |
 
  
 Receive trust material from a Trust Network Participant, for distribution within the Trust Network via API 

@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/ReceiveBusinessRulesFHIR | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Receive FHIR Business Rules |
+| Active as of 2026-02-04 | *Computable Name*:Receive FHIR Business Rules |
 
  
 Receive business rules from a Trust Network Participant, for distribution within the Trust Network using HL7 FHIR standard 

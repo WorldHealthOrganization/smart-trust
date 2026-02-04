@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/PublishBusinessRules | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Publish Rules |
+| Active as of 2026-02-04 | *Computable Name*:Publish Rules |
 
  
 Publish business rules to a Trust Anchor 

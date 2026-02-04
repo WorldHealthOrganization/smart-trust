@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/RetrieveBusinessRulesFHIR | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Retrieve FHIR Business Rules |
+| Active as of 2026-02-04 | *Computable Name*:Retrieve FHIR Business Rules |
 
  
 Retrieve business rules from a distribution point using HL7 FHIR standards 

@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/CodeSystem/KeyUsage | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:KeyUsage |
+| Active as of 2026-02-04 | *Computable Name*:KeyUsage |
 
  
 CodeSystem for GDHCN Key Usage that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.md) for Production environment 
@@ -33,7 +33,7 @@ CodeSystem for GDHCN Key Usage that has usage codes for verification keys publis
   "title" : "WHO GDHCN Key Usage CodeSystem",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-02-03T22:33:34+00:00",
+  "date" : "2026-02-04T13:10:34+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

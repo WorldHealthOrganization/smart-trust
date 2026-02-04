@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/PublishPKIMaterialDID | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Publish Public Keys as DID |
+| Active as of 2026-02-04 | *Computable Name*:Publish Public Keys as DID |
 
  
 Publish trust material to a Trust Anchor as DID 

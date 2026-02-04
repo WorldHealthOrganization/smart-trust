@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/ActorDefinition/TrustNetworkParticipant | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Trust Network Participant |
+| Active as of 2026-02-04 | *Computable Name*:Trust Network Participant |
 
  
 Trust Network Participant which publishes and or receives PKI-material within a Trust Network 

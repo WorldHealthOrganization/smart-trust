@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/ProvideVDHC | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Provide VDHC |
+| Active as of 2026-02-04 | *Computable Name*:Provide VDHC |
 
  
 Provide a Verifiable Digital Health Certificate to a Receiver 

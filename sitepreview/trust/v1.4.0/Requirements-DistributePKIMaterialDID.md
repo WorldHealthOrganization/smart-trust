@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/DistributePKIMaterialDID | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Distribute Public Keys as DID |
+| Active as of 2026-02-04 | *Computable Name*:Distribute Public Keys as DID |
 
  
 Make received trust material available through a distrubution point to a Trust Network Participant as DID 

@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/ActorDefinition/Receiver | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Receiver |
+| Active as of 2026-02-04 | *Computable Name*:Receiver |
 
  
 A Reciever is a system authorized by a Trust Network Participant to receive from a Holder a Veritifable, verify and utilize the content within. 

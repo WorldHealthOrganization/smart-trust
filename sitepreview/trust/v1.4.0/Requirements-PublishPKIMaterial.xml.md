@@ -9,7 +9,7 @@
 
 | |
 | :--- |
-| Active as of 2026-02-03 |
+| Active as of 2026-02-04 |
 
 [Raw xml](Requirements-PublishPKIMaterial.xml) | [Download](Requirements-PublishPKIMaterial.xml)
 

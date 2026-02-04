@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/StructureDefinition/CWT | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:CWT |
+| Active as of 2026-02-04 | *Computable Name*:CWT |
 
  
 Logical Model for Data elements in CBOR Web Token (CWT) https://www.iana.org/assignments/cwt/cwt.xhtml 
@@ -42,7 +42,7 @@ Other representations of profile: [CSV](StructureDefinition-CWT.csv), [Excel](St
   "name" : "CWT",
   "title" : "CBOR Web Token (CWT) Claim",
   "status" : "active",
-  "date" : "2026-02-03T22:38:59+00:00",
+  "date" : "2026-02-04T13:15:56+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

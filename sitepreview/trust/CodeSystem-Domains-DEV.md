@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/CodeSystem/Domains-DEV | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Domains-DEV |
+| Active as of 2026-02-04 | *Computable Name*:Domains-DEV |
 
  
 CodeSystem for define WHO GDHCN Trust Domains for Development environment. 
@@ -33,7 +33,7 @@ CodeSystem for define WHO GDHCN Trust Domains for Development environment.
   "title" : "WHO GDHCN Trust Domains - DEV",
   "status" : "active",
   "experimental" : false,
-  "date" : "2026-02-03T22:38:59+00:00",
+  "date" : "2026-02-04T13:15:56+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

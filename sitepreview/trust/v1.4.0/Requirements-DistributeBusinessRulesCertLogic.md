@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/DistributeBusinessRulesCertLogic | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Distribute CertLogic Business Rules |
+| Active as of 2026-02-04 | *Computable Name*:Distribute CertLogic Business Rules |
 
  
 Make received CertLoigc business rules available through a distrubution point to a Receiver 

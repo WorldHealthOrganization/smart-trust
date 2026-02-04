@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/Requirements/PublishBusinessRulesCertLogic | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Publish CertLogic Business Rules |
+| Active as of 2026-02-04 | *Computable Name*:Publish CertLogic Business Rules |
 
  
 Publish Cert Logic business rules to a Trust Anchor 

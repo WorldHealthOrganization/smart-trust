@@ -10,7 +10,7 @@
 | | |
 | :--- | :--- |
 | *Official URL*:http://smart.who.int/trust/ActorDefinition/TrustNetworkAnchor | *Version*:1.4.0 |
-| Active as of 2026-02-03 | *Computable Name*:Trust Network Anchor |
+| Active as of 2026-02-04 | *Computable Name*:Trust Network Anchor |
 
  
 Trust Anchor which receives and distributes PKI-material within a Trust Network 
