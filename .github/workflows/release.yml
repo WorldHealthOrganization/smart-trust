@@ -31,9 +31,56 @@ jobs:
             echo "::set-output name=exists::false"
           fi
 
-  trigger:
+  preprocess:
     needs: check
     if: needs.check.outputs.file_exists == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Download pre-sushi scripts from smart-ig-template
+        run: |
+          mkdir -p input/scripts
+          BASE_URL="https://raw.githubusercontent.com/WorldHealthOrganization/smart-ig-template/master/scripts/pre-sushi"
+          curl -L -f -o "input/scripts/1-generate_dak_from_sushi.py" "$BASE_URL/1-generate_dak_from_sushi.py" 2>/dev/null || echo "Failed to download 1-generate_dak_from_sushi.py"
+          curl -L -f -o "input/scripts/2-update_sushi_config.py" "$BASE_URL/2-update_sushi_config.py" 2>/dev/null || echo "Failed to download 2-update_sushi_config.py"
+          curl -L -f -o "input/scripts/3-dmn_questionnaire_generator.py" "$BASE_URL/3-dmn_questionnaire_generator.py" 2>/dev/null || echo "Failed to download 3-dmn_questionnaire_generator.py"
+          curl -L -f -o "input/scripts/4-transform_dmn.py" "$BASE_URL/4-transform_dmn.py" 2>/dev/null || echo "Failed to download 4-transform_dmn.py"
+
+      - name: Run pre-sushi scripts
+        run: |
+          for script in 1-generate_dak_from_sushi.py 2-update_sushi_config.py 3-dmn_questionnaire_generator.py 4-transform_dmn.py; do
+            if [[ -f "input/scripts/$script" ]]; then
+              echo "Running $script..."
+              python "input/scripts/$script" || true
+            fi
+          done
+
+      - name: Commit preprocessing changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No preprocessing changes to commit"
+          else
+            git commit -m "Preprocess: update generated files"
+            git push
+          fi
+
+  trigger:
+    needs: preprocess
     uses: WorldHealthOrganization/smart-html/.github/workflows/release.yml@main
 #    with:
 #      tag_name: ${{ github.event.release.tag_name }}
