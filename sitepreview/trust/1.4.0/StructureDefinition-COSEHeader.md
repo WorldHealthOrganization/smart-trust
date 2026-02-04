@@ -42,7 +42,7 @@ Other representations of profile: [CSV](StructureDefinition-COSEHeader.csv), [Ex
   "name" : "COSEHeader",
   "title" : "COSE Headers (DRAFT)",
   "status" : "active",
-  "date" : "2026-02-04T19:59:39+00:00",
+  "date" : "2026-02-04T20:34:12+00:00",
   "publisher" : "WHO",
   "contact" : [
     {
