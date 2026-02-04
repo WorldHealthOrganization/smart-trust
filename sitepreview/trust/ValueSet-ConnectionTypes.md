@@ -52,7 +52,7 @@ This value set is not used here; it may be used elsewhere (e.g. specifications a
   "title" : "WHO GDHCN Connection Types",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-02-04T13:15:56+00:00",
+  "date" : "2026-02-04T15:17:54+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

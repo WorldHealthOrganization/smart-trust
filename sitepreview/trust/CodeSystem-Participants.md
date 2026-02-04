@@ -33,7 +33,7 @@ CodeSystem for GDHCN Trust Network Participants which are not already included i
   "title" : "WHO GDHCN Trust Network Participants CodeSystem",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-02-04T13:15:56+00:00",
+  "date" : "2026-02-04T15:17:54+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

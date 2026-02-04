@@ -33,7 +33,7 @@ CodeSystem for define WHO GDHCN Trust Domains for User Acceptance Testing enviro
   "title" : "WHO GDHCN Trust Domains - UAT",
   "status" : "active",
   "experimental" : false,
-  "date" : "2026-02-04T13:10:34+00:00",
+  "date" : "2026-02-04T15:12:10+00:00",
   "publisher" : "WHO",
   "contact" : [
     {

@@ -33,7 +33,7 @@ CodeSystem for GDHCN Key Usage that has usage codes for verification keys publis
   "title" : "WHO GDHCN Key Usage CodeSystem - DEV",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-02-04T13:15:56+00:00",
+  "date" : "2026-02-04T15:17:54+00:00",
   "publisher" : "WHO",
   "contact" : [
     {
