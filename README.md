@@ -11,7 +11,7 @@ WHO SMART Trust
 This is the WHO SMART Trust Implementation Guide 
 <br> </br>
 ###
-### Publication
+### Publication  
 This ImplementationGuide is published in the following locations:
  
     
