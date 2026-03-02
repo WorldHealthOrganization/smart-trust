@@ -11,8 +11,8 @@ or non-member territories) have no mapping and are grouped under Other Participa
 * name = "ParticipantsToWHORegionalOffices"
 * status = #active
 * experimental = true
-* sourceCanonical = Canonical(Participants)
-* targetCanonical = Canonical(WHORegionalOffices)
+* sourceScopeCanonical = Canonical(Participants)
+* targetScopeCanonical = Canonical(WHORegionalOffices)
 
 // ── AFRO ──────────────────────────────────────────────────────────────────────
 * group[+]
