@@ -1,0 +1,59 @@
+# GDHCNParticipant-XXJ-DEV - WHO SMART Trust v1.3.0
+
+* [**Table of Contents**](toc.md)
+* [**Indices**](indices.md)
+* [**Artifact Index**](artifacts.md)
+* **GDHCNParticipant-XXJ-DEV**
+
+## Organization: GDHCNParticipant-XXJ-DEV
+
+Profile: [mCSD Organization](https://profiles.ihe.net/ITI/mCSD/4.0.0/StructureDefinition-IHE.mCSD.Organization.html)
+
+**type**: Government
+
+**name**: DEV Participant XXJ
+
+**endpoint**: 
+
+* [Endpoint DEV Participant XXJ Trustlist (DID v2) - DEV - All keys did:web:tng-cdn.who.int:v2:trustlist:-:XXJ resolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXJ/did.json](Endpoint-GDHCNParticipantDID-XXJ-DEV-All.md)
+* [Endpoint DEV Participant XXJ Trustlist (DID v2) - DEV - Document Signing Certificates did:web:tng-cdn.who.int:v2:trustlist:-:XXJ:DSC resolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXJ/DSC/did.json](Endpoint-GDHCNParticipantDID-XXJ-DEV-DSC.md)
+* [Endpoint DEV Participant XXJ Trustlist (DID v2) - DEV - Certificate Signing Authority did:web:tng-cdn.who.int:v2:trustlist:-:XXJ:SCA resolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXJ/SCA/did.json](Endpoint-GDHCNParticipantDID-XXJ-DEV-SCA.md)
+
+
+
+## Resource Content
+
+```json
+{
+  "resourceType" : "Organization",
+  "id" : "GDHCNParticipant-XXJ-DEV",
+  "meta" : {
+    "profile" : [
+      "https://profiles.ihe.net/ITI/mCSD/StructureDefinition/IHE.mCSD.Organization"
+    ]
+  },
+  "type" : [
+    {
+      "coding" : [
+        {
+          "system" : "http://terminology.hl7.org/CodeSystem/organization-type",
+          "code" : "govt"
+        }
+      ]
+    }
+  ],
+  "name" : "DEV Participant XXJ",
+  "endpoint" : [
+    {
+      "reference" : "Endpoint/GDHCNParticipantDID-XXJ-DEV-All"
+    },
+    {
+      "reference" : "Endpoint/GDHCNParticipantDID-XXJ-DEV-DSC"
+    },
+    {
+      "reference" : "Endpoint/GDHCNParticipantDID-XXJ-DEV-SCA"
+    }
+  ]
+}
+
+```
