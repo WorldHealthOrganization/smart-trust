@@ -158,16 +158,6 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-IDN-UAT-SCA)
 
 
-Instance: GDHCNParticipant-IOM-UAT
-InstanceOf: IHE.mCSD.Organization
-Usage: #definition
-* name = "UAT Participant IOM"
-* type = $orgType#govt
-* endpoint[+] = Reference(GDHCNParticipantDID-IOM-UAT-All)
-* endpoint[+] = Reference(GDHCNParticipantDID-IOM-UAT-DSC)
-* endpoint[+] = Reference(GDHCNParticipantDID-IOM-UAT-SCA)
-
-
 Instance: GDHCNParticipant-IRL-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
