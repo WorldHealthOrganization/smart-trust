@@ -23,9 +23,11 @@ Usage: #definition
 * actor[+] = Canonical(Issuer)
 * statement[+].key = "IssuerVDHC-generate"
 * statement[=].label = "Generate Verifiable Digital Health Certificate"
+* statement[=].conformance = #SHALL
 * statement[=].requirement = "Generate the content that will be signed as part of a Verifiable Digital Health Certificate"
 * statement[+].key = "IssuerVDHC-sign"
 * statement[=].label = "Sign Verifiable Digital Health Certificate"
+* statement[=].conformance = #SHALL
 * statement[=].requirement = "Sign content to produce a Verifiable Digital Health Certificate."
 
 
@@ -65,18 +67,23 @@ Usage: #definition
 * actor[+] = Canonical(Receiver)
 * statement[+].key = "UtilizeVDHC-reveive"
 * statement[=].label = "Ingest VDHC"
+* statement[=].conformance = #SHALL
 * statement[=].requirement = "A user of a Receiver system receives a Verfiable Digital Health Certificate from a Holder. The user ingests the Verifiable Digital Health Certificate into the Receiver system.  The means of conveyance and how the Verifiable Digital Health Certificate is rendered is depedent on the use context."
 * statement[+].key = "UtilizeVDHC-retreive-keys"
 * statement[=].label = "Retrieve matching keys"
+* statement[=].conformance = #SHALL
 * statement[=].requirement = "Retrieve and/or filter from an apporopriate PKI material distribution endpoint the set of public keys that match the key identifier (kid), trust domain code, participant code, and/or key usage code as applicable to the context of use of the Verfiable Digital Health Certificate."
 * statement[+].key = "UtilizeVDHC-validate-hash"
 * statement[=].label = "Compute Hash"
+* statement[=].conformance = #SHALL
 * statement[=].requirement = "As appropriate  to the content type of the Verfiable Digtial Health Certificate, compute the hash of the content, and use the retrieved public keys(s) to try to verify the signature against the hashed value."
 * statement[+].key = "UtilizeVDHC-display-verified-content"
 * statement[=].label = "Display verified content"
+* statement[=].conformance = #SHALL
 * statement[=].requirement = "Display verified cotent to the user of the Reciever system."
 * statement[+].key = "UtilizeVDHC-execute-business-rule"
 * statement[=].label = "Execute business rules"
+* statement[=].conformance = #SHALL
 * statement[=].requirement = "Execute zero or more business rules against the Verifiable Digital Health Certificate that was provided by a Holder.  Results of the execution of the business rules are displayed to the user of the Receiver system."
 
 
