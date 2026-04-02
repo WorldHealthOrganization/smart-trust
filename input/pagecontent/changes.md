@@ -70,3 +70,11 @@
     <li>Onboarding Checklist updated</li>
   </ul>
 <li>Onboarding Checklist updated</li>
+<p>
+    <b>2026-04-23 v1.1.7 - release</b> 
+</p>
+<b>2026-04-23 v1.1.7 - release</b>
+<ul>
+    <li>Extended DID Trustlist to support additional custom context definitions</li>
+</ul>
+<li>Extended DID Trustlist to support additional custom context definitions</li>
