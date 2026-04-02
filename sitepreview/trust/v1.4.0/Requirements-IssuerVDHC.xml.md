@@ -1,0 +1,15 @@
+# Issue Verifiable Digital Health Certificate - XML Representation - WHO SMART Trust v1.4.0
+
+* [**Table of Contents**](toc.md)
+* [**Indices**](indices.md)
+* [**Artifact Index**](artifacts.md)
+* **Issue Verifiable Digital Health Certificate**
+
+## : Issue Verifiable Digital Health Certificate - XML Representation
+
+| |
+| :--- |
+| Active as of 2026-02-11 |
+
+[Raw xml](Requirements-IssuerVDHC.xml) | [Download](Requirements-IssuerVDHC.xml)
+
