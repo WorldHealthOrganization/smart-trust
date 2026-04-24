@@ -33,6 +33,6 @@ Alias: $HCertDCC = http://smart.who.int/ddcc/StructureDefinition/HCertDCC
 Alias: $DDCCVS = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetVS
 Alias: $DDCCTR = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetTR
 Alias: $DVC = http://smart.who.int/trust-phw/StructureDefinition/DVC
-
+Alias: $MedicationTreatmentLineMin = http://smart.who.int/ph4h/StructureDefinition/MedicationTreatmentLineMin
 Alias: $RefMartCountryList = http://smart.who.int/refmart/CodeSystems/REF_COUNTRY
 Alias: $WHORegionalOffices = http://smart.who.int/trust/CodeSystem/WHORegionalOffices

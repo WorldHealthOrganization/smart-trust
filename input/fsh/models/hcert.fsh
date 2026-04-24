@@ -24,4 +24,5 @@ Description:    "Logical Model for the HCERT"
 * 4 0..* $DDCCTR "Test Result Core Data Set claim" "DDCC Test Result claim (PROPOSED)"
 * 5 0..* string "VHL" "URI of a Verifiable Health Link.  Of the form 'vhlink:/eyJ1cmwiOiJodHRwczovL2Vo....' "
 * -6 0..* $DVC "DVC" "Digital Vaccination Certificate (Proposed)"
+* -7 0..1 $MedicationTreatmentLineMin "Medication Treatment Line Minimal (Proposed)" "Medication Treatment Line Minimal (Proposed)"
 
