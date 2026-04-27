@@ -1,4 +1,4 @@
-# Request Verifiable Digital Health Certificate - WHO SMART Trust v1.4.0
+# Request Verifiable Digital Health Certificate - WHO SMART Trust v1.5.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,23 +9,59 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/Requirements/RequestVDHC | *Version*:1.4.0 |
-| Active as of 2026-02-11 | *Computable Name*:Request VDHC |
+| *Official URL*:http://smart.who.int/trust/Requirements/RequestVDHC | *Version*:1.5.0 |
+| Active as of 2026-04-27 | *Computable Name*:Request VDHC |
 
  
 Request a Verifiable Digital Health Certificate from an Issuer 
 
 * Publisher: Contact Email
-  * [WHO](http://who.int): No contact email has been registered.
+  * No publisher has been registered.: No contact email has been registered.
 * Publisher: Jurisdiction
-  * [WHO](http://who.int): 
+  * No publisher has been registered.: 
 * Publisher: Statements
-  * [WHO](http://who.int): 
+  * No publisher has been registered.: 
 * Publisher: Derived from
-  * [WHO](http://who.int): This requirement is not derived from another requriement.
+  * No publisher has been registered.: This requirement is not derived from another requriement.
 * Publisher: Derivatives
-  * [WHO](http://who.int): This requirement has the following derivatives:
+  * No publisher has been registered.: This requirement has the following derivatives:
 * Publisher: Participating Actors
-  * [WHO](http://who.int): * [Holder](ActorDefinition-Holder.md)
+  * No publisher has been registered.: 
 
 
+
+## Resource Content
+
+```json
+{
+  "resourceType" : "Requirements",
+  "id" : "RequestVDHC",
+  "meta" : {
+    "profile" : ["http://smart.who.int/base/StructureDefinition/SGRequirements"]
+  },
+  "url" : "http://smart.who.int/trust/Requirements/RequestVDHC",
+  "version" : "1.5.0",
+  "name" : "Request VDHC",
+  "title" : "Request Verifiable Digital Health Certificate",
+  "status" : "active",
+  "experimental" : true,
+  "date" : "2026-04-27T07:32:49+00:00",
+  "publisher" : "WHO",
+  "contact" : [{
+    "name" : "WHO",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://who.int"
+    }]
+  }],
+  "description" : "Request a Verifiable Digital Health Certificate from an Issuer",
+  "jurisdiction" : [{
+    "coding" : [{
+      "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
+      "code" : "001"
+    }]
+  }],
+  "actor" : ["http://smart.who.int/trust/ActorDefinition/Holder"]
+}
+
+```

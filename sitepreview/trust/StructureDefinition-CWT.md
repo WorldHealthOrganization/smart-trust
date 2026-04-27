@@ -1,4 +1,4 @@
-# CBOR Web Token (CWT) Claim - WHO SMART Trust v1.4.0
+# CBOR Web Token (CWT) Claim - WHO SMART Trust v1.5.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/StructureDefinition/CWT | *Version*:1.4.0 |
-| Active as of 2026-02-11 | *Computable Name*:CWT |
+| *Official URL*:http://smart.who.int/trust/StructureDefinition/CWT | *Version*:1.5.0 |
+| Active as of 2026-04-27 | *Computable Name*:CWT |
 
  
 Logical Model for Data elements in CBOR Web Token (CWT) https://www.iana.org/assignments/cwt/cwt.xhtml 
@@ -38,88 +38,77 @@ Other representations of profile: [CSV](StructureDefinition-CWT.csv), [Excel](St
   "resourceType" : "StructureDefinition",
   "id" : "CWT",
   "url" : "http://smart.who.int/trust/StructureDefinition/CWT",
-  "version" : "1.4.0",
+  "version" : "1.5.0",
   "name" : "CWT",
   "title" : "CBOR Web Token (CWT) Claim",
   "status" : "active",
-  "date" : "2026-02-11T14:17:30+00:00",
+  "date" : "2026-04-27T07:32:49+00:00",
   "publisher" : "WHO",
-  "contact" : [
-    {
-      "name" : "WHO",
-      "telecom" : [
-        {
-          "system" : "url",
-          "value" : "http://who.int"
-        }
-      ]
-    }
-  ],
+  "contact" : [{
+    "name" : "WHO",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://who.int"
+    }]
+  }],
   "description" : "Logical Model for Data elements in CBOR Web Token (CWT) https://www.iana.org/assignments/cwt/cwt.xhtml",
-  "jurisdiction" : [
-    {
-      "coding" : [
-        {
-          "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
-          "code" : "001"
-        }
-      ]
-    }
-  ],
-  "fhirVersion" : "4.0.1",
+  "jurisdiction" : [{
+    "coding" : [{
+      "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
+      "code" : "001"
+    }]
+  }],
+  "fhirVersion" : "5.0.0",
+  "mapping" : [{
+    "identity" : "rim",
+    "uri" : "http://hl7.org/v3",
+    "name" : "RIM Mapping"
+  }],
   "kind" : "logical",
   "abstract" : true,
   "type" : "http://smart.who.int/trust/StructureDefinition/CWT",
   "baseDefinition" : "http://hl7.org/fhir/StructureDefinition/Base",
   "derivation" : "specialization",
   "differential" : {
-    "element" : [
-      {
-        "id" : "CWT",
-        "path" : "CWT",
-        "short" : "CBOR Web Token (CWT) Claim",
-        "definition" : "Logical Model for Data elements in CBOR Web Token (CWT) https://www.iana.org/assignments/cwt/cwt.xhtml"
-      },
-      {
-        "id" : "CWT.header",
-        "path" : "CWT.header",
-        "short" : "COSE Header",
-        "definition" : "Header",
-        "min" : 0,
-        "max" : "1",
-        "type" : [
-          {
-            "code" : "http://smart.who.int/trust/StructureDefinition/COSEHeader"
-          }
-        ]
-      },
-      {
-        "id" : "CWT.payload",
-        "path" : "CWT.payload",
-        "short" : "CWT Payload",
-        "definition" : "Payload",
-        "min" : 0,
-        "max" : "1",
-        "type" : [
-          {
-            "code" : "http://smart.who.int/trust/StructureDefinition/CWTPayload"
-          }
-        ]
-      },
-      {
-        "id" : "CWT.signature",
-        "path" : "CWT.signature",
-        "short" : "Signature",
-        "definition" : "Signature",
-        "min" : 0,
-        "max" : "1",
-        "type" : [
-          {
-            "code" : "string"
-          }
-        ]
-      }
-    ]
+    "element" : [{
+      "id" : "CWT",
+      "path" : "CWT",
+      "short" : "CBOR Web Token (CWT) Claim",
+      "definition" : "Logical Model for Data elements in CBOR Web Token (CWT) https://www.iana.org/assignments/cwt/cwt.xhtml"
+    },
+    {
+      "id" : "CWT.header",
+      "path" : "CWT.header",
+      "short" : "COSE Header",
+      "definition" : "Header",
+      "min" : 0,
+      "max" : "1",
+      "type" : [{
+        "code" : "http://smart.who.int/trust/StructureDefinition/COSEHeader"
+      }]
+    },
+    {
+      "id" : "CWT.payload",
+      "path" : "CWT.payload",
+      "short" : "CWT Payload",
+      "definition" : "Payload",
+      "min" : 0,
+      "max" : "1",
+      "type" : [{
+        "code" : "http://smart.who.int/trust/StructureDefinition/CWTPayload"
+      }]
+    },
+    {
+      "id" : "CWT.signature",
+      "path" : "CWT.signature",
+      "short" : "Signature",
+      "definition" : "Signature",
+      "min" : 0,
+      "max" : "1",
+      "type" : [{
+        "code" : "string"
+      }]
+    }]
   }
 }
 

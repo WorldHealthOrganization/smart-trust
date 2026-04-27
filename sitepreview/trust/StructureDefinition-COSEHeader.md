@@ -1,4 +1,4 @@
-# COSE Headers (DRAFT) - WHO SMART Trust v1.4.0
+# COSE Headers (DRAFT) - WHO SMART Trust v1.5.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/StructureDefinition/COSEHeader | *Version*:1.4.0 |
-| Active as of 2026-02-11 | *Computable Name*:COSEHeader |
+| *Official URL*:http://smart.who.int/trust/StructureDefinition/COSEHeader | *Version*:1.5.0 |
+| Active as of 2026-04-27 | *Computable Name*:COSEHeader |
 
  
 Data elements for COSE Headers https://www.iana.org/assignments/cose/cose.xhtml#header-parameters 
@@ -38,75 +38,66 @@ Other representations of profile: [CSV](StructureDefinition-COSEHeader.csv), [Ex
   "resourceType" : "StructureDefinition",
   "id" : "COSEHeader",
   "url" : "http://smart.who.int/trust/StructureDefinition/COSEHeader",
-  "version" : "1.4.0",
+  "version" : "1.5.0",
   "name" : "COSEHeader",
   "title" : "COSE Headers (DRAFT)",
   "status" : "active",
-  "date" : "2026-02-11T14:17:30+00:00",
+  "date" : "2026-04-27T07:32:49+00:00",
   "publisher" : "WHO",
-  "contact" : [
-    {
-      "name" : "WHO",
-      "telecom" : [
-        {
-          "system" : "url",
-          "value" : "http://who.int"
-        }
-      ]
-    }
-  ],
+  "contact" : [{
+    "name" : "WHO",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://who.int"
+    }]
+  }],
   "description" : "Data elements for COSE Headers https://www.iana.org/assignments/cose/cose.xhtml#header-parameters",
-  "jurisdiction" : [
-    {
-      "coding" : [
-        {
-          "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
-          "code" : "001"
-        }
-      ]
-    }
-  ],
-  "fhirVersion" : "4.0.1",
+  "jurisdiction" : [{
+    "coding" : [{
+      "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
+      "code" : "001"
+    }]
+  }],
+  "fhirVersion" : "5.0.0",
+  "mapping" : [{
+    "identity" : "rim",
+    "uri" : "http://hl7.org/v3",
+    "name" : "RIM Mapping"
+  }],
   "kind" : "logical",
   "abstract" : false,
   "type" : "http://smart.who.int/trust/StructureDefinition/COSEHeader",
   "baseDefinition" : "http://hl7.org/fhir/StructureDefinition/Base",
   "derivation" : "specialization",
   "differential" : {
-    "element" : [
-      {
-        "id" : "COSEHeader",
-        "path" : "COSEHeader",
-        "short" : "COSE Headers (DRAFT)",
-        "definition" : "Data elements for COSE Headers https://www.iana.org/assignments/cose/cose.xhtml#header-parameters"
-      },
-      {
-        "id" : "COSEHeader.1",
-        "path" : "COSEHeader.1",
-        "short" : "Encryption Algorithm",
-        "definition" : "alg(1)",
-        "min" : 0,
-        "max" : "1",
-        "type" : [
-          {
-            "code" : "string"
-          }
-        ]
-      },
-      {
-        "id" : "COSEHeader.4",
-        "path" : "COSEHeader.4",
-        "short" : "Key ID used to verify the signature of the certificate",
-        "definition" : "keyid (4)",
-        "min" : 0,
-        "max" : "1",
-        "type" : [
-          {
-            "code" : "string"
-          }
-        ]
-      }
-    ]
+    "element" : [{
+      "id" : "COSEHeader",
+      "path" : "COSEHeader",
+      "short" : "COSE Headers (DRAFT)",
+      "definition" : "Data elements for COSE Headers https://www.iana.org/assignments/cose/cose.xhtml#header-parameters"
+    },
+    {
+      "id" : "COSEHeader.1",
+      "path" : "COSEHeader.1",
+      "short" : "Encryption Algorithm",
+      "definition" : "alg(1)",
+      "min" : 0,
+      "max" : "1",
+      "type" : [{
+        "code" : "string"
+      }]
+    },
+    {
+      "id" : "COSEHeader.4",
+      "path" : "COSEHeader.4",
+      "short" : "Key ID used to verify the signature of the certificate",
+      "definition" : "keyid (4)",
+      "min" : 0,
+      "max" : "1",
+      "type" : [{
+        "code" : "string"
+      }]
+    }]
   }
 }
 

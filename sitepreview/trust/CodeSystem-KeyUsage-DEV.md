@@ -1,4 +1,4 @@
-# WHO GDHCN Key Usage CodeSystem - DEV - WHO SMART Trust v1.4.0
+# WHO GDHCN Key Usage CodeSystem - DEV - WHO SMART Trust v1.5.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/CodeSystem/KeyUsage-DEV | *Version*:1.4.0 |
-| Active as of 2026-02-11 | *Computable Name*:KeyUsage-DEV |
+| *Official URL*:http://smart.who.int/trust/CodeSystem/KeyUsage-DEV | *Version*:1.5.0 |
+| Active as of 2026-04-27 | *Computable Name*:KeyUsage-DEV |
 
  
 CodeSystem for GDHCN Key Usage that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.md) for Development environment 
@@ -28,70 +28,60 @@ CodeSystem for GDHCN Key Usage that has usage codes for verification keys publis
   "resourceType" : "CodeSystem",
   "id" : "KeyUsage-DEV",
   "url" : "http://smart.who.int/trust/CodeSystem/KeyUsage-DEV",
-  "version" : "1.4.0",
+  "version" : "1.5.0",
   "name" : "KeyUsage-DEV",
   "title" : "WHO GDHCN Key Usage CodeSystem - DEV",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-02-11T14:17:30+00:00",
+  "date" : "2026-04-27T07:32:49+00:00",
   "publisher" : "WHO",
-  "contact" : [
-    {
-      "name" : "WHO",
-      "telecom" : [
-        {
-          "system" : "url",
-          "value" : "http://who.int"
-        }
-      ]
-    }
-  ],
+  "contact" : [{
+    "name" : "WHO",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://who.int"
+    }]
+  }],
   "description" : "CodeSystem for GDHCN Key Usage that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.html) for Development environment",
-  "jurisdiction" : [
-    {
-      "coding" : [
-        {
-          "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
-          "code" : "001"
-        }
-      ]
-    }
-  ],
+  "jurisdiction" : [{
+    "coding" : [{
+      "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
+      "code" : "001"
+    }]
+  }],
   "caseSensitive" : false,
   "content" : "complete",
   "count" : 6,
-  "concept" : [
-    {
-      "code" : "SCA",
-      "display" : "Signer Certificate Authority (SCA)",
-      "definition" : "A certificate which acts a trust anchor in the verification of the certificate chain for the DSCs issued by a Trust Network participant"
-    },
-    {
-      "code" : "DSC",
-      "display" : "Document Signing Certificate (DSC)",
-      "definition" : "A certificate which may be used to verify a digital signature within a Verfifiable Digital Health Certificate"
-    },
-    {
-      "code" : "DECA",
-      "display" : "Data Exchange Certificate Authority (DECA)",
-      "definition" : "A certificate which acts a trust anchor in the verification of the certificate chain for the DESCs issued by a Trust Network Participant"
-    },
-    {
-      "code" : "DESC",
-      "display" : "Data Exchange Signing Certificate (DESC)",
-      "definition" : "A certificate which may be used to initiate a secure data exchange connection (e.g. mTLS) between Trust Network Participants"
-    },
-    {
-      "code" : "TLS",
-      "display" : "Transport Layer Security (TLS)",
-      "definition" : "Used for establishing (m)TLS connections with systems, in particular between the Trust Network Gateway and backend systems of a Trust Network Participant"
-    },
-    {
-      "code" : "UP",
-      "display" : "Upload (UP)",
-      "definition" : "Used to verify digital signature of cryptographically signed content uploaded to services within the Global Digital Health Certification Network, in particular the Trust Network Gateway"
-    }
-  ]
+  "concept" : [{
+    "code" : "SCA",
+    "display" : "Signer Certificate Authority (SCA)",
+    "definition" : "A certificate which acts a trust anchor in the verification of the certificate chain for the DSCs issued by a Trust Network participant"
+  },
+  {
+    "code" : "DSC",
+    "display" : "Document Signing Certificate (DSC)",
+    "definition" : "A certificate which may be used to verify a digital signature within a Verfifiable Digital Health Certificate"
+  },
+  {
+    "code" : "DECA",
+    "display" : "Data Exchange Certificate Authority (DECA)",
+    "definition" : "A certificate which acts a trust anchor in the verification of the certificate chain for the DESCs issued by a Trust Network Participant"
+  },
+  {
+    "code" : "DESC",
+    "display" : "Data Exchange Signing Certificate (DESC)",
+    "definition" : "A certificate which may be used to initiate a secure data exchange connection (e.g. mTLS) between Trust Network Participants"
+  },
+  {
+    "code" : "TLS",
+    "display" : "Transport Layer Security (TLS)",
+    "definition" : "Used for establishing (m)TLS connections with systems, in particular between the Trust Network Gateway and backend systems of a Trust Network Participant"
+  },
+  {
+    "code" : "UP",
+    "display" : "Upload (UP)",
+    "definition" : "Used to verify digital signature of cryptographically signed content uploaded to services within the Global Digital Health Certification Network, in particular the Trust Network Gateway"
+  }]
 }
 
 ```

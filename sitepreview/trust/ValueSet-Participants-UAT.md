@@ -1,4 +1,4 @@
-# WHO GDHCN Trust Network Participant - UAT - WHO SMART Trust v1.4.0
+# WHO GDHCN Trust Network Participant - UAT - WHO SMART Trust v1.5.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ValueSet/Participants-UAT | *Version*:1.4.0 |
-| Active as of 2026-02-11 | *Computable Name*:Participants-UAT |
+| *Official URL*:http://smart.who.int/trust/ValueSet/Participants-UAT | *Version*:1.5.0 |
+| Active as of 2026-04-27 | *Computable Name*:Participants-UAT |
 
  
 ValueSet of GDHCN Trust Network Participants for User Acceptance Testing environment 
@@ -34,7 +34,7 @@ This value set is not used here; it may be used elsewhere (e.g. specifications a
 | Level | A few code lists that FHIR defines are hierarchical - each code is assigned a level. In this scheme, some codes are under other codes, and imply that the code they are under also applies |
 | System | The source of the definition of the code (when the value set draws in codes defined elsewhere) |
 | Code | The code (used as the code in the resource instance) |
-| Display | The display (used in the*display*element of a[Coding](http://hl7.org/fhir/R4/datatypes.html#Coding)). If there is no display, implementers should not simply display the code, but map the concept into their application |
+| Display | The display (used in the*display*element of a[Coding](http://hl7.org/fhir/R5/datatypes.html#Coding)). If there is no display, implementers should not simply display the code, but map the concept into their application |
 | Definition | An explanation of the meaning of the concept |
 | Comments | Additional notes about how to use the code |
 
@@ -73,195 +73,181 @@ This endpoint serves the JSON Schema definition for the enumeration ValueSet-Par
   "resourceType" : "ValueSet",
   "id" : "Participants-UAT",
   "url" : "http://smart.who.int/trust/ValueSet/Participants-UAT",
-  "version" : "1.4.0",
+  "version" : "1.5.0",
   "name" : "Participants-UAT",
   "title" : "WHO GDHCN Trust Network Participant - UAT",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-02-11T14:17:30+00:00",
+  "date" : "2026-04-27T07:32:49+00:00",
   "publisher" : "WHO",
-  "contact" : [
-    {
-      "name" : "WHO",
-      "telecom" : [
-        {
-          "system" : "url",
-          "value" : "http://who.int"
-        }
-      ]
-    }
-  ],
+  "contact" : [{
+    "name" : "WHO",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://who.int"
+    }]
+  }],
   "description" : "ValueSet of GDHCN Trust Network Participants for User Acceptance Testing environment",
-  "jurisdiction" : [
-    {
-      "coding" : [
-        {
-          "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
-          "code" : "001"
-        }
-      ]
-    }
-  ],
+  "jurisdiction" : [{
+    "coding" : [{
+      "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
+      "code" : "001"
+    }]
+  }],
   "compose" : {
-    "include" : [
-      {
-        "system" : "http://smart.who.int/trust/CodeSystems/Participants-UAT"
+    "include" : [{
+      "system" : "http://smart.who.int/trust/CodeSystems/Participants-UAT"
+    },
+    {
+      "system" : "http://smart.who.int/refmart/CodeSystems/REF_COUNTRY",
+      "concept" : [{
+        "code" : "ALB"
       },
       {
-        "system" : "http://smart.who.int/refmart/CodeSystems/REF_COUNTRY",
-        "concept" : [
-          {
-            "code" : "ALB"
-          },
-          {
-            "code" : "AND"
-          },
-          {
-            "code" : "ARM"
-          },
-          {
-            "code" : "BEL"
-          },
-          {
-            "code" : "BEN"
-          },
-          {
-            "code" : "BRA"
-          },
-          {
-            "code" : "CAN"
-          },
-          {
-            "code" : "CYP"
-          },
-          {
-            "code" : "CZE"
-          },
-          {
-            "code" : "ESP"
-          },
-          {
-            "code" : "EST"
-          },
-          {
-            "code" : "FIN"
-          },
-          {
-            "code" : "FRA"
-          },
-          {
-            "code" : "FRO"
-          },
-          {
-            "code" : "HRV"
-          },
-          {
-            "code" : "IDN"
-          },
-          {
-            "code" : "IRL"
-          },
-          {
-            "code" : "LTU"
-          },
-          {
-            "code" : "LVA"
-          },
-          {
-            "code" : "MCO"
-          },
-          {
-            "code" : "MLT"
-          },
-          {
-            "code" : "MYS"
-          },
-          {
-            "code" : "NLD"
-          },
-          {
-            "code" : "NZL"
-          },
-          {
-            "code" : "OMN"
-          },
-          {
-            "code" : "POL"
-          },
-          {
-            "code" : "PRT"
-          },
-          {
-            "code" : "SAU"
-          },
-          {
-            "code" : "SGP"
-          },
-          {
-            "code" : "SMR"
-          },
-          {
-            "code" : "SVK"
-          },
-          {
-            "code" : "SVN"
-          },
-          {
-            "code" : "SWE"
-          },
-          {
-            "code" : "TGO"
-          },
-          {
-            "code" : "THA"
-          },
-          {
-            "code" : "TUR"
-          }
-        ]
+        "code" : "AND"
       },
       {
-        "system" : "http://smart.who.int/trust/CodeSystems/Participants-UAT",
-        "concept" : [
-          {
-            "code" : "IOM"
-          },
-          {
-            "code" : "WHO"
-          },
-          {
-            "code" : "XXA"
-          },
-          {
-            "code" : "XXB"
-          },
-          {
-            "code" : "XXC"
-          },
-          {
-            "code" : "XXD"
-          },
-          {
-            "code" : "XXO"
-          },
-          {
-            "code" : "XXS"
-          },
-          {
-            "code" : "XXU"
-          },
-          {
-            "code" : "XXV"
-          },
-          {
-            "code" : "XXX"
-          },
-          {
-            "code" : "XYK"
-          }
-        ]
-      }
-    ]
+        "code" : "ARM"
+      },
+      {
+        "code" : "BEL"
+      },
+      {
+        "code" : "BEN"
+      },
+      {
+        "code" : "BRA"
+      },
+      {
+        "code" : "CAN"
+      },
+      {
+        "code" : "CYP"
+      },
+      {
+        "code" : "CZE"
+      },
+      {
+        "code" : "ESP"
+      },
+      {
+        "code" : "EST"
+      },
+      {
+        "code" : "FIN"
+      },
+      {
+        "code" : "FRA"
+      },
+      {
+        "code" : "FRO"
+      },
+      {
+        "code" : "HRV"
+      },
+      {
+        "code" : "IDN"
+      },
+      {
+        "code" : "IRL"
+      },
+      {
+        "code" : "LTU"
+      },
+      {
+        "code" : "LVA"
+      },
+      {
+        "code" : "MCO"
+      },
+      {
+        "code" : "MLT"
+      },
+      {
+        "code" : "MYS"
+      },
+      {
+        "code" : "NLD"
+      },
+      {
+        "code" : "NZL"
+      },
+      {
+        "code" : "OMN"
+      },
+      {
+        "code" : "POL"
+      },
+      {
+        "code" : "PRT"
+      },
+      {
+        "code" : "SAU"
+      },
+      {
+        "code" : "SGP"
+      },
+      {
+        "code" : "SMR"
+      },
+      {
+        "code" : "SVK"
+      },
+      {
+        "code" : "SVN"
+      },
+      {
+        "code" : "SWE"
+      },
+      {
+        "code" : "TGO"
+      },
+      {
+        "code" : "THA"
+      },
+      {
+        "code" : "TUR"
+      }]
+    },
+    {
+      "system" : "http://smart.who.int/trust/CodeSystems/Participants-UAT",
+      "concept" : [{
+        "code" : "IOM"
+      },
+      {
+        "code" : "WHO"
+      },
+      {
+        "code" : "XXA"
+      },
+      {
+        "code" : "XXB"
+      },
+      {
+        "code" : "XXC"
+      },
+      {
+        "code" : "XXD"
+      },
+      {
+        "code" : "XXO"
+      },
+      {
+        "code" : "XXS"
+      },
+      {
+        "code" : "XXU"
+      },
+      {
+        "code" : "XXV"
+      },
+      {
+        "code" : "XXX"
+      },
+      {
+        "code" : "XYK"
+      }]
+    }]
   }
 }
 

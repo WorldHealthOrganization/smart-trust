@@ -1,4 +1,4 @@
-# WHO GDHCN Trust Domains - UAT - WHO SMART Trust v1.4.0
+# WHO GDHCN Trust Domains - UAT - WHO SMART Trust v1.5.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/CodeSystem/Domains-UAT | *Version*:1.4.0 |
-| Active as of 2026-02-11 | *Computable Name*:Domains-UAT |
+| *Official URL*:http://smart.who.int/trust/CodeSystem/Domains-UAT | *Version*:1.5.0 |
+| Active as of 2026-04-27 | *Computable Name*:Domains-UAT |
 
  
 CodeSystem for define WHO GDHCN Trust Domains for User Acceptance Testing environment. 
@@ -28,60 +28,50 @@ CodeSystem for define WHO GDHCN Trust Domains for User Acceptance Testing enviro
   "resourceType" : "CodeSystem",
   "id" : "Domains-UAT",
   "url" : "http://smart.who.int/trust/CodeSystem/Domains-UAT",
-  "version" : "1.4.0",
+  "version" : "1.5.0",
   "name" : "Domains-UAT",
   "title" : "WHO GDHCN Trust Domains - UAT",
   "status" : "active",
   "experimental" : false,
-  "date" : "2026-02-11T14:17:30+00:00",
+  "date" : "2026-04-27T07:32:49+00:00",
   "publisher" : "WHO",
-  "contact" : [
-    {
-      "name" : "WHO",
-      "telecom" : [
-        {
-          "system" : "url",
-          "value" : "http://who.int"
-        }
-      ]
-    }
-  ],
+  "contact" : [{
+    "name" : "WHO",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://who.int"
+    }]
+  }],
   "description" : "CodeSystem for define WHO GDHCN Trust Domains for User Acceptance Testing environment.",
-  "jurisdiction" : [
-    {
-      "coding" : [
-        {
-          "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
-          "code" : "001"
-        }
-      ]
-    }
-  ],
+  "jurisdiction" : [{
+    "coding" : [{
+      "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
+      "code" : "001"
+    }]
+  }],
   "caseSensitive" : true,
   "content" : "complete",
   "count" : 4,
-  "concept" : [
-    {
-      "code" : "DDCC",
-      "display" : "DDCC",
-      "definition" : "The Digital Documentation for COVID-19 Certificates (DDCC) is defined by the SMART Implementation Guide at http://smart.who.int/ddcc"
-    },
-    {
-      "code" : "IPS-PILGRIMAGE",
-      "display" : "IPS for Pilgrimage",
-      "definition" : "The IPS for Pilgrimage is defined by the SMART Implementation Guide at http://smart.who.int/ips-pilgrimage"
-    },
-    {
-      "code" : "PH4H",
-      "display" : "Pan-American Highway for Digital Health (PH4H)",
-      "definition" : "The Pan-American Highway for Digital Health (PH4H) is defined by SMART Implementation Guide at https://worldhealthorganization.github.io/smart-ph4h/"
-    },
-    {
-      "code" : "ICVP",
-      "display" : "International Certificate of Vaccination of Prophylaxsis (ICVP)",
-      "definition" : "The International Certificate of Vaccination of Prophylaxsis (ICVP) is defined by SMART Implementation Guide at https://worldhealthorganization.github.io/smart-icvp/"
-    }
-  ]
+  "concept" : [{
+    "code" : "DDCC",
+    "display" : "DDCC",
+    "definition" : "The Digital Documentation for COVID-19 Certificates (DDCC) is defined by the SMART Implementation Guide at http://smart.who.int/ddcc"
+  },
+  {
+    "code" : "IPS-PILGRIMAGE",
+    "display" : "IPS for Pilgrimage",
+    "definition" : "The IPS for Pilgrimage is defined by the SMART Implementation Guide at http://smart.who.int/ips-pilgrimage"
+  },
+  {
+    "code" : "PH4H",
+    "display" : "Pan-American Highway for Digital Health (PH4H)",
+    "definition" : "The Pan-American Highway for Digital Health (PH4H) is defined by SMART Implementation Guide at https://worldhealthorganization.github.io/smart-ph4h/"
+  },
+  {
+    "code" : "ICVP",
+    "display" : "International Certificate of Vaccination of Prophylaxsis (ICVP)",
+    "definition" : "The International Certificate of Vaccination of Prophylaxsis (ICVP) is defined by SMART Implementation Guide at https://worldhealthorganization.github.io/smart-icvp/"
+  }]
 }
 
 ```

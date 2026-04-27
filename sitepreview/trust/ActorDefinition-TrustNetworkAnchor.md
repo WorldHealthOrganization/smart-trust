@@ -1,4 +1,4 @@
-# Trust Network Anchor - WHO SMART Trust v1.4.0
+# Trust Network Anchor - WHO SMART Trust v1.5.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,42 +9,53 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ActorDefinition/TrustNetworkAnchor | *Version*:1.4.0 |
-| Active as of 2026-02-11 | *Computable Name*:Trust Network Anchor |
+| *Official URL*:http://smart.who.int/trust/ActorDefinition/TrustNetworkAnchor | *Version*:1.5.0 |
+| Active as of 2026-04-27 | *Computable Name*:Trust Network Anchor |
 
  
 Trust Anchor which receives and distributes PKI-material within a Trust Network 
 
-* Requirements: Contact Email
-  * This actor fulfills the following requirements:* Make received business rules available through a distrubution point to a Receiver
-* Make received CertLoigc business rules available through a distrubution point to a Receiver
-* Make received business rules available through a distrubution point to a Receiver through HL7 FHIR standards
-* Make received trust material available through a distrubution point to a Trust Network Participant
-* Make received trust material available through a distrubution point to a Trust Network Participant via API
-* Make received trust material available through a distrubution point to a Trust Network Participant as DID
-* Receive business rules from a Trust Network Participant, for distribution within the Trust Network
-* Receive CertLogic business rules from a Trust Network Participant, for distribution within the Trust Network
-* Receive business rules from a Trust Network Participant, for distribution within the Trust Network using HL7 FHIR standard
-* Receive trust material from a Trust Network Participant, for distribution within the Trust Network
-* Receive trust material from a Trust Network Participant, for distribution within the Trust Network via API
-* Receive trust material from a Trust Network Participant, for distribution within the Trust Network as DID
-* Retrieve PKI material from a distribution point
-* Retrieve PKI material from a distribution point via API
-* Retrieve PKI material from a distribution point as DID: No contact email has been registered.
-* Requirements: Jurisdiction
-  * This actor fulfills the following requirements:* Make received business rules available through a distrubution point to a Receiver
-* Make received CertLoigc business rules available through a distrubution point to a Receiver
-* Make received business rules available through a distrubution point to a Receiver through HL7 FHIR standards
-* Make received trust material available through a distrubution point to a Trust Network Participant
-* Make received trust material available through a distrubution point to a Trust Network Participant via API
-* Make received trust material available through a distrubution point to a Trust Network Participant as DID
-* Receive business rules from a Trust Network Participant, for distribution within the Trust Network
-* Receive CertLogic business rules from a Trust Network Participant, for distribution within the Trust Network
-* Receive business rules from a Trust Network Participant, for distribution within the Trust Network using HL7 FHIR standard
-* Receive trust material from a Trust Network Participant, for distribution within the Trust Network
-* Receive trust material from a Trust Network Participant, for distribution within the Trust Network via API
-* Receive trust material from a Trust Network Participant, for distribution within the Trust Network as DID
-* Retrieve PKI material from a distribution point
-* Retrieve PKI material from a distribution point via API
-* Retrieve PKI material from a distribution point as DID: 001
+* Publisher: Contact Email
+  * No publisher has been registered.: No contact email has been registered.
+* Publisher: Jurisdiction
+  * No publisher has been registered.: 
+* Publisher: Requirements
+  * No publisher has been registered.: This actor fulfills the following requirements:
 
+
+
+## Resource Content
+
+```json
+{
+  "resourceType" : "ActorDefinition",
+  "id" : "TrustNetworkAnchor",
+  "meta" : {
+    "profile" : ["http://smart.who.int/base/StructureDefinition/SGActor"]
+  },
+  "url" : "http://smart.who.int/trust/ActorDefinition/TrustNetworkAnchor",
+  "version" : "1.5.0",
+  "name" : "Trust Network Anchor",
+  "title" : "Trust Network Anchor",
+  "status" : "active",
+  "experimental" : true,
+  "date" : "2026-04-27T07:32:49+00:00",
+  "publisher" : "WHO",
+  "contact" : [{
+    "name" : "WHO",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://who.int"
+    }]
+  }],
+  "description" : "Trust Anchor which receives and distributes PKI-material within a Trust Network",
+  "jurisdiction" : [{
+    "coding" : [{
+      "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
+      "code" : "001"
+    }]
+  }],
+  "type" : "system"
+}
+
+```

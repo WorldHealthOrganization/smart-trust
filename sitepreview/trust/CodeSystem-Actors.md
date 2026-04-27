@@ -1,4 +1,4 @@
-# WHO GDHCN Trust Actors CodeSystem - WHO SMART Trust v1.4.0
+# WHO GDHCN Trust Actors CodeSystem - WHO SMART Trust v1.5.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/CodeSystem/Actors | *Version*:1.4.0 |
-| Active as of 2026-02-11 | *Computable Name*:Actors |
+| *Official URL*:http://smart.who.int/trust/CodeSystem/Actors | *Version*:1.5.0 |
+| Active as of 2026-04-27 | *Computable Name*:Actors |
 
  
 CodeSystem for SMART Trust actors that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.md) 
@@ -28,63 +28,53 @@ CodeSystem for SMART Trust actors that has usage codes for verification keys pub
   "resourceType" : "CodeSystem",
   "id" : "Actors",
   "url" : "http://smart.who.int/trust/CodeSystem/Actors",
-  "version" : "1.4.0",
+  "version" : "1.5.0",
   "name" : "Actors",
   "title" : "WHO GDHCN Trust Actors CodeSystem",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-02-11T14:17:30+00:00",
+  "date" : "2026-04-27T07:32:49+00:00",
   "publisher" : "WHO",
-  "contact" : [
-    {
-      "name" : "WHO",
-      "telecom" : [
-        {
-          "system" : "url",
-          "value" : "http://who.int"
-        }
-      ]
-    }
-  ],
+  "contact" : [{
+    "name" : "WHO",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://who.int"
+    }]
+  }],
   "description" : "CodeSystem for SMART Trust actors that has usage codes for verification keys published to the Trust Network as defined by the [certificate governance](concepts_certificate_governance.html)",
-  "jurisdiction" : [
-    {
-      "coding" : [
-        {
-          "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
-          "code" : "001"
-        }
-      ]
-    }
-  ],
+  "jurisdiction" : [{
+    "coding" : [{
+      "system" : "http://unstats.un.org/unsd/methods/m49/m49.htm",
+      "code" : "001"
+    }]
+  }],
   "caseSensitive" : false,
   "content" : "complete",
   "count" : 5,
-  "concept" : [
-    {
-      "code" : "credential-holder",
-      "display" : "Holder of a Credential"
-    },
-    {
-      "code" : "credential-issuer",
-      "display" : "Issuer of a Credential"
-    },
-    {
-      "code" : "gdhcn",
-      "display" : "GDHCN",
-      "definition" : "Global Digital Health Certification Network (GDHCN)"
-    },
-    {
-      "code" : "TNG",
-      "display" : "TNG",
-      "definition" : "Trust Network Gateway"
-    },
-    {
-      "code" : "TNP",
-      "display" : "TNP",
-      "definition" : "Trust Network Participant"
-    }
-  ]
+  "concept" : [{
+    "code" : "credential-holder",
+    "display" : "Holder of a Credential"
+  },
+  {
+    "code" : "credential-issuer",
+    "display" : "Issuer of a Credential"
+  },
+  {
+    "code" : "gdhcn",
+    "display" : "GDHCN",
+    "definition" : "Global Digital Health Certification Network (GDHCN)"
+  },
+  {
+    "code" : "TNG",
+    "display" : "TNG",
+    "definition" : "Trust Network Gateway"
+  },
+  {
+    "code" : "TNP",
+    "display" : "TNP",
+    "definition" : "Trust Network Participant"
+  }]
 }
 
 ```
