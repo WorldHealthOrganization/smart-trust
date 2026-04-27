@@ -85,6 +85,8 @@ On Friday, September 29, 2023, WHO’s Director General sent a circular letter t
 * <a href="C.L.38.2023%20(Global%20Digital%20Health%20Certification%20Network)%20English.pdf">C.L.38.2023 (Global Digital Health Certification Network) - English</a>
 * <a href="C.L.38.2023%20(Global%20Digital%20Health%20Certification%20Network)%20French.pdf">C.L.38.2023 (Global Digital Health Certification Network) - French</a>
 * <a href="C.L.38.2023%20(Global%20Digital%20Health%20Certification%20Network)%20Russian.pdf">C.L.38.2023 (Global Digital Health Certification Network) - Russian</a>
+* <a href="C.L.38.2023%20(Global%20Digital%20Health%20Certification%20Network)%20Spanish.pdf">C.L.38.2023 (Global Digital Health Certification Network) - Spanish</a>
+
 
 #### Audience
 <a name="Audience"> </a>
