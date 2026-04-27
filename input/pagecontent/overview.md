@@ -114,12 +114,11 @@ existing trust networks or potential verifiers who may participate in the federa
 
 
 <div style="display:block">
-  {% include img.html img="participants_by_region.svg" caption="Trust Network Participants by WHO Region" width="85%" %} 
+  {% include img.html img="Participant_Onboarding_Status.png" caption="Trust Network Participants" width="85%" %} 
 </div>
 
   
 <br/>
-
 
   
 #### Available Trust Domains

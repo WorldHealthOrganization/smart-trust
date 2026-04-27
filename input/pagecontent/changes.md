@@ -107,10 +107,11 @@
   </ul>
 <a name="1.5.0"> </a>
 <p>
-    <b>2026-04-22 v1.5.0 - release</b>
+    <b>2026-04-27 v1.5.0 - release</b>
   </p>
-<b>2026-04-22 v1.5.0 - release</b>
+<b>2026-04-27 v1.5.0 - release</b>
 <ul>
     <li>C.L.38.2023 (Global Digital Health Certification Network) circular letter references added to Overview (Arabic, Chinese, English, French, Russian)</li>
     <li>Trust Network Gateway Letters of Application added for all languages (English, Arabic, French, Mandarin, Russian, Spanish) and PH4H</li>
+    <li>Updated Participant onboarding list</li>
   </ul>
