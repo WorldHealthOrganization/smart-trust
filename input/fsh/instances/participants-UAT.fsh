@@ -161,7 +161,7 @@ Usage: #definition
 Instance: GDHCNParticipant-IOM-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "IOM"
+* name = "UAT Participant IOM"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-IOM-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-IOM-UAT-DSC)
@@ -441,7 +441,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXU-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "UAT Participant XXU"
+* name = "Geneva"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXU-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXU-UAT-DSC)
@@ -451,7 +451,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXV-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "UAT Participant XXV"
+* name = "test city"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXV-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXV-UAT-DSC)
