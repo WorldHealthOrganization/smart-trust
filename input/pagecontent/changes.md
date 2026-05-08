@@ -114,4 +114,9 @@
     <li>C.L.38.2023 (Global Digital Health Certification Network) circular letter references added to Overview (Arabic, Chinese, English, French, Russian)</li>
     <li>Trust Network Gateway Letters of Application added for all languages (English, Arabic, French, Mandarin, Russian, Spanish) and PH4H</li>
     <li>Updated Participant onboarding list</li>
-  </ul>
+</ul>
+<p><b>CI build: Additional updates:</b></p>
+<ul>
+    <li>Clarified that the HCERT CWT must include the signature for validation</li>
+    <li>Updated FSH model definitions for cardinality on CWT, and HCERT configuration</li>
+</ul>
