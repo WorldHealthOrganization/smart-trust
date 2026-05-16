@@ -88,6 +88,16 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-CZE-UAT-SCA)
 
 
+Instance: GDHCNParticipant-ECU-UAT
+InstanceOf: IHE.mCSD.Organization
+Usage: #definition
+* name = "Ecuador"
+* type = $orgType#govt
+* endpoint[+] = Reference(GDHCNParticipantDID-ECU-UAT-All)
+* endpoint[+] = Reference(GDHCNParticipantDID-ECU-UAT-DSC)
+* endpoint[+] = Reference(GDHCNParticipantDID-ECU-UAT-SCA)
+
+
 Instance: GDHCNParticipant-ESP-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
