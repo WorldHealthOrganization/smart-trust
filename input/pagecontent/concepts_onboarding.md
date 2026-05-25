@@ -111,7 +111,14 @@ DDCC: The Trust Domain for the Digital Documentation of COVID-19 Certificates
 
 ##### Letters of Application - IPS Pilgrimage
 
+##### Letter of Application - Trust Network Gateway
 
+* <a href="Letter_of_Application_Onboarding_Trust_Network_Gateway_English.docx">Letter of Application for Trust Network Gateway - English Version</a>
+* <a href="Letter_of_Application_Onboarding_Trust_Network_Gateway_Arabic.docx">Letter of Application for Trust Network Gateway - Arabic Version</a>
+* <a href="Letter_of_Application_Onboarding_Trust_Network_Gateway_French.docx">Letter of Application for Trust Network Gateway - French Version</a>
+* <a href="Letter_of_Application_Onboarding_Trust_Network_Gateway_Mandarin.docx">Letter of Application for Trust Network Gateway - Mandarin Version</a>
+* <a href="Letter_of_Application_Onboarding_Trust_Network_Gateway_Russian.docx">Letter of Application for Trust Network Gateway - Russian Version</a>
+* <a href="Letter_of_Application_Onboarding_Trust_Network_Gateway_Spanish.docx">Letter of Application for Trust Network Gateway - Spanish Version</a>
 
 
 #### Secretariat Tasks

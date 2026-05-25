@@ -77,6 +77,16 @@ systems, while preserving domestic autonomy over their use. </p>
     </ul>
 
     
+##### Circular letter to Member States
+On Friday, September 29, 2023, WHO’s Director General sent a circular letter to all Member States encouraging participation in the GDHCN.
+
+* <a href="C.L.38.2023%20(Global%20Digital%20Health%20Certification%20Network)%20Arabic.pdf">C.L.38.2023 (Global Digital Health Certification Network) - Arabic</a>
+* <a href="C.L.38.2023%20(Global%20Digital%20Health%20Certification%20Network)%20Chinese.pdf">C.L.38.2023 (Global Digital Health Certification Network) - Chinese</a>
+* <a href="C.L.38.2023%20(Global%20Digital%20Health%20Certification%20Network)%20English.pdf">C.L.38.2023 (Global Digital Health Certification Network) - English</a>
+* <a href="C.L.38.2023%20(Global%20Digital%20Health%20Certification%20Network)%20French.pdf">C.L.38.2023 (Global Digital Health Certification Network) - French</a>
+* <a href="C.L.38.2023%20(Global%20Digital%20Health%20Certification%20Network)%20Russian.pdf">C.L.38.2023 (Global Digital Health Certification Network) - Russian</a>
+* <a href="C.L.38.2023%20(Global%20Digital%20Health%20Certification%20Network)%20Spanish.pdf">C.L.38.2023 (Global Digital Health Certification Network) - Spanish</a>
+
 #### Audience
 <a name="Audience"> </a>
 
@@ -105,12 +115,11 @@ existing trust networks or potential verifiers who may participate in the federa
 
 
 <div style="display:block">
-  {% include img.html img="participants_by_region.svg" caption="Trust Network Participants by WHO Region" width="85%" %} 
+  {% include img.html img="Participant_Onboarding_Status.png" caption="Trust Network Participants" width="85%" %} 
 </div>
 
   
 <br/>
-
 
   
 #### Available Trust Domains

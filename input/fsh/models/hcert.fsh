@@ -20,8 +20,8 @@ Description:    "Logical Model for the HCERT"
 * ^status = #active
 * 1 0..1 $HCertDCC "HCERT EU DCC"  "HCERT EU DCC"
 //* 2 0..* $RACSEL_DDVC "RACSEL Vaccination Certficate Data Set claim" "RACSEL Vaccination Certificate (PROPOSED)" 
-* 3 0..* $DDCCVS "Vaccination Core Data Set claim" "DDCC Vaccination claim (PROPOSED)"
-* 4 0..* $DDCCTR "Test Result Core Data Set claim" "DDCC Test Result claim (PROPOSED)"
-* 5 0..* string "VHL" "URI of a Verifiable Health Link.  Of the form 'vhlink:/eyJ1cmwiOiJodHRwczovL2Vo....' "
-* -6 0..* $DVC "DVC" "Digital Vaccination Certificate (Proposed)"
+* 3 0..1 $DDCCVS "Vaccination Core Data Set claim" "DDCC Vaccination claim (PROPOSED)"
+* 4 0..1 $DDCCTR "Test Result Core Data Set claim" "DDCC Test Result claim (PROPOSED)"
+* 5 0..1 string "VHL" "URI of a Verifiable Health Link.  Of the form 'vhlink:/eyJ1cmwiOiJodHRwczovL2Vo....' "
+* -6 0..1 $DVCMin "DVCMin" "Minimal Digital Vaccination Certificate Payload (Proposed)"
 
