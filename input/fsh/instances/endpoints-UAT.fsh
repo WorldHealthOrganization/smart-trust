@@ -304,6 +304,40 @@ Usage: #definition
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
 * address = "did:web:tng-cdn.who.int:v2:trustlist:-:CZE:SCA"
 
+Instance: GDHCNParticipantDID-ECU-UAT-All
+InstanceOf: IHE.mCSD.Endpoint
+Description: "Ecuador Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:ECU\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/ECU/did.json"
+Usage: #definition
+* name = "Ecuador Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:ECU\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/ECU/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-ECU-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ECU"
+
+Instance: GDHCNParticipantDID-ECU-UAT-DSC
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "Ecuador Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:ECU:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/ECU/DSC/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-ECU-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ECU:DSC"
+
+Instance: GDHCNParticipantDID-ECU-UAT-SCA
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "Ecuador Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:ECU:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/ECU/SCA/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-ECU-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ECU:SCA"
+
 Instance: GDHCNParticipantDID-ESP-UAT-All
 InstanceOf: IHE.mCSD.Endpoint
 Description: "Spain Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:ESP\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/ESP/did.json"
@@ -541,6 +575,40 @@ Usage: #definition
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
 * address = "did:web:tng-cdn.who.int:v2:trustlist:-:IDN:SCA"
+
+Instance: GDHCNParticipantDID-IOM-UAT-All
+InstanceOf: IHE.mCSD.Endpoint
+Description: "UAT Participant IOM Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/IOM/did.json"
+Usage: #definition
+* name = "UAT Participant IOM Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/IOM/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-IOM-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:IOM"
+
+Instance: GDHCNParticipantDID-IOM-UAT-DSC
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "UAT Participant IOM Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/IOM/DSC/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-IOM-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:IOM:DSC"
+
+Instance: GDHCNParticipantDID-IOM-UAT-SCA
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "UAT Participant IOM Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/IOM/SCA/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-IOM-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:IOM:SCA"
 
 Instance: GDHCNParticipantDID-IRL-UAT-All
 InstanceOf: IHE.mCSD.Endpoint
