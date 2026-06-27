@@ -318,6 +318,16 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-SGP-UAT-SCA)
 
 
+Instance: GDHCNParticipant-SLV-UAT
+InstanceOf: IHE.mCSD.Organization
+Usage: #definition
+* name = "El Salvador"
+* type = $orgType#govt
+* endpoint[+] = Reference(GDHCNParticipantDID-SLV-UAT-All)
+* endpoint[+] = Reference(GDHCNParticipantDID-SLV-UAT-DSC)
+* endpoint[+] = Reference(GDHCNParticipantDID-SLV-UAT-SCA)
+
+
 Instance: GDHCNParticipant-SMR-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition

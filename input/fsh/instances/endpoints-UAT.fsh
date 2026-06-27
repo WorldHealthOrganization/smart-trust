@@ -1086,6 +1086,40 @@ Usage: #definition
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
 * address = "did:web:tng-cdn.who.int:v2:trustlist:-:SGP:SCA"
 
+Instance: GDHCNParticipantDID-SLV-UAT-All
+InstanceOf: IHE.mCSD.Endpoint
+Description: "El Salvador Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SLV\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/SLV/did.json"
+Usage: #definition
+* name = "El Salvador Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SLV\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/SLV/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-SLV-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SLV"
+
+Instance: GDHCNParticipantDID-SLV-UAT-DSC
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "El Salvador Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:SLV:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/SLV/DSC/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-SLV-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SLV:DSC"
+
+Instance: GDHCNParticipantDID-SLV-UAT-SCA
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "El Salvador Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:SLV:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/SLV/SCA/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-SLV-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SLV:SCA"
+
 Instance: GDHCNParticipantDID-SMR-UAT-All
 InstanceOf: IHE.mCSD.Endpoint
 Description: "San Marino Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SMR\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/SMR/did.json"
