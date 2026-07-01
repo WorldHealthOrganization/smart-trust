@@ -116,7 +116,14 @@
     <li>Updated Participant onboarding list</li>
 </ul>
 <p><b>CI build: Additional updates:</b></p>
+<a name="1.6.0"> </a>
+<p>
+    <b>2026-07-01 v1.6.0 - release</b>
+  </p>
+<b>2026-07-01 v1.6.0 - release</b>
 <ul>
     <li>Clarified that the HCERT CWT must include the signature for validation</li>
     <li>Updated FSH model definitions for cardinality on CWT, and HCERT configuration</li>
+    <li>Add DID Context extensions</li>
 </ul>
+
