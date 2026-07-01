@@ -1,4 +1,4 @@
-# Publish PKI material as DID - WHO SMART Trust v1.5.0
+# Publish PKI material as DID - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/Requirements/PublishPKIMaterialDID | *Version*:1.5.0 |
-| Active as of 2026-04-27 | *Computable Name*:Publish Public Keys as DID |
+| *Official URL*:http://smart.who.int/trust/Requirements/PublishPKIMaterialDID | *Version*:1.6.0 |
+| Active as of 2026-07-01 | *Computable Name*:Publish Public Keys as DID |
 
  
 Publish trust material to a Trust Anchor as DID 
@@ -46,12 +46,12 @@ Publish trust material to a Trust Anchor as DID
     }
   }],
   "url" : "http://smart.who.int/trust/Requirements/PublishPKIMaterialDID",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "Publish Public Keys as DID",
   "title" : "Publish PKI material as DID",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

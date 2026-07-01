@@ -1,4 +1,4 @@
-# Trust Network Participant - WHO SMART Trust v1.5.0
+# Trust Network Participant - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ActorDefinition/TrustNetworkParticipant | *Version*:1.5.0 |
-| Active as of 2026-04-27 | *Computable Name*:Trust Network Participant |
+| *Official URL*:http://smart.who.int/trust/ActorDefinition/TrustNetworkParticipant | *Version*:1.6.0 |
+| Active as of 2026-07-01 | *Computable Name*:Trust Network Participant |
 
  
 Trust Network Participant which publishes and or receives PKI-material within a Trust Network 
@@ -34,12 +34,12 @@ Trust Network Participant which publishes and or receives PKI-material within a 
     "profile" : ["http://smart.who.int/base/StructureDefinition/SGActor"]
   },
   "url" : "http://smart.who.int/trust/ActorDefinition/TrustNetworkParticipant",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "Trust Network Participant",
   "title" : "Trust Network Participant",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

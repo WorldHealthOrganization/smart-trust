@@ -1,4 +1,4 @@
-# Distribute FHIR business rules - WHO SMART Trust v1.5.0
+# Distribute FHIR business rules - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/Requirements/DistributeBusinessRulesFHIR | *Version*:1.5.0 |
-| Active as of 2026-04-27 | *Computable Name*:Distribute FHIR Business Rules |
+| *Official URL*:http://smart.who.int/trust/Requirements/DistributeBusinessRulesFHIR | *Version*:1.6.0 |
+| Active as of 2026-07-01 | *Computable Name*:Distribute FHIR Business Rules |
 
  
 Make received business rules available through a distrubution point to a Receiver through HL7 FHIR standards 
@@ -46,12 +46,12 @@ Make received business rules available through a distrubution point to a Receive
     }
   }],
   "url" : "http://smart.who.int/trust/Requirements/DistributeBusinessRulesFHIR",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "Distribute FHIR Business Rules",
   "title" : "Distribute FHIR business rules",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

@@ -1,4 +1,4 @@
-# Scheme Information - WHO SMART Trust v1.5.0
+# Scheme Information - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,17 +9,17 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/StructureDefinition/SchemeInformation | *Version*:1.5.0 |
-| Draft as of 2026-04-27 | *Computable Name*:SchemeInformation |
+| *Official URL*:http://smart.who.int/trust/StructureDefinition/SchemeInformation | *Version*:1.6.0 |
+| Draft as of 2026-07-01 | *Computable Name*:SchemeInformation |
 
  
 Logical Model for Information on the trusted list and its issuing scheme 
 
 **Usages:**
 
-* This Logical Model is not used by any profiles in this Implementation Guide
+* This Logical Model is not used by any profiles in this Specification
 
-You can also check for [usages in the FHIR IG Statistics](https://packages2.fhir.org/xig/smart.who.int.trust|current/StructureDefinition/SchemeInformation)
+You can also check for [usages in the FHIR IG Statistics](https://packages2.fhir.org/xig/resource/smart.who.int.trust|current/StructureDefinition/StructureDefinition-SchemeInformation.json)
 
 ### Formal Views of Profile Content
 
@@ -38,11 +38,11 @@ Other representations of profile: [CSV](StructureDefinition-SchemeInformation.cs
   "resourceType" : "StructureDefinition",
   "id" : "SchemeInformation",
   "url" : "http://smart.who.int/trust/StructureDefinition/SchemeInformation",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "SchemeInformation",
   "title" : "Scheme Information",
   "status" : "draft",
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

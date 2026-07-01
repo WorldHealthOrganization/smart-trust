@@ -1,4 +1,4 @@
-# Health Certificate - WHO SMART Trust v1.5.0
+# Health Certificate - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/StructureDefinition/HCert | *Version*:1.5.0 |
-| Active as of 2026-04-27 | *Computable Name*:HCert |
+| *Official URL*:http://smart.who.int/trust/StructureDefinition/HCert | *Version*:1.6.0 |
+| Active as of 2026-07-01 | *Computable Name*:HCert |
 
  
 Logical Model for the HCERT 
@@ -19,7 +19,7 @@ Logical Model for the HCERT
 
 * Use this Logical Model: [CBOR Web Token (CWT) Payload (Common)](StructureDefinition-CWTPayload.md)
 
-You can also check for [usages in the FHIR IG Statistics](https://packages2.fhir.org/xig/smart.who.int.trust|current/StructureDefinition/HCert)
+You can also check for [usages in the FHIR IG Statistics](https://packages2.fhir.org/xig/resource/smart.who.int.trust|current/StructureDefinition/StructureDefinition-HCert.json)
 
 ### Formal Views of Profile Content
 
@@ -38,11 +38,11 @@ Other representations of profile: [CSV](StructureDefinition-HCert.csv), [Excel](
   "resourceType" : "StructureDefinition",
   "id" : "HCert",
   "url" : "http://smart.who.int/trust/StructureDefinition/HCert",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "HCert",
   "title" : "Health Certificate",
   "status" : "active",
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",
@@ -93,7 +93,7 @@ Other representations of profile: [CSV](StructureDefinition-HCert.csv), [Excel](
       "short" : "Vaccination Core Data Set claim",
       "definition" : "DDCC Vaccination claim (PROPOSED)",
       "min" : 0,
-      "max" : "*",
+      "max" : "1",
       "type" : [{
         "code" : "http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSet",
         "profile" : ["http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetVS"]
@@ -105,7 +105,7 @@ Other representations of profile: [CSV](StructureDefinition-HCert.csv), [Excel](
       "short" : "Test Result Core Data Set claim",
       "definition" : "DDCC Test Result claim (PROPOSED)",
       "min" : 0,
-      "max" : "*",
+      "max" : "1",
       "type" : [{
         "code" : "http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSet",
         "profile" : ["http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetTR"]
@@ -117,7 +117,7 @@ Other representations of profile: [CSV](StructureDefinition-HCert.csv), [Excel](
       "short" : "VHL",
       "definition" : "URI of a Verifiable Health Link.  Of the form 'vhlink:/eyJ1cmwiOiJodHRwczovL2Vo....' ",
       "min" : 0,
-      "max" : "*",
+      "max" : "1",
       "type" : [{
         "code" : "string"
       }]
@@ -125,12 +125,12 @@ Other representations of profile: [CSV](StructureDefinition-HCert.csv), [Excel](
     {
       "id" : "HCert.-6",
       "path" : "HCert.-6",
-      "short" : "DVC",
-      "definition" : "Digital Vaccination Certificate (Proposed)",
+      "short" : "DVCMin",
+      "definition" : "Minimal Digital Vaccination Certificate Payload (Proposed)",
       "min" : 0,
-      "max" : "*",
+      "max" : "1",
       "type" : [{
-        "code" : "http://smart.who.int/trust-phw/StructureDefinition/DVC"
+        "code" : "http://smart.who.int/trust-phw/StructureDefinition/DVCMin"
       }]
     }]
   }

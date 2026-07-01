@@ -1,4 +1,4 @@
-# CBOR Web Token (CWT) Payload (Common) - WHO SMART Trust v1.5.0
+# CBOR Web Token (CWT) Payload (Common) - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/StructureDefinition/CWTPayload | *Version*:1.5.0 |
-| Active as of 2026-04-27 | *Computable Name*:CWTPayload |
+| *Official URL*:http://smart.who.int/trust/StructureDefinition/CWTPayload | *Version*:1.6.0 |
+| Active as of 2026-07-01 | *Computable Name*:CWTPayload |
 
  
 Logical Model for CBOR Web Token (CWT) Payload Logical Modelin CWT Payload https://www.iana.org/assignments/cwt/cwt.xhtml 
@@ -19,7 +19,7 @@ Logical Model for CBOR Web Token (CWT) Payload Logical Modelin CWT Payload https
 
 * Use this Logical Model: [CBOR Web Token (CWT) Claim](StructureDefinition-CWT.md)
 
-You can also check for [usages in the FHIR IG Statistics](https://packages2.fhir.org/xig/smart.who.int.trust|current/StructureDefinition/CWTPayload)
+You can also check for [usages in the FHIR IG Statistics](https://packages2.fhir.org/xig/resource/smart.who.int.trust|current/StructureDefinition/StructureDefinition-CWTPayload.json)
 
 ### Formal Views of Profile Content
 
@@ -38,11 +38,11 @@ Other representations of profile: [CSV](StructureDefinition-CWTPayload.csv), [Ex
   "resourceType" : "StructureDefinition",
   "id" : "CWTPayload",
   "url" : "http://smart.who.int/trust/StructureDefinition/CWTPayload",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "CWTPayload",
   "title" : "CBOR Web Token (CWT) Payload (Common)",
   "status" : "active",
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

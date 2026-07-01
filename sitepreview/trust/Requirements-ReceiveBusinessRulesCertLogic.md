@@ -1,4 +1,4 @@
-# Receive CertLogic business rules - WHO SMART Trust v1.5.0
+# Receive CertLogic business rules - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/Requirements/ReceiveBusinessRulesCertLogic | *Version*:1.5.0 |
-| Active as of 2026-04-27 | *Computable Name*:Receive CertLogic Business Rules |
+| *Official URL*:http://smart.who.int/trust/Requirements/ReceiveBusinessRulesCertLogic | *Version*:1.6.0 |
+| Active as of 2026-07-01 | *Computable Name*:Receive CertLogic Business Rules |
 
  
 Receive CertLogic business rules from a Trust Network Participant, for distribution within the Trust Network 
@@ -46,12 +46,12 @@ Receive CertLogic business rules from a Trust Network Participant, for distribut
     }
   }],
   "url" : "http://smart.who.int/trust/Requirements/ReceiveBusinessRulesCertLogic",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "Receive CertLogic Business Rules",
   "title" : "Receive CertLogic business rules",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

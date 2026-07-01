@@ -1,4 +1,4 @@
-# Receive PKI material via API - WHO SMART Trust v1.5.0
+# Receive PKI material via API - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/Requirements/ReceivePKUMaterialAPI | *Version*:1.5.0 |
-| Active as of 2026-04-27 | *Computable Name*:Receive Public Keys via API |
+| *Official URL*:http://smart.who.int/trust/Requirements/ReceivePKUMaterialAPI | *Version*:1.6.0 |
+| Active as of 2026-07-01 | *Computable Name*:Receive Public Keys via API |
 
  
 Receive trust material from a Trust Network Participant, for distribution within the Trust Network via API 
@@ -46,12 +46,12 @@ Receive trust material from a Trust Network Participant, for distribution within
     }
   }],
   "url" : "http://smart.who.int/trust/Requirements/ReceivePKUMaterialAPI",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "Receive Public Keys via API",
   "title" : "Receive PKI material via API",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

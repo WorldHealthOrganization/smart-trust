@@ -1,4 +1,4 @@
-# WHO GDHCN Trust Domains - WHO SMART Trust v1.5.0
+# WHO GDHCN Trust Domains - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/CodeSystem/Domains | *Version*:1.5.0 |
-| Active as of 2026-04-27 | *Computable Name*:Domains |
+| *Official URL*:http://smart.who.int/trust/CodeSystem/Domains | *Version*:1.6.0 |
+| Draft as of 2026-07-01 | *Computable Name*:Domains |
 
  
 CodeSystem for define WHO GDHCN Trust Domains for Production environment. 
@@ -28,12 +28,12 @@ CodeSystem for define WHO GDHCN Trust Domains for Production environment.
   "resourceType" : "CodeSystem",
   "id" : "Domains",
   "url" : "http://smart.who.int/trust/CodeSystem/Domains",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "Domains",
   "title" : "WHO GDHCN Trust Domains",
-  "status" : "active",
+  "status" : "draft",
   "experimental" : false,
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

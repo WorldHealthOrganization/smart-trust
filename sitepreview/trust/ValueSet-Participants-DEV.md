@@ -1,4 +1,4 @@
-# WHO GDHCN Trust Network Participant - DEV - WHO SMART Trust v1.5.0
+# WHO GDHCN Trust Network Participant - DEV - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ValueSet/Participants-DEV | *Version*:1.5.0 |
-| Active as of 2026-04-27 | *Computable Name*:Participants-DEV |
+| *Official URL*:http://smart.who.int/trust/ValueSet/Participants-DEV | *Version*:1.6.0 |
+| Active as of 2026-07-01 | *Computable Name*:Participants-DEV |
 
  
 ValueSet of GDHCN Trust Network Participants for Development environment 
@@ -73,12 +73,12 @@ This endpoint serves the JSON Schema definition for the enumeration ValueSet-Par
   "resourceType" : "ValueSet",
   "id" : "Participants-DEV",
   "url" : "http://smart.who.int/trust/ValueSet/Participants-DEV",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "Participants-DEV",
   "title" : "WHO GDHCN Trust Network Participant - DEV",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

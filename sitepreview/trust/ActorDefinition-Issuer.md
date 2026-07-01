@@ -1,4 +1,4 @@
-# Issuer - WHO SMART Trust v1.5.0
+# Issuer - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ActorDefinition/Issuer | *Version*:1.5.0 |
-| Active as of 2026-04-27 | *Computable Name*:Issuer |
+| *Official URL*:http://smart.who.int/trust/ActorDefinition/Issuer | *Version*:1.6.0 |
+| Active as of 2026-07-01 | *Computable Name*:Issuer |
 
  
 An Issuer a system authorized by a Trust Network Participant to generate Verifiable Digital Health Certificates which are provided to a Holder. An Issuer is responsible for generating the content that is digitally signed within the Verifiable Digital Health Certificate. In order to sign this content, an Issuer should either itself be a Document Signer or utilize a Document Signer service, as authorized by the jurisdicitonal policy. 
@@ -34,12 +34,12 @@ An Issuer a system authorized by a Trust Network Participant to generate Verifia
     "profile" : ["http://smart.who.int/base/StructureDefinition/SGActor"]
   },
   "url" : "http://smart.who.int/trust/ActorDefinition/Issuer",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "Issuer",
   "title" : "Issuer",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

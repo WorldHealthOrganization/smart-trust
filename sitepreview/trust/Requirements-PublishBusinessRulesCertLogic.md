@@ -1,4 +1,4 @@
-# Publish Cert Logic business rules - WHO SMART Trust v1.5.0
+# Publish Cert Logic business rules - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/Requirements/PublishBusinessRulesCertLogic | *Version*:1.5.0 |
-| Active as of 2026-04-27 | *Computable Name*:Publish CertLogic Business Rules |
+| *Official URL*:http://smart.who.int/trust/Requirements/PublishBusinessRulesCertLogic | *Version*:1.6.0 |
+| Active as of 2026-07-01 | *Computable Name*:Publish CertLogic Business Rules |
 
  
 Publish Cert Logic business rules to a Trust Anchor 
@@ -46,12 +46,12 @@ Publish Cert Logic business rules to a Trust Anchor
     }
   }],
   "url" : "http://smart.who.int/trust/Requirements/PublishBusinessRulesCertLogic",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "Publish CertLogic Business Rules",
   "title" : "Publish Cert Logic business rules",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

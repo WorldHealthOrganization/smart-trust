@@ -1,4 +1,4 @@
-# CBOR Web Token (CWT) Claim - WHO SMART Trust v1.5.0
+# CBOR Web Token (CWT) Claim - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,17 +9,17 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/StructureDefinition/CWT | *Version*:1.5.0 |
-| Active as of 2026-04-27 | *Computable Name*:CWT |
+| *Official URL*:http://smart.who.int/trust/StructureDefinition/CWT | *Version*:1.6.0 |
+| Active as of 2026-07-01 | *Computable Name*:CWT |
 
  
 Logical Model for Data elements in CBOR Web Token (CWT) https://www.iana.org/assignments/cwt/cwt.xhtml 
 
 **Usages:**
 
-* This Logical Model is not used by any profiles in this Implementation Guide
+* This Logical Model is not used by any profiles in this Specification
 
-You can also check for [usages in the FHIR IG Statistics](https://packages2.fhir.org/xig/smart.who.int.trust|current/StructureDefinition/CWT)
+You can also check for [usages in the FHIR IG Statistics](https://packages2.fhir.org/xig/resource/smart.who.int.trust|current/StructureDefinition/StructureDefinition-CWT.json)
 
 ### Formal Views of Profile Content
 
@@ -38,11 +38,11 @@ Other representations of profile: [CSV](StructureDefinition-CWT.csv), [Excel](St
   "resourceType" : "StructureDefinition",
   "id" : "CWT",
   "url" : "http://smart.who.int/trust/StructureDefinition/CWT",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "CWT",
   "title" : "CBOR Web Token (CWT) Claim",
   "status" : "active",
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",
@@ -81,7 +81,7 @@ Other representations of profile: [CSV](StructureDefinition-CWT.csv), [Excel](St
       "path" : "CWT.header",
       "short" : "COSE Header",
       "definition" : "Header",
-      "min" : 0,
+      "min" : 1,
       "max" : "1",
       "type" : [{
         "code" : "http://smart.who.int/trust/StructureDefinition/COSEHeader"
@@ -92,7 +92,7 @@ Other representations of profile: [CSV](StructureDefinition-CWT.csv), [Excel](St
       "path" : "CWT.payload",
       "short" : "CWT Payload",
       "definition" : "Payload",
-      "min" : 0,
+      "min" : 1,
       "max" : "1",
       "type" : [{
         "code" : "http://smart.who.int/trust/StructureDefinition/CWTPayload"
@@ -103,7 +103,7 @@ Other representations of profile: [CSV](StructureDefinition-CWT.csv), [Excel](St
       "path" : "CWT.signature",
       "short" : "Signature",
       "definition" : "Signature",
-      "min" : 0,
+      "min" : 1,
       "max" : "1",
       "type" : [{
         "code" : "string"

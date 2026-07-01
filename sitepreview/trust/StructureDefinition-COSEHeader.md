@@ -1,4 +1,4 @@
-# COSE Headers (DRAFT) - WHO SMART Trust v1.5.0
+# COSE Headers (DRAFT) - WHO SMART Trust v1.6.0
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/StructureDefinition/COSEHeader | *Version*:1.5.0 |
-| Active as of 2026-04-27 | *Computable Name*:COSEHeader |
+| *Official URL*:http://smart.who.int/trust/StructureDefinition/COSEHeader | *Version*:1.6.0 |
+| Active as of 2026-07-01 | *Computable Name*:COSEHeader |
 
  
 Data elements for COSE Headers https://www.iana.org/assignments/cose/cose.xhtml#header-parameters 
@@ -19,7 +19,7 @@ Data elements for COSE Headers https://www.iana.org/assignments/cose/cose.xhtml#
 
 * Use this Logical Model: [CBOR Web Token (CWT) Claim](StructureDefinition-CWT.md)
 
-You can also check for [usages in the FHIR IG Statistics](https://packages2.fhir.org/xig/smart.who.int.trust|current/StructureDefinition/COSEHeader)
+You can also check for [usages in the FHIR IG Statistics](https://packages2.fhir.org/xig/resource/smart.who.int.trust|current/StructureDefinition/StructureDefinition-COSEHeader.json)
 
 ### Formal Views of Profile Content
 
@@ -38,11 +38,11 @@ Other representations of profile: [CSV](StructureDefinition-COSEHeader.csv), [Ex
   "resourceType" : "StructureDefinition",
   "id" : "COSEHeader",
   "url" : "http://smart.who.int/trust/StructureDefinition/COSEHeader",
-  "version" : "1.5.0",
+  "version" : "1.6.0",
   "name" : "COSEHeader",
   "title" : "COSE Headers (DRAFT)",
   "status" : "active",
-  "date" : "2026-04-27T07:32:49+00:00",
+  "date" : "2026-07-01T12:00:12+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",
