@@ -5,17 +5,17 @@ Feature: Check Country Delivery
 
   Background:
     Given the tng-participants-dev or tng-participants-uat repository is checked out
-    And the bot is configured with GIT_USER, GIT_EMAIL, and BOT_TOKEN_GITHUB
+    And GIT_USER, GIT_EMAIL, and BOT_TOKEN_GITHUB Environment variables are set
     And the tng-participants-secrets repository is checked out to "participants-secrets/"
 
   @secrets @gpg @decryption
   Scenario Outline: Ingest and decrypt participant secrets
     Given GPG is configured with the private key from secret EXT_SECRETS_GPG_PRIVATE_KEY
     And GPG passphrase is available from secret EXT_SECRETS_GPG_PRIVATE_KEY_PW
-    When files matching "participants-secrets/dev/*.pgp" are found
+    And files matching "participants-secrets/dev/*.pgp" are found
     And each filename matches the pattern "^[A-Z]{3}$" (3-letter country code)
-    Then the PGP-encrypted files are decrypted using the GPG private key and passphrase
-    And the decrypted content is written to "decrypted/<country_code>.txt"
+    When the PGP-encrypted files are decrypted using the GPG private key and passphrase
+    Then the decrypted content is written to "decrypted/<country_code>.txt"
 
     Examples:
       | country_code |
