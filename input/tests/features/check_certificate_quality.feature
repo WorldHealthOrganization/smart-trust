@@ -3,22 +3,27 @@ Feature: Certificate Quality Checks
   complies with the WHO GDHCN certificate governance requirements as defined in
   https://github.com/WorldHealthOrganization/smart-trust/blob/main/input/pagecontent/concepts_certificate_governance.md
   and the reference test scripts in
-  https://github.com/WorldHealthOrganization/tng-participants-dev/tree/main/scripts/tests/
+  https://github.com/WorldHealthOrganization/tng-participant-template/tree/main/scripts/tests/
   Background:
     Given a PEM-encoded X.509 certificate is loaded for a participant
     And the certificate's group (TLS, UP, SCA, DECA) and filename prefix (TLS, CA, UP) are known
   Rule: RSA and DSA keys must be ≥ 3000 bit; EC keys must be ≥ 250 bit
     Scenario Outline: Public key meets minimum bit-length for its algorithm
       Given the certificate has a <keyType> public key
-      Then the key size SHALL be at least <minBits> bits
+      Then the key size SHALL be at least <publicKeyLength> bits
       Examples:
-        | keyType | minBits |
-        | RSA     | 3000   |
-        | EC      | 250    |
-        | DSA     | 3000   |
-    Scenario: Unsupported key type is rejected
-      Given the certificate has a public key of an unsupported algorithm
+        | keyType | publicKeyLength |
+        | RSA     | 3000            |
+        | EC      | 250             |
+        | DSA     | 3000            |
+    Scenario Outline: Unsupported X509.keytype is rejected
+      Given the certificate has a public key of an <unsupported X509.keytype> algorithm
       Then the certificate SHALL be rejected
+      Examples:
+        | unsupported algorithm |
+        | Ed25519               |
+        | X448                  |
+        | P-512                 |
 
   Rule: Key usage flags must match the certificate's role
     Scenario: Key Usage extension is present on all certificates
@@ -119,4 +124,4 @@ Feature: Certificate Quality Checks
     Scenario: SCA must not issue certificates that outlive itself
       Given an SCA certificate with a defined expiration date
       And a DSC certificate issued by that SCA
-      Then the DSC's notAfter date SHALL NOT exceed the SCA's notAfter date 
+      Then the DSC's notAfter date SHALL NOT exceed the SCA's notAfter date

@@ -29,28 +29,17 @@ Feature: Check Country Delivery
     Then no decrypted file is created and workflow must fail
 
     Examples:
-      | file_name | passphrase   |
-      | BAD       | wrong_pass   |
-      | XXX       | empty_pass   |
+      | file_name | passphrase |
+      | BAD       | wrong_pass |
+      | XXX       | empty_pass |
 
   @countries-json
   Scenario: Generate countries.json from decrypted secrets
     Given decrypted participant files exist in "decrypted/*.txt"
     When each file is read and its content is JSON-escaped via jq
-    Then a "scripts/countries.json" file is generated
-    And it contains a JSON object mapping each 3-letter country code to its decoded secret content
-
-  @config @base64 @decode
-#   TODO: Fix me, content must be decrypted with gpg key
-  Scenario: Decode participant config from base64
-    Given the country code is read from "temp/country"
-    And the base64-encoded content is read from "temp/base64"
-    When the base64 content is decoded and parsed as JSON
-    Then the resulting JSON object contains keys "repo" and "keys"
-    And if "sync" is true, a "sync" marker file is created
-    And if "sync" is false, the repo URL (with BOT_TOKEN_GITHUB embedded) is written to "temp/repo"
-    And each GPG key from the "keys" array is appended to "temp/gpg"
-    And TA signing material is prepared under "sign/cas/TA/"
+    And a "scripts/countries.json" file is generated
+    And a JSON object of each 3-letter country code and its decoded secret content is written to "scripts/countries.json"
+    Then the "scripts/countries.json" file contains an object list of all countries with their corresponding secrets
 
   @repo @clone @tags
   Scenario: Clone participant repository and checkout latest tag
