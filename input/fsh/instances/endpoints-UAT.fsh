@@ -1018,6 +1018,40 @@ Usage: #definition
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
 * address = "did:web:tng-cdn.who.int:v2:trustlist:-:PRT:SCA"
 
+Instance: GDHCNParticipantDID-PRY-UAT-All
+InstanceOf: IHE.mCSD.Endpoint
+Description: "Paraguay Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:PRY\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/PRY/did.json"
+Usage: #definition
+* name = "Paraguay Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:PRY\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/PRY/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-PRY-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PRY"
+
+Instance: GDHCNParticipantDID-PRY-UAT-DSC
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "Paraguay Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:PRY:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/PRY/DSC/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-PRY-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PRY:DSC"
+
+Instance: GDHCNParticipantDID-PRY-UAT-SCA
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "Paraguay Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:PRY:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/PRY/SCA/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-PRY-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PRY:SCA"
+
 Instance: GDHCNParticipantDID-SAU-UAT-All
 InstanceOf: IHE.mCSD.Endpoint
 Description: "Saudi Arabia Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SAU\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/SAU/did.json"

@@ -298,6 +298,16 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-PRT-UAT-SCA)
 
 
+Instance: GDHCNParticipant-PRY-UAT
+InstanceOf: IHE.mCSD.Organization
+Usage: #definition
+* name = "Paraguay"
+* type = $orgType#govt
+* endpoint[+] = Reference(GDHCNParticipantDID-PRY-UAT-All)
+* endpoint[+] = Reference(GDHCNParticipantDID-PRY-UAT-DSC)
+* endpoint[+] = Reference(GDHCNParticipantDID-PRY-UAT-SCA)
+
+
 Instance: GDHCNParticipant-SAU-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
