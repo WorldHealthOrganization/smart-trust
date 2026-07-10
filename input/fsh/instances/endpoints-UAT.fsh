@@ -950,6 +950,40 @@ Usage: #definition
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
 * address = "did:web:tng-cdn.who.int:v2:trustlist:-:OMN:SCA"
 
+Instance: GDHCNParticipantDID-PAN-UAT-All
+InstanceOf: IHE.mCSD.Endpoint
+Description: "Panama Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:PAN\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/PAN/did.json"
+Usage: #definition
+* name = "Panama Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:PAN\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/PAN/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-PAN-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PAN"
+
+Instance: GDHCNParticipantDID-PAN-UAT-DSC
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "Panama Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:PAN:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/PAN/DSC/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-PAN-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PAN:DSC"
+
+Instance: GDHCNParticipantDID-PAN-UAT-SCA
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "Panama Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:PAN:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/PAN/SCA/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-PAN-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PAN:SCA"
+
 Instance: GDHCNParticipantDID-POL-UAT-All
 InstanceOf: IHE.mCSD.Endpoint
 Description: "Poland Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:POL\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/POL/did.json"

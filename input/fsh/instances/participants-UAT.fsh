@@ -278,6 +278,16 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-OMN-UAT-SCA)
 
 
+Instance: GDHCNParticipant-PAN-UAT
+InstanceOf: IHE.mCSD.Organization
+Usage: #definition
+* name = "Panama"
+* type = $orgType#govt
+* endpoint[+] = Reference(GDHCNParticipantDID-PAN-UAT-All)
+* endpoint[+] = Reference(GDHCNParticipantDID-PAN-UAT-DSC)
+* endpoint[+] = Reference(GDHCNParticipantDID-PAN-UAT-SCA)
+
+
 Instance: GDHCNParticipant-POL-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
