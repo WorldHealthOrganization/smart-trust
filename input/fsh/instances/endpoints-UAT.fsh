@@ -236,6 +236,40 @@ Usage: #definition
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
 * address = "did:web:tng-cdn.who.int:v2:trustlist:-:CAN:SCA"
 
+Instance: GDHCNParticipantDID-CHL-UAT-All
+InstanceOf: IHE.mCSD.Endpoint
+Description: "Chile Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:CHL\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/CHL/did.json"
+Usage: #definition
+* name = "Chile Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:CHL\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/CHL/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-CHL-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:CHL"
+
+Instance: GDHCNParticipantDID-CHL-UAT-DSC
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "Chile Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:CHL:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/CHL/DSC/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-CHL-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:CHL:DSC"
+
+Instance: GDHCNParticipantDID-CHL-UAT-SCA
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "Chile Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:CHL:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/CHL/SCA/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-CHL-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:CHL:SCA"
+
 Instance: GDHCNParticipantDID-CYP-UAT-All
 InstanceOf: IHE.mCSD.Endpoint
 Description: "Cyprus Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:CYP\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/CYP/did.json"
@@ -612,9 +646,9 @@ Usage: #definition
 
 Instance: GDHCNParticipantDID-IOM-UAT-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "IOM Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/IOM/did.json"
+Description: "UAT Participant IOM Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/IOM/did.json"
 Usage: #definition
-* name = "IOM Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/IOM/did.json"
+* name = "UAT Participant IOM Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/IOM/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-IOM-UAT)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -625,7 +659,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-IOM-UAT-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "IOM Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/IOM/DSC/did.json"
+* name = "UAT Participant IOM Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/IOM/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-IOM-UAT)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -636,7 +670,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-IOM-UAT-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "IOM Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/IOM/SCA/did.json"
+* name = "UAT Participant IOM Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/IOM/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-IOM-UAT)
 * status = #active
 * connectionType = $ConnectionTypes#http-get

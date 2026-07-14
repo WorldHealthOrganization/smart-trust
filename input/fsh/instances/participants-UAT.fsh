@@ -68,6 +68,16 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-CAN-UAT-SCA)
 
 
+Instance: GDHCNParticipant-CHL-UAT
+InstanceOf: IHE.mCSD.Organization
+Usage: #definition
+* name = "Chile"
+* type = $orgType#govt
+* endpoint[+] = Reference(GDHCNParticipantDID-CHL-UAT-All)
+* endpoint[+] = Reference(GDHCNParticipantDID-CHL-UAT-DSC)
+* endpoint[+] = Reference(GDHCNParticipantDID-CHL-UAT-SCA)
+
+
 Instance: GDHCNParticipant-CYP-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
@@ -181,7 +191,7 @@ Usage: #definition
 Instance: GDHCNParticipant-IOM-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "IOM"
+* name = "UAT Participant IOM"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-IOM-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-IOM-UAT-DSC)
