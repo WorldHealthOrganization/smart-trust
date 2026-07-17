@@ -428,6 +428,16 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-TUR-UAT-SCA)
 
 
+Instance: GDHCNParticipant-URY-UAT
+InstanceOf: IHE.mCSD.Organization
+Usage: #definition
+* name = "Uruguay"
+* type = $orgType#govt
+* endpoint[+] = Reference(GDHCNParticipantDID-URY-UAT-All)
+* endpoint[+] = Reference(GDHCNParticipantDID-URY-UAT-DSC)
+* endpoint[+] = Reference(GDHCNParticipantDID-URY-UAT-SCA)
+
+
 Instance: GDHCNParticipant-WHO-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
