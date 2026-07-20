@@ -13,7 +13,7 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 // 3. ValueSet includes codes from BOTH sources
 //
 // Current composition:
-//   - RefMart codes (participants found in RefMart): 42
+//   - RefMart codes (participants found in RefMart): 43
 //   - Participants-UAT codes (participants NOT in RefMart): 13
 //
 // To regenerate, execute on tng-participants-uat repo:
@@ -62,6 +62,7 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 * $RefMartCountryList#TGO
 * $RefMartCountryList#THA
 * $RefMartCountryList#TUR
+* $RefMartCountryList#URY
 * $Participants-UAT#WHO
 * $Participants-UAT#XXA
 * $Participants-UAT#XXB
