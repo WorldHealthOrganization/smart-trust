@@ -5,6 +5,7 @@ import re
 # import pandas lib as pd
 # import pandas as pd
 #import string
+import os
 import sys
 import getopt
 import urllib3 as urllib
@@ -16,6 +17,25 @@ from cryptography.x509.oid import ExtensionOID, NameOID
 
 # the WHO RefMart Country List
 refmart_country_list_url = "https://xmart-api-public.who.int/REFMART/REF_COUNTRY"
+
+# GitHub API configuration
+GITHUB_API_BASE = "https://api.github.com"
+GITHUB_RAW_BASE = "https://raw.githubusercontent.com"
+GITHUB_ORG = "WorldHealthOrganization"
+DEFAULT_BRANCH = "main"
+
+
+def get_github_headers():
+    """Build request headers for GitHub, authenticating with GITHUB_TOKEN when available.
+
+    Authenticated requests raise the rate limit from 60/hour (unauthenticated) to
+    5,000/hour, which avoids the '403 rate limit exceeded' errors seen in CI.
+    """
+    headers = {"Accept": "application/vnd.github+json"}
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
 
 # Environment-specific configuration
 environment_configs = {
@@ -71,75 +91,91 @@ def load_refmart_from_file():
     return {'value': countries}
 
 
-def find_pem_file_in_directory(repo, path, depth=0, max_depth=4):
-    """Recursively search for CA.pem, TLS.pem or other .pem files in a directory"""
-    print(f"[SEARCH] Searching in directory: {path} (depth {depth})")
-    
-    if depth > max_depth:
-        print(f"[SEARCH] Max depth reached, stopping search")
-        return None
-    
-    try:
-        url = f"https://api.github.com/repos/WorldHealthOrganization/{repo}/contents/{path}"
-        print(f"[SEARCH] Fetching contents from: {url}")
-        
-        response = requests.get(url)
-        if response.status_code != 200:
-            print(f"[SEARCH] ERROR: Failed to fetch directory contents. Status: {response.status_code}")
+def fetch_repo_tree(repo, branch=DEFAULT_BRANCH):
+    """Fetch the entire repository file listing in a SINGLE request using the Git Trees API.
+
+    Walking the Contents API directory-by-directory produced 140+ REST calls per run,
+    which tripped GitHub's secondary (burst/abuse) rate limit. The recursive Trees API
+    returns every path in the repo in one call instead.
+    """
+    branches_to_try = [branch] if branch == DEFAULT_BRANCH else [branch, DEFAULT_BRANCH]
+    if "master" not in branches_to_try:
+        branches_to_try.append("master")
+
+    for candidate in branches_to_try:
+        url = f"{GITHUB_API_BASE}/repos/{GITHUB_ORG}/{repo}/git/trees/{candidate}?recursive=1"
+        print(f"[TREE] Fetching full repo tree from: {url}")
+        try:
+            response = requests.get(url, headers=get_github_headers())
+            if response.status_code == 404:
+                print(f"[TREE] Branch '{candidate}' not found, trying next candidate")
+                continue
+            if response.status_code != 200:
+                print(f"[TREE] ERROR: Failed to fetch repo tree. Status: {response.status_code} Body: {response.text[:200]}")
+                return None
+
+            data = response.json()
+            if data.get("truncated"):
+                print(f"[TREE] WARNING: Repo tree response was truncated; some files may be missing")
+
+            tree = data.get("tree", [])
+            print(f"[TREE] SUCCESS: Retrieved {len(tree)} tree entries from branch '{candidate}' in one request")
+            return {"tree": tree, "branch": candidate}
+        except Exception as e:
+            print(f"[TREE] ERROR: Exception while fetching repo tree for {repo}: {e}")
             return None
-            
-        contents = response.json()
-        print(f"[SEARCH] Found {len(contents)} items in {path}")
-        
-        # Log all files and directories found
-        files = []
-        directories = []
-        for item in contents:
-            if item['type'] == 'file':
-                files.append(item['name'])
-                # Check if this is a PEM file we're looking for
-                # Look for files named CA.pem, TLS.pem, or any .pem file
-                if item['name'] in ['CA.pem', 'TLS.pem'] or item['name'].endswith('.pem'):
-                    print(f"[SEARCH] ✓ Found PEM file: {item['path']}")
-                    return item
-            else:
-                directories.append(item['name'])
-        
-        print(f"[SEARCH] Files in {path}: {files}")
-        print(f"[SEARCH] Directories in {path}: {directories}")
-        
-        # If no PEM file found at this level, search subdirectories
-        for item in contents:
-            if item['type'] == 'dir':
-                pem_file = find_pem_file_in_directory(repo, item['path'], depth + 1, max_depth)
-                if pem_file:
-                    return pem_file
-        
-        return None
-        
-    except Exception as e:
-        print(f"[SEARCH] ERROR: Exception while searching {path}: {e}")
-        return None
+
+    print(f"[TREE] ERROR: Could not resolve a valid branch for {repo}")
+    return None
 
 
-def fetch_participant_locality_from_github(repo, participant_code):
-    """Fetch participant locality name from CA.pem, TLS.pem or other .pem file in GitHub repository"""
+def find_pem_path_for_participant(tree, participant_code):
+    """Find the best PEM file path for a participant from an already-fetched repo tree.
+
+    Prefers CA.pem, then TLS.pem, then any other .pem file, preferring shallower paths.
+    """
+    prefix = f"{participant_code}/"
+    pem_paths = [
+        entry['path']
+        for entry in tree
+        if entry.get('type') == 'blob'
+        and entry['path'].startswith(prefix)
+        and entry['path'].endswith('.pem')
+    ]
+
+    if not pem_paths:
+        return None
+
+    def sort_key(path):
+        name = path.rsplit('/', 1)[-1]
+        priority = 0 if name == 'CA.pem' else (1 if name == 'TLS.pem' else 2)
+        return (priority, path.count('/'), path)
+
+    pem_paths.sort(key=sort_key)
+    return pem_paths[0]
+
+
+def fetch_participant_locality_from_tree(repo, participant_code, tree, branch=DEFAULT_BRANCH):
+    """Extract participant locality name from its PEM certificate using a pre-fetched repo tree.
+
+    The PEM content is downloaded from raw.githubusercontent.com, which does NOT count
+    toward the GitHub REST API rate limit.
+    """
     print(f"\n=== LOCALITY EXTRACTION LOG for {participant_code} ===")
     try:
-        # Recursively search for CA.pem, TLS.pem or other .pem files in participant directory
-        pem_file = find_pem_file_in_directory(repo, participant_code)
-        
-        if not pem_file:
+        pem_path = find_pem_path_for_participant(tree, participant_code)
+
+        if not pem_path:
             print(f"[STEP 2] ERROR: No CA.pem, TLS.pem or other .pem file found for participant {participant_code}")
             return None
-        
-        print(f"[STEP 2] SUCCESS: Using PEM file: {pem_file['path']}")
-        
-        # Fetch the PEM file content
-        pem_url = pem_file['download_url']
+
+        print(f"[STEP 2] SUCCESS: Using PEM file: {pem_path}")
+
+        # Fetch the PEM file content from raw.githubusercontent.com (not rate-limited by REST API)
+        pem_url = f"{GITHUB_RAW_BASE}/{GITHUB_ORG}/{repo}/{branch}/{pem_path}"
         print(f"[STEP 3] Fetching PEM file content from: {pem_url}")
         
-        pem_response = requests.get(pem_url)
+        pem_response = requests.get(pem_url, headers=get_github_headers())
         print(f"[STEP 3] PEM file HTTP Response Status: {pem_response.status_code}")
         
         if pem_response.status_code != 200:
@@ -224,10 +260,10 @@ def fetch_participants_from_github(environment):
         return []
     
     try:
-        url = f"https://api.github.com/repos/WorldHealthOrganization/{repo}/contents"
+        url = f"{GITHUB_API_BASE}/repos/{GITHUB_ORG}/{repo}/contents"
         print(f"Fetching participants from: {url}")
         
-        response = requests.get(url)
+        response = requests.get(url, headers=get_github_headers())
         response.raise_for_status()
         
         contents = response.json()
@@ -269,17 +305,36 @@ def fetch_participants_with_localities_from_github(environment):
     
     print(f"Target repository: {repo}")
     
-    # First get the list of participants
-    print(f"[PHASE 1] Getting list of participants from {repo}")
-    participants = fetch_participants_from_github(environment)
+    # Fetch the ENTIRE repo file tree in a single request instead of walking directories
+    # per-participant. This is the key rate-limit fix: ~2 REST calls total instead of 140+.
+    print(f"[PHASE 1] Fetching full repo tree for {repo} in a single request")
+    tree_result = fetch_repo_tree(repo)
+    
+    if not tree_result or not tree_result.get("tree"):
+        print(f"[PHASE 1] ERROR: Could not fetch repo tree, falling back to static data")
+        return fetch_participants_with_localities_from_static_data(environment)
+    
+    tree = tree_result["tree"]
+    branch = tree_result["branch"]
+    
+    # Derive the participant list from the tree (top-level directories matching the pattern)
+    participant_pattern = re.compile(r'^[A-Z]{3}(-[A-Z]+)*$')
+    participants = sorted({
+        entry['path']
+        for entry in tree
+        if entry.get('type') == 'tree'
+        and '/' not in entry['path']
+        and participant_pattern.match(entry['path'])
+    })
     
     if not participants:
-        print(f"[PHASE 1] ERROR: No participants found, falling back to static data")
+        print(f"[PHASE 1] ERROR: No participants found in tree, falling back to static data")
         return fetch_participants_with_localities_from_static_data(environment)
     
     print(f"[PHASE 1] SUCCESS: Found {len(participants)} participants: {participants}")
     
-    # Then fetch locality names for each participant
+    # Then extract locality names for each participant from the already-fetched tree.
+    # PEM files are downloaded from raw.githubusercontent.com, which is not REST rate-limited.
     print(f"[PHASE 2] Extracting locality names from PEM certificates for each participant")
     participants_with_localities = {}
     successful_extractions = 0
@@ -287,7 +342,7 @@ def fetch_participants_with_localities_from_github(environment):
     
     for i, participant_code in enumerate(participants, 1):
         print(f"\n[PHASE 2] Processing participant {i}/{len(participants)}: {participant_code}")
-        locality = fetch_participant_locality_from_github(repo, participant_code)
+        locality = fetch_participant_locality_from_tree(repo, participant_code, tree, branch)
         
         if locality:
             participants_with_localities[participant_code] = locality
