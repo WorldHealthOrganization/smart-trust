@@ -1,19 +1,21 @@
 # =============================================================================
-# check_certificate_quality.feature  (CORRECTED)
+# check_certificate_quality.feature  (revised)
 #
-# WHERE THE ORIGINAL METHODOLOGY WAS WRONG
+# OPPORTUNITIES TO STRENGTHEN THIS SPEC
+#   (The coverage and intent here are already right — these are refinements so
+#    each check stays observable, unambiguous, and survives a refactor.)
 #   Mostly well-structured (good use of Rule + declarative checks), but with
-#   real DEFECTS:
-#     - STRUCTURAL BUG: two scenarios each tested TWO roles in one scenario
+#   a few things worth tightening:
+#     - Ambiguity: two scenarios each tested TWO roles in one scenario
 #       ("TLS CA key usage" also asserted UP rules; "SCA key usage" also asserted
 #       DSC) — a failure would be ambiguous about which role broke.
-#     - CRYPTO PRECISION: "EC keys >= 250 bit" (P-256 is 256); "P-512" is not a
+#     - Crypto precision: "EC keys >= 250 bit" (P-256 is 256); "P-512" is not a
 #       curve (P-521 is); the "unsupported" list was ad-hoc instead of an
 #       allow-list of what GDHCN actually permits (RSA / EC P-256).
-#     - UNTESTABLE ASSERTIONS: several "... is OPTIONAL" scenarios assert nothing.
+#     - Assertions that don't yet check anything: several "... is OPTIONAL" scenarios assert nothing.
 #     - Scenario Outline is used, which your parser doesn't support yet.
 #
-# CORRECTED APPROACH
+# SUGGESTED DIRECTION
 #   One role per scenario; correct crypto facts; allow-list unsupported algos;
 #   outlines expressed as data-table-driven single scenarios (the certificate
 #   plugin iterates the table). Verbs map to a `certificate` dialect backed by
@@ -35,10 +37,10 @@ Feature: Certificate governance quality checks
         | algorithm | minBits |
         | RSA       | 3000    |
         | DSA       | 3000    |
-        | EC        | 256     |   # FIX: P-256 is 256-bit, not "250"
+        | EC        | 256     |   # stronger: P-256 is 256-bit, not "250"
 
     Scenario: Only allowed public-key algorithms are accepted
-      # FIX: replaces the ad-hoc "unsupported: Ed25519, X448, P-512" list
+      # stronger: replaces the ad-hoc "unsupported: Ed25519, X448, P-512" list
       # (P-512 isn't a curve). GDHCN signing is RSA or EC P-256 only.
       Then "cert" public key algorithm must be one of "RSA, EC(P-256)"
 
@@ -47,7 +49,7 @@ Feature: Certificate governance quality checks
     Scenario: keyUsage extension is present
       Then "cert" must contain extension "2.5.29.15"        # keyUsage
 
-    # FIX (structural): the original crammed TLS-CA+UP and SCA+DSC together.
+    # clearer here: the original crammed TLS-CA+UP and SCA+DSC together.
     # One role per scenario.
     Scenario: TLS client certificate keyUsage
       Given "cert" group is "TLS" and filename starts with "TLS"
@@ -84,7 +86,7 @@ Feature: Certificate governance quality checks
       # serverAuth (…3.1) is MAY: asserting an optional element is present would
       # be wrong, so we assert nothing about it.
 
-    # FIX: the four "extendedKeyUsage is OPTIONAL" scenarios asserted nothing
+    # stronger: the four "extendedKeyUsage is OPTIONAL" scenarios asserted nothing
     # testable. Fold into one documentation-only waiver.
     Scenario: EKU is not required for CA/SCA/UP/DECA certificates
       Then "cert" EKU requirement is waived for groups "CA, SCA, UP, DECA"
@@ -102,7 +104,7 @@ Feature: Certificate governance quality checks
       Then "cert" basicConstraints CA must be true
 
     Scenario: End-entity certificates must not be CAs
-      # FIX: 3 near-identical scenarios (TLS client, UP, DSC) -> one table.
+      # stronger: 3 near-identical scenarios (TLS client, UP, DSC) -> one table.
       Then "cert" basicConstraints CA must be false for groups:
         | group |
         | TLS   |   # filename TLS

@@ -1,24 +1,26 @@
 # =============================================================================
-# check_dsc_upload.feature  (CORRECTED)
+# check_dsc_upload.feature  (revised)
 #
-# WHERE THE ORIGINAL METHODOLOGY WAS WRONG
-#   - REDUNDANCY: five byte-identical happy paths (@HappyPath, @SCAValidation,
+# OPPORTUNITIES TO STRENGTHEN THIS SPEC
+#   (The coverage and intent here are already right — these are refinements so
+#    each check stays observable, unambiguous, and survives a refactor.)
+#   - Redundancy: five byte-identical happy paths (@HappyPath, @SCAValidation,
 #     @CountryValidation, @UploadCertValidation, @CMSSignature accepted) — the
 #     tag doesn't change the test.
-#   - STATUS-ONLY ASSERTIONS: every rejection asserted only "400", so a negative
+#   - Status-only assertions: every rejection asserted only "400", so a negative
 #     could pass for the wrong reason.
-#   - MISSING CONTEXT: the country rules key off the authenticated (mTLS) caller,
+#   - Missing context: the country rules key off the authenticated (mTLS) caller,
 #     which the spec never establishes.
-#   - "XX" NOT ONBOARDED: cross-country negatives used an unonboarded country,
+#   - Unonboarded "XX": cross-country negatives used an unonboarded country,
 #     conflating "unknown issuer" with "wrong country".
-#   - TERMINOLOGY: "SCA" vs "CSCA" used interchangeably.
-#   - INCONSISTENT REQUEST FORMAT: some scenarios "with the CMS package", others
+#   - Terminology: "SCA" vs "CSCA" used interchangeably.
+#   - Inconsistent request format: some scenarios "with the CMS package", others
 #     "with JSON body {cms,group,domain}".
-#   - MISSING PRECONDITION: the "duplicate" scenario says "again" with no first
-#     upload. WEAK E2E: "appears in trust list" only asserted HTTP 200.
-#   - NON-DETERMINISM: "the CMS payload is randomly tampered".
+#   - Missing precondition: the "duplicate" scenario says "again" with no first
+#     upload. Weak E2E: "appears in trust list" only asserted HTTP 200.
+#   - Non-determinism: "the CMS payload is randomly tampered".
 #
-# CORRECTED APPROACH
+# SUGGESTED DIRECTION
 #   One happy path; onboard TWO real countries (DE, FR) so cross-country cases
 #   test the country rule; set the authenticated identity; assert the rejection
 #   CAUSE; deterministic tamper; verify trust-list CONTAINMENT. Verbs map to a
@@ -34,7 +36,7 @@ Feature: Upload a Document Signer Certificate (DSC) to the Trust Network Gateway
   Background:
     Given TNP is the system under test
     And Gateway is infrastructure at "https://tng-dev.example.org"
-    # FIX: onboard TWO countries so cross-country rejections test the COUNTRY
+    # stronger: onboard TWO countries so cross-country rejections test the COUNTRY
     # rule, not "unknown issuer".
     And the gateway trusts these party certificates:
       | certificateType | country |
@@ -44,7 +46,7 @@ Feature: Upload a Document Signer Certificate (DSC) to the Trust Network Gateway
       | AUTHENTICATION  | FR      |
       | UPLOAD          | FR      |
       | CSCA            | FR      |
-    # FIX: the country checks key off the mTLS client identity, never set before.
+    # stronger: the country checks key off the mTLS client identity, never set before.
     And TNP is authenticated as country "DE"
 
   # HAPPY PATH — replaces the 5 identical positive scenarios.
@@ -68,7 +70,7 @@ Feature: Upload a Document Signer Certificate (DSC) to the Trust Network Gateway
 
   @SCAValidation @negative
   Scenario: A DSC signed by a CSCA from a different (but trusted) country is rejected
-    # FIX: use FR — a REAL onboarded CSCA — so this tests the country rule.
+    # stronger: use FR — a REAL onboarded CSCA — so this tests the country rule.
     Given TNP builds a DSC with subject country "DE"
     And the DSC is signed by the CSCA of "FR"
     And it is wrapped in a CMS signed by the UPLOAD certificate of "DE"

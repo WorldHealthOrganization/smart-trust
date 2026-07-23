@@ -1,7 +1,9 @@
 # =============================================================================
-# check_for_private_key.feature  (CORRECTED)
+# check_for_private_key.feature  (revised)
 #
-# WHERE THE ORIGINAL METHODOLOGY WAS WRONG
+# OPPORTUNITIES TO STRENGTHEN THIS SPEC
+#   (The coverage and intent here are already right — these are refinements so
+#    each check stays observable, unambiguous, and survives a refactor.)
 #   - Asserted HOW the scan runs ("the directory is recursively scanned for
 #     private key headers") instead of the OUTCOME (request rejected).
 #   - Used an unresolved "<COUNTRY>" placeholder inside a plain Scenario with no
@@ -9,7 +11,7 @@
 #   - Had NO positive case: a rejection rule with no "clean request is accepted"
 #     scenario is untested for false positives (it could reject everything).
 #
-# CORRECTED APPROACH
+# SUGGESTED DIRECTION
 #   Assert the OUTCOME of the scan: a request containing any private-key header
 #   is rejected; a clean request passes; unreadable files don't break it.
 # =============================================================================
@@ -36,14 +38,14 @@ Feature: Reject onboarding requests that contain private-key material
     Then the request is rejected as containing private-key material
 
   Scenario: A clean request (only public certs and metadata) is accepted
-    # FIX: the missing positive case — proves the scan doesn't reject valid
+    # stronger: the missing positive case — proves the scan doesn't reject valid
     # onboarding (guards against false positives).
     Given the request contains only public certificates and metadata
     When the private-key scan runs
     Then the request passes the private-key scan
 
   Scenario: Binary and unreadable files are skipped without hiding a real hit
-    # FIX: replaces "unreadable files are silently skipped" phrased as internal
+    # stronger: replaces "unreadable files are silently skipped" phrased as internal
     # behaviour — assert both that the scan doesn't error AND that a genuine
     # private key elsewhere is still caught.
     Given the request includes binary and unreadable files

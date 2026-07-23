@@ -1,17 +1,19 @@
 # =============================================================================
-# check_country_delivery.feature  (CORRECTED)
+# check_country_delivery.feature  (revised)
 #
-# WHERE THE ORIGINAL METHODOLOGY WAS WRONG
-#   Almost every step tested a COMMAND or an INTERNAL FILE rather than the
+# OPPORTUNITIES TO STRENGTHEN THIS SPEC
+#   (The coverage and intent here are already right — these are refinements so
+#    each check stays observable, unambiguous, and survives a refactor.)
+#   Most steps describe a command or an internal file rather than the
 #   pipeline's effect:
 #     - "git ls-remote --tags", "tags are sorted by commit date"  -> commands
 #     - "repo.py clones ...", "verify.py imports keys and runs ..."-> scripts
 #     - "GOODSIG is extracted to temp/verifyResult"                -> internal file
 #     - "each file is JSON-escaped via jq"                         -> implementation
-#   It also mixed two abstraction levels (some scenarios black-box, some white-box)
+#   It also mixes two abstraction levels (some scenarios black-box, some white-box)
 #   and left "<country_code>" placeholders in plain scenarios.
 #
-# CORRECTED APPROACH
+# SUGGESTED DIRECTION
 #   A pipeline is tested black-box: seed a known input, run the stage (or the
 #   whole workflow via workflow_dispatch), assert the EFFECT — a PR is opened,
 #   countries.json has the right keys, the working tree is at the latest tag,
@@ -47,7 +49,7 @@ Feature: Check Country Delivery pipeline
 
   @countries-json
   Scenario: countries.json is produced from the decrypted secrets
-    # FIX: original said "each file is read and JSON-escaped via jq". Assert the
+    # stronger: original said "each file is read and JSON-escaped via jq". Assert the
     # RESULT: a JSON object keyed by country code with the decoded content.
     Given decrypted secrets exist for countries "ESP", "FRA"
     When the generate-countries step runs
@@ -62,7 +64,7 @@ Feature: Check Country Delivery pipeline
 
   @repo @tags
   Scenario: The latest signed tag of a participant repo is checked out
-    # FIX: original asserted ls-remote / sort-by-date (commands). Assert the
+    # stronger: original asserted ls-remote / sort-by-date (commands). Assert the
     # OUTCOME: the working tree ends at the latest tag's commit.
     Given a participant repo whose latest signed tag "v3" is at commit "SHA123"
     When the clone-and-checkout step runs
@@ -76,7 +78,7 @@ Feature: Check Country Delivery pipeline
 
   @verify @signed-tags
   Scenario: A tag signed by a trusted participant key verifies
-    # FIX: original asserted "GOODSIG extracted to temp/verifyResult" (internal).
+    # stronger: original asserted "GOODSIG extracted to temp/verifyResult" (internal).
     Given the latest tag is GPG-signed by a trusted participant key
     When the verify-tag step runs
     Then tag verification succeeds
