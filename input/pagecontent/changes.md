@@ -120,3 +120,13 @@
     <li>Clarified that the HCERT CWT must include the signature for validation</li>
     <li>Updated FSH model definitions for cardinality on CWT, and HCERT configuration</li>
 </ul>
+
+<p>
+    <b>2026-07-23 v1.6.0 - release</b>
+  </p>
+<b>2026-07-23 v1.6.0 - release</b>
+<p><b>CI build: Nightly participant generation fixes:</b></p>
+<ul>
+    <li>Fixed GitHub API rate limiting in the nightly participant generation workflow</li>
+    <li>Fixed missing Participants CodeSystem updates</li>
+</ul>
