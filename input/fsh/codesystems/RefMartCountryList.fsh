@@ -152,7 +152,7 @@ Description: "CodeSystem for WHO Refmart Country and Jurisidiction List availabl
 * #MOZ "Mozambique"
 * #OMN "Oman"
 * #NAM "Namibia"
-* #NRU "Nauru"
+* #NRU "Naoero"
 * #NPL "Nepal"
 * #NLD "Netherlands (Kingdom of the)"
 * #CUW "Curaçao"
