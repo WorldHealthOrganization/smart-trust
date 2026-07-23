@@ -1,127 +1,144 @@
-Feature: Certificate Quality Checks
-  Verify that all onboarded certificate material (TLS, Upload, SCA, DSC)
-  complies with the WHO GDHCN certificate governance requirements as defined in
-  https://github.com/WorldHealthOrganization/smart-trust/blob/main/input/pagecontent/concepts_certificate_governance.md
-  and the reference test scripts in
-  https://github.com/WorldHealthOrganization/tng-participant-template/tree/main/scripts/tests/
+# =============================================================================
+# check_certificate_quality.feature  (CORRECTED)
+#
+# WHERE THE ORIGINAL METHODOLOGY WAS WRONG
+#   Mostly well-structured (good use of Rule + declarative checks), but with
+#   real DEFECTS:
+#     - STRUCTURAL BUG: two scenarios each tested TWO roles in one scenario
+#       ("TLS CA key usage" also asserted UP rules; "SCA key usage" also asserted
+#       DSC) — a failure would be ambiguous about which role broke.
+#     - CRYPTO PRECISION: "EC keys >= 250 bit" (P-256 is 256); "P-512" is not a
+#       curve (P-521 is); the "unsupported" list was ad-hoc instead of an
+#       allow-list of what GDHCN actually permits (RSA / EC P-256).
+#     - UNTESTABLE ASSERTIONS: several "... is OPTIONAL" scenarios assert nothing.
+#     - Scenario Outline is used, which your parser doesn't support yet.
+#
+# CORRECTED APPROACH
+#   One role per scenario; correct crypto facts; allow-list unsupported algos;
+#   outlines expressed as data-table-driven single scenarios (the certificate
+#   plugin iterates the table). Verbs map to a `certificate` dialect backed by
+#   an X.509 inspection service (gdhcn-helper can host /cert/inspect).
+# =============================================================================
+@certificates @governance @GDHCN
+Feature: Certificate governance quality checks
+  Validate onboarded certificate material (TLS, UPLOAD, SCA/CSCA, DSC, DECA)
+  against WHO GDHCN certificate governance.
+
   Background:
-    Given a PEM-encoded X.509 certificate is loaded for a participant
-    And the certificate's group (TLS, UP, SCA, DECA) and filename prefix (TLS, CA, UP) are known
-  Rule: RSA and DSA keys must be ≥ 3000 bit; EC keys must be ≥ 250 bit
-    Scenario Outline: Public key meets minimum bit-length for its algorithm
-      Given the certificate has a <keyType> public key
-      Then the key size SHALL be at least <publicKeyLength> bits
-      Examples:
-        | keyType | publicKeyLength |
-        | RSA     | 3000            |
-        | EC      | 250             |
-        | DSA     | 3000            |
-    Scenario Outline: Unsupported X509.keytype is rejected
-      Given the certificate has a public key of an <unsupported X509.keytype> algorithm
-      Then the certificate SHALL be rejected
-      Examples:
-        | unsupported algorithm |
-        | Ed25519               |
-        | X448                  |
-        | P-512                 |
+    Given certificate "cert" is loaded from the participant material
+    And its group and filename prefix are known
 
-  Rule: Key usage flags must match the certificate's role
-    Scenario: Key Usage extension is present on all certificates
-      Then the certificate SHALL contain the keyUsage extension (OID 2.5.29.15)
-    Scenario: TLS client certificate key usage
-      Given the certificate group is "TLS" and filename starts with "TLS"
-      Then the keyUsage extension SHALL have "digital signature" set to true
-      And the keyUsage extension SHALL have "CRL sign" set to false
-    Scenario: TLS CA certificate key usage
-      Given the certificate group is "TLS" and filename starts with "CA"
-      Then the keyUsage extension SHALL have "key cert sign" set to true
-      Given the certificate group is "UP"
-      Then the keyUsage extension SHALL have "digital signature" set to true
-      And the keyUsage extension SHALL have "CRL sign" set to false
-    Scenario: SCA certificate key usage
-      Given the certificate group is "SCA"
-      Then the keyUsage extension SHALL have "key cert sign" set to true
-      Given the certificate group is "DSC"
-      Then the keyUsage extension SHALL have "digital signature" set to true
-    Scenario: DECA certificate key usage
-      Given the certificate group is "DECA"
-      Then the keyUsage extension SHALL have "key cert sign" set to true
+  # --- Key strength ---------------------------------------------------------
+  Rule: RSA/DSA keys >= 3000 bit; EC keys P-256 (256 bit)
+    Scenario: Public key meets the minimum bit-length for its algorithm
+      Then "cert" public key must satisfy the minimum size:
+        | algorithm | minBits |
+        | RSA       | 3000    |
+        | DSA       | 3000    |
+        | EC        | 256     |   # FIX: P-256 is 256-bit, not "250"
 
-  Rule: Extended key usage must be set for TLS client certs; CA/SCA/UP certs are exempt
-    Scenario: TLS client certificate requires clientAuthentication EKU
-      Given the certificate group is "TLS" and filename starts with "TLS"
-      Then the certificate SHALL contain the extendedKeyUsage extension (OID 2.5.29.37)
-      And the extendedKeyUsage SHALL include client authentication (OID 1.3.6.1.5.5.7.3.2)
-    Scenario: TLS client certificate may include serverAuthentication EKU
-      Given the certificate group is "TLS" and filename starts with "TLS"
-      Then the extendedKeyUsage MAY include server authentication (OID 1.3.6.1.5.5.7.3.1)
-    Scenario: SCA certificates do not require extended key usage
-      Given the certificate group is "SCA"
-      Then the extendedKeyUsage extension is OPTIONAL
-    Scenario: UP certificates do not require extended key usage
-      Given the certificate group is "UP"
-      Then the extendedKeyUsage extension is OPTIONAL
-    Scenario: TLS CA certificates do not require extended key usage
-      Given the certificate group is "TLS" and filename starts with "CA"
-      Then the extendedKeyUsage extension is OPTIONAL
-    Scenario: DECA certificates do not require extended key usage
-      Given the certificate group is "DECA"
-      Then the extendedKeyUsage extension is OPTIONAL
+    Scenario: Only allowed public-key algorithms are accepted
+      # FIX: replaces the ad-hoc "unsupported: Ed25519, X448, P-512" list
+      # (P-512 isn't a curve). GDHCN signing is RSA or EC P-256 only.
+      Then "cert" public key algorithm must be one of "RSA, EC(P-256)"
 
-  Rule: Only SCA and CA certificates may have CA:TRUE; SCA must have pathLength=0
-    Scenario: SCA certificate must have basicConstraints with CA:TRUE
-      Given the certificate group is "SCA"
-      Then the certificate SHALL contain the basicConstraints extension (OID 2.5.29.19)
-      And the basicConstraints SHALL have CA set to true
-      And the basicConstraints path length SHALL be 0 or absent
-    Scenario: TLS CA certificate must have basicConstraints with CA:TRUE
-      Given the certificate group is "TLS" and filename starts with "CA"
-      Then the certificate SHALL contain the basicConstraints extension (OID 2.5.29.19)
-      And the basicConstraints SHALL have CA set to true
-    Scenario: TLS client certificate must not have CA:TRUE
-      Given the certificate group is "TLS" and filename starts with "TLS"
-      Then the basicConstraints SHALL have CA set to false
-    Scenario: Upload certificate must not have CA:TRUE
-      Given the certificate group is "UP"
-      Then the basicConstraints SHALL have CA set to false
-    Scenario: DSC certificate must not have CA:TRUE
-      Given the certificate group is "DSC"
-      Then the basicConstraints SHALL have CA set to false
+  # --- Key usage ------------------------------------------------------------
+  Rule: keyUsage flags must match the certificate's role
+    Scenario: keyUsage extension is present
+      Then "cert" must contain extension "2.5.29.15"        # keyUsage
 
-  Rule: Every TLS end-entity cert must chain to a CA cert in the same TLS group
-    Scenario: TLS end-entity certificate is signed by a CA in the participant's TLS group
-      Given the participant has TLS-group PEM files containing both CA and TLS certs
-      When each TLS cert (filename starts with "TLS") is verified
-      Then there SHALL be at least one CA cert (filename starts with "CA") in the same TLS group
-      And the CA cert's public key SHALL successfully verify the TLS cert's signature
-    Scenario: TLS certificate without a signing CA is rejected
-      Given the participant has TLS-group PEM files
-      And no CA cert in the TLS group can verify the TLS end-entity cert's signature
-      Then the certificate SHALL be rejected
+    # FIX (structural): the original crammed TLS-CA+UP and SCA+DSC together.
+    # One role per scenario.
+    Scenario: TLS client certificate keyUsage
+      Given "cert" group is "TLS" and filename starts with "TLS"
+      Then "cert" keyUsage "digitalSignature" must be true
+      And "cert" keyUsage "cRLSign" must be false
 
-  Rule: Subject must contain non-empty CN and country C matching the participant
-    Scenario Outline: Certificate subject contains required DN components
-      Given the certificate group is "<group>"
-      Then the subject SHALL contain a non-empty common name (CN)
-      And the subject SHALL contain a country code (C) matching the participant
-      Examples:
+    Scenario: TLS CA certificate keyUsage
+      Given "cert" group is "TLS" and filename starts with "CA"
+      Then "cert" keyUsage "keyCertSign" must be true
+
+    Scenario: UPLOAD certificate keyUsage
+      Given "cert" group is "UP"
+      Then "cert" keyUsage "digitalSignature" must be true
+      And "cert" keyUsage "cRLSign" must be false
+
+    Scenario: SCA (CSCA) certificate keyUsage
+      Given "cert" group is "SCA"
+      Then "cert" keyUsage "keyCertSign" must be true
+
+    Scenario: DSC certificate keyUsage
+      Given "cert" group is "DSC"
+      Then "cert" keyUsage "digitalSignature" must be true
+
+    Scenario: DECA certificate keyUsage
+      Given "cert" group is "DECA"
+      Then "cert" keyUsage "keyCertSign" must be true
+
+  # --- Extended key usage ---------------------------------------------------
+  Rule: TLS client certs require clientAuth EKU; CA/SCA/UP/DECA are exempt
+    Scenario: TLS client certificate requires clientAuth EKU
+      Given "cert" group is "TLS" and filename starts with "TLS"
+      Then "cert" must contain extension "2.5.29.37"        # extendedKeyUsage
+      And "cert" EKU must include "1.3.6.1.5.5.7.3.2"        # clientAuth
+      # serverAuth (…3.1) is MAY: asserting an optional element is present would
+      # be wrong, so we assert nothing about it.
+
+    # FIX: the four "extendedKeyUsage is OPTIONAL" scenarios asserted nothing
+    # testable. Fold into one documentation-only waiver.
+    Scenario: EKU is not required for CA/SCA/UP/DECA certificates
+      Then "cert" EKU requirement is waived for groups "CA, SCA, UP, DECA"
+
+  # --- Basic constraints ----------------------------------------------------
+  Rule: Only SCA and CA certs may be CA:TRUE; SCA pathLen 0 or absent
+    Scenario: SCA certificate is a CA with pathLen 0 or absent
+      Given "cert" group is "SCA"
+      Then "cert" must contain extension "2.5.29.19"        # basicConstraints
+      And "cert" basicConstraints CA must be true
+      And "cert" basicConstraints pathLen must be "0 or absent"
+
+    Scenario: TLS CA certificate is a CA
+      Given "cert" group is "TLS" and filename starts with "CA"
+      Then "cert" basicConstraints CA must be true
+
+    Scenario: End-entity certificates must not be CAs
+      # FIX: 3 near-identical scenarios (TLS client, UP, DSC) -> one table.
+      Then "cert" basicConstraints CA must be false for groups:
         | group |
-        | TLS   |
+        | TLS   |   # filename TLS
         | UP    |
-        | SCA   |
         | DSC   |
 
+  # --- Chain ----------------------------------------------------------------
+  Rule: Every TLS end-entity cert must chain to a CA in the same TLS group
+    Scenario: A TLS end-entity certificate is signed by a CA in its TLS group
+      Given "tlsCert" is a TLS end-entity certificate
+      And "caCert" is the CA certificate in the same TLS group
+      Then "tlsCert" must be signed by "caCert"             # verifies signature
+
+    Scenario: A TLS end-entity certificate with no signing CA in its group is rejected
+      Given "tlsCert" is a TLS end-entity certificate
+      And no CA certificate in its TLS group verifies it
+      Then "tlsCert" must be rejected
+
+  # --- Subject DN -----------------------------------------------------------
+  Rule: Subject must contain a non-empty CN and a country matching the participant
+    Scenario: Subject has a non-empty CN and a matching country
+      # Original outline over TLS/UP/SCA/DSC applied the same rule -> one scenario.
+      Then "cert" subject CN must be non-empty
+      And "cert" subject country must equal the participant country
+
+  # --- Validity -------------------------------------------------------------
   Rule: Certificates must respect recommended validity periods
-    Scenario Outline: Certificate validity period is within governance limits
-      Given the certificate group is "<group>"
-      Then the certificate validity period SHALL NOT exceed <maxYears> years
-      Examples:
+    Scenario: Validity period is within the governance limit for its group
+      Then "cert" validity must not exceed the limit for its group:
         | group | maxYears |
         | SCA   | 4        |
         | DSC   | 2        |
         | UP    | 2        |
         | TLS   | 2        |
-    Scenario: SCA must not issue certificates that outlive itself
-      Given an SCA certificate with a defined expiration date
-      And a DSC certificate issued by that SCA
-      Then the DSC's notAfter date SHALL NOT exceed the SCA's notAfter date
+
+    Scenario: An SCA must not issue a DSC that outlives it
+      Given "sca" is an SCA certificate
+      And "dsc" is a DSC issued by "sca"
+      Then "dsc" notAfter must not exceed "sca" notAfter

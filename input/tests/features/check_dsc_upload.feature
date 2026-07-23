@@ -1,179 +1,166 @@
+# =============================================================================
+# check_dsc_upload.feature  (CORRECTED)
+#
+# WHERE THE ORIGINAL METHODOLOGY WAS WRONG
+#   - REDUNDANCY: five byte-identical happy paths (@HappyPath, @SCAValidation,
+#     @CountryValidation, @UploadCertValidation, @CMSSignature accepted) — the
+#     tag doesn't change the test.
+#   - STATUS-ONLY ASSERTIONS: every rejection asserted only "400", so a negative
+#     could pass for the wrong reason.
+#   - MISSING CONTEXT: the country rules key off the authenticated (mTLS) caller,
+#     which the spec never establishes.
+#   - "XX" NOT ONBOARDED: cross-country negatives used an unonboarded country,
+#     conflating "unknown issuer" with "wrong country".
+#   - TERMINOLOGY: "SCA" vs "CSCA" used interchangeably.
+#   - INCONSISTENT REQUEST FORMAT: some scenarios "with the CMS package", others
+#     "with JSON body {cms,group,domain}".
+#   - MISSING PRECONDITION: the "duplicate" scenario says "again" with no first
+#     upload. WEAK E2E: "appears in trust list" only asserted HTTP 200.
+#   - NON-DETERMINISM: "the CMS payload is randomly tampered".
+#
+# CORRECTED APPROACH
+#   One happy path; onboard TWO real countries (DE, FR) so cross-country cases
+#   test the country rule; set the authenticated identity; assert the rejection
+#   CAUSE; deterministic tamper; verify trust-list CONTAINMENT. Verbs map to a
+#   `trust-network` dialect backed by a DSC/CMS signing service; HTTP + asserts
+#   reuse the core dialect.  (A Scenario Outline would collapse the negatives —
+#   parser support pending.)
+# =============================================================================
 @DSC @Upload @CMS @GDHCN
-
-Feature: Upload Document Signer Certificate (DSC) to the Trust Network Gateway
-  As a Trust Network Participant (TNP)
-  I want to upload a DSC signed by my SCA, wrapped in a CMS signed by my UPLOAD key
-  So that the DSC becomes available in the trust list for other participants
+Feature: Upload a Document Signer Certificate (DSC) to the Trust Network Gateway
+  A TNP uploads a DSC (signed by its country's CSCA, wrapped in a CMS signed by
+  its UPLOAD key) so it appears in the DSC trust list.
 
   Background:
-    Given the Trust Network Gateway is running
-    And the TNP has been onboarded with the following trusted party certificates in the gateway database
+    Given TNP is the system under test
+    And Gateway is infrastructure at "https://tng-dev.example.org"
+    # FIX: onboard TWO countries so cross-country rejections test the COUNTRY
+    # rule, not "unknown issuer".
+    And the gateway trusts these party certificates:
       | certificateType | country |
-      | AUTHENTICATION  | DE     |
-      | UPLOAD         | DE     |
-      | CSCA           | DE     |
+      | AUTHENTICATION  | DE      |
+      | UPLOAD          | DE      |
+      | CSCA            | DE      |
+      | AUTHENTICATION  | FR      |
+      | UPLOAD          | FR      |
+      | CSCA            | FR      |
+    # FIX: the country checks key off the mTLS client identity, never set before.
+    And TNP is authenticated as country "DE"
 
-  # --- Successful Upload ---
-
+  # HAPPY PATH — replaces the 5 identical positive scenarios.
   @HappyPath
-  Scenario: Successfully upload a DSC signed by SCA and wrapped in a CMS signed by the UPLOAD key
-    Given a DSC key pair is generated for country "DE"
-    And the DSC is signed by the CSCA certificate of country "DE"
-    And a CMS package is created containing the DSC, signed by the UPLOAD certificate of country "DE"
-    When the TNP sends a POST request to "/trustedCertificate" with the CMS package
-    Then the response status code is 201
-	
-  # --- SCA Chain Validation ---
-  @SCAValidation
-  Scenario: DSC signed by the correct SCA is accepted
-    Given a DSC key pair is generated for country "DE"
-    And the DSC is signed by the CSCA certificate of country "DE"
-    And a CMS package is created containing the DSC, signed by the UPLOAD certificate of country "DE"
-    When the TNP sends a POST request to "/trustedCertificate" with the CMS package
-    Then the response status code is 201
-	
+  Scenario: A DSC signed by its CSCA and wrapped in a valid UPLOAD CMS is accepted
+    Given TNP builds a DSC with subject country "DE"
+    And the DSC is signed by the CSCA of "DE"
+    And it is wrapped in a CMS signed by the UPLOAD certificate of "DE"
+    When TNP uploads the DSC package to Gateway
+    Then "response status" should be "201"
+
+  # SCA chain — FIX: assert the CAUSE, not just 400.
   @SCAValidation @negative
-  Scenario: DSC not signed by any known SCA is rejected
-    Given a DSC key pair is generated for country "DE"
-    And the DSC is signed by the Trust Anchor (not a CSCA)
-    And a CMS package is created containing the DSC, signed by the UPLOAD certificate of country "DE"
-    When the TNP sends a POST request to "/trustedCertificate" with the CMS package
-    Then the response status code is 400
-   
+  Scenario: A DSC signed by the trust anchor (not a CSCA) is rejected
+    Given TNP builds a DSC with subject country "DE"
+    And the DSC is signed by the trust anchor
+    And it is wrapped in a CMS signed by the UPLOAD certificate of "DE"
+    When TNP uploads the DSC package to Gateway
+    Then "response status" should be "400"
+    And "response" should contain "no known CSCA"
+
   @SCAValidation @negative
-  Scenario: DSC signed by an SCA from a different country is rejected
-    Given a DSC key pair is generated for country "DE"
-    And the DSC is signed by the CSCA certificate of country "XX"
-    And a CMS package is created containing the DSC, signed by the UPLOAD certificate of country "DE"
-    When the TNP sends a POST request to "/trustedCertificate" with the CMS package
-    Then the response status code is 400
-    
-  # --- Country of Origin Validation ---
-  @CountryValidation
-  Scenario: DSC with matching country code is accepted
-    Given a DSC key pair is generated for country "DE"
-    And the DSC is signed by the CSCA certificate of country "DE"
-    And a CMS package is created containing the DSC, signed by the UPLOAD certificate of country "DE"
-    When the TNP sends a POST request to "/trustedCertificate" with the CMS package
-    Then the response status code is 201
-    
+  Scenario: A DSC signed by a CSCA from a different (but trusted) country is rejected
+    # FIX: use FR — a REAL onboarded CSCA — so this tests the country rule.
+    Given TNP builds a DSC with subject country "DE"
+    And the DSC is signed by the CSCA of "FR"
+    And it is wrapped in a CMS signed by the UPLOAD certificate of "DE"
+    When TNP uploads the DSC package to Gateway
+    Then "response status" should be "400"
+    And "response" should contain "country"
+
+  # Country of origin.
   @CountryValidation @negative
-  Scenario: DSC subject country does not match the authenticated country is rejected
-    Given a DSC key pair is generated for country "XX"
-    And the DSC is signed by the CSCA certificate of country "DE"
-    And a CMS package is created containing the DSC, signed by the UPLOAD certificate of country "DE"
-    When the TNP sends a POST request to "/trustedCertificate" with the CMS package
-    Then the response status code is 400
-    
-  # --- UPLOAD Certificate (CMS Signer) Validation ---
-  @UploadCertValidation
-  Scenario: CMS signed by a valid UPLOAD certificate for the same country is accepted
-    Given a DSC key pair is generated for country "DE"
-    And the DSC is signed by the CSCA certificate of country "DE"
-    And a CMS package is created containing the DSC, signed by the UPLOAD certificate of country "DE"
-    When the TNP sends a POST request to "/trustedCertificate" with the CMS package
-    Then the response status code is 201
-	
+  Scenario: A DSC whose subject country differs from the authenticated country is rejected
+    Given TNP builds a DSC with subject country "FR"   # caller is authenticated as DE
+    And the DSC is signed by the CSCA of "DE"
+    And it is wrapped in a CMS signed by the UPLOAD certificate of "DE"
+    When TNP uploads the DSC package to Gateway
+    Then "response status" should be "400"
+    And "response" should contain "country"
+
+  # UPLOAD (CMS signer) country.
   @UploadCertValidation @negative
-  Scenario: CMS signed by an UPLOAD certificate from a different country is rejected
-    Given a DSC key pair is generated for country "DE"
-    And the DSC is signed by the CSCA certificate of country "DE"
-    And a CMS package is created containing the DSC, signed by the UPLOAD certificate of country "XX"
-    When the TNP sends a POST request to "/trustedCertificate" with the CMS package
-    Then the response status code is 400
-   
-  # --- CMS Signature Validation ---
-  @CMSSignature
-  Scenario: Valid CMS signature is accepted
-    Given a DSC key pair is generated for country "DE"
-    And the DSC is signed by the CSCA certificate of country "DE"
-    And a valid CMS package is created containing the DSC, signed by the UPLOAD certificate of country "DE"
-    When the TNP sends a POST request to "/trustedCertificate" with the CMS package
-    Then the response status code is 201
-	
+  Scenario: A CMS signed by an UPLOAD certificate from a different country is rejected
+    Given TNP builds a DSC with subject country "DE"
+    And the DSC is signed by the CSCA of "DE"
+    And it is wrapped in a CMS signed by the UPLOAD certificate of "FR"
+    When TNP uploads the DSC package to Gateway
+    Then "response status" should be "400"
+    And "response" should contain "signer"
+
+  # CMS integrity — FIX: deterministic tamper + assert signature failure.
   @CMSSignature @negative
-  Scenario: Tampered CMS message is rejected
-    Given a DSC key pair is generated for country "DE"
-    And the DSC is signed by the CSCA certificate of country "DE"
-    And a CMS package is created containing the DSC, signed by the UPLOAD certificate of country "DE"
-    And the CMS payload is randomly tampered
-    When the TNP sends a POST request to "/trustedCertificate" with the tampered CMS package
-    Then the response status code is 400
-   
-  # --- Duplicate Detection ---
+  Scenario: A CMS whose signed content is altered is rejected as an invalid signature
+    Given TNP builds a DSC with subject country "DE"
+    And the DSC is signed by the CSCA of "DE"
+    And it is wrapped in a CMS signed by the UPLOAD certificate of "DE"
+    And one byte of the CMS signed content is flipped
+    When TNP uploads the DSC package to Gateway
+    Then "response status" should be "400"
+    And "response" should contain "signature"
+
+  @TrustedCertificate @GDHCN @negative
+  Scenario: A CMS that is not valid base64 / CMS structure is rejected
+    Given TNP has a malformed CMS "%%%not-base64%%%"
+    When TNP uploads the DSC package to Gateway
+    Then "response status" should be "400"
+    And "response" should contain "parse"
+
+  @TrustedCertificate @GDHCN @negative
+  Scenario: A CMS signed by an unknown (non-onboarded) UPLOAD key is rejected
+    Given TNP builds a DSC with subject country "DE"
+    And the DSC is signed by the CSCA of "DE"
+    And it is wrapped in a CMS signed by an unknown UPLOAD key
+    When TNP uploads the DSC package to Gateway
+    Then "response status" should be "400"
+
+  # Duplicate — FIX: establish the first upload.
   @DuplicateCheck
-  Scenario: Uploading the same DSC twice results in a conflict
-    Given a DSC key pair is generated for country "DE"
-    And the DSC is signed by the CSCA certificate of country "DE"
-    And a CMS package is created containing the DSC, signed by the UPLOAD certificate of country "DE"
-    When the TNP sends a POST request to "/trustedCertificate" with the same CMS package again
-    Then the response status code is 409
-    
-  # --- Trusted Certificate API (GDHCN endpoint) ---
-  @TrustedCertificate @GDHCN
-  Scenario: Upload a DSC via /trustedCertificate endpoint with group "DSC"
-    Given a DSC key pair is generated for country "DE"
-    And the DSC is signed by the CSCA certificate of country "DE"
-    And a CMS package is created containing the DSC, signed by the UPLOAD certificate of country "DE"
-    When the TNP sends a POST request to "/trustedCertificate" with JSON body
-      | field    | value              |
-      | cms      | <base64 CMS>       |
-      | group    | DSC                |
-      | domain   | DCC                |
-    Then the response status code is 201
-   
-  @TrustedCertificate @GDHCN @negative
-  Scenario: Upload a DSC with an invalid CMS that cannot be parsed is rejected
-    Given a malformed CMS string that is not valid base64 or CMS structure
-    When the TNP sends a POST request to "/trustedCertificate" with JSON body
-      | field    | value              |
-      | cms      | <malformed CMS>    |
-      | group    | DSC                |
-    Then the response status code is 400
-	
-  @TrustedCertificate @GDHCN @negative
-  Scenario: Upload a DSC with an invalid CMS signature is rejected
-    Given a DSC key pair is generated for country "DE"
-    And the DSC is signed by the CSCA certificate of country "DE"
-    And a CMS package is created containing the DSC but signed by an unknown key
-    When the TNP sends a POST request to "/trustedCertificate" with JSON body
-      | field    | value              |
-      | cms      | <invalid CMS>      |
-      | group    | DSC                |
-    Then the response status code is 400
-	
-  # --- DSC Revocation (Delete) ---
+  Scenario: Uploading the same DSC a second time returns a conflict
+    Given a DSC has already been uploaded for country "DE"
+    When TNP uploads the same DSC package to Gateway
+    Then "response status" should be "409"
+
+  # Revocation.
   @Revocation @Delete
-  Scenario: Successfully revoke a previously uploaded DSC
-    Given a DSC has been successfully uploaded for country "DE"
-    And a CMS package is created containing the same DSC, signed by the UPLOAD certificate of country "DE"
-    When the TNP sends a DELETE request to "/trustedCertificate" with the CMS package
-    Then the response status code is 204	
+  Scenario: A previously uploaded DSC can be revoked
+    Given a DSC has already been uploaded for country "DE"
+    When TNP revokes the DSC package on Gateway           # DELETE /trustedCertificate
+    Then "response status" should be "204"
 
   @Revocation @Delete @negative
-  Scenario: Revoking a non-existent DSC returns not found
-    Given no DSC exists in the gateway for the given thumbprint
-    And a CMS package is created containing a DSC, signed by the UPLOAD certificate of country "DE"
-    When the TNP sends a DELETE request to "/trustedCertificate" with the CMS package
-    Then the response status code is 404
-	
+  Scenario: Revoking a DSC that was never uploaded returns not found
+    Given TNP builds a DSC with subject country "DE"
+    And the DSC is signed by the CSCA of "DE"
+    And it is wrapped in a CMS signed by the UPLOAD certificate of "DE"
+    When TNP revokes the DSC package on Gateway
+    Then "response status" should be "404"
+
   @Revocation @Delete
-  Scenario: Revoking a DSC via the alias POST /trustedCertificate/delete endpoint
-    Given a DSC has been successfully uploaded for country "DE"
-    And a CMS package is created containing the same DSC, signed by the UPLOAD certificate of country "DE"
-    When the TNP sends a POST request to "/trustedCertificate/delete" with the CMS package
-    Then the response status code is 204
-    
-  # --- Trust List Verification (End-to-End) ---
+  Scenario: A DSC can also be revoked via the POST /trustedCertificate/delete alias
+    Given a DSC has already been uploaded for country "DE"
+    When TNP revokes the DSC package via the delete alias on Gateway
+    Then "response status" should be "204"
+
+  # Trust list end-to-end — FIX: verify CONTAINMENT, not just HTTP 200.
   @TrustList @E2E
-  Scenario: After uploading a DSC, it appears in the DSC trust list
-    Given a DSC has been successfully uploaded for country "DE" 
-    When the TNP downloads the trust list from "/trustList/DSC"
-    Then the response status code is 200
-   
+  Scenario: An uploaded DSC appears in the DSC trust list
+    Given a DSC has already been uploaded for country "DE"
+    When TNP downloads the "DSC" trust list from Gateway as "trustList"
+    Then "response status" should be "200"
+    And "trustList" should contain the DSC
+
   @TrustList @E2E
-  Scenario: After revoking a DSC, it no longer appears in the trust list
-    Given a DSC has been successfully uploaded for country "DE"
-    And the DSC has been revoked
-    When the TNP downloads the trust list from "/trustList/DSC"
-    Then the trust list does not contain an entry with the revoked DSC 
+  Scenario: A revoked DSC no longer appears in the DSC trust list
+    Given a DSC has already been uploaded for country "DE"
+    And that DSC has been revoked
+    When TNP downloads the "DSC" trust list from Gateway as "trustList"
+    Then "trustList" should not contain the DSC

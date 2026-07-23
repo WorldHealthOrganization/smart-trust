@@ -1,17 +1,30 @@
-Feature: Check for private key
-  Background:
-  Private keys are generated alongside with public keys by the participant and are used for signing DSCs and CMS.
-  Whereas the public keys are for sharing the private keys should under all circumstances be kept private
-  During onboarding the private repo of the participant must be checked for any private key material and if found
-  the onboarding request must be rejected
+# =============================================================================
+# check_for_private_key.feature  (CORRECTED)
+#
+# WHERE THE ORIGINAL METHODOLOGY WAS WRONG
+#   - Asserted HOW the scan runs ("the directory is recursively scanned for
+#     private key headers") instead of the OUTCOME (request rejected).
+#   - Used an unresolved "<COUNTRY>" placeholder inside a plain Scenario with no
+#     Examples table (it only works in a Scenario Outline).
+#   - Had NO positive case: a rejection rule with no "clean request is accepted"
+#     scenario is untested for false positives (it could reject everything).
+#
+# CORRECTED APPROACH
+#   Assert the OUTCOME of the scan: a request containing any private-key header
+#   is rejected; a clean request passes; unreadable files don't break it.
+# =============================================================================
+@security @private-key @scan
+Feature: Reject onboarding requests that contain private-key material
+  A participant's private keys must never enter the trust repo. Given onboarding
+  files, the scan stage rejects any request that contains private-key material
+  and accepts one that does not.
 
-  @security @private-key @scan @edge-cases
-  Scenario Outline: Detect various private key formats in participant onboarding files
-    Given the onboarding files have been copied from "repo/onboarding" to "<COUNTRY>/onboarding"
-    When the directory "<COUNTRY>/onboarding" is recursively scanned for private key headers
-    Then files containing "<header>" are flagged as containing private key material
-    And the onboarding request is rejected
-    Examples:
+  Background:
+    Given an onboarding request for country "XT"
+
+  Scenario: A request containing any private-key format is rejected
+    # The scan must catch every common PEM/OpenSSH private-key header.
+    Given the request includes a file containing one of:
       | header                      |
       | BEGIN RSA PRIVATE KEY       |
       | BEGIN PRIVATE KEY           |
@@ -19,26 +32,22 @@ Feature: Check for private key
       | BEGIN DSA PRIVATE KEY       |
       | BEGIN ENCRYPTED PRIVATE KEY |
       | BEGIN OPENSSH PRIVATE KEY   |
+    When the private-key scan runs
+    Then the request is rejected as containing private-key material
 
-  @security @private-key @scan @unhandled-files
-  Scenario: Unreadable or binary files are skipped during private key scan
-    Given the onboarding files have been copied from "repo/onboarding" to "<COUNTRY>/onboarding"
-    And some files are binary or have restricted permissions
-    When the directory "<COUNTRY>/onboarding" is recursively scanned for private key headers
-    Then unreadable files are silently skipped without raising an error
-    And the scan continues with remaining files
-    And only readable text files are checked for private key content
+  Scenario: A clean request (only public certs and metadata) is accepted
+    # FIX: the missing positive case — proves the scan doesn't reject valid
+    # onboarding (guards against false positives).
+    Given the request contains only public certificates and metadata
+    When the private-key scan runs
+    Then the request passes the private-key scan
 
-
-
-
-
-
-
-
-
-
-
-
-
-https://github.com/WorldHealthOrganization/tng-participants-dev/blob/main/.github/workflows/sys-on-cron-delivery-ext.yml
+  Scenario: Binary and unreadable files are skipped without hiding a real hit
+    # FIX: replaces "unreadable files are silently skipped" phrased as internal
+    # behaviour — assert both that the scan doesn't error AND that a genuine
+    # private key elsewhere is still caught.
+    Given the request includes binary and unreadable files
+    And one readable text file contains "BEGIN PRIVATE KEY"
+    When the private-key scan runs
+    Then the scan completes without error
+    And the request is still rejected for the text file's private-key material
