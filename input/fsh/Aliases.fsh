@@ -32,7 +32,7 @@ Alias: $IPS = Ahttp://hl7.org/fhir/uv/ips/StructureDefinition/Bundle-uv-ips
 Alias: $HCertDCC = http://smart.who.int/ddcc/StructureDefinition/HCertDCC
 Alias: $DDCCVS = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetVS
 Alias: $DDCCTR = http://smart.who.int/ddcc/StructureDefinition/DDCCCoreDataSetTR
+Alias: $MedicationTreatmentLineMin = http://smart.who.int/ph4h/StructureDefinition/MedicationTreatmentLineMin
 Alias: $DVCMin = http://smart.who.int/trust-phw/StructureDefinition/DVCMin
-
 Alias: $RefMartCountryList = http://smart.who.int/refmart/CodeSystems/REF_COUNTRY
 Alias: $WHORegionalOffices = http://smart.who.int/trust/CodeSystem/WHORegionalOffices
