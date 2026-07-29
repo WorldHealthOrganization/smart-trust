@@ -54,11 +54,13 @@ This provides a list of changes to the SMART Trust IG.
 - Updated Participant onboarding list
 
 ### 2026-07-23 v1.6.0 - release
-- Nightly participant generation fixes:
-  - Fixed GitHub API rate limiting in the nightly participant generation workflow
-  - Fixed missing Participants CodeSystem updates
-- Additional updates:
-  - Clarified that the HCERT CWT must include the signature for validation
+- Clarified that the HCERT CWT must include the signature for validation
   - Updated FSH model definitions for cardinality on CWT, and HCERT configuration
 
-  ### CI-Build updates
+### 2026-07-29 v1.7.0 - release
+- Nightly participant generation fixes:
+  - Fixed GitHub API rate limiting in the nightly participant generation workflow
+  - Fixed missing Participants 
+- Added MedicationOverviewMin as a new payload type in HCERT
+
+
