@@ -41,6 +41,8 @@ The integrity and authenticity of origin of payload data MUST be verifiable by t
   - Health Certificate (`hcert`, claim key -260, see section [3.2.7](hcert_spec.html#327-health-certificate-claim) for subclaim details )
 - Signature
 
+The Signature is required to be sent in the CWT and MUST accompany the payload for validation.
+
 The logical model can be found specified [here](StructureDefinition-hcert.html)
 
 ###### 3.2.2 Signature Algorithm

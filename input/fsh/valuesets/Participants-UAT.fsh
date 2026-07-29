@@ -13,8 +13,8 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 // 3. ValueSet includes codes from BOTH sources
 //
 // Current composition:
-//   - RefMart codes (participants found in RefMart): 36
-//   - Participants-UAT codes (participants NOT in RefMart): 12
+//   - RefMart codes (participants found in RefMart): 43
+//   - Participants-UAT codes (participants NOT in RefMart): 13
 //
 // To regenerate, execute on tng-participants-uat repo:
 //     gfind . -maxdepth 1 -type d -name '[A-Z][A-Z][A-Z](-[A-Z]+)*'
@@ -26,13 +26,16 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 * $RefMartCountryList#BEN
 * $RefMartCountryList#BRA
 * $RefMartCountryList#CAN
+* $RefMartCountryList#CHL
 * $RefMartCountryList#CYP
 * $RefMartCountryList#CZE
+* $RefMartCountryList#ECU
 * $RefMartCountryList#ESP
 * $RefMartCountryList#EST
 * $RefMartCountryList#FIN
 * $RefMartCountryList#FRA
 * $RefMartCountryList#FRO
+* $RefMartCountryList#GTM
 * $RefMartCountryList#HRV
 * $RefMartCountryList#IDN
 * $Participants-UAT#IOM
@@ -45,10 +48,13 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 * $RefMartCountryList#NLD
 * $RefMartCountryList#NZL
 * $RefMartCountryList#OMN
+* $RefMartCountryList#PAN
 * $RefMartCountryList#POL
 * $RefMartCountryList#PRT
+* $RefMartCountryList#PRY
 * $RefMartCountryList#SAU
 * $RefMartCountryList#SGP
+* $RefMartCountryList#SLV
 * $RefMartCountryList#SMR
 * $RefMartCountryList#SVK
 * $RefMartCountryList#SVN
@@ -56,12 +62,14 @@ Description:  "ValueSet of GDHCN Trust Network Participants for User Acceptance 
 * $RefMartCountryList#TGO
 * $RefMartCountryList#THA
 * $RefMartCountryList#TUR
+* $RefMartCountryList#URY
 * $Participants-UAT#WHO
 * $Participants-UAT#XXA
 * $Participants-UAT#XXB
 * $Participants-UAT#XXC
 * $Participants-UAT#XXD
 * $Participants-UAT#XXO
+* $Participants-UAT#XXQ
 * $Participants-UAT#XXS
 * $Participants-UAT#XXU
 * $Participants-UAT#XXV
