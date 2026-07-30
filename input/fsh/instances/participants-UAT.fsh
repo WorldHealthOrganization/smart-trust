@@ -191,7 +191,7 @@ Usage: #definition
 Instance: GDHCNParticipant-IOM-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "UAT Participant IOM"
+* name = "IOM"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-IOM-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-IOM-UAT-DSC)
@@ -451,7 +451,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXA-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "UAT Participant XXA"
+* name = "Geneva"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXA-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXA-UAT-DSC)
@@ -501,7 +501,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXQ-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "UAT Participant XXQ"
+* name = "Test Locality"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXQ-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXQ-UAT-DSC)
@@ -511,7 +511,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXS-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "UAT Participant XXS"
+* name = "Test Locality"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXS-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXS-UAT-DSC)
@@ -521,7 +521,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXU-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "UAT Participant XXU"
+* name = "Geneva"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXU-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXU-UAT-DSC)
@@ -531,7 +531,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXV-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "UAT Participant XXV"
+* name = "test city"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXV-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXV-UAT-DSC)
@@ -551,7 +551,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XYK-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "UAT Participant XYK"
+* name = "INDIA"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XYK-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XYK-UAT-DSC)
