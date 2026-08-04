@@ -14,7 +14,7 @@ Description: "CodeSystem for GDHCN Trust Network Participants for User Acceptanc
 * #XXQ "Test Locality"
 * #XXS "Test Locality"
 * #XXU "Geneva"
-* #XXV "test city"
+* #XXV "test state"
 * #XXX "UAT Participant XXX"
 * #XYK "INDIA"
 
