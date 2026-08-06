@@ -1766,6 +1766,40 @@ Usage: #definition
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
 * address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXS:SCA"
 
+Instance: GDHCNParticipantDID-XXT-UAT-All
+InstanceOf: IHE.mCSD.Endpoint
+Description: "Geneva Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXT\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XXT/did.json"
+Usage: #definition
+* name = "Geneva Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXT\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XXT/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-XXT-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXT"
+
+Instance: GDHCNParticipantDID-XXT-UAT-DSC
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "Geneva Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXT:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XXT/DSC/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-XXT-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXT:DSC"
+
+Instance: GDHCNParticipantDID-XXT-UAT-SCA
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "Geneva Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXT:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XXT/SCA/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-XXT-UAT)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXT:SCA"
+
 Instance: GDHCNParticipantDID-XXU-UAT-All
 InstanceOf: IHE.mCSD.Endpoint
 Description: "Geneva Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXU\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XXU/did.json"

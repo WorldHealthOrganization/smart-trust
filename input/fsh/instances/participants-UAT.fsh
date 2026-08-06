@@ -518,6 +518,16 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-XXS-UAT-SCA)
 
 
+Instance: GDHCNParticipant-XXT-UAT
+InstanceOf: IHE.mCSD.Organization
+Usage: #definition
+* name = "Geneva"
+* type = $orgType#govt
+* endpoint[+] = Reference(GDHCNParticipantDID-XXT-UAT-All)
+* endpoint[+] = Reference(GDHCNParticipantDID-XXT-UAT-DSC)
+* endpoint[+] = Reference(GDHCNParticipantDID-XXT-UAT-SCA)
+
+
 Instance: GDHCNParticipant-XXU-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
