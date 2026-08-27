@@ -474,40 +474,6 @@ Usage: #definition
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
 * address = "did:web:tng-cdn.who.int:v2:trustlist:-:IDN:SCA"
 
-Instance: GDHCNParticipantDID-IRL-All
-InstanceOf: IHE.mCSD.Endpoint
-Description: "Ireland Trustlist (DID v2) - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:IRL\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/IRL/did.json"
-Usage: #definition
-* name = "Ireland Trustlist (DID v2) - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:IRL\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/IRL/did.json"
-* managingOrganization = Reference(Organization/GDHCNParticipant-IRL)
-* status = #active
-* connectionType = $ConnectionTypes#http-get
-* payloadMimeType = #application/did
-* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:IRL"
-
-Instance: GDHCNParticipantDID-IRL-DSC
-InstanceOf: IHE.mCSD.Endpoint
-Usage: #definition
-* name = "Ireland Trustlist (DID v2) - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:IRL:DSC\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/IRL/DSC/did.json"
-* managingOrganization = Reference(Organization/GDHCNParticipant-IRL)
-* status = #active
-* connectionType = $ConnectionTypes#http-get
-* payloadMimeType = #application/did
-* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:IRL:DSC"
-
-Instance: GDHCNParticipantDID-IRL-SCA
-InstanceOf: IHE.mCSD.Endpoint
-Usage: #definition
-* name = "Ireland Trustlist (DID v2) - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:IRL:SCA\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/IRL/SCA/did.json"
-* managingOrganization = Reference(Organization/GDHCNParticipant-IRL)
-* status = #active
-* connectionType = $ConnectionTypes#http-get
-* payloadMimeType = #application/did
-* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:IRL:SCA"
-
 Instance: GDHCNParticipantDID-LVA-All
 InstanceOf: IHE.mCSD.Endpoint
 Description: "Latvia Trustlist (DID v2) - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:LVA\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/LVA/did.json"

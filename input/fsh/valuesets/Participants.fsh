@@ -28,7 +28,6 @@ Description:  "ValueSet of GDHCN Trust Network Participants for Production envir
 * $RefMartCountryList#FRA
 * $RefMartCountryList#ISL
 * $RefMartCountryList#IDN
-* $RefMartCountryList#IRL
 * $RefMartCountryList#LVA
 * $RefMartCountryList#LTU
 * $RefMartCountryList#MYS

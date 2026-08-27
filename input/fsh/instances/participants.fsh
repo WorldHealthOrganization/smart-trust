@@ -138,16 +138,6 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-IDN-SCA)
 
 
-Instance: GDHCNParticipant-IRL
-InstanceOf: IHE.mCSD.Organization
-Usage: #definition
-* name = "Ireland"
-* type = $orgType#govt
-* endpoint[+] = Reference(GDHCNParticipantDID-IRL-All)
-* endpoint[+] = Reference(GDHCNParticipantDID-IRL-DSC)
-* endpoint[+] = Reference(GDHCNParticipantDID-IRL-SCA)
-
-
 Instance: GDHCNParticipant-LVA
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
