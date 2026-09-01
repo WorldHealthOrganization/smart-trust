@@ -12,33 +12,25 @@ Feature: Check for private key
     Then files containing "<header>" are flagged as containing private key material
     And the onboarding request is rejected
     Examples:
-      | header                      |
-      | BEGIN RSA PRIVATE KEY       |
-      | BEGIN PRIVATE KEY           |
-      | BEGIN EC PRIVATE KEY        |
-      | BEGIN DSA PRIVATE KEY       |
-      | BEGIN ENCRYPTED PRIVATE KEY |
-      | BEGIN OPENSSH PRIVATE KEY   |
+      | header                      | COUNTRY |
+      | BEGIN RSA PRIVATE KEY       | XXA     |
+      | BEGIN PRIVATE KEY           | XXA     |
+      | BEGIN EC PRIVATE KEY        | XXA     |
+      | BEGIN DSA PRIVATE KEY       | XXA     |
+      | BEGIN ENCRYPTED PRIVATE KEY | XXA     |
+      | BEGIN OPENSSH PRIVATE KEY   | XXA     |
+
+
+
 
   @security @private-key @scan @unhandled-files
-  Scenario: Unreadable or binary files are skipped during private key scan
+  Scenario Outline: Unreadable or binary files are skipped during private key scan
     Given the onboarding files have been copied from "repo/onboarding" to "<COUNTRY>/onboarding"
     And some files are binary or have restricted permissions
     When the directory "<COUNTRY>/onboarding" is recursively scanned for private key headers
     Then unreadable files are silently skipped without raising an error
     And the scan continues with remaining files
     And only readable text files are checked for private key content
-
-
-
-
-
-
-
-
-
-
-
-
-
-https://github.com/WorldHealthOrganization/tng-participants-dev/blob/main/.github/workflows/sys-on-cron-delivery-ext.yml
+    Examples:
+      | COUNTRY |
+      | XXA     |
