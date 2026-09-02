@@ -1904,9 +1904,9 @@ Usage: #definition
 
 Instance: GDHCNParticipantDID-XYK-UAT-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "INDIA Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XYK\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XYK/did.json"
+Description: "India Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XYK\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XYK/did.json"
 Usage: #definition
-* name = "INDIA Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XYK\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XYK/did.json"
+* name = "India Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XYK\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XYK/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XYK-UAT)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1917,7 +1917,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-XYK-UAT-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "INDIA Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XYK:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XYK/DSC/did.json"
+* name = "India Trustlist (DID v2) - UAT - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XYK:DSC\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XYK/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XYK-UAT)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1928,7 +1928,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-XYK-UAT-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "INDIA Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XYK:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XYK/SCA/did.json"
+* name = "India Trustlist (DID v2) - UAT - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XYK:SCA\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XYK/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XYK-UAT)
 * status = #active
 * connectionType = $ConnectionTypes#http-get

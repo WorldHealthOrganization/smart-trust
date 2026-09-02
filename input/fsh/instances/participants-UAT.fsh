@@ -561,7 +561,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XYK-UAT
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "INDIA"
+* name = "India"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XYK-UAT-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XYK-UAT-DSC)
