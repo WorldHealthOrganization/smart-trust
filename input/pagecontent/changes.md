@@ -69,3 +69,6 @@ This provides a list of changes to the SMART Trust IG.
 
 ### 2026-08-27 v1.7.1 - release
 - updated GDHCN Participants onboarding status
+
+### 2026-09-03 v1.7.2 - release
+- updated GDHCN Administrative and Operational Framework letter
