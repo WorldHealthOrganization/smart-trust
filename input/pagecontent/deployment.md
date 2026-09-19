@@ -15,6 +15,7 @@ This Implementation Guide contains the following deployment support guidance:
 {% include downloads.md %} 
 {% include changes.md %}
 {% include endpoints.md %}
+{%include endpoints_test.md%}
 
 
 
