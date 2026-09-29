@@ -561,7 +561,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXV-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "test city"
+* name = "TEST CITY"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXV-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXV-DEV-DSC)

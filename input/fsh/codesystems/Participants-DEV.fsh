@@ -25,7 +25,7 @@ Description: "CodeSystem for GDHCN Trust Network Participants for Development en
 * #XXQ "Test Locality"
 * #XXT "Geneva"
 * #XXU "Geneva"
-* #XXV "test city"
+* #XXV "TEST CITY"
 * #XXW "Test Locality"
 * #XXX "Warrandyte"
 * #XYK "Test"
