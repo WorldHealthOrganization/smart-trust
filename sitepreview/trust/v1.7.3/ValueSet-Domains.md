@@ -78,7 +78,7 @@ This endpoint serves the JSON Schema definition for the enumeration ValueSet-Dom
   "title" : "WHO GDHCN Trust Domains",
   "status" : "active",
   "experimental" : false,
-  "date" : "2026-10-02T09:02:00+00:00",
+  "date" : "2026-10-02T10:03:16+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

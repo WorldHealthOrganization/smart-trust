@@ -45,7 +45,7 @@ Make received business rules available through a distrubution point to a Receive
   "title" : "Distribute business rules",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-10-02T09:02:00+00:00",
+  "date" : "2026-10-02T10:03:16+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

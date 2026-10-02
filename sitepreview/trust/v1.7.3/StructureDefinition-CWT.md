@@ -42,7 +42,7 @@ Other representations of profile: [CSV](StructureDefinition-CWT.csv), [Excel](St
   "name" : "CWT",
   "title" : "CBOR Web Token (CWT) Claim",
   "status" : "active",
-  "date" : "2026-10-02T09:02:00+00:00",
+  "date" : "2026-10-02T10:03:16+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

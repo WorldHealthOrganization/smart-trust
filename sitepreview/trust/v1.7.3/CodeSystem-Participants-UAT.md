@@ -33,7 +33,7 @@ CodeSystem for GDHCN Trust Network Participants for User Acceptance Testing envi
   "title" : "WHO GDHCN Trust Network Participant - UAT",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-10-02T09:02:00+00:00",
+  "date" : "2026-10-02T10:03:16+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

@@ -45,7 +45,7 @@ Publish business rules to a Trust Anchor
   "title" : "Publish business rules",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-10-02T09:08:53+00:00",
+  "date" : "2026-10-02T10:11:10+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

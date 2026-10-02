@@ -119,7 +119,7 @@ WHO also hosts weekly calls on authoring and implementing WHO SMART Guidelines w
   "title" : "WHO SMART Trust",
   "status" : "active",
   "experimental" : false,
-  "date" : "2026-10-02T09:08:53+00:00",
+  "date" : "2026-10-02T10:11:10+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",
@@ -10798,7 +10798,7 @@ WHO also hosts weekly calls on authoring and implementing WHO SMART Guidelines w
         "system" : "http://hl7.org/fhir/tools/CodeSystem/ig-parameters",
         "code" : "releaselabel"
       },
-      "value" : "ci-build"
+      "value" : "release"
     },
     {
       "code" : {
