@@ -1,0 +1,21 @@
+# Receive HL7 FHIR business rules - Testing - WHO SMART Trust v1.4.0
+
+* [**Table of Contents**](toc.md)
+* [**Indices**](indices.md)
+* [**Artifact Index**](artifacts.md)
+* **Receive HL7 FHIR business rules**
+
+## Requirements: Receive HL7 FHIR business rules - Testing (Experimental) 
+
+| |
+| :--- |
+| Active as of 2026-02-11 |
+
+### Test Plans
+
+**No test plans are currently available for the Requirements.**
+
+### Test Scripts
+
+**No test scripts are currently available for the Requirements.**
+
