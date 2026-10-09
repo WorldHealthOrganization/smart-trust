@@ -1,0 +1,53 @@
+# GDHCNParticipant-XXC-DEV - WHO SMART Trust v1.7.5
+
+* [**Table of Contents**](toc.md)
+* [**Indices**](indices.md)
+* [**Artifact Index**](artifacts.md)
+* **GDHCNParticipant-XXC-DEV**
+
+## Organization: GDHCNParticipant-XXC-DEV
+
+Profile: [mCSD Organization](https://profiles.ihe.net/ITI/mCSD/4.0.0/StructureDefinition-IHE.mCSD.Organization.html)
+
+TEST (Government)
+
+-------
+
+| | |
+| :--- | :--- |
+| Type: | Government |
+| Endpoint: | * [TEST Trustlist (DID v2) - DEV - All keys did:web:tng-cdn.who.int:v2:trustlist:-:XXC resolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXC/did.json (): did:web:tng-cdn.who.int:v2:trustlist:-:XXC](Endpoint-GDHCNParticipantDID-XXC-DEV-All.md)
+* [TEST Trustlist (DID v2) - DEV - Document Signing Certificates did:web:tng-cdn.who.int:v2:trustlist:-:XXC:DSC resolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXC/DSC/did.json (): did:web:tng-cdn.who.int:v2:trustlist:-:XXC:DSC](Endpoint-GDHCNParticipantDID-XXC-DEV-DSC.md)
+* [TEST Trustlist (DID v2) - DEV - Certificate Signing Authority did:web:tng-cdn.who.int:v2:trustlist:-:XXC:SCA resolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXC/SCA/did.json (): did:web:tng-cdn.who.int:v2:trustlist:-:XXC:SCA](Endpoint-GDHCNParticipantDID-XXC-DEV-SCA.md)
+ |
+
+
+
+## Resource Content
+
+```json
+{
+  "resourceType" : "Organization",
+  "id" : "GDHCNParticipant-XXC-DEV",
+  "meta" : {
+    "profile" : ["https://profiles.ihe.net/ITI/mCSD/StructureDefinition/IHE.mCSD.Organization"]
+  },
+  "type" : [{
+    "coding" : [{
+      "system" : "http://terminology.hl7.org/CodeSystem/organization-type",
+      "code" : "govt"
+    }]
+  }],
+  "name" : "TEST",
+  "endpoint" : [{
+    "reference" : "Endpoint/GDHCNParticipantDID-XXC-DEV-All"
+  },
+  {
+    "reference" : "Endpoint/GDHCNParticipantDID-XXC-DEV-DSC"
+  },
+  {
+    "reference" : "Endpoint/GDHCNParticipantDID-XXC-DEV-SCA"
+  }]
+}
+
+```

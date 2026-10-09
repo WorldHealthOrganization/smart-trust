@@ -1,0 +1,43 @@
+# GDHCNParticipantDID-BEN-DSC - WHO SMART Trust v1.7.4
+
+* [**Table of Contents**](toc.md)
+* [**Indices**](indices.md)
+* [**Artifact Index**](artifacts.md)
+* **GDHCNParticipantDID-BEN-DSC**
+
+## Endpoint: GDHCNParticipantDID-BEN-DSC
+
+Profile: [mCSD Endpoint](https://profiles.ihe.net/ITI/mCSD/4.0.0/StructureDefinition-IHE.mCSD.Endpoint.html)
+
+Benin Trustlist (DID v2) - Document Signing Certificates did:web:tng-cdn.who.int:v2:trustlist:-:BEN:DSC resolvable at https://tng-cdn.who.int/v2/trustlist/-/BEN/DSC/did.json (): did:web:tng-cdn.who.int:v2:trustlist:-:BEN:DSC
+
+-------
+
+| | |
+| :--- | :--- |
+| Status: | Active |
+| Address: | did:web:tng-cdn.who.int:v2:trustlist:-:BEN:DSC |
+| Connection Type: |  |
+| Managed By: | [Benin (Government)](Organization-GDHCNParticipant-BEN.md) |
+
+
+
+## Resource Content
+
+```json
+{
+  "resourceType" : "Endpoint",
+  "id" : "GDHCNParticipantDID-BEN-DSC",
+  "meta" : {
+    "profile" : ["https://profiles.ihe.net/ITI/mCSD/StructureDefinition/IHE.mCSD.Endpoint"]
+  },
+  "status" : "active",
+  "connectionType" : [null],
+  "name" : "Benin Trustlist (DID v2) - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:BEN:DSC\nresolvable at https://tng-cdn.who.int/v2/trustlist/-/BEN/DSC/did.json",
+  "managingOrganization" : {
+    "reference" : "Organization/GDHCNParticipant-BEN"
+  },
+  "address" : "did:web:tng-cdn.who.int:v2:trustlist:-:BEN:DSC"
+}
+
+```
