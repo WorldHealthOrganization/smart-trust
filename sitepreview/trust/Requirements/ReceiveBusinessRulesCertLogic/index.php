@@ -7,19 +7,19 @@ function Redirect($url)
 
 $accept = $_SERVER['HTTP_ACCEPT'];
 if (strpos($accept, 'application/json+fhir') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Requirements-ReceiveBusinessRulesCertLogic.json2');
+  Redirect('https://smart.who.int/trust/v1.7.4/Requirements-ReceiveBusinessRulesCertLogic.json2');
 elseif (strpos($accept, 'application/fhir+json') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Requirements-ReceiveBusinessRulesCertLogic.json1');
+  Redirect('https://smart.who.int/trust/v1.7.4/Requirements-ReceiveBusinessRulesCertLogic.json1');
 elseif (strpos($accept, 'json') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Requirements-ReceiveBusinessRulesCertLogic.json');
+  Redirect('https://smart.who.int/trust/v1.7.4/Requirements-ReceiveBusinessRulesCertLogic.json');
 elseif (strpos($accept, 'application/xml+fhir') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Requirements-ReceiveBusinessRulesCertLogic.xml2');
+  Redirect('https://smart.who.int/trust/v1.7.4/Requirements-ReceiveBusinessRulesCertLogic.xml2');
 elseif (strpos($accept, 'application/fhir+xml') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Requirements-ReceiveBusinessRulesCertLogic.xml1');
+  Redirect('https://smart.who.int/trust/v1.7.4/Requirements-ReceiveBusinessRulesCertLogic.xml1');
 elseif (strpos($accept, 'html') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Requirements-ReceiveBusinessRulesCertLogic.html');
+  Redirect('https://smart.who.int/trust/v1.7.4/Requirements-ReceiveBusinessRulesCertLogic.html');
 else 
-  Redirect('https://smart.who.int/trust/v1.7.3/Requirements-ReceiveBusinessRulesCertLogic.xml');
+  Redirect('https://smart.who.int/trust/v1.7.4/Requirements-ReceiveBusinessRulesCertLogic.xml');
 ?>
     
 You should not be seeing this page. If you do, PHP has failed badly.

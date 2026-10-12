@@ -1,4 +1,4 @@
-# Receive business rules - WHO SMART Trust v1.7.3
+# Receive business rules - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/Requirements/ReceiveBusinessRules | *Version*:1.7.3 |
-| Active as of 2026-10-02 | *Computable Name*:Receive Business Rules |
+| *Official URL*:http://smart.who.int/trust/Requirements/ReceiveBusinessRules | *Version*:1.7.4 |
+| Active as of 2026-10-12 | *Computable Name*:Receive Business Rules |
 
  
 Receive business rules from a Trust Network Participant, for distribution within the Trust Network 
@@ -40,12 +40,12 @@ Receive business rules from a Trust Network Participant, for distribution within
     "profile" : ["http://smart.who.int/base/StructureDefinition/SGRequirements"]
   },
   "url" : "http://smart.who.int/trust/Requirements/ReceiveBusinessRules",
-  "version" : "1.7.3",
+  "version" : "1.7.4",
   "name" : "Receive Business Rules",
   "title" : "Receive business rules",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-10-02T10:11:10+00:00",
+  "date" : "2026-10-12T03:23:53+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

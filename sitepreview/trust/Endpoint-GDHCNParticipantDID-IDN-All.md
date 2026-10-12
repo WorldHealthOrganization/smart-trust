@@ -1,4 +1,4 @@
-# GDHCNParticipantDID-IDN-All - WHO SMART Trust v1.7.3
+# GDHCNParticipantDID-IDN-All - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)

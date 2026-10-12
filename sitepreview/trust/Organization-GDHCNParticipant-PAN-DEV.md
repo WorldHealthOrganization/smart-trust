@@ -1,4 +1,4 @@
-# GDHCNParticipant-PAN-DEV - WHO SMART Trust v1.7.3
+# GDHCNParticipant-PAN-DEV - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)

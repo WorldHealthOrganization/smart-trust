@@ -7,19 +7,19 @@ function Redirect($url)
 
 $accept = $_SERVER['HTTP_ACCEPT'];
 if (strpos($accept, 'application/json+fhir') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/StructureDefinition-COSEHeader.json2');
+  Redirect('https://smart.who.int/trust/v1.7.4/StructureDefinition-COSEHeader.json2');
 elseif (strpos($accept, 'application/fhir+json') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/StructureDefinition-COSEHeader.json1');
+  Redirect('https://smart.who.int/trust/v1.7.4/StructureDefinition-COSEHeader.json1');
 elseif (strpos($accept, 'json') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/StructureDefinition-COSEHeader.json');
+  Redirect('https://smart.who.int/trust/v1.7.4/StructureDefinition-COSEHeader.json');
 elseif (strpos($accept, 'application/xml+fhir') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/StructureDefinition-COSEHeader.xml2');
+  Redirect('https://smart.who.int/trust/v1.7.4/StructureDefinition-COSEHeader.xml2');
 elseif (strpos($accept, 'application/fhir+xml') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/StructureDefinition-COSEHeader.xml1');
+  Redirect('https://smart.who.int/trust/v1.7.4/StructureDefinition-COSEHeader.xml1');
 elseif (strpos($accept, 'html') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/StructureDefinition-COSEHeader.html');
+  Redirect('https://smart.who.int/trust/v1.7.4/StructureDefinition-COSEHeader.html');
 else 
-  Redirect('https://smart.who.int/trust/v1.7.3/StructureDefinition-COSEHeader.xml');
+  Redirect('https://smart.who.int/trust/v1.7.4/StructureDefinition-COSEHeader.xml');
 ?>
     
 You should not be seeing this page. If you do, PHP has failed badly.

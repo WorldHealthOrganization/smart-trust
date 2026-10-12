@@ -1,4 +1,4 @@
-# Holder - WHO SMART Trust v1.7.3
+# Holder - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ActorDefinition/Holder | *Version*:1.7.3 |
-| Active as of 2026-10-02 | *Computable Name*:Holder |
+| *Official URL*:http://smart.who.int/trust/ActorDefinition/Holder | *Version*:1.7.4 |
+| Active as of 2026-10-12 | *Computable Name*:Holder |
 
  
 A Holder is an individual that has Verifiable Digtial Health Certificate in their possesion, received from an Issuer. The Holder may choose to share the Verifiable Digital Health Certificate with a Receiver. 
@@ -34,12 +34,12 @@ A Holder is an individual that has Verifiable Digtial Health Certificate in thei
     "profile" : ["http://smart.who.int/base/StructureDefinition/SGActor"]
   },
   "url" : "http://smart.who.int/trust/ActorDefinition/Holder",
-  "version" : "1.7.3",
+  "version" : "1.7.4",
   "name" : "Holder",
   "title" : "Holder",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-10-02T10:11:10+00:00",
+  "date" : "2026-10-12T03:23:53+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

@@ -1,4 +1,4 @@
-# CBOR Web Token (CWT) Claim - WHO SMART Trust v1.7.3
+# CBOR Web Token (CWT) Claim - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/StructureDefinition/CWT | *Version*:1.7.3 |
-| Active as of 2026-10-02 | *Computable Name*:CWT |
+| *Official URL*:http://smart.who.int/trust/StructureDefinition/CWT | *Version*:1.7.4 |
+| Active as of 2026-10-12 | *Computable Name*:CWT |
 
  
 Logical Model for Data elements in CBOR Web Token (CWT) https://www.iana.org/assignments/cwt/cwt.xhtml 
@@ -38,11 +38,11 @@ Other representations of profile: [CSV](StructureDefinition-CWT.csv), [Excel](St
   "resourceType" : "StructureDefinition",
   "id" : "CWT",
   "url" : "http://smart.who.int/trust/StructureDefinition/CWT",
-  "version" : "1.7.3",
+  "version" : "1.7.4",
   "name" : "CWT",
   "title" : "CBOR Web Token (CWT) Claim",
   "status" : "active",
-  "date" : "2026-10-02T10:11:10+00:00",
+  "date" : "2026-10-12T03:23:53+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

@@ -1,4 +1,4 @@
-# Trust Network Gateway Architecture - WHO SMART Trust v1.7.3
+# Trust Network Gateway Architecture - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Data Models and Exchange**](data_exchange.md)

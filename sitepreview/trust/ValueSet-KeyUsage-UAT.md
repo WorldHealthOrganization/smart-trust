@@ -1,4 +1,4 @@
-# WHO GDHCN Key Usage ValueSet - UAT - WHO SMART Trust v1.7.3
+# WHO GDHCN Key Usage ValueSet - UAT - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ValueSet/KeyUsage-UAT | *Version*:1.7.3 |
-| Active as of 2026-10-02 | *Computable Name*:KeyUsage-UAT |
+| *Official URL*:http://smart.who.int/trust/ValueSet/KeyUsage-UAT | *Version*:1.7.4 |
+| Active as of 2026-10-12 | *Computable Name*:KeyUsage-UAT |
 
  
 ValueSet of codes for key usage codes for User Acceptance Testing environment 
@@ -73,12 +73,12 @@ This endpoint serves the JSON Schema definition for the enumeration ValueSet-Key
   "resourceType" : "ValueSet",
   "id" : "KeyUsage-UAT",
   "url" : "http://smart.who.int/trust/ValueSet/KeyUsage-UAT",
-  "version" : "1.7.3",
+  "version" : "1.7.4",
   "name" : "KeyUsage-UAT",
   "title" : "WHO GDHCN  Key Usage ValueSet - UAT",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-10-02T10:11:10+00:00",
+  "date" : "2026-10-12T03:23:53+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

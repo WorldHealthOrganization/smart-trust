@@ -1,4 +1,4 @@
-# Data Models and Exchange - WHO SMART Trust v1.7.3
+# Data Models and Exchange - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * **Data Models and Exchange**

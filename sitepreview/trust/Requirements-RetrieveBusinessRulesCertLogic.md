@@ -1,4 +1,4 @@
-# Retrieve Cert Logic compatible business rules - WHO SMART Trust v1.7.3
+# Retrieve Cert Logic compatible business rules - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/Requirements/RetrieveBusinessRulesCertLogic | *Version*:1.7.3 |
-| Active as of 2026-10-02 | *Computable Name*:Retrieve CertLogic Business Rules |
+| *Official URL*:http://smart.who.int/trust/Requirements/RetrieveBusinessRulesCertLogic | *Version*:1.7.4 |
+| Active as of 2026-10-12 | *Computable Name*:Retrieve CertLogic Business Rules |
 
  
 Retrieve Cert Logic business rules from a distribution point 
@@ -46,12 +46,12 @@ Retrieve Cert Logic business rules from a distribution point
     }
   }],
   "url" : "http://smart.who.int/trust/Requirements/RetrieveBusinessRulesCertLogic",
-  "version" : "1.7.3",
+  "version" : "1.7.4",
   "name" : "Retrieve CertLogic Business Rules",
   "title" : "Retrieve Cert Logic compatible business rules",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-10-02T10:11:10+00:00",
+  "date" : "2026-10-12T03:23:53+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

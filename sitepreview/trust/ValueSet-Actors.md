@@ -1,4 +1,4 @@
-# WHO GDHCN Actor ValueSet of actor codes - WHO SMART Trust v1.7.3
+# WHO GDHCN Actor ValueSet of actor codes - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ValueSet/Actors | *Version*:1.7.3 |
-| Active as of 2026-10-02 | *Computable Name*:Actors |
+| *Official URL*:http://smart.who.int/trust/ValueSet/Actors | *Version*:1.7.4 |
+| Active as of 2026-10-12 | *Computable Name*:Actors |
 
  
 ValueSet of codes for actor codes 
@@ -73,12 +73,12 @@ This endpoint serves the JSON Schema definition for the enumeration ValueSet-Act
   "resourceType" : "ValueSet",
   "id" : "Actors",
   "url" : "http://smart.who.int/trust/ValueSet/Actors",
-  "version" : "1.7.3",
+  "version" : "1.7.4",
   "name" : "Actors",
   "title" : "WHO GDHCN Actor ValueSet of actor codes",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-10-02T10:11:10+00:00",
+  "date" : "2026-10-12T03:23:53+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

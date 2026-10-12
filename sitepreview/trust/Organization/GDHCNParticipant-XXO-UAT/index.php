@@ -7,19 +7,19 @@ function Redirect($url)
 
 $accept = $_SERVER['HTTP_ACCEPT'];
 if (strpos($accept, 'application/json+fhir') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-XXO-UAT.json2');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-XXO-UAT.json2');
 elseif (strpos($accept, 'application/fhir+json') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-XXO-UAT.json1');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-XXO-UAT.json1');
 elseif (strpos($accept, 'json') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-XXO-UAT.json');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-XXO-UAT.json');
 elseif (strpos($accept, 'application/xml+fhir') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-XXO-UAT.xml2');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-XXO-UAT.xml2');
 elseif (strpos($accept, 'application/fhir+xml') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-XXO-UAT.xml1');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-XXO-UAT.xml1');
 elseif (strpos($accept, 'html') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-XXO-UAT.html');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-XXO-UAT.html');
 else 
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-XXO-UAT.xml');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-XXO-UAT.xml');
 ?>
     
 You should not be seeing this page. If you do, PHP has failed badly.

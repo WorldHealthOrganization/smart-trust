@@ -1,4 +1,4 @@
-# Receiver - WHO SMART Trust v1.7.3
+# Receiver - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ActorDefinition/Receiver | *Version*:1.7.3 |
-| Active as of 2026-10-02 | *Computable Name*:Receiver |
+| *Official URL*:http://smart.who.int/trust/ActorDefinition/Receiver | *Version*:1.7.4 |
+| Active as of 2026-10-12 | *Computable Name*:Receiver |
 
  
 A Reciever is a system authorized by a Trust Network Participant to receive from a Holder a Veritifable, verify and utilize the content within. 
@@ -34,12 +34,12 @@ A Reciever is a system authorized by a Trust Network Participant to receive from
     "profile" : ["http://smart.who.int/base/StructureDefinition/SGActor"]
   },
   "url" : "http://smart.who.int/trust/ActorDefinition/Receiver",
-  "version" : "1.7.3",
+  "version" : "1.7.4",
   "name" : "Receiver",
   "title" : "Receiver",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-10-02T10:11:10+00:00",
+  "date" : "2026-10-12T03:23:53+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

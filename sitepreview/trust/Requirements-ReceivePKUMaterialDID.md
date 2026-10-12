@@ -1,4 +1,4 @@
-# Receive PKI material as DID - WHO SMART Trust v1.7.3
+# Receive PKI material as DID - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/Requirements/ReceivePKUMaterialDID | *Version*:1.7.3 |
-| Active as of 2026-10-02 | *Computable Name*:Receive Public Keys as DID |
+| *Official URL*:http://smart.who.int/trust/Requirements/ReceivePKUMaterialDID | *Version*:1.7.4 |
+| Active as of 2026-10-12 | *Computable Name*:Receive Public Keys as DID |
 
  
 Receive trust material from a Trust Network Participant, for distribution within the Trust Network as DID 
@@ -46,12 +46,12 @@ Receive trust material from a Trust Network Participant, for distribution within
     }
   }],
   "url" : "http://smart.who.int/trust/Requirements/ReceivePKUMaterialDID",
-  "version" : "1.7.3",
+  "version" : "1.7.4",
   "name" : "Receive Public Keys as DID",
   "title" : "Receive PKI material as DID",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-10-02T10:11:10+00:00",
+  "date" : "2026-10-12T03:23:53+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

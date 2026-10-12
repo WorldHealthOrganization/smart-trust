@@ -1,4 +1,4 @@
-# Receive HL7 FHIR business rules - WHO SMART Trust v1.7.3
+# Receive HL7 FHIR business rules - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/Requirements/ReceiveBusinessRulesFHIR | *Version*:1.7.3 |
-| Active as of 2026-10-02 | *Computable Name*:Receive FHIR Business Rules |
+| *Official URL*:http://smart.who.int/trust/Requirements/ReceiveBusinessRulesFHIR | *Version*:1.7.4 |
+| Active as of 2026-10-12 | *Computable Name*:Receive FHIR Business Rules |
 
  
 Receive business rules from a Trust Network Participant, for distribution within the Trust Network using HL7 FHIR standard 
@@ -46,12 +46,12 @@ Receive business rules from a Trust Network Participant, for distribution within
     }
   }],
   "url" : "http://smart.who.int/trust/Requirements/ReceiveBusinessRulesFHIR",
-  "version" : "1.7.3",
+  "version" : "1.7.4",
   "name" : "Receive FHIR Business Rules",
   "title" : "Receive HL7 FHIR business rules",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-10-02T10:11:10+00:00",
+  "date" : "2026-10-12T03:23:53+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

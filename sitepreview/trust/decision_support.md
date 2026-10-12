@@ -1,4 +1,4 @@
-# Decision Support Logic - WHO SMART Trust v1.7.3
+# Decision Support Logic - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Business Requirements**](business_requirements.md)

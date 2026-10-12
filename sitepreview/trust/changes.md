@@ -1,4 +1,4 @@
-# Changes - WHO SMART Trust v1.7.3
+# Changes - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Deployment**](deployment.md)
@@ -103,4 +103,8 @@ This provides a list of changes to the SMART Trust IG.
 * Updated GDHCN Administrative and Operational Framework document
 * Updated GDHCN Participants onboarding status
 * Participant lists updated
+
+### 2026-10-09 v1.7.4 - release
+
+* Updated GDHCN Administrative and Operational Framework document
 

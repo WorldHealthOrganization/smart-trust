@@ -1,4 +1,4 @@
-# Home - WHO SMART Trust v1.7.3
+# Home - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * **Home**
@@ -7,8 +7,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ImplementationGuide/smart.who.int.trust | *Version*:1.7.3 |
-| Active as of 2026-10-02 | *Computable Name*:Trust |
+| *Official URL*:http://smart.who.int/trust/ImplementationGuide/smart.who.int.trust | *Version*:1.7.4 |
+| Active as of 2026-10-12 | *Computable Name*:Trust |
 
 ### Summary
 
@@ -114,12 +114,12 @@ WHO also hosts weekly calls on authoring and implementing WHO SMART Guidelines w
     "profile" : ["http://smart.who.int/base/StructureDefinition/SGImplementationGuide"]
   },
   "url" : "http://smart.who.int/trust/ImplementationGuide/smart.who.int.trust",
-  "version" : "1.7.3",
+  "version" : "1.7.4",
   "name" : "Trust",
   "title" : "WHO SMART Trust",
   "status" : "active",
   "experimental" : false,
-  "date" : "2026-10-02T10:11:10+00:00",
+  "date" : "2026-10-12T03:23:53+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",

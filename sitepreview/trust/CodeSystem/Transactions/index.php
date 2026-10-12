@@ -7,19 +7,19 @@ function Redirect($url)
 
 $accept = $_SERVER['HTTP_ACCEPT'];
 if (strpos($accept, 'application/json+fhir') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/CodeSystem-Transactions.json2');
+  Redirect('https://smart.who.int/trust/v1.7.4/CodeSystem-Transactions.json2');
 elseif (strpos($accept, 'application/fhir+json') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/CodeSystem-Transactions.json1');
+  Redirect('https://smart.who.int/trust/v1.7.4/CodeSystem-Transactions.json1');
 elseif (strpos($accept, 'json') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/CodeSystem-Transactions.json');
+  Redirect('https://smart.who.int/trust/v1.7.4/CodeSystem-Transactions.json');
 elseif (strpos($accept, 'application/xml+fhir') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/CodeSystem-Transactions.xml2');
+  Redirect('https://smart.who.int/trust/v1.7.4/CodeSystem-Transactions.xml2');
 elseif (strpos($accept, 'application/fhir+xml') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/CodeSystem-Transactions.xml1');
+  Redirect('https://smart.who.int/trust/v1.7.4/CodeSystem-Transactions.xml1');
 elseif (strpos($accept, 'html') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/CodeSystem-Transactions.html');
+  Redirect('https://smart.who.int/trust/v1.7.4/CodeSystem-Transactions.html');
 else 
-  Redirect('https://smart.who.int/trust/v1.7.3/CodeSystem-Transactions.xml');
+  Redirect('https://smart.who.int/trust/v1.7.4/CodeSystem-Transactions.xml');
 ?>
     
 You should not be seeing this page. If you do, PHP has failed badly.

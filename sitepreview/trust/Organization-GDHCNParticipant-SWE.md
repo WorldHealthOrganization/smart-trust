@@ -1,4 +1,4 @@
-# GDHCNParticipant-SWE - WHO SMART Trust v1.7.3
+# GDHCNParticipant-SWE - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)

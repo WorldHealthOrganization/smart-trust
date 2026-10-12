@@ -7,19 +7,19 @@ function Redirect($url)
 
 $accept = $_SERVER['HTTP_ACCEPT'];
 if (strpos($accept, 'application/json+fhir') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-SVN.json2');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-SVN.json2');
 elseif (strpos($accept, 'application/fhir+json') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-SVN.json1');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-SVN.json1');
 elseif (strpos($accept, 'json') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-SVN.json');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-SVN.json');
 elseif (strpos($accept, 'application/xml+fhir') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-SVN.xml2');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-SVN.xml2');
 elseif (strpos($accept, 'application/fhir+xml') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-SVN.xml1');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-SVN.xml1');
 elseif (strpos($accept, 'html') !== false)
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-SVN.html');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-SVN.html');
 else 
-  Redirect('https://smart.who.int/trust/v1.7.3/Organization-GDHCNParticipant-SVN.xml');
+  Redirect('https://smart.who.int/trust/v1.7.4/Organization-GDHCNParticipant-SVN.xml');
 ?>
     
 You should not be seeing this page. If you do, PHP has failed badly.

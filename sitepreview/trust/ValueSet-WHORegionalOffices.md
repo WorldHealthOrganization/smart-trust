@@ -1,4 +1,4 @@
-# WHO Regional Offices - WHO SMART Trust v1.7.3
+# WHO Regional Offices - WHO SMART Trust v1.7.4
 
 * [**Table of Contents**](toc.md)
 * [**Indices**](indices.md)
@@ -9,8 +9,8 @@
 
 | | |
 | :--- | :--- |
-| *Official URL*:http://smart.who.int/trust/ValueSet/WHORegionalOffices | *Version*:1.7.3 |
-| Active as of 2026-10-02 | *Computable Name*:WHORegionalOffices |
+| *Official URL*:http://smart.who.int/trust/ValueSet/WHORegionalOffices | *Version*:1.7.4 |
+| Active as of 2026-10-12 | *Computable Name*:WHORegionalOffices |
 
  
 ValueSet of WHO Regional Offices 
@@ -73,12 +73,12 @@ This endpoint serves the JSON Schema definition for the enumeration ValueSet-WHO
   "resourceType" : "ValueSet",
   "id" : "WHORegionalOffices",
   "url" : "http://smart.who.int/trust/ValueSet/WHORegionalOffices",
-  "version" : "1.7.3",
+  "version" : "1.7.4",
   "name" : "WHORegionalOffices",
   "title" : "WHO Regional Offices",
   "status" : "active",
   "experimental" : true,
-  "date" : "2026-10-02T10:11:10+00:00",
+  "date" : "2026-10-12T03:23:53+00:00",
   "publisher" : "WHO",
   "contact" : [{
     "name" : "WHO",
