@@ -12,3 +12,5 @@
   {% include concepts_did_v1.md %}
 
 {% include hcert_spec.md %}
+
+{% include qr_code_generation.md %}

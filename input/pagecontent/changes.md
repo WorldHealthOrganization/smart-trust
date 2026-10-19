@@ -81,3 +81,10 @@ This provides a list of changes to the SMART Trust IG.
 
 ### 2026-10-09 v1.7.4 - release
 - Updated GDHCN Administrative and Operational Framework document
+
+### v1.7.5
+- QR Code Generation page added, with step-by-step HCERT encoding, signing and
+  decoding instructions and use-case driven selection of the payload logical
+  model (DVC, VHL, DDCC, ICVP)
+- Worked DVC example and reference generation script added, covering a newborn
+  birth-dose certificate issued by GDHCN test participant XXA
