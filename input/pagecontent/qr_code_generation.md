@@ -7,9 +7,8 @@ how a verifier turns that QR code back into trustworthy data.
 The container, the signature and the transport encoding are the *same* for every
 GDHCN trust domain, and are specified normatively in the
 [HCERT Specification](hcert_spec.html). What changes from one use case to the
-next is only the **payload**: which logical model you put inside the `hcert`
-claim, and which subclaim number you put it under. The first step below is
-therefore a selection step, and everything after it is mechanical.
+next is only the **payload**: which logical model goes inside the `hcert` claim,
+and under which subclaim. Everything after that choice is mechanical.
 
 Where this page and the [HCERT Specification](hcert_spec.html) appear to differ,
 the HCERT Specification is authoritative.
@@ -17,9 +16,7 @@ the HCERT Specification is authoritative.
 #### 1. The pipeline at a glance
 
 ```
-                   use case  ──▶  logical model  ──▶  hcert subclaim
-                                                           │
-   Step 1  Select payload type ──────────────────────────────┘
+   Step 1  Select payload type              DVC, for this walkthrough
    Step 2  Assemble payload                 { "n": ..., "dob": ..., "vx": {...} }
    Step 3  Wrap in CWT claim set            { 1: iss, 6: iat, 4: exp, -260: { -6: payload } }
    Step 4  Serialise as CBOR                binary
@@ -30,169 +27,83 @@ the HCERT Specification is authoritative.
    Step 9  Render QR (Alphanumeric, EC Q)   image
 ```
 
-Steps 3 to 9 never vary. A verifier runs the same list upwards.
+Steps 3 to 9 never vary with the payload. A verifier runs the same list upwards.
 
-#### 2. Step 1 — Select the logical model for your use case
+#### 2. Step 1 — Select the payload type
 
-An HCERT carries exactly one payload, identified by a **subclaim** inside the
-`hcert` claim (`-260`). Choosing the subclaim *is* choosing the data model, and
-the choice follows from the use case, not from the technology.
+A payload is identified by a **subclaim** inside the `hcert` claim (`-260`).
+The subclaims, and the logical model each one carries, are enumerated in the
+[HCert logical model](StructureDefinition-HCert.html); section
+[3.2.7.1](hcert_spec.html#3271-subclaims) of the HCERT Specification is
+authoritative for which are assigned. The registered trust domains are listed in
+the [GDHCN Trust Domain value set](ValueSet-Domains.html) and described under
+[Trust Domains](trust_domains.html).
 
-##### 2.1 Subclaims defined in this guide
+Two things are worth knowing before picking a number. Subclaims **0 and above are
+reserved by WHO** and are allocated together with a trust domain, through the
+GDHCN Secretariat. Subclaims that are **negative integers are the development
+range** and are free to use, so an implementation using one is a pilot or a
+development deployment and the number is not guaranteed to be stable.
 
-These are the subclaims enumerated by the
-[HCert logical model](StructureDefinition-HCert.html). Section
-[3.2.7.1](hcert_spec.html#3271-subclaims) of the HCERT Specification remains
-authoritative.
+[Section 3.2.7](hcert_spec.html#327-health-certificate-claim) of the
+specification allows several types of health certificate to exist under the
+`hcert` claim. Carrying exactly one is an implementation choice, not a
+constraint of the container, and it is the choice made throughout this page.
 
-| Subclaim | Logical model | Carries | Status |
-|----------|---------------|---------|--------|
-| `1` | [HCertDCC](http://smart.who.int/ddcc/StructureDefinition-HCertDCC.html) | EU Digital Covid Certificate core data set | Assigned |
-| `3` | [DDCCCoreDataSetVS](http://smart.who.int/ddcc/StructureDefinition-DDCCCoreDataSetVS.html) | DDCC vaccination status | Proposed |
-| `4` | [DDCCCoreDataSetTR](http://smart.who.int/ddcc/StructureDefinition-DDCCCoreDataSetTR.html) | DDCC test result | Proposed |
-| `5` | string | URI of a Verifiable Health Link (VHL) | Assigned |
-| `-6` | [DVCMin](http://smart.who.int/trust-phw/StructureDefinition-DVCMin.html) | Minimal Digital Vaccine Certificate | Development range |
-| `-7` | [MedicationTreatmentLineMin](http://smart.who.int/ph4h/StructureDefinition-MedicationTreatmentLineMin.html) | Minimal medication treatment line | Development range |
-
-Two properties of this registry matter when you pick a number:
-
-* Subclaims **0 and above are reserved by WHO** and are allocated together with a
-  trust domain. Request one through the GDHCN Secretariat.
-* Subclaims that are **negative integers are the development range** and are free
-  to use. `-6` (DVC) and `-7` are in that range today, which means an
-  implementation using them is a pilot or a development deployment, and the
-  number is not guaranteed to be stable. Do not treat a negative subclaim as a
-  production allocation.
-
-The registered production [trust domains](trust_domains.html) are `DDCC`,
-`IPS-PILGRIMAGE`, `PH4H` and `ICVP`. There is no separate production trust
-domain code for the generic DVC at the time of writing.
-
-##### 2.2 Choosing between a DVC and a VHL
-
-The decisive question is **whether the data must survive offline, and how much of
-it there is**.
-
-| | **DVC in the QR (subclaim `-6`)** | **VHL in the QR (subclaim `5`)** |
-|---|---|---|
-| What the QR holds | The vaccination data itself, signed | A link to the data, signed |
-| Works fully offline | Yes — verifier needs only the trust list | No — verifier must dereference the link |
-| Data volume | Small, bounded; one immunization event per certificate | Unbounded; a full IPS or immunization history |
-| Revocation / update after issue | Not possible; reissue instead | Possible — the content behind the link can change |
-| Selective disclosure | Not in the minimal payload | Yes, the endpoint can tailor what is returned |
-| Holder device | Paper is sufficient | Paper is sufficient to carry the link, but a network is needed to use it |
-| Privacy exposure | All data is in the QR and is readable by anyone who scans it | Only the link is in the QR; access can be gated |
-
-In short: **use a DVC when the QR must be self-sufficient**, for example a paper
-card presented at a rural clinic, a border post with intermittent connectivity,
-or an infant's home-based record. **Use a VHL when the content is larger than a
-QR can hold, when it must be able to change after issue, or when the holder
-should control how much is disclosed.**
-
-A deployment may legitimately issue both for the same person: a DVC for the
-dose that must be provable offline, and a VHL pointing at the full record.
-
-##### 2.3 Choosing between a generic DVC and the ICVP
-
-The [ICVP](https://smart.who.int/icvp) is the digital counterpart of the
-"Yellow Book" — the International Certificate of Vaccination or Prophylaxis
-under the International Health Regulations. Its scope is deliberately narrow:
-the vaccinations and prophylaxis that may be *required as a condition of entry*,
-principally yellow fever.
-
-The generic DVC is for everything else: routine childhood immunization, national
-schedule doses, catch-up campaigns. A Hepatitis B birth dose or a BCG dose is
-not an ICVP matter at all, so it belongs in a DVC. Pick the ICVP only when the
-certificate's purpose is to satisfy an IHR entry requirement.
-
-##### 2.4 Decision summary
-
-```
-Is the certificate proving an IHR entry requirement (e.g. yellow fever)?
-   ├── yes ──▶ ICVP trust domain
-   └── no
-        │
-        Does the content fit in a QR and have to verify with no network?
-           ├── yes ──▶ DVC payload, hcert subclaim -6   (DVCMin / DVCMinPreQual)
-           └── no  ──▶ VHL URI,     hcert subclaim 5
-```
-
-COVID-19 vaccination and test results predate this split and have their own
-assigned subclaims (`3` and `4`) under the `DDCC` trust domain.
+> **For this walkthrough the payload is a DVC — a Digital Vaccine Certificate —
+> carried under subclaim `-6`. The steps below are the steps for that payload.**
+> A different payload changes only Step 2; Steps 3 to 9 are identical.
 
 #### 3. Step 2 — Assemble the payload
 
-Populate the logical model you selected. The DVC payload uses short element
-names because every byte is paid for twice: once in the CBOR encoding and again
-in the QR's module count.
+Populate the logical model for the payload type you selected. For a DVC that is
+[DVCMinPreQual](http://smart.who.int/trust-phw/StructureDefinition-DVCMinPreQual.html),
+whose vaccine details are
+[DVCMinVaccineDetailsPreQual](http://smart.who.int/trust-phw/StructureDefinition-DVCMinVaccineDetailsPreQual.html).
+Follow those definitions for the element list, cardinalities and bindings rather
+than any copy of them.
 
-For [DVCMin](http://smart.who.int/trust-phw/StructureDefinition-DVCMin.html):
+`DVCMinPreQual` is the concrete model: its parent `DVCMin` is abstract, as is
+`DVCMinVaccineDetails`, so neither can be instantiated directly.
 
-| Element | Card. | Meaning |
-|---------|-------|---------|
-| `n` | 1..1 | Legal name of the patient, first and last |
-| `dob` | 1..1 | Date of birth |
-| `s` | 1..1 | Sex |
-| `nt` | 1..1 | Nationality, ISO 3166-1 alpha-3 |
-| `id` | 0..1 | National identification document number |
-| `dt` | 0..1 | National ID document type |
-| `gn` | 0..1 | Parent or guardian name |
-| `vx` | 1..1 | Vaccine details |
-| `v` | 1..1 | Version of the certificate template |
+The element names are two and three characters long because every byte is paid
+for twice — once in the CBOR encoding and again in the QR's module count.
 
-and within `vx`
-([DVCMinVaccineDetails](http://smart.who.int/trust-phw/StructureDefinition-DVCMinVaccineDetails.html)):
-
-| Element | Card. | Meaning |
-|---------|-------|---------|
-| `vp` | 1..1 | Vaccine product identifier |
-| `dv` | 1..1 | Date of vaccination |
-| `cn` | 0..1 | Name of the supervising clinician |
-| `is` | 0..1 | Identifier of the issuing organization |
-| `bo` | 1..1 | Batch or lot number |
-
-Three constraints are easy to miss:
+Four points about *using* the model are not apparent from the StructureDefinition
+and are worth stating here:
 
 * `vx` is **1..1**. One DVC documents one immunization event. A visit at which
   two vaccines are administered produces two certificates and two QR codes.
-* At least one of `is` or `cn` **must** be present — this is the
+* At least one of `is` or `cn` **must** be present — the
   `must-have-issuer-or-clinician-name` invariant.
 * `id` is optional precisely because many certificate subjects have no
   identification document. A newborn is the obvious case; `gn` carries the
   parent or guardian instead.
-
-For `vp`, the profile decides the terminology.
-[DVCMinPreQual](http://smart.who.int/trust-phw/StructureDefinition-DVCMinPreQual.html)
-binds `vp` to the WHO PreQual product identifiers (required binding), so a
-conformant PreQual implementation must resolve the administered product in the
-PreQual vaccine database and use that identifier. The unconstrained `DVCMin`
-leaves the binding open; the worked example below uses ICD-11 codes from the
-[DVC - Vaccines value set](http://smart.who.int/trust-phw/ValueSet-DVCVaccines.html).
+* `vp` has a **required** binding to the WHO PreQual product identifiers, so the
+  administered product must be resolved in the PreQual vaccine database and that
+  identifier used. A clinical code for the vaccine *type* will not satisfy it.
 
 #### 4. Step 3 — Build the CWT claim set
 
 Place the payload under its subclaim, inside the `hcert` claim, inside a
-[CWT claim set](StructureDefinition-CWTPayload.html):
+[CWT claim set](StructureDefinition-CWTPayload.html) — see that model for the
+claim keys and types, and
+[section 3.2](hcert_spec.html#32-cwt-claims) of the specification for their
+normative definitions.
 
-| Claim key | Name | Notes |
-|-----------|------|-------|
-| `1` | `iss` | Issuer. Optionally the ISO 3166-1 alpha-2 code of the issuing country |
-| `6` | `iat` | Issued At, integer NumericDate. MUST NOT predate the DSC validity period |
-| `4` | `exp` | Expiration Time, integer NumericDate. MUST NOT exceed the DSC validity period |
-| `-260` | `hcert` | Map whose single key is the subclaim chosen in Step 1 |
-
-`exp` is the only revocation mechanism this specification offers: certificates
-cannot be reliably revoked once issued, so the validity period must be chosen to
-bound the damage from a compromised key, balanced against the holder's ability
-to come back for a reissue. See
+`exp` deserves attention because it is the only revocation mechanism this
+specification offers: certificates cannot be reliably revoked once issued, so
+the validity period must be chosen to bound the damage from a compromised key,
+balanced against the holder's ability to come back for a reissue. It must not
+exceed the DSC's own validity period, and `iat` must not predate it. See
 [section 6.1](hcert_spec.html#61-hcert-signature-validity-time).
 
 #### 5. Step 4 — Serialise as CBOR
 
 Encode the claim set as CBOR ([RFC 7049](https://tools.ietf.org/html/rfc7049)).
-The JSON shown throughout this page and in the logical models is schema
-notation only — **the wire format is CBOR**, and an implementation need never
-produce the JSON form at all.
+The JSON shown on this page and in the logical models is schema notation only —
+**the wire format is CBOR**, and an implementation need never produce the JSON
+form at all.
 
 Strings SHOULD be NFC-normalised. Decoders SHOULD be permissive about input that
 is not.
@@ -200,20 +111,14 @@ is not.
 #### 6. Step 5 — Sign as a COSE_Sign1
 
 Wrap the CBOR payload in a single-signer COSE structure
-([RFC 8152](https://tools.ietf.org/html/rfc8152)), CBOR tag `18`.
+([RFC 8152](https://tools.ietf.org/html/rfc8152)), CBOR tag `18`, with `alg`
+(label 1) and `kid` (label 4) in the protected header.
 
-**Protected header**
-
-| Label | Name | Value |
-|-------|------|-------|
-| `1` | `alg` | `-7` for ES256 (primary) or `-37` for PS256 (secondary) |
-| `4` | `kid` | Key identifier of the Document Signing Certificate |
-
-Both algorithms MUST be implemented, even though only one is used to sign any
-given certificate; the secondary exists so that a break in the primary does not
-strand the whole network. `kid` MAY instead sit in the unprotected header, and
-verifiers MUST accept both placements — but when it appears in both, the
-protected one wins.
+ES256 is the primary algorithm (`alg` `-7`) and PS256 the secondary (`-37`).
+Both MUST be implemented even though only one signs any given certificate; the
+secondary exists so that a break in the primary does not strand the whole
+network. `kid` MAY instead sit in the unprotected header, and verifiers MUST
+accept both placements — but when it appears in both, the protected one wins.
 
 **Deriving the `kid`**: take the DER encoding of the DSC and use the **first 8
 bytes of its SHA-256 fingerprint**. Because it is truncated, `kid` is not
@@ -280,18 +185,26 @@ cause of certificates that scan on screen but not on paper.
 6. Rebuild the `Sig_structure` and verify the signature against each candidate
    DSC until one succeeds. **Verify the signature before processing the
    payload.**
-7. If the DSC carries an Extended Key Usage extension, check it against the
-   certificate type —  OID `1.3.6.1.4.1.1847.2021.1.1` for test,
-   `1.3.6.1.4.1.1847.2021.1.2` for vaccinations, `1.3.6.1.4.1.1847.2021.1.3` for
-   recovery. A DSC with no such extension may verify any HCERT type.
-8. Decode the CBOR payload and check `exp` and `iat` against the current time.
-9. Read the `hcert` claim, dispatch on the subclaim to the right logical model,
+7. Decode the CBOR payload and check `exp` and `iat` against the current time.
+8. Read the `hcert` claim, dispatch on the subclaim to the right logical model,
    and only then apply business rules.
+
+The Extended Key Usage identifiers in
+[Appendix A.2](hcert_spec.html#a2-extended-key-usage-identifiers) are inherited
+from the EU DCC and cover test, vaccination and recovery. They have not been
+applied to the payload types introduced since, and there is no mapping from the
+newer subclaims to a key usage, so a verifier has nothing to check them against
+for a DVC.
 
 #### 12. Worked example — a newborn birth dose DVC
 
-The following example is generated by the reference script in section 13, and
-every figure quoted here is taken from its output.
+> **Provisional.** The committed artefacts in this section were produced before
+> the example moved to participant `XXR` and to PreQual product identifiers. They
+> are issued by `XXA` with throw-away keys, and their `vp` values are ICD-11
+> codes rather than PreQual identifiers, so they do not conform to
+> `DVCMinPreQual` and verify against nothing. They are reissued once the `XXR`
+> signing material and the PreQual identifiers are available; the scenario,
+> structure and sizes below are unaffected.
 
 ##### 12.1 Scenario
 
@@ -304,11 +217,10 @@ with the QR code and offers digital delivery as an option.
 
 This drives the design decisions directly:
 
-* **DVC, not ICVP.** Hepatitis B and BCG are routine schedule vaccines, not IHR
-  entry requirements, so the generic DVC is the correct instrument and the
-  Yellow Book ICVP is not.
-* **DVC, not VHL.** The certificate has to verify at a rural clinic back home
-  with no reliable connectivity, and on paper. The data must be *in* the QR.
+* **A DVC rather than an ICVP.** Hepatitis B and BCG are routine schedule
+  vaccines, not International Health Regulations entry requirements.
+* **Data in the QR rather than behind a link.** The certificate has to verify at
+  a rural clinic back home, on paper, with no reliable connectivity.
 * **Two certificates.** `vx` is 1..1, so the birth visit yields one certificate
   per vaccine.
 * **No `id`, but a `gn`.** The newborn has no identification document. The
@@ -328,21 +240,22 @@ certificates modelled here.
 Implementers should confirm the current schedule against the national authority
 before relying on it; schedules are revised.
 
-##### 12.3 Test issuer
+##### 12.3 Issuer
 
-The example is issued by the GDHCN **test participant `XXA`**, not by any Member
+The example is issued by GDHCN **DEV participant `XXR`**, not by any Member
 State. GDHCN participant codes are ISO 3166-1 alpha-3, while the CWT `iss` claim
 and the X.509 country attribute take the alpha-2 form, here the user-assigned
 code `XX`.
 
-The signing keys are throw-away test keys generated deterministically by the
-script. They appear on no trust list, and nothing signed with them verifies
-anywhere. In a real deployment `iss` would be the issuing country and the DSC
-would be one published by that country and aggregated by the GDHCN Secretariat.
+Signing uses a key whose public key is onboarded to the GDHCN DEV trust network,
+so the example verifies against the DEV trust list. The private key is held in
+the build environment and never enters this repository; only the DSC, the SCA,
+the QR images and the `HC1:` strings are published.
 
 ##### 12.4 The payload
 
-Hepatitis B birth dose, `hcert` subclaim `-6`, shown in JSON notation:
+Hepatitis B birth dose, `hcert` subclaim `-6`, shown in JSON notation. `vp`
+carries the PreQual product identifier of the product actually administered:
 
 ```json
 {
@@ -352,21 +265,17 @@ Hepatitis B birth dose, `hcert` subclaim `-6`, shown in JSON notation:
   "nt":  "LAO",
   "gn":  "Mali SOUVANNALATH",
   "vx": {
-    "vp": "XM9V38",
+    "vp": "<PreQual product ID, hepatitis B>",
     "dv": "2026-09-28",
     "cn": "Dr Pimchanok WATTANA",
-    "is": "org-xxa-provincial-hospital",
+    "is": "org-xxr-provincial-hospital",
     "bo": "HEPB-2026-0914"
   },
   "v": "1.0.0"
 }
 ```
 
-`vp` is ICD-11 `XM9V38` *Hepatitis B, purified antigen*; the BCG certificate uses
-`XM8142` *Tuberculosis, live attenuated vaccines*. Both are in the
-[DVC - Vaccines value set](http://smart.who.int/trust-phw/ValueSet-DVCVaccines.html).
-An implementation conforming to `DVCMinPreQual` would instead carry the WHO
-PreQual product identifier of the specific product administered.
+The BCG certificate is identical but for `vp`, `bo` and the batch.
 
 Wrapped in the CWT claim set:
 
@@ -381,6 +290,8 @@ Wrapped in the CWT claim set:
 
 ##### 12.5 Size at each stage
 
+Indicative, from the provisional artefacts:
+
 | Stage | Size |
 |-------|------|
 | CWT claim set, CBOR | 210 bytes |
@@ -391,54 +302,54 @@ Wrapped in the CWT claim set:
 
 The signature and its headers account for 85 of the 295 bytes — on payloads this
 small, the cryptography costs more than the clinical data. This is why the
-minimal models use two-character element names, and why a payload that grows
-much beyond this belongs behind a VHL instead.
+minimal models use two-character element names, and why a payload much larger
+than this does not belong in a QR code at all.
 
-##### 12.6 The certificate
+##### 12.6 The certificates
 
 Hepatitis B birth dose:
 
 <div style="display:block">
-  <img src="dvc-qr-example-hepb1-XXA.png" alt="Sample DVC QR code, Hepatitis B birth dose, test participant XXA" width="300" />
+  <img src="dvc-qr-example-hepb1-XXA.png" alt="Provisional DVC QR code, Hepatitis B birth dose" width="300" />
 </div>
-
-```
-HC1:NCFOXN%TSMAHN-HWM4/GR3.M: AQSSGAH9M91RIHF4NZKC7TFSTYUIBRR34Q-MPD ND%ERJC/HJI+8H-BI+8F.9HJ8 4GFDJ38KLUKAQC419%EEGJB/.D4-9MJCVPLW1KD0K9JAF/BT3EQ*9%NH7$K MI..3EEWVPMD+K$F91EF+:L*.9G%8M+8CNNE1J $47LPNV4YW8490-LN258VUUZX2LV34G8-:V4SI5SPDDK2XEPS5OH6CN5MZUCRQPK50F2TK1AVU%J6WLITK22VE TUVI13M9LREHOPJPQJVFKWOBY5PRALTIHR6L47CX53OVK682Y7IKUQK3.$AP.CE.CG%DAWCD8SSCH3ME6OHG5MNRH.8LTOT06Q/.F4KL4-GSP66G1%WR/+BG2M6ARB84I*2-J5-7J$*0XFSLLD
-```
 
 BCG, the second certificate from the same visit:
 
 <div style="display:block">
-  <img src="dvc-qr-example-bcg-XXA.png" alt="Sample DVC QR code, BCG birth dose, test participant XXA" width="300" />
+  <img src="dvc-qr-example-bcg-XXA.png" alt="Provisional DVC QR code, BCG birth dose" width="300" />
 </div>
 
-```
-HC1:NCFOXN%TSMAHN-HWM4/GR3.M: AQSSZBH9M91RIHF4NZKC7TFSTYUIBRR34Q-MPD ND%ERJC/HJI+8H-BI+8F.9HJ8 4GFDJ38KLUKAQC419%EEGJB/.D4-9MJCVPLW1KD0K9JAF/BT3EQ*9%NH7$K MI..3EEWVPMD+K$F98JN97QVONVZ0I:C:Y0P8TYE98EFA%5-B1NJJ+JP:N3ZSMDOOSM8-T3PR3:KAFNM2LHX%EPS5OH6CN5MZUCRQPK50F2TK1AVU%J6WLITK22VE TUVI13M9LREHOPJPQJVF:O1VYHPRALTIHR6B67CVAYSUNOA*IF.W6R B1Z39$7HT08TD/ ERK1M8SWHPS HDYD%7IB70AYQ6-SSPNIPFEF19*NCR6/6EU0GB$RMWVO*AISB8TL7ZVV50$:D4KD
-```
-
-The `kid` for both is `WHM+BYqqZiE=` (hex `58733e058aaa6621`).
-
-The test DSC and the test SCA that signed it are published alongside the images
-as `dvc-qr-example-XXA-dsc.pem`, so that a verifier implementation can be
-exercised against this example end to end. A machine-readable summary of both
-certificates, including the payloads and the full `HC1:` strings, is in
-`dvc-qr-example-XXA.json`.
+The signing certificate and the `HC1:` strings for the provisional artefacts are
+published alongside the images as `dvc-qr-example-XXA-dsc.pem` and
+`dvc-qr-example-XXA.json`, so a verifier implementation can be exercised against
+them end to end.
 
 #### 13. Reference script
 
 `input/scripts/generate_dvc_qr.py` in this guide's source repository implements
-every step on this page and regenerates the example above byte for byte:
+every step on this page:
 
 ```
 pip install cbor2 base45 qrcode pillow cryptography
-python3 input/scripts/generate_dvc_qr.py --out-dir input/images
+python3 input/scripts/generate_dvc_qr.py \
+    --prequal-id-hepb <id> --prequal-id-bcg <id> --out-dir input/images
 ```
 
-The script builds the test SCA and DSC, derives the `kid`, assembles both DVC
-payloads, signs, compresses, encodes and renders — and then decodes its own
-output and verifies the signature, so a failed run is a failed round trip rather
-than a silently broken certificate. It is a documentation aid, not a production
-issuer: it uses fixed test keys in source, and a real issuer holds its private
-keys in an HSM. See
+It takes the signing key, the DSC and the SCA from the environment
+(`GDHCN_SIGNING_KEY_PEM`, `GDHCN_DSC_PEM`, `GDHCN_SCA_PEM`, or the matching
+`--key`, `--dsc` and `--sca` file paths) and derives the `kid` from the supplied
+DSC. It holds no key material of its own and refuses to run without one, so it
+cannot emit a certificate signed by anything but the onboarded identity. The
+PreQual identifiers are likewise required arguments, so it cannot silently emit a
+payload that violates the `vp` binding.
+
+After rendering, the script decodes its own output and verifies the signature,
+so a failed run is a failed round trip rather than a silently broken
+certificate. ECDSA signatures are randomized, so two runs produce different
+signature bytes and therefore different `HC1:` strings; the committed JSON and
+PEM are the reference, not a re-run.
+
+It is a documentation aid, not a production issuer: a real issuer holds its
+private keys in an HSM. See
 [section 6.2](hcert_spec.html#62-key-management) and the
 [Reference Implementations](reference_implementation.html).
