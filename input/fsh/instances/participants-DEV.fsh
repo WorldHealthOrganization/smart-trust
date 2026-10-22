@@ -538,6 +538,16 @@ Usage: #definition
 * endpoint[+] = Reference(GDHCNParticipantDID-XXQ-DEV-SCA)
 
 
+Instance: GDHCNParticipant-XXR-DEV
+InstanceOf: IHE.mCSD.Organization
+Usage: #definition
+* name = "Mumbai"
+* type = $orgType#govt
+* endpoint[+] = Reference(GDHCNParticipantDID-XXR-DEV-All)
+* endpoint[+] = Reference(GDHCNParticipantDID-XXR-DEV-DSC)
+* endpoint[+] = Reference(GDHCNParticipantDID-XXR-DEV-SCA)
+
+
 Instance: GDHCNParticipant-XXT-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition

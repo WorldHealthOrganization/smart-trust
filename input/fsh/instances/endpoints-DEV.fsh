@@ -1834,6 +1834,40 @@ Usage: #definition
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
 * address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXQ:SCA"
 
+Instance: GDHCNParticipantDID-XXR-DEV-All
+InstanceOf: IHE.mCSD.Endpoint
+Description: "Mumbai Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/did.json"
+Usage: #definition
+* name = "Mumbai Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-XXR-DEV)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXR"
+
+Instance: GDHCNParticipantDID-XXR-DEV-DSC
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "Mumbai Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXR:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/DSC/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-XXR-DEV)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXR:DSC"
+
+Instance: GDHCNParticipantDID-XXR-DEV-SCA
+InstanceOf: IHE.mCSD.Endpoint
+Usage: #definition
+* name = "Mumbai Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXR:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/SCA/did.json"
+* managingOrganization = Reference(Organization/GDHCNParticipant-XXR-DEV)
+* status = #active
+* connectionType = $ConnectionTypes#http-get
+* payloadMimeType = #application/did
+* payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
+* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXR:SCA"
+
 Instance: GDHCNParticipantDID-XXT-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
 Description: "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXT\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXT/did.json"
