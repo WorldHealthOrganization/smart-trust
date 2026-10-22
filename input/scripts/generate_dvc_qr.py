@@ -46,7 +46,6 @@ import argparse
 import base64
 import datetime
 import hashlib
-import json
 import os
 import pathlib
 import sys
@@ -307,19 +306,10 @@ def main():
     key, dsc, _sca = load_identity(args)
     kid = derive_kid(dsc)
 
-    summary = {
-        "participant": PARTICIPANT,
-        "environment": "GDHCN DEV",
-        "iss": ISS_ALPHA2,
-        "kid_base64": base64.b64encode(kid).decode(),
-        "kid_hex": kid.hex(),
-        "dsc_subject": dsc.subject.rfc4514_string(),
-        "dsc_serial": hex(dsc.serial_number),
-        "certificates": {},
-    }
+    print(f"participant {PARTICIPANT} (iss {ISS_ALPHA2}) | "
+          f"kid {base64.b64encode(kid).decode()} (hex {kid.hex()})")
 
-    payloads = dvc_payloads(args.prequal_id_hepb, args.prequal_id_bcg)
-    for name, payload in payloads.items():
+    for name, payload in dvc_payloads(args.prequal_id_hepb, args.prequal_id_bcg).items():
         cwt = build_cwt(payload)
         cose_bytes = sign_cose_sign1(cwt, key, kid)
         hc1 = to_hc1(cose_bytes)
@@ -330,25 +320,16 @@ def main():
         decoded = verify(hc1, dsc)
         assert decoded == cwt, "round-trip mismatch"
 
-        summary["certificates"][name] = {
-            "hcert_subclaim": HCERT_SUBCLAIM_DVC_MIN,
-            "logical_model": "DVCMinPreQual",
-            "cwt_cbor_bytes": len(cbor2.dumps(cwt, canonical=True)),
-            "cose_sign1_bytes": len(cose_bytes),
-            "deflated_bytes": len(zlib.compress(cose_bytes, 9)),
-            "hc1_chars": len(hc1),
-            "qr_version": version,
-            "qr_image": str(qr_path),
-            "hc1": hc1,
-            "payload": payload,
-        }
-        print(f"{name}: {len(hc1)} chars, QR version {version} -> {qr_path}")
+        # Printed, not written to a file: the page quotes these figures and the
+        # HC1 string, so they are updated by hand when the example is reissued.
+        print(f"\n{name} -> {qr_path}")
+        print(f"  CWT CBOR {len(cbor2.dumps(cwt, canonical=True))} B | "
+              f"COSE_Sign1 {len(cose_bytes)} B | "
+              f"deflated {len(zlib.compress(cose_bytes, 9))} B | "
+              f"HC1 {len(hc1)} chars | QR version {version}")
+        print(f"  {hc1}")
 
-    (out_dir / f"dvc-qr-example-{PARTICIPANT}.json").write_text(
-        json.dumps(summary, indent=2, sort_keys=False) + "\n"
-    )
-    print(f"kid: {summary['kid_base64']} (hex {kid.hex()})")
-    print("signature verified for every generated certificate")
+    print("\nsignature verified for every generated certificate")
 
 
 if __name__ == "__main__":
