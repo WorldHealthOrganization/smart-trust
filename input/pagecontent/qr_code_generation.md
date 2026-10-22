@@ -338,35 +338,3 @@ DEV trust list. Fetching the signing certificate from the trust list is the
 verification path the specification defines, and the only one that tells a
 verifier the key is still trusted — a certificate distributed alongside the
 certificate it signed proves nothing about that.
-
-#### 13. Reference script
-
-`input/scripts/generate_dvc_qr.py` in this guide's source repository implements
-every step on this page:
-
-```
-pip install cbor2 base45 qrcode pillow cryptography
-python3 input/scripts/generate_dvc_qr.py \
-    --prequal-id-hepb a3K3X000006MiiXUAS \
-    --prequal-id-bcg a3K3X000006MiiCUAS \
-    --out-dir input/images
-```
-
-It takes the signing key, the DSC and the SCA from the environment
-(`GDHCN_SIGNING_KEY_PEM`, `GDHCN_DSC_PEM`, `GDHCN_SCA_PEM`, or the matching
-`--key`, `--dsc` and `--sca` file paths) and derives the `kid` from the supplied
-DSC. It holds no key material of its own and refuses to run without one, so it
-cannot emit a certificate signed by anything but the onboarded identity. The
-PreQual identifiers are likewise required arguments, so it cannot silently emit a
-payload that violates the `vp` binding.
-
-After rendering, the script decodes its own output and verifies the signature,
-so a failed run is a failed round trip rather than a silently broken
-certificate. ECDSA signatures are randomized, so two runs produce different
-signature bytes and therefore different `HC1:` strings; the committed JSON and
-PEM are the reference, not a re-run.
-
-It is a documentation aid, not a production issuer: a real issuer holds its
-private keys in an HSM. See
-[section 6.2](hcert_spec.html#62-key-management) and the
-[Reference Implementations](reference_implementation.html).
