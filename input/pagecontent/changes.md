@@ -86,7 +86,8 @@ This provides a list of changes to the SMART Trust IG.
 - QR Code Generation page added, with step-by-step HCERT encoding, signing and
   decoding instructions, worked through with a DVC payload
 - Worked DVC example and reference generation script added, covering a newborn
-  birth-dose certificate issued by GDHCN DEV participant XXR
+  birth-dose certificate issued by GDHCN DEV participant XXR and signed with a
+  key onboarded to the DEV trust network, using WHO PreQual product identifiers
 - CWT Payload logical model updated to allow more than one health certificate
   under the hcert claim, per HCERT Specification 3.2.7
 - Corrected case-sensitive links to the HCert logical model in the HCERT

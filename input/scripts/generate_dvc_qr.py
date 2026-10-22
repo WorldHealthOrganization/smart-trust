@@ -31,7 +31,9 @@ Usage:
     export GDHCN_SCA_PEM="$(cat sca.pem)"
 
     python3 input/scripts/generate_dvc_qr.py \
-        --prequal-id-hepb <id> --prequal-id-bcg <id> --out-dir input/images
+        --prequal-id-hepb a3K3X000006MiiXUAS \
+        --prequal-id-bcg a3K3X000006MiiCUAS \
+        --out-dir input/images
 
 Equivalently, pass --key, --dsc and --sca as file paths.
 
@@ -77,14 +79,17 @@ COSE_ALG_ES256 = -7
 COSE_SIGN1_TAG = 18
 
 # GDHCN DEV participant. Participant codes are ISO 3166-1 alpha-3; the CWT
-# `iss` claim takes the alpha-2 form, here the user-assigned code XX.
+# `iss` claim takes the alpha-2 form, which must match the country attribute
+# of the DSC subject (C=XR on the onboarded DEV certificate).
 PARTICIPANT = "XXR"
-ISS_ALPHA2 = "XX"
+ISS_ALPHA2 = "XR"
 
-# Scenario dates, fixed so that reruns differ only by signature.
-BIRTH_DATE = "2026-09-28"
-ISSUED_AT = datetime.datetime(2026, 9, 29, 8, 30, tzinfo=datetime.timezone.utc)
-EXPIRES_AT = datetime.datetime(2027, 9, 29, 8, 30, tzinfo=datetime.timezone.utc)
+# Scenario dates, fixed so that reruns differ only by signature. `iat` must
+# fall inside the DSC validity period and `exp` must not exceed it, so these
+# sit after the onboarded DEV DSC became valid.
+BIRTH_DATE = "2026-10-21"
+ISSUED_AT = datetime.datetime(2026, 10, 22, 8, 30, tzinfo=datetime.timezone.utc)
+EXPIRES_AT = datetime.datetime(2027, 10, 22, 8, 30, tzinfo=datetime.timezone.utc)
 
 
 # --------------------------------------------------------------------------
