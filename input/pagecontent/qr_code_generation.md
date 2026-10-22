@@ -325,13 +325,22 @@ BCG, the second certificate from the same visit:
 HC1:NCFOXN%TSMAHN-HHPC*8W$BM70GZW8WI4%%5JU9V21HJI.OR.6J:X90$TZIPAN9I6TSQLMN2SRPOK62YU%E6SOEGW2Z0W/TO+4W3R3ZP3XQ7KUHMQQTOE2QERM2ZGA2:UG%UBPISWUO FFPEUCAQZ4K%I7YV4SVO*I1R5LK99AQ7LED9RNF66J6QW6:9631A*2QYDEUGAEHP8X9HSRH8KE62.13%USNCTZXIK/IL-A9AD.PD0DJGDBAB4X3C+1MRCA0ZKI8AZ3CYIJ*ZJFDJ0UJM2C8BI/NI6SI1-ACYI0+TKQ3200M:C IJM5Q52IHJP7NVQ794S8E41F.520NRYE2.JDAOSZFZNM*SJ7ONT5DE*VMKL$ASR%514QW*PA4DOQF%MV9CUYMDO:0VWKY4M.QPYI4I$U*.885E L1JJBHA5T B961BC0/:E
 ```
 
-Both certificates share the key identifier `kW/6VnwPRKI=`
+Both certificates carry the key identifier `kW/6VnwPRKI=`
 (hex `916ffa567c0f44a2`).
 
-The Document Signing Certificate and the Signer Certificate Authority that issued
-it are published alongside the images as `dvc-qr-example-XXR-dsc.pem`, and the
-payloads, sizes and full `HC1:` strings as `dvc-qr-example-XXR.json`, so a
-verifier implementation can be exercised against them end to end.
+To verify them, resolve that `kid` against the GDHCN trust list rather than
+against any copy of the certificate shipped beside the QR code. The DID trust
+list endpoints for the development, user-acceptance testing and production
+environments are listed under
+[Trustlist Distribution Endpoints](endpoints.html#trustlist-distribution-endpoints);
+this example is issued in **DEV**, so its Document Signing Certificate is on the
+DEV trust list. Fetching the signing certificate from the trust list is the
+verification path the specification defines, and the only one that tells a
+verifier the key is still trusted — a certificate distributed alongside the
+certificate it signed proves nothing about that.
+
+The payloads, sizes and full `HC1:` strings are published alongside the images as
+`dvc-qr-example-XXR.json`.
 
 #### 13. Reference script
 

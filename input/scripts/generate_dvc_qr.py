@@ -304,7 +304,7 @@ def main():
     out_dir = pathlib.Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    key, dsc, sca = load_identity(args)
+    key, dsc, _sca = load_identity(args)
     kid = derive_kid(dsc)
 
     summary = {
@@ -346,10 +346,6 @@ def main():
 
     (out_dir / f"dvc-qr-example-{PARTICIPANT}.json").write_text(
         json.dumps(summary, indent=2, sort_keys=False) + "\n"
-    )
-    (out_dir / f"dvc-qr-example-{PARTICIPANT}-dsc.pem").write_text(
-        dsc.public_bytes(serialization.Encoding.PEM).decode()
-        + sca.public_bytes(serialization.Encoding.PEM).decode()
     )
     print(f"kid: {summary['kid_base64']} (hex {kid.hex()})")
     print("signature verified for every generated certificate")
