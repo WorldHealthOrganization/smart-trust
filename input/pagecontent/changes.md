@@ -92,3 +92,6 @@ This provides a list of changes to the SMART Trust IG.
   under the hcert claim, per HCERT Specification 3.2.7
 - Corrected case-sensitive links to the HCert logical model in the HCERT
   Specification page
+- HCERT Specification 3.2.7.2 added, specifying how a verifier processes an
+  hcert claim that carries several health certificates, with a worked
+  two-entry example (VHL and DVC)
