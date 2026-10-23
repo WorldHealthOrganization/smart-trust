@@ -115,8 +115,10 @@ The Digital Documentation of COVID-19 Certificates (DDCC) Trust Domain covers th
 - [DDCC Vaccination Status (DDCC:TR)](https://www.who.int/publications/i/item/WHO-2019-nCoV-Digital_certificates_diagnostic_test_results-2022.1) documents the use cases, data requirements, technical specifications and implementation guidance for vaccination certificates.
 - [DDCC FHIR Implementation Guide](https://smart.who.int/ddcc/)
 
-######## 3.2.7.1.5 Smart Health Link (SHL)
-Smart Health Links covers the use cases of ability to share signed health data using links as digital connectors, using QR codes, facilitating tamper proof data exchange. Specification can be found [here](https://docs.smarthealthit.org/smart-health-links/spec)
+######## 3.2.7.1.5 Verifiable Health Link (VHL)
+A Verifiable Health Link (VHL) shares health records, such as an International Patient Summary, through a link that is itself signed: the link is carried in an HCERT, so a receiver verifies it against the trust network before following it. VHL is specified by the [IHE ITI Verifiable Health Link (VHL) profile](https://profiles.ihe.net/ITI/VHL/), which reuses the payload format of [HL7 SMART Health Links](https://hl7.org/fhir/uv/smart-health-cards-and-links/links-specification.html) (`url`, `key`, `exp`, `flag`, `label`, `v`) and adds the trust, receiver authentication and manifest retrieval that a SMART Health Link leaves open.
+
+In an HCERT, claim key 5 holds the VHL payload as a CBOR map with text keys, conforming to the [Verifiable Health Link Payload](https://smart.who.int/trust-phw/StructureDefinition-VerifiableHealthLinkPayload.html) logical model. A CBOR map is used rather than a `vhlink:/` URI string because the URI form base64url-encodes JSON text inside the CBOR, which makes the QR code roughly a third larger.
 
 #### 4 Transport Encodings
 
