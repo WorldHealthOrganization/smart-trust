@@ -92,3 +92,6 @@ This provides a list of changes to the SMART Trust IG.
   under the hcert claim, per HCERT Specification 3.2.7
 - Corrected case-sensitive links to the HCert logical model in the HCERT
   Specification page
+- DEV and UAT trust list endpoints now name their DIDs on the environment's own
+  host (did:web:tng-cdn-dev.who.int, did:web:tng-cdn-uat.who.int), where they
+  resolve, instead of the production host
