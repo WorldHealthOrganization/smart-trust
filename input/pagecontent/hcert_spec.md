@@ -89,7 +89,7 @@ Verifiers MAY apply additional policies with the purpose of restricting the vali
 
 ###### 3.2.7 Health Certificate Claim
 
-The Health Certificate (`hcert`) claim is a JSON ([RFC 7159](https://tools.ietf.org/html/rfc7159)) object containing the health status information. The actual wire format of HCERT is content neutral. Several different types of health certificate MAY exist under the same claim, of which the European DCC is one.
+The Health Certificate (`hcert`) claim is a JSON ([RFC 7159](https://tools.ietf.org/html/rfc7159)) object containing the health status information. The actual wire format of HCERT is content neutral. Several different types of health certificate MAY exist under the same claim, of which the European DCC is one. How a Verifier processes a claim that carries more than one is specified in section [3.2.7.2](hcert_spec.html#3272-several-health-certificates).
 
 Note here that the JSON is purely for schema purposes. The wire format is CBOR as defined in ([RFC 7049](https://tools.ietf.org/html/rfc7049)). Application developers may not actually ever decode or encode to and from the JSON format, but use the in-memory structure.
 
@@ -100,6 +100,7 @@ Strings in the JSON object SHOULD be NFC normalised according to the Unicode sta
 ####### 3.2.7.1 Subclaims
 - subclaims 0 and above are reserved by WHO to be assigned, a new sub claim can be requested for by requesting to create a new trust domain
 - subclaims for negative integer values are for development purposes and are free to use
+- each subclaim appears at most once in an `hcert` claim, since it is a key of a CBOR map
 - While the [logical model](StructureDefinition-HCert.html) enlists assigned sub claims, the ones listed in this specification are considered authoritative
 
 ######## 3.2.7.1.1 EU Digital Covid Certificate (DCC)
@@ -117,6 +118,62 @@ The Digital Documentation of COVID-19 Certificates (DDCC) Trust Domain covers th
 
 ######## 3.2.7.1.5 Smart Health Link (SHL)
 Smart Health Links covers the use cases of ability to share signed health data using links as digital connectors, using QR codes, facilitating tamper proof data exchange. Specification can be found [here](https://docs.smarthealthit.org/smart-health-links/spec)
+
+####### 3.2.7.2 Several Health Certificates
+
+The `hcert` claim is a map of one or more entries, each keyed by a subclaim (section [3.2.7.1](hcert_spec.html#3271-subclaims)) and holding a payload that conforms to the logical model assigned to that subclaim. An Issuer MAY include more than one entry. Since the claim is a CBOR map, its keys are unique: a subclaim cannot appear twice.
+
+A Verifier processes the entries as follows:
+
+- The Verifier MUST process every entry independently, after the signature and the CWT claims have been verified, and SHOULD return each entry it accepts together with its subclaim.
+- If the DSC carries one or more of the Extended Key Usage identifiers of section [A.2](hcert_spec.html#a2-extended-key-usage-identifiers), the key usage SHALL be verified against the certificate type of each entry. An entry whose certificate type the key usage does not permit MUST NOT be presented as authorised; the Verifier MAY return it marked as not authorised. If no entry is authorised, the health certificate MUST be rejected; otherwise it is not rejected on this ground.
+- An entry whose payload does not conform to the logical model of its subclaim, or, for a VHL (section [3.2.7.1.5](hcert_spec.html#32715-verifiable-health-link-vhl)), whose own `exp` has passed, MUST be excluded from the result and SHOULD be reported. If no entry remains, the health certificate MUST be rejected; otherwise it is not rejected on this ground.
+- An entry under a subclaim the Verifier does not know SHOULD be returned undecoded, together with its subclaim, rather than cause the health certificate to be rejected.
+- A trust domain MAY limit the number of entries a Verifier accepts. Where a Verifier is configured with such a limit, a health certificate with more entries MUST be rejected.
+
+With exactly one entry these rules give the same outcome as the processing of a single health certificate: the entry is accepted, or the health certificate is rejected.
+
+*Note (non-normative):* the signature covers the whole claim set, so excluding one entry does not cast doubt on the others; what an entry is excluded for is a property of that entry alone. The identifiers of section A.2 name test, vaccination and recovery certificates. A certificate type for other payloads, for example a VHL, is not yet defined, so entries carrying them are not constrained by the key usage check.
+
+*Example (non-normative):* a CWT claim set, in JSON notation, whose `hcert` claim carries a VHL under subclaim 5 and a DVC under the development subclaim -6. Deterministic CBOR ([RFC 8949](https://tools.ietf.org/html/rfc8949) section 4.2.1) orders map keys by their encoded bytes, so 5 (`0x05`) precedes -6 (`0x25`):
+
+```json
+{
+  "1":    "XX",
+  "4":    1824059792,
+  "6":    1792523792,
+  "-260": {
+    "5": {
+      "url":   "https://vhl.example.org/List/_search?_id=abc123",
+      "key":   "86F8LY5LlWAa1-OS_FgrTnYNqFHJP2ey5RSKLJBN9jk",
+      "exp":   1795115792,
+      "flag":  "LP",
+      "label": "Patient Health Summary",
+      "v":     1
+    },
+    "-6": {
+      "n":   "Test CHILD",
+      "dob": "2026-09-28",
+      "s":   "female",
+      "nt":  "XXA",
+      "gn":  "Test MOTHER",
+      "vx": {
+        "vp": "XM9V38",
+        "dv": "2026-09-28",
+        "is": "org-test",
+        "bo": "HEPB-TEST"
+      },
+      "v": "1.0.0"
+    }
+  }
+}
+```
+
+Encoded as described in [QR Code Generation](qr_code_generation.html), this claim set gives the following HC1 string. It is **TEST ONLY**: it is signed with a throw-away ES256 test key that is on no trust list, and it MUST NOT be accepted by a production Verifier.
+
+```
+HC1:NCF9 9BM7YUOJ10091R7E%$R559XZ8BS68T8JS25NLMFAIJBM QMYI56J01G7YKJKNMS2R 8GNLTWTP*K$47GRH:X8+B24.SB*44ISCNK*.4E/90BU08F2SBSG1GZRKDSR%C3DF7*RIDJ0VV3R2+YKX.3 $V9TDIA3J-M80IJKL0U3C7J$GI+FUH28V+J/$17+N5HUDQ56XKSW0 N2KA40+56IHV2N4*K+SLT.F3MPTTQZWFS.A0HJW8EY*9:TRGOCVF8:2QJXOAD3H24$9JMVHHFFUYC:.RYV92E8G2J2KMM:JAU0Q%12J0NS0VT2AD9970NFR:E09M4OIV$N0QOQ1KLHCDOXNMOE Q57R8ZMUIVU4OOR7E%V0Z00-HS$5AW139K8ZTPNPS- J249KHKNUCMLH-BR%I8TDR89D2KG9SK:82: B-W1XN8$CIPKRV QK+LM-8K+C60S H4$LNZHG1$J7WOXLIY1G:YUC:BG.490MT8EQDB0ASAP0%96V2O EU%4OPIBT-5FYR5-EHRM/GV3XP5KTS8TXZTRNVMEU4%7+3F8L9RH7RMM-M1JUVX1
+```
 
 #### 4 Transport Encodings
 
@@ -240,7 +297,7 @@ The document signing certificate MAY contain Extended Key Usage extension fields
 * OID 1.3.6.1.4.1.1847.2021.1.2  -- valid for vaccinations
 * OID 1.3.6.1.4.1.1847.2021.1.3  -- valid for recovery
 
-The DSC may contain an extended key usage extension with *zero or more* key usage policy identifiers that constrain the types of HCERTs this certificate is allowed to verify. If one or more are present, the verifiers SHALL verify the key usage against the stored HCERT. 
+The DSC may contain an extended key usage extension with *zero or more* key usage policy identifiers that constrain the types of HCERTs this certificate is allowed to verify. If one or more are present, the verifiers SHALL verify the key usage against the stored HCERT. Where the `hcert` claim carries several entries, the key usage is verified against each entry as specified in section [3.2.7.2](hcert_spec.html#3272-several-health-certificates). 
 
 In absence of any key usage extension (i.e. no extensions or zero extensions), this certificate can be used to validate any type of HCERT.  Other documents MAY define relevant additional extended key usage policy identifiers used with validation of HCERTs.
 _________________
