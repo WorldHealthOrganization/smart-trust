@@ -144,6 +144,47 @@ Embedded trustlist for **$domain**: DCC, **$participant**: XXA and key **$usage*
 
 Note: Specific keys use base64 encoded key id (kid) as identifier, It is represented as fragments (#) in verification method id and can be resolved using client side filtering.
 
+###### Verifying a trust list document
+
+Every trust list DID document, embedded or reference, carries a `proof`. The proof is a [JSON Web Signature 2020](https://w3c-ccg.github.io/lds-jws2020/) Linked Data Proof made with WHO's signing key for the environment. A verifier MUST check this proof before it trusts any key or reference the document lists, and MUST refuse a document whose proof does not verify. Fetching a document over HTTPS from the host its DID names does not replace this check, because a cache or mirror may serve the document.
+
+Note: the example documents above predate the current format. Documents published today also carry the environment's tng-context in `@context` (for example `https://smart.who.int/trust/tng-context/v1-DEV.jsonld`), and each verification method also has `domain`, `participant` and `keyusage` members, each an object with a single `code`.
+
+**The signer.** `proof.verificationMethod` names the signer's DID. A verifier MUST compare it with the signer DID it trusts for the environment, configured in advance. A proof that verifies against some other DID establishes nothing.
+
+| Environment | Signer DID |
+|-------------|------------|
+| DEV         | `did:web:raw.githubusercontent.com:WorldHealthOrganization:tng-participants-dev:main:WHO:signing:DID` |
+| UAT         | to be confirmed |
+| PROD        | to be confirmed |
+
+The signer's DID document has one verification method. Its `id` is the signer DID, its type is `JsonWebKey2020`, and its `publicKeyJwk` is an EC P-256 key, so `alg` is `ES256` if present.
+
+**The JSON-LD contexts.** The proof signs the RDF form of the document, so the signature depends on the exact content of every JSON-LD context. A verifier MUST process the documents with the copies below, held locally. It MUST NOT dereference the context URLs at verification time: if a published copy changed, the same JSON would produce different signed bytes.
+
+| Context URL | Content used by the signer |
+|-------------|----------------------------|
+| `https://www.w3.org/ns/did/v1` | W3C DID v1 context, sha256 `4f3eae5568c9c5f036a082088f9e192019ee06faa78973c87ff91d5421b88dad` |
+| `https://w3id.org/security/suites/jws-2020/v1` | JWS 2020 suite context, sha256 `d648e05ddc6577827ca2bfd5e931f53e9ebc6e52a57a8da81df4ec8c46ffcd1e` |
+| `https://smart.who.int/trust/tng-context/v1-DEV.jsonld`, `v1-UAT.jsonld`, `v1.jsonld` | [tng-context/v1-DEV.jsonld](tng-context/v1-DEV.jsonld), [v1-UAT.jsonld](tng-context/v1-UAT.jsonld), [v1.jsonld](tng-context/v1.jsonld), as published by this guide |
+| `https://w3id.org/security/v3` (proof options only) | security v3 context as bundled in ld-signatures-java 1.11.0 (`security-v3-unstable.jsonld`), sha256 `311be32772d8e42f96c1a6ae899e3fa15efb06c27cfd207d86e8abb9951a3e74` |
+
+The tng-context maps `domain`, `participant` and `keyusage` to ValueSet IRIs and `code` to `@id`. As a result, the codes become IRIs in the signed form, and the same key canonicalizes differently in each environment.
+
+**The JWK.** In the `JsonWebKey2020` context, `publicKeyJwk` is a JSON literal (`@json`). It enters the signed form as its [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) canonical JSON. The members of a trust list JWK are strings or arrays of strings: `kty`, `kid`, `crv`, `x`, `y`, `n`, `e` and `x5c`. Because of this, no number formatting arises in the canonical form. A verifier MAY refuse a JWK that has any other kind of member value.
+
+**The algorithm.**
+
+1. Remove `proof` from the document. Canonicalize the rest with [RDF Dataset Canonicalization](https://www.w3.org/TR/rdf-canon/) (URDNA2015), using the contexts above, and serialize the result as canonical N-Quads.
+2. Take `proof` without `jws` as the proof options, with `@context` set to `https://w3id.org/security/v3`. Canonicalize and serialize the options the same way.
+3. The signing input is the 64 bytes `SHA-256(proof options N-Quads) || SHA-256(document N-Quads)`.
+4. `proof.jws` is a detached JWS ([RFC 7515](https://www.rfc-editor.org/rfc/rfc7515) Appendix F) with unencoded payload ([RFC 7797](https://www.rfc-editor.org/rfc/rfc7797)). Its protected header is exactly `{"b64":false,"crit":["b64"],"alg":"ES256"}`. Verify the ES256 signature over `ASCII(BASE64URL(header)) || '.' || signing input`, with the signer's key.
+5. The signature is currently a DER-encoded ECDSA `SEQUENCE { r, s }` (70–72 bytes). [RFC 7518 §3.4](https://www.rfc-editor.org/rfc/rfc7518#section-3.4) requires the 64-byte `r || s`, and correcting the signer is tracked in [tng-key-distribution#85](https://github.com/WorldHealthOrganization/tng-key-distribution/issues/85). Until the signer is corrected, verifiers SHOULD accept either form, and SHOULD parse DER strictly.
+
+Canonical N-Quads sort lines by Unicode code point. Java's string order (UTF-16 code units) differs only for characters above U+FFFF, and no trust list document contains any. A verifier MAY refuse a document with such characters rather than guess the order.
+
+A worked example, with its canonical N-Quads, the signing input and two independent verifier implementations, is maintained in [litlfred/smart-trust-tools](https://github.com/litlfred/smart-trust-tools/tree/main/vectors/gdhcn-dev-trustlist) (requirement STT-TRU-006).
+
 ###### Environments & Repositories
 
 The trustlists are maintained using GitHub and published via GitHub pages.
