@@ -127,7 +127,7 @@ A Verifier processes the entries as follows:
 
 - The Verifier MUST process every entry independently, after the signature and the CWT claims have been verified, and SHOULD return each entry it accepts together with its subclaim.
 - If the DSC carries one or more of the Extended Key Usage identifiers of section [A.2](hcert_spec.html#a2-extended-key-usage-identifiers), the key usage SHALL be verified against the certificate type of each entry. An entry whose certificate type the key usage does not permit MUST NOT be presented as authorised; the Verifier MAY return it marked as not authorised. If no entry is authorised, the health certificate MUST be rejected; otherwise it is not rejected on this ground.
-- An entry whose payload does not conform to the logical model of its subclaim, or, for a VHL (section [3.2.7.1.5](hcert_spec.html#32715-verifiable-health-link-vhl)), whose own `exp` has passed, MUST be excluded from the result and SHOULD be reported. If no entry remains, the health certificate MUST be rejected; otherwise it is not rejected on this ground.
+- An entry whose payload does not conform to the logical model of its subclaim, or, for a Verifiable Health Link (VHL, subclaim 5), whose own `exp` has passed, MUST be excluded from the result and SHOULD be reported. If no entry remains, the health certificate MUST be rejected; otherwise it is not rejected on this ground.
 - An entry under a subclaim the Verifier does not know SHOULD be returned undecoded, together with its subclaim, rather than cause the health certificate to be rejected.
 - A trust domain MAY limit the number of entries a Verifier accepts. Where a Verifier is configured with such a limit, a health certificate with more entries MUST be rejected.
 
@@ -135,7 +135,7 @@ With exactly one entry these rules give the same outcome as the processing of a 
 
 *Note (non-normative):* the signature covers the whole claim set, so excluding one entry does not cast doubt on the others; what an entry is excluded for is a property of that entry alone. The identifiers of section A.2 name test, vaccination and recovery certificates. A certificate type for other payloads, for example a VHL, is not yet defined, so entries carrying them are not constrained by the key usage check.
 
-*Example (non-normative):* a CWT claim set, in JSON notation, whose `hcert` claim carries a VHL under subclaim 5 and a DVC under the development subclaim -6. Deterministic CBOR ([RFC 8949](https://tools.ietf.org/html/rfc8949) section 4.2.1) orders map keys by their encoded bytes, so 5 (`0x05`) precedes -6 (`0x25`):
+*Example (non-normative):* a CWT claim set, in JSON notation, whose `hcert` claim carries a VHL under subclaim 5 and a DVC under the development subclaim -6. The VHL entry is shown as a CBOR map with text keys, the form proposed in [PR #130](https://github.com/WorldHealthOrganization/smart-trust/pull/130); the rules above do not depend on that choice. Deterministic CBOR ([RFC 8949](https://tools.ietf.org/html/rfc8949) section 4.2.1) orders map keys by their encoded bytes, so 5 (`0x05`) precedes -6 (`0x25`):
 
 ```json
 {
