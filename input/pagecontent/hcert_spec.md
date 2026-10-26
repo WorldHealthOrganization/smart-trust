@@ -99,26 +99,26 @@ The Claim Key to be used to identify this claim is -260.
 
 Strings in the JSON object SHOULD be NFC normalised according to the Unicode standard. Decoding applications SHOULD however be permissive and robust in these aspects, and acceptance of any reasonable type conversion is strongly encouraged. If non-normalised data is found during decoding, or in subsequent comparison functions, implementations SHOULD behave as if the input is normalised to NFC.
 
-####### 3.2.7.1 Subclaims
+###### 3.2.7.1 Subclaims
 - subclaims 0 and above are reserved by WHO to be assigned, a new sub claim can be requested for by requesting to create a new trust domain
 - subclaims for negative integer values are for development purposes and are free to use
 - While the [logical model](StructureDefinition-HCert.html) enlists assigned sub claims, the ones listed in this specification are considered authoritative
 
-######## 3.2.7.1.1 EU Digital Covid Certificate (DCC)
+###### 3.2.7.1.1 EU Digital Covid Certificate (DCC)
 [Data elements](http://smart.who.int/ddcc/StructureDefinition/HCertDCC) for the EU Digital COVID Certificate Core Data Set. Based on the official specification for COVID-19-related payloads https://health.ec.europa.eu/system/files/2021-06/covid-certificate_json_specification_en_0.pdf as of 2023-01-31, and Implementing Decision (EU) 2021/1073, Annex 1 https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32021D1073&from=EN#d1e34-35-1.
 
-######## 3.2.7.1.3 Digital Documentation of Covid Certificate - Vaccination Status (DDCCVS)
+###### 3.2.7.1.3 Digital Documentation of Covid Certificate - Vaccination Status (DDCCVS)
 The Digital Documentation of COVID-19 Certificates (DDCC) Trust Domain covers the utilization of COVID-19 Vaccine Certificates and Test Results. The Vaccination Status guidance is for the purposes of continuity of care and proof of vaccination. 
 - [DDCC Vaccination Status (DDCC:VS)](https://www.who.int/publications/i/item/WHO-2019-nCoV-Digital_certificates-vaccination-2021.1) documents the use cases, data requirements, technical specifications and implementation guidance for vaccination certificates.
 - [DDCC FHIR Implementation Guide](https://smart.who.int/ddcc/)
 
-######## 3.2.7.1.4 Digital Documentation of Covid Certificate - Test Results (DDCCTR)
+###### 3.2.7.1.4 Digital Documentation of Covid Certificate - Test Results (DDCCTR)
 The Digital Documentation of COVID-19 Certificates (DDCC) Trust Domain covers the utilization of COVID-19 Vaccine Certificates and Test Results. The Test Results guidance is for test result certificates that attest to: (a) the fact that an individual has been tested for SARS-CoV-2, and (b) the result of that SARS-CoV-2 diagnostic test. 
 - [DDCC Vaccination Status (DDCC:TR)](https://www.who.int/publications/i/item/WHO-2019-nCoV-Digital_certificates_diagnostic_test_results-2022.1) documents the use cases, data requirements, technical specifications and implementation guidance for vaccination certificates.
 - [DDCC FHIR Implementation Guide](https://smart.who.int/ddcc/)
 
-######## 3.2.7.1.5 Smart Health Link (SHL)
-Smart Health Links covers the use cases of ability to share signed health data using links as digital connectors, using QR codes, facilitating tamper proof data exchange. Specification can be found [here](https://docs.smarthealthit.org/smart-health-links/spec)
+###### 3.2.7.1.5 Verifiable Health Link (VHL)
+A Verifiable Health Link carries a URI rather than the health data itself, so the certificate stays small and the data is retrieved from a manifest over the network. This covers the use cases of sharing signed health data by link, using QR codes as digital connectors, with tamper-proof retrieval. The subclaim value is the Verifiable Health Link URI, of the form `vhlink:/eyJ1cmwi...`; see the [logical model](StructureDefinition-HCert.html) for the element definition. Verifiable Health Links are specified by IHE ITI: [Verifiable Health Links](https://build.fhir.org/ig/IHE/ITI.VHL/branches/master/index.html).
 
 #### 4 Transport Encodings
 

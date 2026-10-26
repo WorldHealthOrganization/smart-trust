@@ -100,5 +100,12 @@ This provides a list of changes to the SMART Trust IG.
   CBOR map and the claim key cannot repeat
 - QR Code Generation guidance added on resolving the kid when the iss claim is
   absent or has no participant mapping
+- Subclaim registry headings in the HCERT Specification corrected: sections
+  3.2.7.1 and below used seven and eight hash marks, above the six-level
+  Markdown maximum, so they rendered as literal text with no heading, anchor or
+  table of contents entry
+- Subclaim 5 corrected in the HCERT Specification to Verifiable Health Link
+  (VHL), as specified by IHE ITI, matching the HCert logical model; the section
+  previously described a SMART Health Link
 - Corrected case-sensitive links to the HCert logical model in the HCERT
   Specification page
