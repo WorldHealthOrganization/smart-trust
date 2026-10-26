@@ -88,7 +88,20 @@ This provides a list of changes to the SMART Trust IG.
 - Worked DVC example added, covering a newborn birth-dose certificate issued by
   GDHCN DEV participant XXR and signed with a key onboarded to the DEV trust
   network, using WHO PreQual product identifiers
-- CWT Payload logical model updated to allow more than one health certificate
-  under the hcert claim, per HCERT Specification 3.2.7
+- Normative references in the HCERT Specification and QR Code Generation pages
+  updated to the current RFCs: CBOR to RFC 8949, JSON to RFC 8259, COSE to
+  RFC 9052 and RFC 9053, and Base45 from an expired Internet-Draft to RFC 9285
+- Deterministic CBOR encoding stated: issuers SHOULD use the core deterministic
+  encoding of RFC 8949 section 4.2.1, and verifiers SHALL accept any valid
+  encoding because the signature covers the payload bytes as sent
+- CWT Payload logical model corrected: the iss claim is typed as a string rather
+  than a Coding, matching HCERT Specification 3.2.4, and the hcert claim is 1..1
+  because the CWT payload is a CBOR map and the claim key cannot repeat
+- QR Code Generation guidance added on resolving the kid when the iss claim is
+  absent or has no participant mapping
+- Subclaim registry headings in the HCERT Specification corrected: sections
+  3.2.7.1 and below, including the Verifiable Health Link subsection, used seven
+  and eight hash marks, above the six-level Markdown maximum, so they rendered as
+  literal text with no heading, anchor or table of contents entry
 - Corrected case-sensitive links to the HCert logical model in the HCERT
   Specification page
