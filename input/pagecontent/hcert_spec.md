@@ -25,7 +25,7 @@ The Electronic Health Certificate Container Format (HCERT) is designed to provid
 
 The payload is structured and encoded as a CBOR with a COSE digital signature. This is commonly known as a "CBOR Web Token" (CWT), and is defined in [RFC 8392](https://tools.ietf.org/html/rfc8392). The payload, as defined below, is transported in a `hcert` claim.
 
-The integrity and authenticity of origin of payload data MUST be verifiable by the Verifier. To provide this mechanism, the issuer MUST sign the CWT using an asymmetric electronic signature scheme as defined in the COSE specification ([RFC 8152](https://tools.ietf.org/html/rfc8152)).
+The integrity and authenticity of origin of payload data MUST be verifiable by the Verifier. To provide this mechanism, the issuer MUST sign the CWT using an asymmetric electronic signature scheme as defined in the COSE specification ([RFC 9052](https://www.rfc-editor.org/rfc/rfc9052), with the signature algorithms in [RFC 9053](https://www.rfc-editor.org/rfc/rfc9053)).
 
 ##### 3.2 CWT Claims
 
@@ -89,9 +89,11 @@ Verifiers MAY apply additional policies with the purpose of restricting the vali
 
 ###### 3.2.7 Health Certificate Claim
 
-The Health Certificate (`hcert`) claim is a JSON ([RFC 7159](https://tools.ietf.org/html/rfc7159)) object containing the health status information. The actual wire format of HCERT is content neutral. Several different types of health certificate MAY exist under the same claim, of which the European DCC is one.
+The Health Certificate (`hcert`) claim is a JSON ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259)) object containing the health status information. The actual wire format of HCERT is content neutral. Several different types of health certificate MAY exist under the same claim, of which the European DCC is one.
 
-Note here that the JSON is purely for schema purposes. The wire format is CBOR as defined in ([RFC 7049](https://tools.ietf.org/html/rfc7049)). Application developers may not actually ever decode or encode to and from the JSON format, but use the in-memory structure.
+Note here that the JSON is purely for schema purposes. The wire format is CBOR as defined in ([RFC 8949](https://www.rfc-editor.org/rfc/rfc8949)). Application developers may not actually ever decode or encode to and from the JSON format, but use the in-memory structure.
+
+Issuers SHOULD use the core deterministic encoding defined in [RFC 8949 section 4.2.1](https://www.rfc-editor.org/rfc/rfc8949#section-4.2.1), so that the same claim set yields the same bytes in every implementation and test vectors can be compared byte for byte. Verifiers SHALL accept any valid CBOR encoding: the signature covers the payload bytes exactly as sent, so a Verifier MUST NOT re-encode or otherwise normalise the payload before verifying the signature.
 
 The Claim Key to be used to identify this claim is -260.
 
@@ -134,7 +136,7 @@ To lower size and to improve speed and reliability in the reading process of the
 
 ###### 4.2.2 QR 2D Barcode
 
-In order to better handle legacy equipment designed to operate on ASCII payloads, the compressed CWT is encoded as ASCII using [Base45](https://datatracker.ietf.org/doc/draft-faltstrom-base45) before being encoded into a 2D barcode.
+In order to better handle legacy equipment designed to operate on ASCII payloads, the compressed CWT is encoded as ASCII using [Base45](https://www.rfc-editor.org/rfc/rfc9285) before being encoded into a 2D barcode.
 
 The QR format as defined in (ISO/IEC 18004:2015) SHALL be used for 2D barcode generation. An error correction rate of ‘Q’ (around 25%) is RECOMMENDED.  The Alphanumeric (Mode 2/QR Code symbols 0010) MUST be used in conjunction with Base45. 
 
