@@ -1,0 +1,43 @@
+# GDHCNParticipantDID-XXB-UAT-All - WHO SMART Trust v1.7.5
+
+* [**Table of Contents**](toc.md)
+* [**Indices**](indices.md)
+* [**Artifact Index**](artifacts.md)
+* **GDHCNParticipantDID-XXB-UAT-All**
+
+## Endpoint: GDHCNParticipantDID-XXB-UAT-All
+
+Profile: [mCSD Endpoint](https://profiles.ihe.net/ITI/mCSD/4.0.0/StructureDefinition-IHE.mCSD.Endpoint.html)
+
+UAT Participant XXB Trustlist (DID v2) - UAT - All keys did:web:tng-cdn.who.int:v2:trustlist:-:XXB resolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XXB/did.json (): did:web:tng-cdn.who.int:v2:trustlist:-:XXB
+
+-------
+
+| | |
+| :--- | :--- |
+| Status: | Active |
+| Address: | did:web:tng-cdn.who.int:v2:trustlist:-:XXB |
+| Connection Type: |  |
+| Managed By: | [UAT Participant XXB (Government)](Organization-GDHCNParticipant-XXB-UAT.md) |
+
+
+
+## Resource Content
+
+```json
+{
+  "resourceType" : "Endpoint",
+  "id" : "GDHCNParticipantDID-XXB-UAT-All",
+  "meta" : {
+    "profile" : ["https://profiles.ihe.net/ITI/mCSD/StructureDefinition/IHE.mCSD.Endpoint"]
+  },
+  "status" : "active",
+  "connectionType" : [null],
+  "name" : "UAT Participant XXB Trustlist (DID v2) - UAT - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXB\nresolvable at https://tng-cdn-uat.who.int/v2/trustlist/-/XXB/did.json",
+  "managingOrganization" : {
+    "reference" : "Organization/GDHCNParticipant-XXB-UAT"
+  },
+  "address" : "did:web:tng-cdn.who.int:v2:trustlist:-:XXB"
+}
+
+```
