@@ -22,7 +22,7 @@ Description:    "Logical Model for the HCERT"
 //* 2 0..* $RACSEL_DDVC "RACSEL Vaccination Certficate Data Set claim" "RACSEL Vaccination Certificate (PROPOSED)" 
 * 3 0..1 $DDCCVS "Vaccination Core Data Set claim" "DDCC Vaccination claim (PROPOSED)"
 * 4 0..1 $DDCCTR "Test Result Core Data Set claim" "DDCC Test Result claim (PROPOSED)"
-* 5 0..1 string "VHL" "URI of a Verifiable Health Link.  Of the form 'vhlink:/eyJ1cmwiOiJodHRwczovL2Vo....' "
+* 5 0..1 $VHLPayload "VHL" "Verifiable Health Link payload (the SMART Health Links payload format), encoded as a CBOR map with text keys"
 * -6 0..1 $DVCMin "DVCMin" "Minimal Digital Vaccination Certificate Payload (Proposed)"
 * -7 0..1 $MedicationTreatmentLineMin "Medication Treatment Line Minimal (Proposed)" "Medication Treatment Line Minimal (Proposed)"
 
