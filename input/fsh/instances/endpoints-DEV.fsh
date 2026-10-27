@@ -1,2075 +1,2075 @@
 Instance: GDHCNParticipantDID-AND-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Andorra Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:AND\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/AND/did.json"
+Description: "Andorra Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:AND\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/AND/did.json"
 Usage: #definition
-* name = "Andorra Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:AND\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/AND/did.json"
+* name = "Andorra Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:AND\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/AND/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-AND-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:AND"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:AND"
 
 Instance: GDHCNParticipantDID-AND-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Andorra Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:AND:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/AND/DSC/did.json"
+* name = "Andorra Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:AND:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/AND/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-AND-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:AND:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:AND:DSC"
 
 Instance: GDHCNParticipantDID-AND-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Andorra Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:AND:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/AND/SCA/did.json"
+* name = "Andorra Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:AND:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/AND/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-AND-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:AND:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:AND:SCA"
 
 Instance: GDHCNParticipantDID-ARE-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "United Arab Emirates Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:ARE\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARE/did.json"
+Description: "United Arab Emirates Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ARE\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARE/did.json"
 Usage: #definition
-* name = "United Arab Emirates Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:ARE\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARE/did.json"
+* name = "United Arab Emirates Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ARE\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARE/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-ARE-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ARE"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:ARE"
 
 Instance: GDHCNParticipantDID-ARE-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "United Arab Emirates Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:ARE:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARE/DSC/did.json"
+* name = "United Arab Emirates Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ARE:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARE/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-ARE-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ARE:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:ARE:DSC"
 
 Instance: GDHCNParticipantDID-ARE-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "United Arab Emirates Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:ARE:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARE/SCA/did.json"
+* name = "United Arab Emirates Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ARE:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARE/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-ARE-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ARE:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:ARE:SCA"
 
 Instance: GDHCNParticipantDID-ARG-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Argentina Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:ARG\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARG/did.json"
+Description: "Argentina Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ARG\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARG/did.json"
 Usage: #definition
-* name = "Argentina Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:ARG\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARG/did.json"
+* name = "Argentina Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ARG\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARG/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-ARG-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ARG"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:ARG"
 
 Instance: GDHCNParticipantDID-ARG-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Argentina Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:ARG:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARG/DSC/did.json"
+* name = "Argentina Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ARG:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARG/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-ARG-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ARG:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:ARG:DSC"
 
 Instance: GDHCNParticipantDID-ARG-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Argentina Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:ARG:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARG/SCA/did.json"
+* name = "Argentina Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ARG:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARG/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-ARG-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ARG:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:ARG:SCA"
 
 Instance: GDHCNParticipantDID-ARM-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Armenia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:ARM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARM/did.json"
+Description: "Armenia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ARM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARM/did.json"
 Usage: #definition
-* name = "Armenia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:ARM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARM/did.json"
+* name = "Armenia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ARM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARM/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-ARM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ARM"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:ARM"
 
 Instance: GDHCNParticipantDID-ARM-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Armenia Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:ARM:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARM/DSC/did.json"
+* name = "Armenia Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ARM:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARM/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-ARM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ARM:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:ARM:DSC"
 
 Instance: GDHCNParticipantDID-ARM-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Armenia Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:ARM:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARM/SCA/did.json"
+* name = "Armenia Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ARM:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ARM/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-ARM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ARM:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:ARM:SCA"
 
 Instance: GDHCNParticipantDID-BHS-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Bahamas Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:BHS\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BHS/did.json"
+Description: "Bahamas Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BHS\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BHS/did.json"
 Usage: #definition
-* name = "Bahamas Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:BHS\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BHS/did.json"
+* name = "Bahamas Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BHS\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BHS/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BHS-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BHS"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BHS"
 
 Instance: GDHCNParticipantDID-BHS-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Bahamas Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:BHS:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BHS/DSC/did.json"
+* name = "Bahamas Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BHS:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BHS/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BHS-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BHS:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BHS:DSC"
 
 Instance: GDHCNParticipantDID-BHS-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Bahamas Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:BHS:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BHS/SCA/did.json"
+* name = "Bahamas Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BHS:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BHS/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BHS-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BHS:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BHS:SCA"
 
 Instance: GDHCNParticipantDID-BLZ-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Belize Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:BLZ\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BLZ/did.json"
+Description: "Belize Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BLZ\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BLZ/did.json"
 Usage: #definition
-* name = "Belize Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:BLZ\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BLZ/did.json"
+* name = "Belize Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BLZ\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BLZ/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BLZ-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BLZ"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BLZ"
 
 Instance: GDHCNParticipantDID-BLZ-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Belize Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:BLZ:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BLZ/DSC/did.json"
+* name = "Belize Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BLZ:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BLZ/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BLZ-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BLZ:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BLZ:DSC"
 
 Instance: GDHCNParticipantDID-BLZ-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Belize Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:BLZ:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BLZ/SCA/did.json"
+* name = "Belize Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BLZ:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BLZ/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BLZ-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BLZ:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BLZ:SCA"
 
 Instance: GDHCNParticipantDID-BOL-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Bolivia (Plurinational State of) Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:BOL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BOL/did.json"
+Description: "Bolivia (Plurinational State of) Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BOL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BOL/did.json"
 Usage: #definition
-* name = "Bolivia (Plurinational State of) Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:BOL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BOL/did.json"
+* name = "Bolivia (Plurinational State of) Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BOL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BOL/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BOL-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BOL"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BOL"
 
 Instance: GDHCNParticipantDID-BOL-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Bolivia (Plurinational State of) Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:BOL:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BOL/DSC/did.json"
+* name = "Bolivia (Plurinational State of) Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BOL:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BOL/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BOL-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BOL:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BOL:DSC"
 
 Instance: GDHCNParticipantDID-BOL-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Bolivia (Plurinational State of) Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:BOL:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BOL/SCA/did.json"
+* name = "Bolivia (Plurinational State of) Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BOL:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BOL/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BOL-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BOL:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BOL:SCA"
 
 Instance: GDHCNParticipantDID-BRA-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Brazil Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:BRA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRA/did.json"
+Description: "Brazil Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BRA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRA/did.json"
 Usage: #definition
-* name = "Brazil Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:BRA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRA/did.json"
+* name = "Brazil Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BRA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BRA-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BRA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BRA"
 
 Instance: GDHCNParticipantDID-BRA-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Brazil Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:BRA:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRA/DSC/did.json"
+* name = "Brazil Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BRA:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRA/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BRA-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BRA:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BRA:DSC"
 
 Instance: GDHCNParticipantDID-BRA-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Brazil Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:BRA:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRA/SCA/did.json"
+* name = "Brazil Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BRA:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRA/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BRA-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BRA:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BRA:SCA"
 
 Instance: GDHCNParticipantDID-BRB-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Barbados Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:BRB\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRB/did.json"
+Description: "Barbados Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BRB\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRB/did.json"
 Usage: #definition
-* name = "Barbados Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:BRB\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRB/did.json"
+* name = "Barbados Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BRB\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRB/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BRB-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BRB"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BRB"
 
 Instance: GDHCNParticipantDID-BRB-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Barbados Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:BRB:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRB/DSC/did.json"
+* name = "Barbados Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BRB:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRB/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BRB-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BRB:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BRB:DSC"
 
 Instance: GDHCNParticipantDID-BRB-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Barbados Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:BRB:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRB/SCA/did.json"
+* name = "Barbados Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:BRB:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/BRB/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-BRB-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:BRB:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:BRB:SCA"
 
 Instance: GDHCNParticipantDID-CHL-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Chile Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:CHL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CHL/did.json"
+Description: "Chile Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:CHL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CHL/did.json"
 Usage: #definition
-* name = "Chile Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:CHL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CHL/did.json"
+* name = "Chile Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:CHL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CHL/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-CHL-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:CHL"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:CHL"
 
 Instance: GDHCNParticipantDID-CHL-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Chile Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:CHL:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CHL/DSC/did.json"
+* name = "Chile Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:CHL:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CHL/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-CHL-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:CHL:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:CHL:DSC"
 
 Instance: GDHCNParticipantDID-CHL-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Chile Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:CHL:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CHL/SCA/did.json"
+* name = "Chile Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:CHL:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CHL/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-CHL-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:CHL:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:CHL:SCA"
 
 Instance: GDHCNParticipantDID-COL-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Colombia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:COL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/COL/did.json"
+Description: "Colombia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:COL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/COL/did.json"
 Usage: #definition
-* name = "Colombia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:COL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/COL/did.json"
+* name = "Colombia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:COL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/COL/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-COL-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:COL"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:COL"
 
 Instance: GDHCNParticipantDID-COL-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Colombia Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:COL:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/COL/DSC/did.json"
+* name = "Colombia Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:COL:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/COL/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-COL-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:COL:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:COL:DSC"
 
 Instance: GDHCNParticipantDID-COL-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Colombia Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:COL:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/COL/SCA/did.json"
+* name = "Colombia Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:COL:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/COL/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-COL-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:COL:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:COL:SCA"
 
 Instance: GDHCNParticipantDID-CRI-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Costa Rica Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:CRI\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CRI/did.json"
+Description: "Costa Rica Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:CRI\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CRI/did.json"
 Usage: #definition
-* name = "Costa Rica Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:CRI\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CRI/did.json"
+* name = "Costa Rica Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:CRI\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CRI/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-CRI-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:CRI"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:CRI"
 
 Instance: GDHCNParticipantDID-CRI-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Costa Rica Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:CRI:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CRI/DSC/did.json"
+* name = "Costa Rica Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:CRI:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CRI/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-CRI-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:CRI:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:CRI:DSC"
 
 Instance: GDHCNParticipantDID-CRI-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Costa Rica Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:CRI:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CRI/SCA/did.json"
+* name = "Costa Rica Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:CRI:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CRI/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-CRI-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:CRI:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:CRI:SCA"
 
 Instance: GDHCNParticipantDID-CYP-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Cyprus Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:CYP\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CYP/did.json"
+Description: "Cyprus Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:CYP\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CYP/did.json"
 Usage: #definition
-* name = "Cyprus Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:CYP\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CYP/did.json"
+* name = "Cyprus Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:CYP\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CYP/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-CYP-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:CYP"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:CYP"
 
 Instance: GDHCNParticipantDID-CYP-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Cyprus Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:CYP:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CYP/DSC/did.json"
+* name = "Cyprus Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:CYP:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CYP/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-CYP-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:CYP:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:CYP:DSC"
 
 Instance: GDHCNParticipantDID-CYP-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Cyprus Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:CYP:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CYP/SCA/did.json"
+* name = "Cyprus Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:CYP:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/CYP/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-CYP-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:CYP:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:CYP:SCA"
 
 Instance: GDHCNParticipantDID-DOM-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Dominican Republic Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:DOM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/DOM/did.json"
+Description: "Dominican Republic Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:DOM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/DOM/did.json"
 Usage: #definition
-* name = "Dominican Republic Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:DOM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/DOM/did.json"
+* name = "Dominican Republic Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:DOM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/DOM/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-DOM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:DOM"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:DOM"
 
 Instance: GDHCNParticipantDID-DOM-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Dominican Republic Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:DOM:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/DOM/DSC/did.json"
+* name = "Dominican Republic Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:DOM:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/DOM/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-DOM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:DOM:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:DOM:DSC"
 
 Instance: GDHCNParticipantDID-DOM-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Dominican Republic Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:DOM:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/DOM/SCA/did.json"
+* name = "Dominican Republic Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:DOM:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/DOM/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-DOM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:DOM:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:DOM:SCA"
 
 Instance: GDHCNParticipantDID-ECU-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Ecuador Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:ECU\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ECU/did.json"
+Description: "Ecuador Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ECU\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ECU/did.json"
 Usage: #definition
-* name = "Ecuador Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:ECU\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ECU/did.json"
+* name = "Ecuador Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ECU\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ECU/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-ECU-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ECU"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:ECU"
 
 Instance: GDHCNParticipantDID-ECU-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Ecuador Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:ECU:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ECU/DSC/did.json"
+* name = "Ecuador Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ECU:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ECU/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-ECU-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ECU:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:ECU:DSC"
 
 Instance: GDHCNParticipantDID-ECU-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Ecuador Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:ECU:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ECU/SCA/did.json"
+* name = "Ecuador Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:ECU:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/ECU/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-ECU-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:ECU:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:ECU:SCA"
 
 Instance: GDHCNParticipantDID-EST-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Estonia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:EST\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/EST/did.json"
+Description: "Estonia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:EST\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/EST/did.json"
 Usage: #definition
-* name = "Estonia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:EST\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/EST/did.json"
+* name = "Estonia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:EST\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/EST/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-EST-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:EST"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:EST"
 
 Instance: GDHCNParticipantDID-EST-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Estonia Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:EST:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/EST/DSC/did.json"
+* name = "Estonia Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:EST:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/EST/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-EST-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:EST:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:EST:DSC"
 
 Instance: GDHCNParticipantDID-EST-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Estonia Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:EST:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/EST/SCA/did.json"
+* name = "Estonia Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:EST:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/EST/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-EST-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:EST:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:EST:SCA"
 
 Instance: GDHCNParticipantDID-GTM-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Guatemala Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:GTM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/GTM/did.json"
+Description: "Guatemala Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:GTM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/GTM/did.json"
 Usage: #definition
-* name = "Guatemala Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:GTM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/GTM/did.json"
+* name = "Guatemala Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:GTM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/GTM/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-GTM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:GTM"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:GTM"
 
 Instance: GDHCNParticipantDID-GTM-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Guatemala Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:GTM:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/GTM/DSC/did.json"
+* name = "Guatemala Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:GTM:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/GTM/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-GTM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:GTM:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:GTM:DSC"
 
 Instance: GDHCNParticipantDID-GTM-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Guatemala Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:GTM:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/GTM/SCA/did.json"
+* name = "Guatemala Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:GTM:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/GTM/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-GTM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:GTM:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:GTM:SCA"
 
 Instance: GDHCNParticipantDID-HND-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Honduras Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:HND\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/HND/did.json"
+Description: "Honduras Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:HND\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/HND/did.json"
 Usage: #definition
-* name = "Honduras Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:HND\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/HND/did.json"
+* name = "Honduras Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:HND\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/HND/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-HND-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:HND"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:HND"
 
 Instance: GDHCNParticipantDID-HND-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Honduras Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:HND:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/HND/DSC/did.json"
+* name = "Honduras Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:HND:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/HND/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-HND-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:HND:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:HND:DSC"
 
 Instance: GDHCNParticipantDID-HND-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Honduras Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:HND:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/HND/SCA/did.json"
+* name = "Honduras Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:HND:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/HND/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-HND-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:HND:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:HND:SCA"
 
 Instance: GDHCNParticipantDID-IDN-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Indonesia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:IDN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IDN/did.json"
+Description: "Indonesia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:IDN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IDN/did.json"
 Usage: #definition
-* name = "Indonesia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:IDN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IDN/did.json"
+* name = "Indonesia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:IDN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IDN/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-IDN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:IDN"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:IDN"
 
 Instance: GDHCNParticipantDID-IDN-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Indonesia Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:IDN:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IDN/DSC/did.json"
+* name = "Indonesia Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:IDN:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IDN/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-IDN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:IDN:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:IDN:DSC"
 
 Instance: GDHCNParticipantDID-IDN-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Indonesia Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:IDN:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IDN/SCA/did.json"
+* name = "Indonesia Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:IDN:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IDN/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-IDN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:IDN:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:IDN:SCA"
 
 Instance: GDHCNParticipantDID-IOM-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "TEST Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IOM/did.json"
+Description: "TEST Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:IOM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IOM/did.json"
 Usage: #definition
-* name = "TEST Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IOM/did.json"
+* name = "TEST Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:IOM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IOM/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-IOM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:IOM"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:IOM"
 
 Instance: GDHCNParticipantDID-IOM-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "TEST Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IOM/DSC/did.json"
+* name = "TEST Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:IOM:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IOM/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-IOM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:IOM:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:IOM:DSC"
 
 Instance: GDHCNParticipantDID-IOM-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "TEST Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:IOM:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IOM/SCA/did.json"
+* name = "TEST Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:IOM:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/IOM/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-IOM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:IOM:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:IOM:SCA"
 
 Instance: GDHCNParticipantDID-JAM-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Jamaica Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:JAM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/JAM/did.json"
+Description: "Jamaica Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:JAM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/JAM/did.json"
 Usage: #definition
-* name = "Jamaica Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:JAM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/JAM/did.json"
+* name = "Jamaica Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:JAM\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/JAM/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-JAM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:JAM"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:JAM"
 
 Instance: GDHCNParticipantDID-JAM-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Jamaica Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:JAM:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/JAM/DSC/did.json"
+* name = "Jamaica Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:JAM:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/JAM/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-JAM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:JAM:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:JAM:DSC"
 
 Instance: GDHCNParticipantDID-JAM-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Jamaica Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:JAM:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/JAM/SCA/did.json"
+* name = "Jamaica Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:JAM:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/JAM/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-JAM-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:JAM:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:JAM:SCA"
 
 Instance: GDHCNParticipantDID-LVA-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Latvia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:LVA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/LVA/did.json"
+Description: "Latvia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:LVA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/LVA/did.json"
 Usage: #definition
-* name = "Latvia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:LVA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/LVA/did.json"
+* name = "Latvia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:LVA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/LVA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-LVA-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:LVA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:LVA"
 
 Instance: GDHCNParticipantDID-LVA-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Latvia Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:LVA:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/LVA/DSC/did.json"
+* name = "Latvia Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:LVA:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/LVA/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-LVA-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:LVA:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:LVA:DSC"
 
 Instance: GDHCNParticipantDID-LVA-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Latvia Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:LVA:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/LVA/SCA/did.json"
+* name = "Latvia Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:LVA:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/LVA/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-LVA-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:LVA:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:LVA:SCA"
 
 Instance: GDHCNParticipantDID-NIC-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Nicaragua Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:NIC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/NIC/did.json"
+Description: "Nicaragua Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:NIC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/NIC/did.json"
 Usage: #definition
-* name = "Nicaragua Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:NIC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/NIC/did.json"
+* name = "Nicaragua Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:NIC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/NIC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-NIC-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:NIC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:NIC"
 
 Instance: GDHCNParticipantDID-NIC-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Nicaragua Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:NIC:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/NIC/DSC/did.json"
+* name = "Nicaragua Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:NIC:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/NIC/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-NIC-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:NIC:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:NIC:DSC"
 
 Instance: GDHCNParticipantDID-NIC-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Nicaragua Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:NIC:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/NIC/SCA/did.json"
+* name = "Nicaragua Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:NIC:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/NIC/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-NIC-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:NIC:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:NIC:SCA"
 
 Instance: GDHCNParticipantDID-OMN-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Oman Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:OMN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/OMN/did.json"
+Description: "Oman Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:OMN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/OMN/did.json"
 Usage: #definition
-* name = "Oman Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:OMN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/OMN/did.json"
+* name = "Oman Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:OMN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/OMN/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-OMN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:OMN"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:OMN"
 
 Instance: GDHCNParticipantDID-OMN-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Oman Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:OMN:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/OMN/DSC/did.json"
+* name = "Oman Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:OMN:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/OMN/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-OMN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:OMN:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:OMN:DSC"
 
 Instance: GDHCNParticipantDID-OMN-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Oman Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:OMN:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/OMN/SCA/did.json"
+* name = "Oman Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:OMN:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/OMN/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-OMN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:OMN:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:OMN:SCA"
 
 Instance: GDHCNParticipantDID-PAN-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Panama Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:PAN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PAN/did.json"
+Description: "Panama Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:PAN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PAN/did.json"
 Usage: #definition
-* name = "Panama Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:PAN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PAN/did.json"
+* name = "Panama Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:PAN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PAN/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-PAN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PAN"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:PAN"
 
 Instance: GDHCNParticipantDID-PAN-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Panama Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:PAN:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PAN/DSC/did.json"
+* name = "Panama Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:PAN:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PAN/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-PAN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PAN:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:PAN:DSC"
 
 Instance: GDHCNParticipantDID-PAN-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Panama Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:PAN:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PAN/SCA/did.json"
+* name = "Panama Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:PAN:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PAN/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-PAN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PAN:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:PAN:SCA"
 
 Instance: GDHCNParticipantDID-PER-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Peru Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:PER\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PER/did.json"
+Description: "Peru Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:PER\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PER/did.json"
 Usage: #definition
-* name = "Peru Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:PER\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PER/did.json"
+* name = "Peru Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:PER\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PER/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-PER-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PER"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:PER"
 
 Instance: GDHCNParticipantDID-PER-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Peru Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:PER:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PER/DSC/did.json"
+* name = "Peru Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:PER:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PER/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-PER-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PER:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:PER:DSC"
 
 Instance: GDHCNParticipantDID-PER-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Peru Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:PER:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PER/SCA/did.json"
+* name = "Peru Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:PER:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PER/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-PER-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PER:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:PER:SCA"
 
 Instance: GDHCNParticipantDID-PRY-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Paraguay Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:PRY\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PRY/did.json"
+Description: "Paraguay Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:PRY\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PRY/did.json"
 Usage: #definition
-* name = "Paraguay Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:PRY\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PRY/did.json"
+* name = "Paraguay Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:PRY\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PRY/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-PRY-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PRY"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:PRY"
 
 Instance: GDHCNParticipantDID-PRY-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Paraguay Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:PRY:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PRY/DSC/did.json"
+* name = "Paraguay Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:PRY:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PRY/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-PRY-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PRY:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:PRY:DSC"
 
 Instance: GDHCNParticipantDID-PRY-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Paraguay Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:PRY:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PRY/SCA/did.json"
+* name = "Paraguay Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:PRY:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/PRY/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-PRY-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:PRY:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:PRY:SCA"
 
 Instance: GDHCNParticipantDID-SGP-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Singapore Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SGP\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SGP/did.json"
+Description: "Singapore Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SGP\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SGP/did.json"
 Usage: #definition
-* name = "Singapore Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SGP\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SGP/did.json"
+* name = "Singapore Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SGP\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SGP/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SGP-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SGP"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SGP"
 
 Instance: GDHCNParticipantDID-SGP-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Singapore Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:SGP:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SGP/DSC/did.json"
+* name = "Singapore Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SGP:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SGP/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SGP-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SGP:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SGP:DSC"
 
 Instance: GDHCNParticipantDID-SGP-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Singapore Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:SGP:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SGP/SCA/did.json"
+* name = "Singapore Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SGP:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SGP/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SGP-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SGP:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SGP:SCA"
 
 Instance: GDHCNParticipantDID-SLV-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "El Salvador Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SLV\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SLV/did.json"
+Description: "El Salvador Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SLV\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SLV/did.json"
 Usage: #definition
-* name = "El Salvador Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SLV\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SLV/did.json"
+* name = "El Salvador Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SLV\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SLV/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SLV-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SLV"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SLV"
 
 Instance: GDHCNParticipantDID-SLV-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "El Salvador Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:SLV:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SLV/DSC/did.json"
+* name = "El Salvador Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SLV:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SLV/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SLV-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SLV:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SLV:DSC"
 
 Instance: GDHCNParticipantDID-SLV-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "El Salvador Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:SLV:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SLV/SCA/did.json"
+* name = "El Salvador Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SLV:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SLV/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SLV-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SLV:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SLV:SCA"
 
 Instance: GDHCNParticipantDID-SMR-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "San Marino Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SMR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SMR/did.json"
+Description: "San Marino Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SMR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SMR/did.json"
 Usage: #definition
-* name = "San Marino Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SMR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SMR/did.json"
+* name = "San Marino Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SMR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SMR/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SMR-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SMR"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SMR"
 
 Instance: GDHCNParticipantDID-SMR-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "San Marino Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:SMR:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SMR/DSC/did.json"
+* name = "San Marino Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SMR:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SMR/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SMR-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SMR:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SMR:DSC"
 
 Instance: GDHCNParticipantDID-SMR-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "San Marino Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:SMR:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SMR/SCA/did.json"
+* name = "San Marino Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SMR:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SMR/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SMR-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SMR:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SMR:SCA"
 
 Instance: GDHCNParticipantDID-SUR-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Suriname Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SUR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SUR/did.json"
+Description: "Suriname Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SUR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SUR/did.json"
 Usage: #definition
-* name = "Suriname Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SUR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SUR/did.json"
+* name = "Suriname Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SUR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SUR/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SUR-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SUR"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SUR"
 
 Instance: GDHCNParticipantDID-SUR-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Suriname Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:SUR:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SUR/DSC/did.json"
+* name = "Suriname Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SUR:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SUR/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SUR-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SUR:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SUR:DSC"
 
 Instance: GDHCNParticipantDID-SUR-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Suriname Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:SUR:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SUR/SCA/did.json"
+* name = "Suriname Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SUR:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SUR/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SUR-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SUR:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SUR:SCA"
 
 Instance: GDHCNParticipantDID-SVN-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Slovenia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SVN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SVN/did.json"
+Description: "Slovenia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SVN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SVN/did.json"
 Usage: #definition
-* name = "Slovenia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:SVN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SVN/did.json"
+* name = "Slovenia Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SVN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SVN/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SVN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SVN"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SVN"
 
 Instance: GDHCNParticipantDID-SVN-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Slovenia Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:SVN:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SVN/DSC/did.json"
+* name = "Slovenia Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SVN:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SVN/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SVN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SVN:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SVN:DSC"
 
 Instance: GDHCNParticipantDID-SVN-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Slovenia Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:SVN:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SVN/SCA/did.json"
+* name = "Slovenia Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:SVN:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/SVN/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-SVN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:SVN:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:SVN:SCA"
 
 Instance: GDHCNParticipantDID-TGO-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Togo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:TGO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TGO/did.json"
+Description: "Togo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:TGO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TGO/did.json"
 Usage: #definition
-* name = "Togo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:TGO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TGO/did.json"
+* name = "Togo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:TGO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TGO/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TGO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:TGO"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:TGO"
 
 Instance: GDHCNParticipantDID-TGO-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Togo Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:TGO:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TGO/DSC/did.json"
+* name = "Togo Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:TGO:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TGO/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TGO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:TGO:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:TGO:DSC"
 
 Instance: GDHCNParticipantDID-TGO-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Togo Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:TGO:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TGO/SCA/did.json"
+* name = "Togo Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:TGO:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TGO/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TGO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:TGO:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:TGO:SCA"
 
 Instance: GDHCNParticipantDID-TTO-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Trinidad and Tobago Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:TTO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TTO/did.json"
+Description: "Trinidad and Tobago Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:TTO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TTO/did.json"
 Usage: #definition
-* name = "Trinidad and Tobago Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:TTO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TTO/did.json"
+* name = "Trinidad and Tobago Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:TTO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TTO/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TTO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:TTO"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:TTO"
 
 Instance: GDHCNParticipantDID-TTO-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Trinidad and Tobago Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:TTO:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TTO/DSC/did.json"
+* name = "Trinidad and Tobago Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:TTO:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TTO/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TTO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:TTO:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:TTO:DSC"
 
 Instance: GDHCNParticipantDID-TTO-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Trinidad and Tobago Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:TTO:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TTO/SCA/did.json"
+* name = "Trinidad and Tobago Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:TTO:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/TTO/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-TTO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:TTO:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:TTO:SCA"
 
 Instance: GDHCNParticipantDID-URY-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Uruguay Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:URY\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/URY/did.json"
+Description: "Uruguay Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:URY\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/URY/did.json"
 Usage: #definition
-* name = "Uruguay Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:URY\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/URY/did.json"
+* name = "Uruguay Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:URY\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/URY/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-URY-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:URY"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:URY"
 
 Instance: GDHCNParticipantDID-URY-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Uruguay Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:URY:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/URY/DSC/did.json"
+* name = "Uruguay Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:URY:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/URY/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-URY-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:URY:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:URY:DSC"
 
 Instance: GDHCNParticipantDID-URY-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Uruguay Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:URY:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/URY/SCA/did.json"
+* name = "Uruguay Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:URY:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/URY/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-URY-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:URY:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:URY:SCA"
 
 Instance: GDHCNParticipantDID-USA-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "United States of America Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:USA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/USA/did.json"
+Description: "United States of America Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:USA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/USA/did.json"
 Usage: #definition
-* name = "United States of America Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:USA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/USA/did.json"
+* name = "United States of America Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:USA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/USA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-USA-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:USA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:USA"
 
 Instance: GDHCNParticipantDID-USA-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "United States of America Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:USA:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/USA/DSC/did.json"
+* name = "United States of America Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:USA:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/USA/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-USA-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:USA:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:USA:DSC"
 
 Instance: GDHCNParticipantDID-USA-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "United States of America Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:USA:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/USA/SCA/did.json"
+* name = "United States of America Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:USA:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/USA/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-USA-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:USA:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:USA:SCA"
 
 Instance: GDHCNParticipantDID-WHO-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "DEV Participant WHO Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/did.json"
+Description: "DEV Participant WHO Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:WHO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/did.json"
 Usage: #definition
-* name = "DEV Participant WHO Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/did.json"
+* name = "DEV Participant WHO Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:WHO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-WHO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:WHO"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:WHO"
 
 Instance: GDHCNParticipantDID-WHO-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "DEV Participant WHO Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/DSC/did.json"
+* name = "DEV Participant WHO Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:WHO:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-WHO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:WHO:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:WHO:DSC"
 
 Instance: GDHCNParticipantDID-WHO-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "DEV Participant WHO Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:WHO:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/SCA/did.json"
+* name = "DEV Participant WHO Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:WHO:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/WHO/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-WHO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:WHO:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:WHO:SCA"
 
 Instance: GDHCNParticipantDID-XCL-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "California Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XCL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XCL/did.json"
+Description: "California Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XCL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XCL/did.json"
 Usage: #definition
-* name = "California Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XCL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XCL/did.json"
+* name = "California Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XCL\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XCL/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XCL-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XCL"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XCL"
 
 Instance: GDHCNParticipantDID-XCL-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "California Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XCL:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XCL/DSC/did.json"
+* name = "California Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XCL:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XCL/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XCL-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XCL:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XCL:DSC"
 
 Instance: GDHCNParticipantDID-XCL-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "California Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XCL:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XCL/SCA/did.json"
+* name = "California Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XCL:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XCL/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XCL-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XCL:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XCL:SCA"
 
 Instance: GDHCNParticipantDID-XML-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "GDHCN entomo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XML\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XML/did.json"
+Description: "GDHCN entomo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XML\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XML/did.json"
 Usage: #definition
-* name = "GDHCN entomo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XML\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XML/did.json"
+* name = "GDHCN entomo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XML\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XML/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XML-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XML"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XML"
 
 Instance: GDHCNParticipantDID-XML-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "GDHCN entomo Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XML:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XML/DSC/did.json"
+* name = "GDHCN entomo Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XML:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XML/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XML-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XML:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XML:DSC"
 
 Instance: GDHCNParticipantDID-XML-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "GDHCN entomo Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XML:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XML/SCA/did.json"
+* name = "GDHCN entomo Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XML:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XML/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XML-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XML:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XML:SCA"
 
 Instance: GDHCNParticipantDID-XXA-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXA/did.json"
+Description: "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXA/did.json"
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXA/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXA-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXA"
 
 Instance: GDHCNParticipantDID-XXA-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXA:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXA/DSC/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXA:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXA/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXA-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXA:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXA:DSC"
 
 Instance: GDHCNParticipantDID-XXA-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXA:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXA/SCA/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXA:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXA/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXA-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXA:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXA:SCA"
 
 Instance: GDHCNParticipantDID-XXB-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "TEST Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXB\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXB/did.json"
+Description: "TEST Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXB\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXB/did.json"
 Usage: #definition
-* name = "TEST Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXB\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXB/did.json"
+* name = "TEST Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXB\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXB/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXB-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXB"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXB"
 
 Instance: GDHCNParticipantDID-XXB-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "TEST Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXB:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXB/DSC/did.json"
+* name = "TEST Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXB:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXB/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXB-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXB:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXB:DSC"
 
 Instance: GDHCNParticipantDID-XXB-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "TEST Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXB:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXB/SCA/did.json"
+* name = "TEST Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXB:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXB/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXB-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXB:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXB:SCA"
 
 Instance: GDHCNParticipantDID-XXC-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "TEST Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXC/did.json"
+Description: "TEST Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXC/did.json"
 Usage: #definition
-* name = "TEST Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXC/did.json"
+* name = "TEST Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXC-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXC"
 
 Instance: GDHCNParticipantDID-XXC-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "TEST Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXC:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXC/DSC/did.json"
+* name = "TEST Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXC:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXC/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXC-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXC:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXC:DSC"
 
 Instance: GDHCNParticipantDID-XXC-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "TEST Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXC:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXC/SCA/did.json"
+* name = "TEST Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXC:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXC/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXC-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXC:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXC:SCA"
 
 Instance: GDHCNParticipantDID-XXD-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "CENS XD Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXD\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXD/did.json"
+Description: "CENS XD Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXD\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXD/did.json"
 Usage: #definition
-* name = "CENS XD Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXD\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXD/did.json"
+* name = "CENS XD Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXD\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXD/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXD-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXD"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXD"
 
 Instance: GDHCNParticipantDID-XXD-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "CENS XD Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXD:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXD/DSC/did.json"
+* name = "CENS XD Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXD:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXD/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXD-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXD:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXD:DSC"
 
 Instance: GDHCNParticipantDID-XXD-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "CENS XD Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXD:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXD/SCA/did.json"
+* name = "CENS XD Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXD:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXD/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXD-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXD:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXD:SCA"
 
 Instance: GDHCNParticipantDID-XXE-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Geneva XE Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXE\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXE/did.json"
+Description: "Geneva XE Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXE\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXE/did.json"
 Usage: #definition
-* name = "Geneva XE Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXE\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXE/did.json"
+* name = "Geneva XE Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXE\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXE/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXE-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXE"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXE"
 
 Instance: GDHCNParticipantDID-XXE-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva XE Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXE:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXE/DSC/did.json"
+* name = "Geneva XE Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXE:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXE/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXE-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXE:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXE:DSC"
 
 Instance: GDHCNParticipantDID-XXE-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva XE Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXE:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXE/SCA/did.json"
+* name = "Geneva XE Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXE:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXE/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXE-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXE:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXE:SCA"
 
 Instance: GDHCNParticipantDID-XXF-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Test Locality XF Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXF\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXF/did.json"
+Description: "Test Locality XF Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXF\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXF/did.json"
 Usage: #definition
-* name = "Test Locality XF Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXF\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXF/did.json"
+* name = "Test Locality XF Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXF\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXF/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXF-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXF"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXF"
 
 Instance: GDHCNParticipantDID-XXF-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Test Locality XF Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXF:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXF/DSC/did.json"
+* name = "Test Locality XF Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXF:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXF/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXF-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXF:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXF:DSC"
 
 Instance: GDHCNParticipantDID-XXF-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Test Locality XF Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXF:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXF/SCA/did.json"
+* name = "Test Locality XF Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXF:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXF/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXF-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXF:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXF:SCA"
 
 Instance: GDHCNParticipantDID-XXG-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXG\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXG/did.json"
+Description: "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXG\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXG/did.json"
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXG\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXG/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXG\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXG/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXG-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXG"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXG"
 
 Instance: GDHCNParticipantDID-XXG-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXG:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXG/DSC/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXG:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXG/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXG-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXG:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXG:DSC"
 
 Instance: GDHCNParticipantDID-XXG-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXG:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXG/SCA/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXG:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXG/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXG-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXG:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXG:SCA"
 
 Instance: GDHCNParticipantDID-XXH-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXH\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXH/did.json"
+Description: "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXH\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXH/did.json"
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXH\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXH/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXH\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXH/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXH-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXH"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXH"
 
 Instance: GDHCNParticipantDID-XXH-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXH:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXH/DSC/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXH:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXH/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXH-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXH:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXH:DSC"
 
 Instance: GDHCNParticipantDID-XXH-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXH:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXH/SCA/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXH:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXH/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXH-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXH:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXH:SCA"
 
 Instance: GDHCNParticipantDID-XXI-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "California Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXI\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXI/did.json"
+Description: "California Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXI\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXI/did.json"
 Usage: #definition
-* name = "California Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXI\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXI/did.json"
+* name = "California Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXI\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXI/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXI-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXI"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXI"
 
 Instance: GDHCNParticipantDID-XXI-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "California Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXI:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXI/DSC/did.json"
+* name = "California Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXI:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXI/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXI-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXI:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXI:DSC"
 
 Instance: GDHCNParticipantDID-XXI-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "California Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXI:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXI/SCA/did.json"
+* name = "California Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXI:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXI/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXI-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXI:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXI:SCA"
 
 Instance: GDHCNParticipantDID-XXJ-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "DEV Participant XXJ Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXJ\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXJ/did.json"
+Description: "DEV Participant XXJ Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXJ\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXJ/did.json"
 Usage: #definition
-* name = "DEV Participant XXJ Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXJ\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXJ/did.json"
+* name = "DEV Participant XXJ Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXJ\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXJ/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXJ-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXJ"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXJ"
 
 Instance: GDHCNParticipantDID-XXJ-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "DEV Participant XXJ Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXJ:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXJ/DSC/did.json"
+* name = "DEV Participant XXJ Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXJ:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXJ/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXJ-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXJ:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXJ:DSC"
 
 Instance: GDHCNParticipantDID-XXJ-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "DEV Participant XXJ Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXJ:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXJ/SCA/did.json"
+* name = "DEV Participant XXJ Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXJ:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXJ/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXJ-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXJ:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXJ:SCA"
 
 Instance: GDHCNParticipantDID-XXK-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Rengo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXK\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/did.json"
+Description: "Rengo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/did.json"
 Usage: #definition
-* name = "Rengo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXK\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/did.json"
+* name = "Rengo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXK-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXK"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK"
 
 Instance: GDHCNParticipantDID-XXK-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Rengo Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXK:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/DSC/did.json"
+* name = "Rengo Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXK-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXK:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK:DSC"
 
 Instance: GDHCNParticipantDID-XXK-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Rengo Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXK:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/SCA/did.json"
+* name = "Rengo Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXK-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXK:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK:SCA"
 
 Instance: GDHCNParticipantDID-XXN-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "DEV Participant XXN Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXN/did.json"
+Description: "DEV Participant XXN Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXN/did.json"
 Usage: #definition
-* name = "DEV Participant XXN Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXN/did.json"
+* name = "DEV Participant XXN Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXN\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXN/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXN"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXN"
 
 Instance: GDHCNParticipantDID-XXN-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "DEV Participant XXN Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXN:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXN/DSC/did.json"
+* name = "DEV Participant XXN Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXN:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXN/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXN:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXN:DSC"
 
 Instance: GDHCNParticipantDID-XXN-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "DEV Participant XXN Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXN:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXN/SCA/did.json"
+* name = "DEV Participant XXN Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXN:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXN/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXN-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXN:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXN:SCA"
 
 Instance: GDHCNParticipantDID-XXO-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "DEV Participant XXO Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXO/did.json"
+Description: "DEV Participant XXO Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXO/did.json"
 Usage: #definition
-* name = "DEV Participant XXO Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXO/did.json"
+* name = "DEV Participant XXO Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXO\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXO/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXO"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXO"
 
 Instance: GDHCNParticipantDID-XXO-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "DEV Participant XXO Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXO:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXO/DSC/did.json"
+* name = "DEV Participant XXO Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXO:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXO/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXO:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXO:DSC"
 
 Instance: GDHCNParticipantDID-XXO-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "DEV Participant XXO Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXO:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXO/SCA/did.json"
+* name = "DEV Participant XXO Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXO:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXO/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXO-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXO:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXO:SCA"
 
 Instance: GDHCNParticipantDID-XXP-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXP\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXP/did.json"
+Description: "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXP\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXP/did.json"
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXP\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXP/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXP\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXP/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXP-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXP"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXP"
 
 Instance: GDHCNParticipantDID-XXP-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXP:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXP/DSC/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXP:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXP/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXP-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXP:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXP:DSC"
 
 Instance: GDHCNParticipantDID-XXP-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXP:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXP/SCA/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXP:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXP/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXP-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXP:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXP:SCA"
 
 Instance: GDHCNParticipantDID-XXQ-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Test Locality Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXQ\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXQ/did.json"
+Description: "Test Locality Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXQ\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXQ/did.json"
 Usage: #definition
-* name = "Test Locality Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXQ\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXQ/did.json"
+* name = "Test Locality Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXQ\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXQ/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXQ-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXQ"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXQ"
 
 Instance: GDHCNParticipantDID-XXQ-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Test Locality Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXQ:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXQ/DSC/did.json"
+* name = "Test Locality Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXQ:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXQ/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXQ-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXQ:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXQ:DSC"
 
 Instance: GDHCNParticipantDID-XXQ-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Test Locality Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXQ:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXQ/SCA/did.json"
+* name = "Test Locality Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXQ:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXQ/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXQ-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXQ:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXQ:SCA"
 
 Instance: GDHCNParticipantDID-XXR-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Mumbai Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/did.json"
+Description: "Mumbai Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/did.json"
 Usage: #definition
-* name = "Mumbai Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/did.json"
+* name = "Mumbai Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXR-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXR"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR"
 
 Instance: GDHCNParticipantDID-XXR-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Mumbai Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXR:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/DSC/did.json"
+* name = "Mumbai Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXR-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXR:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR:DSC"
 
 Instance: GDHCNParticipantDID-XXR-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Mumbai Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXR:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/SCA/did.json"
+* name = "Mumbai Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXR-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXR:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR:SCA"
 
 Instance: GDHCNParticipantDID-XXT-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXT\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXT/did.json"
+Description: "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXT\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXT/did.json"
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXT\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXT/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXT\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXT/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXT-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXT"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXT"
 
 Instance: GDHCNParticipantDID-XXT-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXT:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXT/DSC/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXT:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXT/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXT-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXT:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXT:DSC"
 
 Instance: GDHCNParticipantDID-XXT-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXT:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXT/SCA/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXT:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXT/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXT-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXT:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXT:SCA"
 
 Instance: GDHCNParticipantDID-XXU-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXU\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXU/did.json"
+Description: "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXU\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXU/did.json"
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXU\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXU/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXU\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXU/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXU-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXU"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXU"
 
 Instance: GDHCNParticipantDID-XXU-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXU:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXU/DSC/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXU:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXU/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXU-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXU:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXU:DSC"
 
 Instance: GDHCNParticipantDID-XXU-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Geneva Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXU:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXU/SCA/did.json"
+* name = "Geneva Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXU:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXU/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXU-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXU:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXU:SCA"
 
 Instance: GDHCNParticipantDID-XXV-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "TEST CITY Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXV\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/did.json"
+Description: "TEST CITY Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/did.json"
 Usage: #definition
-* name = "TEST CITY Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXV\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/did.json"
+* name = "TEST CITY Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXV-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXV"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV"
 
 Instance: GDHCNParticipantDID-XXV-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "TEST CITY Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXV:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/DSC/did.json"
+* name = "TEST CITY Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXV-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXV:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV:DSC"
 
 Instance: GDHCNParticipantDID-XXV-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "TEST CITY Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXV:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/SCA/did.json"
+* name = "TEST CITY Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXV-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXV:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV:SCA"
 
 Instance: GDHCNParticipantDID-XXW-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Test Locality Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXW\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXW/did.json"
+Description: "Test Locality Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXW\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXW/did.json"
 Usage: #definition
-* name = "Test Locality Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXW\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXW/did.json"
+* name = "Test Locality Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXW\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXW/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXW-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXW"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXW"
 
 Instance: GDHCNParticipantDID-XXW-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Test Locality Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXW:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXW/DSC/did.json"
+* name = "Test Locality Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXW:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXW/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXW-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXW:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXW:DSC"
 
 Instance: GDHCNParticipantDID-XXW-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Test Locality Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXW:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXW/SCA/did.json"
+* name = "Test Locality Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXW:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXW/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXW-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXW:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXW:SCA"
 
 Instance: GDHCNParticipantDID-XXX-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Warrandyte Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXX\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXX/did.json"
+Description: "Warrandyte Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXX\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXX/did.json"
 Usage: #definition
-* name = "Warrandyte Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXX\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXX/did.json"
+* name = "Warrandyte Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXX\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXX/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXX-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXX"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXX"
 
 Instance: GDHCNParticipantDID-XXX-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Warrandyte Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXX:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXX/DSC/did.json"
+* name = "Warrandyte Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXX:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXX/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXX-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXX:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXX:DSC"
 
 Instance: GDHCNParticipantDID-XXX-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Warrandyte Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XXX:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXX/SCA/did.json"
+* name = "Warrandyte Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXX:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXX/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXX-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XXX:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XXX:SCA"
 
 Instance: GDHCNParticipantDID-XYK-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Test Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XYK\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XYK/did.json"
+Description: "Test Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XYK\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XYK/did.json"
 Usage: #definition
-* name = "Test Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn.who.int:v2:trustlist:-:XYK\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XYK/did.json"
+* name = "Test Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XYK\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XYK/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XYK-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XYK"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XYK"
 
 Instance: GDHCNParticipantDID-XYK-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Test Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn.who.int:v2:trustlist:-:XYK:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XYK/DSC/did.json"
+* name = "Test Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XYK:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XYK/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XYK-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XYK:DSC"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XYK:DSC"
 
 Instance: GDHCNParticipantDID-XYK-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Test Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn.who.int:v2:trustlist:-:XYK:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XYK/SCA/did.json"
+* name = "Test Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XYK:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XYK/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XYK-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
 * payloadMimeType = #application/did
 * payloadType = $PayloadTypes#urn:who:trust:trustlist:v2
-* address = "did:web:tng-cdn.who.int:v2:trustlist:-:XYK:SCA"
+* address = "did:web:tng-cdn-dev.who.int:v2:trustlist:-:XYK:SCA"
 
 
