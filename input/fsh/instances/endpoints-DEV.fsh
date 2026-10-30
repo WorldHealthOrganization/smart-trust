@@ -1938,9 +1938,9 @@ Usage: #definition
 
 Instance: GDHCNParticipantDID-XXV-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "TEST CITY Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/did.json"
+Description: "test city Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/did.json"
 Usage: #definition
-* name = "TEST CITY Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/did.json"
+* name = "test city Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXV-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1951,7 +1951,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-XXV-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "TEST CITY Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/DSC/did.json"
+* name = "test city Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXV-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1962,7 +1962,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-XXV-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "TEST CITY Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/SCA/did.json"
+* name = "test city Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXV:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXV/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXV-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
