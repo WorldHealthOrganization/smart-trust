@@ -25,7 +25,7 @@ The Electronic Health Certificate Container Format (HCERT) is designed to provid
 
 The payload is structured and encoded as a CBOR with a COSE digital signature. This is commonly known as a "CBOR Web Token" (CWT), and is defined in [RFC 8392](https://tools.ietf.org/html/rfc8392). The payload, as defined below, is transported in a `hcert` claim.
 
-The integrity and authenticity of origin of payload data MUST be verifiable by the Verifier. To provide this mechanism, the issuer MUST sign the CWT using an asymmetric electronic signature scheme as defined in the COSE specification ([RFC 8152](https://tools.ietf.org/html/rfc8152)).
+The integrity and authenticity of origin of payload data MUST be verifiable by the Verifier. To provide this mechanism, the issuer MUST sign the CWT using an asymmetric electronic signature scheme as defined in the COSE specification ([RFC 9052](https://www.rfc-editor.org/rfc/rfc9052), with the signature algorithms in [RFC 9053](https://www.rfc-editor.org/rfc/rfc9053)).
 
 ##### 3.2 CWT Claims
 
@@ -89,33 +89,35 @@ Verifiers MAY apply additional policies with the purpose of restricting the vali
 
 ###### 3.2.7 Health Certificate Claim
 
-The Health Certificate (`hcert`) claim is a JSON ([RFC 7159](https://tools.ietf.org/html/rfc7159)) object containing the health status information. The actual wire format of HCERT is content neutral. Several different types of health certificate MAY exist under the same claim, of which the European DCC is one.
+The Health Certificate (`hcert`) claim is a JSON ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259)) object containing the health status information. The actual wire format of HCERT is content neutral. Several different types of health certificate MAY exist under the same claim, of which the European DCC is one.
 
-Note here that the JSON is purely for schema purposes. The wire format is CBOR as defined in ([RFC 7049](https://tools.ietf.org/html/rfc7049)). Application developers may not actually ever decode or encode to and from the JSON format, but use the in-memory structure.
+Note here that the JSON is purely for schema purposes. The wire format is CBOR as defined in ([RFC 8949](https://www.rfc-editor.org/rfc/rfc8949)). Application developers may not actually ever decode or encode to and from the JSON format, but use the in-memory structure.
+
+Issuers SHOULD use the core deterministic encoding defined in [RFC 8949 section 4.2.1](https://www.rfc-editor.org/rfc/rfc8949#section-4.2.1), so that the same claim set yields the same bytes in every implementation and test vectors can be compared byte for byte. Verifiers SHALL accept any valid CBOR encoding: the signature covers the payload bytes exactly as sent, so a Verifier MUST NOT re-encode or otherwise normalise the payload before verifying the signature.
 
 The Claim Key to be used to identify this claim is -260.
 
 Strings in the JSON object SHOULD be NFC normalised according to the Unicode standard. Decoding applications SHOULD however be permissive and robust in these aspects, and acceptance of any reasonable type conversion is strongly encouraged. If non-normalised data is found during decoding, or in subsequent comparison functions, implementations SHOULD behave as if the input is normalised to NFC.
 
-####### 3.2.7.1 Subclaims
+###### 3.2.7.1 Subclaims
 - subclaims 0 and above are reserved by WHO to be assigned, a new sub claim can be requested for by requesting to create a new trust domain
 - subclaims for negative integer values are for development purposes and are free to use
 - While the [logical model](StructureDefinition-HCert.html) enlists assigned sub claims, the ones listed in this specification are considered authoritative
 
-######## 3.2.7.1.1 EU Digital Covid Certificate (DCC)
+###### 3.2.7.1.1 EU Digital Covid Certificate (DCC)
 [Data elements](http://smart.who.int/ddcc/StructureDefinition/HCertDCC) for the EU Digital COVID Certificate Core Data Set. Based on the official specification for COVID-19-related payloads https://health.ec.europa.eu/system/files/2021-06/covid-certificate_json_specification_en_0.pdf as of 2023-01-31, and Implementing Decision (EU) 2021/1073, Annex 1 https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32021D1073&from=EN#d1e34-35-1.
 
-######## 3.2.7.1.3 Digital Documentation of Covid Certificate - Vaccination Status (DDCCVS)
+###### 3.2.7.1.3 Digital Documentation of Covid Certificate - Vaccination Status (DDCCVS)
 The Digital Documentation of COVID-19 Certificates (DDCC) Trust Domain covers the utilization of COVID-19 Vaccine Certificates and Test Results. The Vaccination Status guidance is for the purposes of continuity of care and proof of vaccination. 
 - [DDCC Vaccination Status (DDCC:VS)](https://www.who.int/publications/i/item/WHO-2019-nCoV-Digital_certificates-vaccination-2021.1) documents the use cases, data requirements, technical specifications and implementation guidance for vaccination certificates.
 - [DDCC FHIR Implementation Guide](https://smart.who.int/ddcc/)
 
-######## 3.2.7.1.4 Digital Documentation of Covid Certificate - Test Results (DDCCTR)
+###### 3.2.7.1.4 Digital Documentation of Covid Certificate - Test Results (DDCCTR)
 The Digital Documentation of COVID-19 Certificates (DDCC) Trust Domain covers the utilization of COVID-19 Vaccine Certificates and Test Results. The Test Results guidance is for test result certificates that attest to: (a) the fact that an individual has been tested for SARS-CoV-2, and (b) the result of that SARS-CoV-2 diagnostic test. 
 - [DDCC Vaccination Status (DDCC:TR)](https://www.who.int/publications/i/item/WHO-2019-nCoV-Digital_certificates_diagnostic_test_results-2022.1) documents the use cases, data requirements, technical specifications and implementation guidance for vaccination certificates.
 - [DDCC FHIR Implementation Guide](https://smart.who.int/ddcc/)
 
-######## 3.2.7.1.5 Verifiable Health Link (VHL)
+###### 3.2.7.1.5 Verifiable Health Link (VHL)
 A Verifiable Health Link (VHL) shares health records, such as an International Patient Summary, through a link that is itself signed: the link is carried in an HCERT, so a receiver verifies it against the trust network before following it. VHL is specified by the [IHE ITI Verifiable Health Link (VHL) profile](https://profiles.ihe.net/ITI/VHL/), which reuses the payload format of [HL7 SMART Health Links](https://hl7.org/fhir/uv/smart-health-cards-and-links/links-specification.html) (`url`, `key`, `exp`, `flag`, `label`, `v`) and adds the trust, receiver authentication and manifest retrieval that a SMART Health Link leaves open.
 
 In an HCERT, claim key 5 holds the VHL payload as a CBOR map with text keys, conforming to the [Verifiable Health Link Payload](https://smart.who.int/trust-phw/StructureDefinition-VerifiableHealthLinkPayload.html) logical model. A CBOR map is used rather than a `vhlink:/` URI string because the URI form base64url-encodes JSON text inside the CBOR, which makes the QR code roughly a third larger.
@@ -136,7 +138,7 @@ To lower size and to improve speed and reliability in the reading process of the
 
 ###### 4.2.2 QR 2D Barcode
 
-In order to better handle legacy equipment designed to operate on ASCII payloads, the compressed CWT is encoded as ASCII using [Base45](https://datatracker.ietf.org/doc/draft-faltstrom-base45) before being encoded into a 2D barcode.
+In order to better handle legacy equipment designed to operate on ASCII payloads, the compressed CWT is encoded as ASCII using [Base45](https://www.rfc-editor.org/rfc/rfc9285) before being encoded into a 2D barcode.
 
 The QR format as defined in (ISO/IEC 18004:2015) SHALL be used for 2D barcode generation. An error correction rate of ‘Q’ (around 25%) is RECOMMENDED.  The Alphanumeric (Mode 2/QR Code symbols 0010) MUST be used in conjunction with Base45. 
 

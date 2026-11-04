@@ -100,7 +100,7 @@ exceed the DSC's own validity period, and `iat` must not predate it. See
 
 #### 5. Step 4 — Serialise as CBOR
 
-Encode the claim set as CBOR ([RFC 7049](https://tools.ietf.org/html/rfc7049)).
+Encode the claim set as CBOR ([RFC 8949](https://www.rfc-editor.org/rfc/rfc8949)).
 The JSON shown on this page and in the logical models is schema notation only —
 **the wire format is CBOR**, and an implementation need never produce the JSON
 form at all.
@@ -108,10 +108,19 @@ form at all.
 Strings SHOULD be NFC-normalised. Decoders SHOULD be permissive about input that
 is not.
 
+Use the core deterministic encoding of
+[RFC 8949 section 4.2.1](https://www.rfc-editor.org/rfc/rfc8949#section-4.2.1) —
+bytewise lexicographic map key order, integers in their shortest form. That is
+what makes two implementations produce the same QR from the same data, and a
+test vector comparable byte for byte. A verifier, on the other hand, must accept
+any valid encoding: the signature covers the bytes as sent, so **never re-encode
+or normalise a payload before verifying it**.
+
 #### 6. Step 5 — Sign as a COSE_Sign1
 
 Wrap the CBOR payload in a single-signer COSE structure
-([RFC 8152](https://tools.ietf.org/html/rfc8152)), CBOR tag `18`, with `alg`
+([RFC 9052](https://www.rfc-editor.org/rfc/rfc9052), with the algorithms in
+[RFC 9053](https://www.rfc-editor.org/rfc/rfc9053)), CBOR tag `18`, with `alg`
 (label 1) and `kid` (label 4) in the protected header.
 
 ES256 is the primary algorithm (`alg` `-7`) and PS256 the secondary (`-37`).
@@ -148,9 +157,9 @@ signing, so the verifier decompresses before it verifies.
 #### 8. Step 7 — Encode as Base45
 
 Encode the compressed bytes with
-[Base45](https://datatracker.ietf.org/doc/draft-faltstrom-base45). Base45 exists
-for one reason: its 45-character alphabet is exactly the QR Alphanumeric
-character set, which stores data far more densely than byte mode.
+[Base45](https://www.rfc-editor.org/rfc/rfc9285). Base45 exists for one
+reason: its 45-character alphabet is exactly the QR Alphanumeric character
+set, which stores data far more densely than byte mode.
 
 #### 9. Step 8 — Prefix the context identifier
 
@@ -181,7 +190,13 @@ cause of certificates that scan on screen but not on paper.
    necessarily happens before signature verification, which makes it an attack
    surface; check types and lengths defensively. See
    [section 6.3](hcert_spec.html#63-input-data-validation).
-5. Look the `kid` up on the trust list, retrieving every DSC that matches.
+5. Look the `kid` up on the trust list, retrieving every DSC that matches. The
+   `iss` claim MAY be used to narrow the search to a single participant, but it
+   is optional and does not always resolve: participants that are not states,
+   such as `WHO` and `IOM`, have no alpha-2 code, and user-assigned codes in the
+   `X` range have no ISO mapping to one. A verifier that cannot resolve `iss` to
+   a participant searches the whole trust list by `kid`. The `kid` lookup is the
+   mechanism; `iss` is only a hint that narrows it.
 6. Rebuild the `Sig_structure` and verify the signature against each candidate
    DSC until one succeeds. **Verify the signature before processing the
    payload.**
@@ -235,9 +250,15 @@ before relying on it; schedules are revised.
 ##### 12.3 Issuer
 
 The example is issued by GDHCN **DEV participant `XXR`**, not by any Member
-State. GDHCN participant codes are ISO 3166-1 alpha-3, while the CWT `iss` claim
-and the X.509 country attribute take the alpha-2 form — here `XR`, matching the
-`C=XR` attribute of the Document Signing Certificate subject.
+State. GDHCN participant codes are normally ISO 3166-1 alpha-3, while the CWT
+`iss` claim and the X.509 country attribute take the alpha-2 form — here `XR`,
+matching the `C=XR` attribute of the Document Signing Certificate subject.
+
+The alpha-3 form is a convention rather than a guarantee, and there is no
+published mapping between the two forms: the DEV network currently carries a few
+two-character participant codes, and participants that are not states have no
+alpha-2 equivalent at all. This is why a verifier treats `iss` as a hint and
+falls back to searching the trust list by `kid`, as in section 11.
 
 Signing uses a key whose public key is onboarded to the GDHCN DEV trust network,
 so the example verifies against the DEV trust list. The private key is held in
