@@ -26,7 +26,7 @@ on:
   pull_request:
     # Draft PRs run only the fast tier (bean dft1, cat-harness-tools#616);
     # ready_for_review re-runs the full tier the moment a PR is marked ready.
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
   # main's own run keeps main's answer, the gate seconds and the cone records
   # in caches every PR can read (cat-harness-tools#406, #411); a run on a PR
   # can only read caches saved from its own PR or from main.
@@ -47,6 +47,9 @@ concurrency:
 
 jobs:
   checks:
+    # A label starts a run only for `release` (full tier) or `preview`
+    # (the change's cone; cat-harness-tools#2150); any other label is a no-op.
+    if: ${{ github.event.action != 'labeled' || github.event.label.name == 'release' || github.event.label.name == 'preview' }}
     uses: litlfred/cat-harness-tools/.github/workflows/layer-pr-checks.yml@b31b1104cdfa9c352f7e7f515f8367d6afef0f2e # index.lock.json
     with:
       # On a draft PR: prepare and typecheck only; the full tier runs on ready_for_review.
