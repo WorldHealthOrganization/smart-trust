@@ -7,12 +7,10 @@ generated: "scripts/subgraph-readmes.ts of the bootstrap toolset (https://github
 
 # smart-trust-artifact-index
 
-The IG's artefact index. `index.json`, `menu.json`, `releases.json`, `package.tgz` and `sidecars/` are not committed: fhir-harness's `ig-index:build` writes them at publish from the IG's AST (`sidecars/` through smart-base's `ig-site:sidecars` step). `ig-identity.json` and `README.md` are committed. `index.json` carries a `provenance` block naming the AST or config file each field came from.
+The IG's artefact index. `index.json`, `menu.json`, `releases.json`, `package.tgz` and `sidecars/` are not committed: fhir-harness's `ig-index:build` writes them at publish from the IG's AST (`sidecars/` through smart-base's `ig-site:sidecars` step). Only `README.md` is committed. `index.json` carries a `provenance` block naming the AST or config file each field came from.
 
 Part of [WHO SMART Trust](../README.md) 0.1.0, declared as `smart-trust-artifact-index`, holding `fhir-artifact-index`.
 
-| file | what it is | used by |
-|---|---|---|
-| [`ig-identity.json`](ig-identity.json) | data |  |
+_This directory holds no files yet._
 
 <!-- kg:subgraph:end -->
