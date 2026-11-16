@@ -75,6 +75,20 @@
   // AND PDF: the generic renderer counts this page's load in and out.
   var cfg, host;
 
+  // A translated page carries its catalogue for the words this script writes
+  // (`<script type="application/json" id="am-i18n">`, archimate-locales.ts):
+  // T("…") is the word in the page's language, F("…{0}…", x) the same with
+  // values put in. A word with no translation stays English.
+  var I18N = (function () {
+    var s = document.getElementById("am-i18n");
+    try { return s ? JSON.parse(s.textContent) : {}; } catch (e) { return {}; }
+  })();
+  function T(s) { return Object.prototype.hasOwnProperty.call(I18N, s) ? I18N[s] : s; }
+  function F(s) {
+    var a = arguments;
+    return T(s).replace(/\{(\d)\}/g, function (m, i) { return String(a[+i + 1]); });
+  }
+
   var LAYERS = ["Strategy", "Business", "Application", "Technology", "Physical", "Motivation", "Implementation & Migration", "Other"];
 
   function el(tag, attrs, kids) {
@@ -90,7 +104,7 @@
     return el("div", { class: "am-text" }, String(s).split(/\n{2,}/).map(function (p) { return el("p", {}, [p]); }));
   }
   function typeLabel(t) {
-    return String(t).replace(/([a-z])([A-Z])/g, "$1 $2");
+    return T(String(t).replace(/([a-z])([A-Z])/g, "$1 $2"));
   }
   function getJson(href) {
     return fetch(href).then(function (r) {
@@ -122,19 +136,19 @@
   }
   function endLink(ix, id) {
     var e = ix.el[id];
-    if (e) return el("a", { href: elHref(id) }, [e.name || "(unnamed)"]);
+    if (e) return el("a", { href: elHref(id) }, [e.name || T("(unnamed)")]);
     var r = ix.rel[id];
-    return r ? el("a", { href: relHref(id) }, [typeLabel(r.type) + " relationship"]) : el("span", {}, [id + " (not in the model)"]);
+    return r ? el("a", { href: relHref(id) }, [F("{0} relationship", typeLabel(r.type))]) : el("span", {}, [F("{0} (not in the model)", id)]);
   }
   function props(list) {
     if (!list || !list.length) return null;
     return el("table", { class: "am-props" }, [
-      el("thead", {}, [el("tr", {}, [el("th", {}, ["Property"]), el("th", {}, ["Value"])])]),
+      el("thead", {}, [el("tr", {}, [el("th", {}, [T("Property")]), el("th", {}, [T("Value")])])]),
       el("tbody", {}, list.map(function (p) { return el("tr", {}, [el("td", {}, [p.key]), el("td", {}, [p.value])]); })),
     ]);
   }
   function viewList(m, ix, ids) {
-    if (!ids || !ids.length) return el("p", {}, ["Not drawn in any view."]);
+    if (!ids || !ids.length) return el("p", {}, [T("Not drawn in any view.")]);
     return el("ul", {}, ids.map(function (id) { return el("li", {}, [el("a", { href: viewHref(id) }, [ix.view[id] ? ix.view[id].name : id])]); }));
   }
   function relRows(ix, rels, dir) {
@@ -150,31 +164,31 @@
     });
   }
   function links(extra) {
-    return el("p", { class: "am-links" }, [el("a", { href: cfg.node }, ["This node as JSON-LD"])].concat(extra || []));
+    return el("p", { class: "am-links" }, [el("a", { href: cfg.node }, [T("This node as JSON-LD")])].concat(extra || []));
   }
 
   // ── A model: its views, and its elements by layer ──────────────────────
   function drawModel(m) {
-    var out = [el("p", {}, [m.views.length + " views · " + m.elements.length + " elements · " + m.relationships.length + " relationships"])];
+    var out = [el("p", {}, [F("{0} views · {1} elements · {2} relationships", m.views.length, m.elements.length, m.relationships.length)])];
     if (m.documentation) out.push(text(m.documentation));
     out.push(props(m.properties));
-    out.push(el("h2", {}, ["Views"]));
+    out.push(el("h2", {}, [T("Views")]));
     out.push(el("ul", { class: "am-views" }, m.views.map(function (v) {
-      return el("li", {}, [el("a", { href: viewHref(v.id) }, [v.name || "(unnamed view)"]), v.folder && v.folder.length > 1 ? el("span", { class: "am-type" }, [" — " + v.folder.slice(1).join(" / ")]) : null]);
+      return el("li", {}, [el("a", { href: viewHref(v.id) }, [v.name || T("(unnamed view)")]), v.folder && v.folder.length > 1 ? el("span", { class: "am-type" }, [" — " + v.folder.slice(1).join(" / ")]) : null]);
     })));
     LAYERS.forEach(function (layer) {
       var es = m.elements.filter(function (e) { return e.layer === layer; });
       if (!es.length) return;
       es.sort(function (a, b) { return a.type === b.type ? (a.name || "").localeCompare(b.name || "") : a.type.localeCompare(b.type); });
-      out.push(el("h2", { class: "am-layer am-layer-" + layer.replace(/\W+/g, "-").toLowerCase() }, [layer + " (" + es.length + ")"]));
+      out.push(el("h2", { class: "am-layer am-layer-" + layer.replace(/\W+/g, "-").toLowerCase() }, [F("{0} ({1})", T(layer), es.length)]));
       out.push(el("ul", { class: "am-els" }, es.map(function (e) {
-        return el("li", {}, [el("a", { href: elHref(e.id) }, [e.name || "(unnamed)"]), el("span", { class: "am-type" }, [" " + typeLabel(e.type)]), (m.inViews[e.id] || []).length ? null : el("span", { class: "am-type" }, [" · in no view"])]);
+        return el("li", {}, [el("a", { href: elHref(e.id) }, [e.name || T("(unnamed)")]), el("span", { class: "am-type" }, [" " + typeLabel(e.type)]), (m.inViews[e.id] || []).length ? null : el("span", { class: "am-type" }, [" · " + T("in no view")])]);
       })));
     });
     // The model file sits in the DATA root beside `<m>/model.json`, not under
     // the page: resolve from the model's data URL, so it holds wherever a
     // site puts its pages (smart-ra serves pages under `en/dpi-h-ra/`).
-    out.push(links([" · ", el("a", { href: new URL("../" + m.file.split("/").map(encodeURIComponent).join("/"), new URL(cfg.model, location.href)).href }, ["The Archi model file"])]));
+    out.push(links([" · ", el("a", { href: new URL("../" + m.file.split("/").map(encodeURIComponent).join("/"), new URL(cfg.model, location.href)).href }, [T("The Archi model file")])]));
     return out;
   }
 
@@ -184,20 +198,20 @@
     var v = ix.view[cfg.id];
     if (!v) throw new Error("view " + cfg.id + " is not in the model");
     var out = [];
-    if (v.viewpoint) out.push(el("p", { class: "am-type" }, ["Viewpoint: " + typeLabel(v.viewpoint)]));
+    if (v.viewpoint) out.push(el("p", { class: "am-type" }, [F("Viewpoint: {0}", typeLabel(v.viewpoint))]));
     if (v.documentation) out.push(text(v.documentation));
     // A `bpmn-figure`, so docs-ui.js gives it the zoom, pan, full-width and copy controls every other figure has.
     out.push(el("figure", { class: "bpmn-figure am-figure" }, [
-      el("object", { data: cfg.svg, type: "image/svg+xml", "aria-label": v.name }, [el("a", { href: cfg.svg }, ["The drawing of " + v.name])]),
+      el("object", { data: cfg.svg, type: "image/svg+xml", "aria-label": v.name }, [el("a", { href: cfg.svg }, [F("The drawing of {0}", v.name)])]),
     ]));
     var shown = Object.keys(m.inViews).filter(function (id) { return ix.el[id] && m.inViews[id].indexOf(v.id) >= 0; });
     if (shown.length) {
-      out.push(el("h2", {}, ["Elements in this view (" + shown.length + ")"]));
+      out.push(el("h2", {}, [F("Elements in this view ({0})", shown.length)]));
       out.push(el("ul", { class: "am-els" }, shown.map(function (id) {
-        return el("li", {}, [el("a", { href: elHref(id) }, [ix.el[id].name || "(unnamed)"]), el("span", { class: "am-type" }, [" " + typeLabel(ix.el[id].type)])]);
+        return el("li", {}, [el("a", { href: elHref(id) }, [ix.el[id].name || T("(unnamed)")]), el("span", { class: "am-type" }, [" " + typeLabel(ix.el[id].type)])]);
       })));
     }
-    out.push(links([" · ", el("a", { href: cfg.svg }, ["The drawing (SVG)"])]));
+    out.push(links([" · ", el("a", { href: cfg.svg }, [T("The drawing (SVG)")])]));
     return out;
   }
 
@@ -207,15 +221,15 @@
     var e = ix.el[cfg.id];
     if (!e) throw new Error("element " + cfg.id + " is not in the model");
     var out = [];
-    if (e.folder && e.folder.length) out.push(el("p", { class: "am-type" }, ["Filed under " + e.folder.join(" / ")]));
-    out.push(e.documentation ? text(e.documentation) : el("p", { class: "am-type" }, ["No documentation."]));
+    if (e.folder && e.folder.length) out.push(el("p", { class: "am-type" }, [F("Filed under {0}", e.folder.join(" / "))]));
+    out.push(e.documentation ? text(e.documentation) : el("p", { class: "am-type" }, [T("No documentation.")]));
     out.push(props(e.properties));
     var o = ix.out[e.id] || [];
     var i = ix.inc[e.id] || [];
-    out.push(el("h2", {}, ["Relationships (" + (o.length + i.length) + ")"]));
+    out.push(el("h2", {}, [F("Relationships ({0})", o.length + i.length)]));
     if (o.length + i.length) out.push(el("ul", { class: "am-rels" }, relRows(ix, o, "out").concat(relRows(ix, i, "in"))));
-    else out.push(el("p", {}, ["None."]));
-    out.push(el("h2", {}, ["Views"]));
+    else out.push(el("p", {}, [T("None.")]));
+    out.push(el("h2", {}, [T("Views")]));
     out.push(viewList(m, ix, m.inViews[e.id]));
     out.push(links());
     return out;
@@ -227,12 +241,12 @@
     var r = ix.rel[cfg.id];
     if (!r) throw new Error("relationship " + cfg.id + " is not in the model");
     var out = [el("p", { class: "am-ends" }, [endLink(ix, r.source), " → ", endLink(ix, r.target)])];
-    if (r.accessType) out.push(el("p", { class: "am-type" }, ["Access: " + r.accessType]));
-    if (r.strength) out.push(el("p", { class: "am-type" }, ["Strength: " + r.strength]));
-    if (r.directed) out.push(el("p", { class: "am-type" }, ["Directed"]));
+    if (r.accessType) out.push(el("p", { class: "am-type" }, [F("Access: {0}", T(r.accessType))]));
+    if (r.strength) out.push(el("p", { class: "am-type" }, [F("Strength: {0}", r.strength)]));
+    if (r.directed) out.push(el("p", { class: "am-type" }, [T("Directed")]));
     if (r.documentation) out.push(text(r.documentation));
     out.push(props(r.properties));
-    out.push(el("h2", {}, ["Views"]));
+    out.push(el("h2", {}, [T("Views")]));
     out.push(viewList(m, ix, m.inViews[r.id]));
     out.push(links());
     return out;
@@ -270,7 +284,7 @@
       })
       .catch(function (e) {
         host.textContent = "";
-        host.appendChild(el("p", { class: "am-error" }, ["Could not load " + cfg.model + ": " + e.message]));
+        host.appendChild(el("p", { class: "am-error" }, [F("Could not load {0}: {1}", cfg.model, e.message)]));
       });
   }
 

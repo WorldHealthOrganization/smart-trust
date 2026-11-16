@@ -10902,7 +10902,11 @@
     if (isPlain) {
       var art0 = scope.querySelector("svg, img, object");
       var natural = intrinsicWidth(scope) ||
-        (art0 && art0.tagName.toLowerCase() === "img" ? art0.naturalWidth : 0) ||
+        // An SVG <img> drawn at width="100%" has no intrinsic width, and the
+        // browser reports its 300px default as `naturalWidth`; with no
+        // width known the stylesheet falls back to the column instead.
+        (art0 && art0.tagName.toLowerCase() === "img" && !/\.svg($|[?#])/i.test(art0.getAttribute("src") || "")
+          ? art0.naturalWidth : 0) ||
         (art0 ? parseFloat(art0.getAttribute("width") || "") || 0 : 0);
       if (natural > 0) scope.style.setProperty("--fa-natural", natural + "px");
     } else {
@@ -11294,6 +11298,7 @@
   }
 
   function mountFigures() {
+    queueLateDrawings();
     document.querySelectorAll(".bpmn-figure").forEach(function (f) {
       if (f.querySelector("[data-fa-inline-pending]")) return;
       mountFigure(f, false);
@@ -11491,34 +11496,60 @@
   // `faInlineAllDiagrams()` returns a promise for a caller that can wait
   // (a Print button would await it, then call window.print()).
   var INLINE_MARGIN = "1000px 0px";
+  var INLINE_SEL =
+    '.bpmn-figure img[src$=".svg"], .main-content img[src$=".svg"], ' +
+    '.main-content object[data$=".svg"], .main-content object[type="image/svg+xml"][data]';
   var inlineQueue = [];
-  function inlineDiagrams(done) {
-    var imgs = [].slice.call(
-      document.querySelectorAll(
-        '.bpmn-figure img[src$=".svg"], .main-content img[src$=".svg"], ' +
-          '.main-content object[data$=".svg"], .main-content object[type="image/svg+xml"][data]',
-      ),
-    );
-    if (!imgs.length || typeof window.fetch !== "function" || typeof window.DOMParser !== "function") {
-      done();
-      return;
-    }
-    imgs.forEach(function (img) { img.setAttribute("data-fa-inline-pending", ""); });
-    inlineQueue = imgs;
-    done();
+  var inlineIo = null;
+  function canInline() {
+    return typeof window.fetch === "function" && typeof window.DOMParser === "function";
+  }
+
+  /* Mark each drawing not yet seen as pending and inline it as it nears the
+     viewport. A drawing already tried (`faInlined`, which a failed fetch
+     keeps, so it stays the <img> it was) or already waiting is left alone. */
+  function queueInline(imgs) {
+    imgs = imgs.filter(function (img) {
+      return !img.faInlined && !img.hasAttribute("data-fa-inline-pending");
+    });
+    imgs.forEach(function (img) {
+      img.setAttribute("data-fa-inline-pending", "");
+      inlineQueue.push(img);
+    });
+    if (!imgs.length) return;
     if (typeof window.IntersectionObserver !== "function") {
       // No observer: the old behaviour, every drawing now.
-      inlineAll();
+      imgs.forEach(inlineOne);
       return;
     }
-    var io = new window.IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        io.unobserve(e.target);
-        inlineOne(e.target);
-      });
-    }, { rootMargin: INLINE_MARGIN });
-    imgs.forEach(function (img) { io.observe(img); });
+    if (!inlineIo) {
+      inlineIo = new window.IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          inlineIo.unobserve(e.target);
+          inlineOne(e.target);
+        });
+      }, { rootMargin: INLINE_MARGIN });
+    }
+    imgs.forEach(function (img) { inlineIo.observe(img); });
+  }
+
+  function inlineDiagrams(done) {
+    if (canInline()) queueInline([].slice.call(document.querySelectorAll(INLINE_SEL)));
+    done();
+  }
+
+  /* A DRAWING THAT ARRIVES AFTER LOAD is inlined too (owner, 2026-11-16, on
+     dth-hrh HRH-BP-01: "bad scale"). A whole-document page fills its blocks
+     from JSON as the reader scrolls, so its <img> drawings were never in the
+     load-time scan above: mountFigures wrapped each as a plain image, sized
+     it from `naturalWidth`, and a bpmn-js SVG (width="100%", no height) has
+     no intrinsic width, so the browser's 300px default became "100%" and the
+     labels came out a third of the body text. mountFigures calls this first,
+     so a late drawing is queued, skipped while pending, and text-fitted once
+     it is inlined. */
+  function queueLateDrawings() {
+    if (canInline()) queueInline([].slice.call(document.querySelectorAll(INLINE_SEL)));
   }
 
   /** Inline every drawing not yet inlined; resolves when all have settled. */
@@ -13950,11 +13981,17 @@
       }, 50);
     });
     observer.observe(main, { childList: true, subtree: true });
-    // Mermaid is the only thing expected to add a figure after load, so stop
-    // watching once it has had its chance. An observer left on the document
-    // body for the life of the page fires on every future DOM change,
-    // including the ones mountFigures itself makes.
-    window.setTimeout(function () { observer.disconnect(); }, 10000);
+    // Stop watching once Mermaid has had its chance. An observer left on the
+    // document body for the life of the page fires on every future DOM
+    // change, including the ones mountFigures itself makes. A whole-document
+    // page that fills its blocks as the reader scrolls (`.fa-blk` without
+    // `data-filled`) adds figures for as long as any block is empty, so the
+    // observer stays until the last one is filled.
+    function stopWhenSettled() {
+      if (document.querySelector(".fa-blk:not([data-filled])")) window.setTimeout(stopWhenSettled, 10000);
+      else observer.disconnect();
+    }
+    window.setTimeout(stopWhenSettled, 10000);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
