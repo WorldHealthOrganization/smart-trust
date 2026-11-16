@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — Ingestion subprocess — ingest a theme.
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool. The SVG under docs/assets/img/workflows/ is generated from it
+  by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  The <bootstrap.processes:skill> extension on an activity names the folio-assistant skill
+  that implements it.
+  The engine keeps the work context; no step carries work-plan markup.
+
+  A theme is ingested from a SOURCE the same way a document is, and
+  the two sources are genuinely different kinds of thing: a deployed site SERVES
+  its theme as a stylesheet, while a style guide STATES its rules as prose. The
+  gateway is that difference and nothing else — everything after it is shared,
+  because the palette vocabulary is shared across every kind.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_IngestTheme"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="ingestion-agent" name="Ingestion engine"/>
+  <bpmn:collaboration id="Collaboration_IngestTheme">
+    <bpmn:participant id="Participant_IngestTheme" name="Ingestion subprocess — ingest a theme" processRef="Process_IngestTheme" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_IngestTheme" name="Ingestion subprocess — ingest a theme" isExecutable="false">
+    <bpmn:documentation>Decide whether an ingested artefact is a theme source and, when it is, extract its palette roles and layouts and send them to theme and UI review.
+
+  One Theme node with kind sticky | webpage | publication, not three
+  node kinds: the palette vocabulary is shared and only the GEOMETRY varies.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_IngestTheme_LaneSet">
+      <bpmn:lane id="Lane_0" name="Ingestion Engine (agent, runs unattended)" partitionElementRef="ingestion-agent">
+        <bpmn:documentation>Every step in this diagram is this lane's, and each treats the source as evidence to be recorded rather than resolved: contradictions in the source are kept as data rather than silently picked, values the source is silent on are marked as a choice rather than dressed up as a measurement, and a missing layout ends in refusal rather than a theme quietly degraded to the ones that were supplied.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_Source</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Kind</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReadStylesheet</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReadGuide</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MapRoles</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Contradictions</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Layouts</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Refused</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Theme</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Source" name="Theme source in hand">
+      <bpmn:outgoing>Flow_t1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_Kind" name="Served, or
+stated?">
+      <bpmn:documentation>The ONE difference between the two paths. A deployed site SERVES its theme as a compiled stylesheet; a style guide STATES its rules as prose and swatches. Everything after the join is shared.</bpmn:documentation>
+      <bpmn:incoming>Flow_t1</bpmn:incoming>
+      <bpmn:outgoing>Flow_t2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_t3</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_ReadStylesheet" name="Read the served
+stylesheet's declarations">
+      <bpmn:documentation>Read the ROLE, never the prettiest value. Bootstrap's --blue is a scale entry and --primary is the role; DSpace sets them differently, and taking the brand-looking one is the hardcoding schemas/ui/theme.ts exists to end. Column widths come from declared columns, never from breakpoints: a breakpoint is a viewport.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="theme-art-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_t2</bpmn:incoming>
+      <bpmn:outgoing>Flow_t4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ReadGuide" name="Read the guide's
+own stated rules">
+      <bpmn:documentation>From the INGESTED document's sections, not from a screenshot and not inferred from a site that happens to use the brand. Units stay as the source gives them: rewriting 29.7cm as millimetres is a conversion nobody asked for and a chance to be wrong.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="theme-art-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_t3</bpmn:incoming>
+      <bpmn:outgoing>Flow_t5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_MapRoles" name="Map values onto palette roles">
+      <bpmn:documentation>surface / ink / edge / accent, shared across every kind. A palette per kind would be three spellings of "accent colour", free to disagree about what an accent IS. Where the source is SILENT on a role, say so and mark the value a choice rather than dressing an invention as a measurement.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="theme-art-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_t4</bpmn:incoming>
+      <bpmn:incoming>Flow_t5</bpmn:incoming>
+      <bpmn:outgoing>Flow_t6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Contradictions" name="Record contradictions
+IN the source">
+      <bpmn:documentation>A step because sources do contradict themselves (one colour given two values on different pages). A contradiction silently resolved is indistinguishable from one nobody noticed, so it is kept as data and the reading taken is stated as a choice.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="theme-art-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_t6</bpmn:incoming>
+      <bpmn:outgoing>Flow_t7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Layouts" name="Every layout
+present?">
+      <bpmn:documentation>Is every layout the theme must cover present in the source? `yes` goes on to the contrast and non-colour review; `no` refuses the theme as incomplete rather than filling the gap by guessing.</bpmn:documentation>
+      <bpmn:incoming>Flow_t7</bpmn:incoming>
+      <bpmn:outgoing>Flow_t8</bpmn:outgoing>
+      <bpmn:outgoing>Flow_t9</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_Refused" name="Refused — incomplete">
+      <bpmn:documentation>Every layout still required, and a missing one stays INVALID rather than degraded. Three viewports for a screen theme, three print formats for a publication one. A theme that quietly dropped a layout would render correctly everywhere the missing one is not used, which is the state this refusal exists to prevent.</bpmn:documentation>
+      <bpmn:incoming>Flow_t9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Task_Review" name="Theme and UI review" calledElement="Process_ThemeUIReview">
+      <bpmn:documentation>THEME REVIEW HAPPENS HERE AND NOWHERE ELSE: graphical assets are reviewed at ingestion, in the context of the website or app design they are for.
+
+So this step CALLS `theme-ui-review.bpmn`.
+
+WHAT THE CALL COSTS, stated rather than hidden. The subprocess has a human step, `R_Judge`: a person looks at the ingested assets laid out in their design at a web and a mobile width. So ingesting a THEME SOURCE is attended at that step. Ingesting anything else stays unattended: it never reaches this subprocess.
+
+THE AUTOMATED CHECK IS INSIDE THE CALL. "A theme sets the stripe's hue; it never sets its width to zero" — colour alone carrying a whole signal fails WCAG SC 1.4.1, and the WHO guide agrees ("Never red with green, never blue with yellow"). That check is `A_Accessibility` in the called process, which measures contrast against the real ground and requires a non-colour channel wherever colour carries meaning.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="theme-ui-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_t8</bpmn:incoming>
+      <bpmn:outgoing>Flow_t10</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="EndEvent_Theme" name="Theme node">
+      <bpmn:incoming>Flow_t10</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_t1" sourceRef="StartEvent_Source" targetRef="Gateway_Kind" />
+    <bpmn:sequenceFlow id="Flow_t2" name="served — a deployment" sourceRef="Gateway_Kind" targetRef="Task_ReadStylesheet" />
+    <bpmn:sequenceFlow id="Flow_t3" name="stated — a style guide" sourceRef="Gateway_Kind" targetRef="Task_ReadGuide" />
+    <bpmn:sequenceFlow id="Flow_t4" sourceRef="Task_ReadStylesheet" targetRef="Task_MapRoles" />
+    <bpmn:sequenceFlow id="Flow_t5" sourceRef="Task_ReadGuide" targetRef="Task_MapRoles" />
+    <bpmn:sequenceFlow id="Flow_t6" sourceRef="Task_MapRoles" targetRef="Task_Contradictions" />
+    <bpmn:sequenceFlow id="Flow_t7" sourceRef="Task_Contradictions" targetRef="Gateway_Layouts" />
+    <bpmn:sequenceFlow id="Flow_t8" name="yes" sourceRef="Gateway_Layouts" targetRef="Task_Review" />
+    <bpmn:sequenceFlow id="Flow_t9" name="no" sourceRef="Gateway_Layouts" targetRef="EndEvent_Refused" />
+    <bpmn:sequenceFlow id="Flow_t10" sourceRef="Task_Review" targetRef="EndEvent_Theme" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_IngestTheme">
+    <bpmndi:BPMNPlane id="Plane_IngestTheme" bpmnElement="Collaboration_IngestTheme">
+      <bpmndi:BPMNShape id="Participant_IngestTheme_di" bpmnElement="Participant_IngestTheme" isHorizontal="true"><dc:Bounds x="160" y="80" width="1345" height="340" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0_di" bpmnElement="Lane_0" isHorizontal="true"><dc:Bounds x="190" y="80" width="1315" height="340" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Source_di" bpmnElement="StartEvent_Source"><dc:Bounds x="247" y="222" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Kind_di" bpmnElement="Gateway_Kind" isMarkerVisible="true"><dc:Bounds x="340" y="215" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="246" y="176" width="90" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReadStylesheet_di" bpmnElement="Task_ReadStylesheet"><dc:Bounds x="465" y="110" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReadGuide_di" bpmnElement="Task_ReadGuide"><dc:Bounds x="465" y="250" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_MapRoles_di" bpmnElement="Task_MapRoles"><dc:Bounds x="685" y="180" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Contradictions_di" bpmnElement="Task_Contradictions"><dc:Bounds x="890" y="180" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Layouts_di" bpmnElement="Gateway_Layouts" isMarkerVisible="true"><dc:Bounds x="1075" y="215" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1055" y="175" width="90" height="36" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Refused_di" bpmnElement="EndEvent_Refused"><dc:Bounds x="1082" y="345" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Review_di" bpmnElement="Task_Review"><dc:Bounds x="1200" y="180" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Theme_di" bpmnElement="EndEvent_Theme"><dc:Bounds x="1415" y="222" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_t1_di" bpmnElement="Flow_t1"><di:waypoint x="283" y="240" /><di:waypoint x="340" y="240" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_t2_di" bpmnElement="Flow_t2">
+        <di:waypoint x="390" y="240" />
+        <di:waypoint x="427.5" y="240" />
+        <di:waypoint x="427.5" y="170" />
+        <di:waypoint x="465" y="170" />
+        <bpmndi:BPMNLabel><dc:Bounds x="369" y="131" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_t3_di" bpmnElement="Flow_t3">
+        <di:waypoint x="390" y="240" />
+        <di:waypoint x="427.5" y="240" />
+        <di:waypoint x="427.5" y="310" />
+        <di:waypoint x="465" y="310" />
+        <bpmndi:BPMNLabel><dc:Bounds x="333.5" y="274.5" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_t4_di" bpmnElement="Flow_t4">
+        <di:waypoint x="585" y="170" />
+        <di:waypoint x="635" y="170" />
+        <di:waypoint x="635" y="240" />
+        <di:waypoint x="685" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_t5_di" bpmnElement="Flow_t5">
+        <di:waypoint x="585" y="310" />
+        <di:waypoint x="635" y="310" />
+        <di:waypoint x="635" y="240" />
+        <di:waypoint x="685" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_t6_di" bpmnElement="Flow_t6">
+        <di:waypoint x="805" y="240" />
+        <di:waypoint x="890" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_t7_di" bpmnElement="Flow_t7">
+        <di:waypoint x="1010" y="240" />
+        <di:waypoint x="1075" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_t8_di" bpmnElement="Flow_t8">
+        <di:waypoint x="1125" y="240" />
+        <di:waypoint x="1200" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_t9_di" bpmnElement="Flow_t9">
+        <di:waypoint x="1100" y="265" />
+        <di:waypoint x="1100" y="345" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_t10_di" bpmnElement="Flow_t10">
+        <di:waypoint x="1320" y="240" />
+        <di:waypoint x="1415" y="240" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

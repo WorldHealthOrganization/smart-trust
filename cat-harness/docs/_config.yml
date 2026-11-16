@@ -1,0 +1,266 @@
+# Jekyll configuration for the folio-assistant documentation site.
+#
+# Published to GitHub Pages at https://litlfred.github.io/folio-assistant/
+# Built and deployed by .github/workflows/docs-site.yml.
+#
+# Theme: just-the-docs (via remote_theme — the jekyll-remote-theme plugin is
+# whitelisted by the github-pages gem, so this works on GitHub Pages). The
+# theme keys live in the site CHROME, `site-chrome/_config.yml`, which this
+# file overlays when the docs tree is composed (`compose-docs`; proposal
+# semantic-subgraphs-2026-10-09, slice 1). What stays here is this site's
+# identity and nav.
+
+title: folio-assistant
+description: >-
+  Content-agnostic agent skills framework — author scientific papers, WHO SMART
+  Guidelines, and FHIR Implementation Guides with an LLM, an MCP server, and a
+  typed content-object model.
+
+# Site lives under /folio-assistant/ on litlfred.github.io.
+baseurl: "/folio-assistant"
+url: "https://litlfred.github.io"
+
+# NO `aux_links`, deliberately.
+#
+# just-the-docs draws them as text at the top right of the MAIN panel, which
+# is where the words "GitHub" sat above every page. The owner asked for that
+# gone -- "remove the github.com from the top of the display" (bean `udx8`) --
+# and for the forge to be reachable as an icon instead. It is: the Source tile
+# in the header's action launcher, beside the JSON-LD and knowledge-graph
+# tiles.
+#
+# The tile does NOT read this key any more either. `aux_links` was doing two
+# jobs -- displaying a link, and recording where the repository is -- and only
+# the second was wanted. The repository URL is now resolved from the git
+# remote by `scripts/sync-docs-harness.ts` into `docs/_data/harness.json`,
+# alongside the knowledge-graph and JSON-LD targets, so there is one answer to
+# "where is this layer published" rather than one per consumer. Putting a
+# link back here would restore the header text this removed.
+
+footer_content: >-
+  folio-assistant — code under the Apache License 2.0, documentation under
+  CC BY 3.0. Generated schema and API references are rebuilt from source on
+  every push to main.
+
+# The TypeDoc API reference is generated HTML; let it pass through untouched
+# rather than being processed as Jekyll pages.
+keep_files:
+  - api
+
+# Jekyll's EntryFilter skips every directory segment starting with `_`, even
+# deep inside a page tree (`en/cat-harness/node-kind-index/cat-harness/docs/_data/node-kinds/index.html`,
+# the node-kind page for `docs/_data/node-kinds.json`, #2741). Listing the file
+# under `include:` makes `Reader#read_included_excludes` read and render it as a
+# page without exposing top-level `_data/`.
+include:
+  - en/cat-harness/node-kind-index/cat-harness/docs/_data/node-kinds/index.html
+
+exclude:
+  # The docs graph's own SOURCE (owner, 2026-10-09: "move content/docs into
+  # docs/"): authored blocks and their manifests, which gen-docs-pages.ts
+  # renders into the pages beside them. Source, not pages -- Jekyll must not
+  # publish the .md blocks as pages of their own.
+  - source
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - folio-assistant-migration.md
+  - sage-mcp.md
+  # Content-addressed payloads (bean `f233`) are copied into the site VERBATIM
+  # by docs-site.yml / feature-staging.yml after the build. A skill body
+  # carries front matter and `{{ }}`, so Jekyll would render it as a page and
+  # the bytes served would no longer hash to their name.
+  - payload
+  # Directory READMEs that `readme:subgraphs` writes into a declared directory
+  # with NO index page of its own (#2094). They are for someone browsing the
+  # repository, not site pages: under the github-pages gem set,
+  # `jekyll-readme-index` publishes such a README as the directory's
+  # `index.html` through a path with no GFM tables, and `check:escaped-markup`
+  # fails on the pipes. A directory that has an `index.md` is unaffected. Find
+  # new cases with: every tracked README.md under docs/ whose directory holds
+  # no index.md or index.html.
+  - assets/img/uml/overview/README.md
+  - cat-harness/auto-docs/lsi/README.md
+
+# THE PAGES LIST, GROUPED BY THE DOCS GRAPH'S NAMED SUB-GRAPHS — owner,
+# 2026-10-05 (bean `xka5`): "group cat-harness docs semantically and make named
+# doc subgraphs", no hand-kept categories. A page's group is its FOLDER: each
+# entry below sets `parent` for one folder, so a page dropped into `start/` is
+# in "Start here" with nothing else to edit. A group's own landing page sets
+# `parent: ""` to stay top-level (a null would NOT override the default:
+# Jekyll keeps the old value when the new one is nil). Order within a level is the reader's
+# locale collation, applied by docs-ui.js (`sortNavByLocale`).
+defaults:
+  - scope:
+      path: "start"
+    values:
+      parent: "Start here"
+  - scope:
+      path: "concepts"
+    values:
+      parent: "Concepts"
+  - scope:
+      path: "guides"
+    values:
+      parent: "Authoring guides"
+  - scope:
+      path: "process"
+    values:
+      parent: "Process & methodology"
+  - scope:
+      path: "methodologies"
+    values:
+      parent: "Process & methodology"
+  - scope:
+      path: "fhir"
+    values:
+      parent: "FHIR"
+  - scope:
+      path: "glossary"
+    values:
+      parent: "Reference"
+  - scope:
+      path: "external-schemas"
+    values:
+      parent: "Reference"
+  - scope:
+      path: "tools"
+    values:
+      parent: "Reference"
+  - scope:
+      path: "subscriptions"
+    values:
+      parent: "Reference"
+  - scope:
+      path: "themes"
+    values:
+      parent: "Reference"
+  - scope:
+      path: "lsi"
+    values:
+      parent: "Reference"
+  - scope:
+      path: "reference"
+    values:
+      parent: "Reference"
+  - scope:
+      path: "uml"
+    values:
+      parent: "Reference"
+  - scope:
+      path: "cat-harness/published-graphs.md"
+    values:
+      parent: "Reference"
+  - scope:
+      path: "prov-qaqc"
+    values:
+      parent: "Quality"
+  - scope:
+      path: "fsh-guts"
+    values:
+      parent: "Quality"
+  - scope:
+      path: "proposals"
+    values:
+      parent: "Proposals"
+  - scope:
+      path: "requirements"
+    values:
+      parent: "Requirements"
+  - scope:
+      path: "research-and-analysis"
+    values:
+      parent: "Research and analysis"
+  # A FOLDER'S GENERATED README IS NOT A SITE PAGE. `readme:subgraphs`
+  # (bootstrap-tools `scripts/subgraph-readmes.ts`) writes a README.md into
+  # each declared docs folder for someone browsing the repository; the folder's
+  # site page is its `index.md`. With no front matter such a README was a
+  # static file Jekyll copied as it is, outside the nav and the search index.
+  # A README it writes WHOLLY now opens with `generated:` front matter (owner,
+  # 2026-10-16, decision 4a; bootstrap-tools#24), which makes Jekyll render it
+  # as a page -- and a page with a title from its `# <folder>` heading joins
+  # the folder's nav group. These two keys keep it out of the nav and the
+  # search index, as before. No site page links to these READMEs (the links
+  # in `docs/README.md` are for the repository view, and compose-docs does not
+  # publish that file), so the README.md -> README.html change breaks nothing.
+  #
+  # One segment deep on purpose: the folders with a generated README are
+  # top-level ones, and `compose-docs` expands this glob into one exact-path
+  # scope per README actually present, like the permalink globs below.
+  - scope:
+      path: "*/README.md"
+    values:
+      nav_exclude: true
+      search_exclude: true
+  # THE DOCS-FOLDER PAGES PUBLISH UNDER /docs/cat-harness/ — owner, 2026-10-05
+  # (issue #2188, PR #2189, bean `kc7k`): "only cat-harness's own docs-folder
+  # pages move", with no redirects at the old addresses. That is the pages
+  # authored in this folder — the chapters (`start/`, `concepts/`, `guides/`,
+  # `process/`, `fhir/`, `quality/`, `research-and-analysis/`), with their
+  # locale copies inside them, and `platform.md`. Everything else this tree
+  # builds keeps its URL: the landing page (`index.md`, `permalink: /`) and
+  # each locale's landing (`/fr/` …), the viewers under `/cat-harness/`, and
+  # the kind directories (`/processes/`, `/glossary/`, `/reference/`,
+  # `/proposals/`, `/requirements/`, `/methodologies/` …).
+  #
+  # A permalink rather than a second build or a post-build move: `baseurl`
+  # stays the SITE's, so Jekyll's own `page.url` — which the nav, search and
+  # every `relative_url` read — is the one answer to where a page is.
+  #
+  # GLOB scopes (`process/*`), not bare ones (`process`), on purpose: Jekyll 4
+  # tests a bare scope with `start_with?`, so `process` also matches
+  # `processes/` — measured, the preview published every process page under
+  # the route — while Jekyll 3.10 (the github-pages gem CI builds with) walks
+  # path segments and does not. A glob names the directory's own entries and
+  # means the same thing to both.
+  #
+  # THESE GLOBS ARE A DECLARATION, NOT WHAT JEKYLL READS (owner, 2026-10-14:
+  # "Explicit scopes"). Jekyll re-runs a glob scope's `Dir.glob`, and a
+  # `Pathname#relative_path_from` per match, on EVERY `to_liquid` of EVERY
+  # page: on the folio-assistant docs tree these seven were ~68% of the build's
+  # CPU. So `compose-docs` (the tools layer's `scripts/lib/default-scope-globs.ts`)
+  # replaces each one, in the COMPOSED `_config.yml`, by one exact-path scope
+  # per path the glob matches in the composed tree -- a locale folder such as
+  # `start/fr` stays one scope, as the glob treats it -- which is the same set
+  # of pages under Jekyll 3.10 and 4, and never `processes/`. GENERATED, never
+  # written out here by hand: a hand-kept list would silently miss the next
+  # page added to one of these folders, and the next compose covers it.
+  # `default-scope-globs.test.ts` holds each generated list to its glob's
+  # match set and the composed config to having no glob left.
+  #
+  # The route is the `docs` kind and this layer's declared name
+  # (`scripts/docs-route.ts`); `docs-route.test.ts` holds every permalink here
+  # to it and checks the coverage both ways. Generators ask
+  # `scripts/lib/jekyll-permalink.ts` rather than swapping `.md` for `.html`.
+  - scope:
+      path: "start/*"
+    values:
+      permalink: "/docs/cat-harness/:path/:basename:output_ext"
+  - scope:
+      path: "concepts/*"
+    values:
+      permalink: "/docs/cat-harness/:path/:basename:output_ext"
+  - scope:
+      path: "guides/*"
+    values:
+      permalink: "/docs/cat-harness/:path/:basename:output_ext"
+  - scope:
+      path: "process/*"
+    values:
+      permalink: "/docs/cat-harness/:path/:basename:output_ext"
+  - scope:
+      path: "fhir/*"
+    values:
+      permalink: "/docs/cat-harness/:path/:basename:output_ext"
+  - scope:
+      path: "quality/*"
+    values:
+      permalink: "/docs/cat-harness/:path/:basename:output_ext"
+  - scope:
+      path: "research-and-analysis/*"
+    values:
+      permalink: "/docs/cat-harness/:path/:basename:output_ext"
+  - scope:
+      path: "platform.md"
+    values:
+      permalink: "/docs/cat-harness/:path/:basename:output_ext"

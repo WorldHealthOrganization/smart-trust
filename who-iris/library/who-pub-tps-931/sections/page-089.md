@@ -1,0 +1,189 @@
+---
+doc_id: who-pub-tps-931
+doc_title: "WHO Editorial Style Manual"
+section_id: page-089
+section_title: "Page 89"
+section_number: null
+pages: 89-89
+source_pdf: WHO_PUB_TPS_93.1.pdf
+source_sha256: ecc88eee99756755
+toc_source: undetermined
+---
+WHO Editorial Style Manual
+
+anaesthesia, anaesthetic
+
+ancylostomiasis (not ankylo...)
+
+animal feed
+
+ankylose, ankylosing spondylitis
+
+annex (n: & vb)
+
+annul, annulled, annulling,
+annulment
+
+Anopheles
+
+anopheline mosquitos; anophelines
+
+antecedent
+
+antedate
+
+antemortem
+
+antenatal
+
+anthelminthic
+
+antibacterial
+
+anticoagulant
+
+anticomplement
+
+antiepileptic
+
+anti-gas-gangrene
+
+antimicrobial(s)
+
+antineoplastic
+
+antioxidant(s)
+
+antiserum, antisera
+
+any one (of several)
+
+anyone (anybody)
+
+apartheid
+
+apnoea, apnoeic
+
+appendix (pl. appendices, all senses)
+
+arbovirus(es) ‘
+
+arc, arced, arcing (not arcked, etc.)
+
+artefact (not artifact)
+
+ascariasis
+
+audiovisual
+
+autoimmune
+
+autoxidation
+
+B
+
+backward (adj.)
+
+backwards (adv.)
+
+bacterium (pl. bacteria)
+baseline (n. & adj.)
+
+bedbug
+
+bednet
+
+befit, befitted
+
+benefit—risk (ratio)
+
+benefit, benefited, benefiting
+biannual (twice a year)
+
+biased
+
+bibliographic (not bibliographical)
+
+biennial (every 2 years)
+
+biennium (pl. bienniums)
+
+bimonthly, biweekly, biyearly
+(ambiguous; avoid and rephrase
+—every 2 months, etc. or twice a
+month)
+
+bioassay
+
+birth rate
+
+birth weight (but low-birth-weight
+infants)
+
+blender (not blendor)
+
+bloodborne
+
+blood cells
+
+blood donor
+
+blood group (n.; but blood-grouping)
+
+blood-meal
+
+blood pressure
+
+bloodstream
+
+blood type (n.; but blood-typing)
+
+body weight
+
+boiling-point
+
+bona fide
+
+book-keeper
+
+borderline (n. & adj.)
+
+born (child)
+
+borne (carried)
+
+bottle-fed, bottle-feed (vb), bottle-
+feeding
+
+break down (vb)
+
+breakdown (n. & adj.)
+
+breastfed, breastfeed (vb),
+breastfeeding
+
+breast milk (but breast-milk
+substitute)
+
+budget, budgeting, budgeted
+
+bureaux —
+
+by-law
+
+bypass (n. & vb)
+
+by-product
+
+C
+
+°C (no space)
+caesarean
+
+caesium
+
+calliper (not caliper)
+cannot (1 word)
+canvas (cloth)
+
+84

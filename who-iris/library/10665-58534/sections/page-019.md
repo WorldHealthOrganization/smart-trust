@@ -1,0 +1,56 @@
+---
+doc_id: 10665-58534
+doc_title: "Counselling for HIV/AIDS : a key to caring, for policy-makers, planners and implementors of counselling activities"
+section_id: page-019
+section_title: "Page 19"
+pages: 19-19
+pdf_page: 19
+source_pdf: 10665-58534.pdf
+source_sha256: 79af009d1163712c
+text_source: ocr
+granularity: page
+---
+WHO/GPA/TCO/HCS/95.15
+
+PART TWO: POLICY ISSUES IN THE DEVELOPMENT OF
+HIV/AIDS COUNSELLING SERVICES
+
+Why is it important to establish HIV/AIDS counselling services?
+
+HIV/AIDS counselling services are established with the goal of meeting the expressed
+needs for emotional support of individuals who may have HIV-related problems or concerns.
+HIV/AIDS counselling is a responsive service that should be available to meet the needs for
+emotional support that are expressed by individual clients.
+
+HIV/AIDS counselling services are important not only for individual clients and their
+immediate family but also for the community that immediately surrounds the client (including
+friends and co-workers). In the long run, when affected individuals and families are
+supported to cope with the effects of and worries about HIV/AIDS and helped to come to
+terms with the diagnosis, they can talk more openly about their problems to selected members
+of the community who may provide some help. The wider community benefits through the
+maintenance of the social fabric and HIV/AIDS counselling tends to have a “ripple effect” on
+the community.
+
+HIV/AIDS counselling is important for individual clients because:
+
+- it helps HIV-positive clients to cope with news of their HIV status and related
+feelings, develop self-esteem and live productive lives, as well as to seek
+medical and social support;
+
+- it helps individuals to assess their and their partners’ risk of becoming infected
+with HIV and make plans to reduce the risk.
+
+HIV/AIDS counselling is important to those who are closest to the client, such as
+family or close friends, because:
+
+- it facilitates communication between a client and the family;
+
+- it enables the client’s family to be involved in discussions of what measures
+will be taken to provide care for the client and to prevent transmission of HIV
+infection.
+
+For these reasons, national AIDS programmes are urged to develop policies that will
+facilitate the development and implementation of appropriate HIV/AIDS counselling services
+as part of other HIV/AIDS-related activities.
+
+ll

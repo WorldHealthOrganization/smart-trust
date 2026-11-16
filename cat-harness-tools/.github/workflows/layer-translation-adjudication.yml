@@ -1,0 +1,190 @@
+# Turn a translation-review issue into the recorded adjudication, as a PR —
+# ONE reusable workflow every layer with translations calls.
+#
+# The translation review page (`review.html` beside the translation status
+# page, `scripts/gen-translation-status.ts`) opens a GitHub issue prefilled
+# with a `translation-adjudication/v1` record: catalogues a person found
+# acceptable, and mistranslations with suggested text. The person who files
+# the issue is the adjudicator.
+#
+# A caller is a few lines, in the repository holding the catalogues:
+#
+#   name: Translation adjudication
+#   on:
+#     issues: { types: [opened, labeled] }
+#   permissions: { contents: write, pull-requests: write, issues: write }
+#   jobs:
+#     adjudicate:
+#       uses: litlfred/cat-harness-tools/.github/workflows/layer-translation-adjudication.yml@<lock sha> # index.lock.json
+#
+# What it does:
+#   1. Runs only for an issue labelled `translation-adjudication` or titled
+#      `[translation review] …`, and only once per issue.
+#   2. Mounts the platform's layers from the folio-assistant index's lock (as
+#      `layer-qa-publish.yml` does, so a layer with no `index.lock.json` of
+#      its own works too), and takes the script at the caller's lock pin of cat-harness-tools.
+#   3. Runs `scripts/translation-adjudicate.ts` on the event file. The issue
+#      body is untrusted: it is never put in a shell variable or an
+#      expression, only parsed as JSON by the script. The adjudicator is the
+#      event's `issue.user.login`; an author who is not an owner, member or
+#      collaborator gets a comment and nothing is recorded.
+#   4. Commits the records on `translation-adjudication/issue-<n>`, authored by
+#      the issue's author (GitHub's noreply address), opens a ready PR that
+#      names the issue, and comments the summary on the issue.
+#
+# It never merges. A PR opened with GITHUB_TOKEN does not start other
+# workflows, so the layer's PR checks start when a maintainer pushes to or
+# re-opens it — the PR body says so.
+
+name: Layer translation adjudication
+
+on:
+  workflow_call:
+    inputs:
+      path-in-repo:
+        description: "Where the layer sits in the calling repository; '.' for the repository root."
+        required: false
+        type: string
+        default: "."
+      index-ref:
+        description: "The folio-assistant ref whose lock mounts the platform's layers."
+        required: false
+        type: string
+        default: "main"
+      tools-ref:
+        description: "'lock' (the caller's index.lock.json pin of cat-harness-tools, or the index's mount when it has none), or a 40-hex commit."
+        required: false
+        type: string
+        default: "lock"
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: translation-adjudication-${{ github.repository }}-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  adjudicate:
+    name: Record the translation adjudication
+    if: >-
+      github.event_name == 'issues' &&
+      (contains(github.event.issue.labels.*.name, 'translation-adjudication') ||
+       startsWith(github.event.issue.title, '[translation review]'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Skip an issue already recorded
+        id: once
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          N: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/$REPO/git/ref/heads/translation-adjudication/issue-$N" >/dev/null 2>&1; then
+            echo "::notice::issue #$N already has a branch; nothing to do"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out the folio-assistant index
+        if: steps.once.outputs.skip != 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: litlfred/folio-assistant
+          ref: ${{ inputs.index-ref }}
+          path: fa
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        if: steps.once.outputs.skip != 'true'
+        with:
+          bun-version: 1.4.4
+      - name: Mount every layer from the index's lock, and install
+        if: steps.once.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          bash fa/.github/mount-from-lock.sh --root fa
+          (cd fa && bun install)
+      - name: Check out the caller
+        if: steps.once.outputs.skip != 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: src
+      - name: Take the adjudication script at the caller's pin
+        # The script follows a lock, never a branch (`workflow-pins`): with
+        # `tools-ref: lock` (the default) it is the cat-harness-tools commit
+        # the CALLER's index.lock.json mounts, or, for a layer with no lock of
+        # its own, the index's mount. Any other value must be a commit.
+        # Placed inside the index so its imports resolve through the index's
+        # node_modules.
+        if: steps.once.outputs.skip != 'true'
+        env:
+          TOOLS_REF: ${{ inputs.tools-ref }}
+        run: |
+          set -euo pipefail
+          T=fa/.adjudication-tools
+          ref="$TOOLS_REF"
+          if [ "$ref" = lock ]; then
+            if [ -f src/index.lock.json ]; then
+              ref=$(python3 -c "import json;print(next(m['ref'] for m in json.load(open('src/index.lock.json'))['mounts'] if m['harness']=='cat-harness-tools'))")
+            else
+              cp -R fa/cat-harness-tools "$T"
+              exit 0
+            fi
+          fi
+          [[ "$ref" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::tools-ref must be 'lock' or a 40-hex commit, not '$ref'"; exit 1; }
+          git init -q "$T"
+          git -C "$T" fetch -q --depth 1 https://github.com/litlfred/cat-harness-tools.git "$ref"
+          git -C "$T" checkout -q FETCH_HEAD
+      - name: Plan and write the records
+        id: plan
+        if: steps.once.outputs.skip != 'true'
+        env:
+          LAYER: ${{ inputs.path-in-repo }}
+        run: |
+          set +e
+          CAT_HARNESS_ROOT="$PWD/fa/cat-harness" bun run fa/.adjudication-tools/scripts/translation-adjudicate.ts \
+            --root "src/$LAYER" --event "$GITHUB_EVENT_PATH" --summary "$RUNNER_TEMP/summary.md"
+          code=$?
+          set -e
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          if [ "$code" = 2 ]; then exit 1; fi
+
+      - name: Open the pull request
+        if: steps.once.outputs.skip != 'true' && steps.plan.outputs.code == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          N: ${{ github.event.issue.number }}
+          LOGIN: ${{ github.event.issue.user.login }}
+          UID_: ${{ github.event.issue.user.id }}
+          LAYER: ${{ inputs.path-in-repo }}
+        run: |
+          set -euo pipefail
+          cd src
+          branch="translation-adjudication/issue-$N"
+          git switch -c "$branch"
+          git add -- "$LAYER"
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q --author="$LOGIN <$UID_+$LOGIN@users.noreply.github.com>" \
+            -m "Record translation adjudication from #$N" -m "Adjudicated by @$LOGIN in #$N; recorded by layer-translation-adjudication."
+          git push -u origin "$branch"
+          {
+            cat "$RUNNER_TEMP/summary.md"
+            echo
+            echo "Records the review filed in #$N. The author of that issue is the reviewer; this PR only writes down what they decided."
+            echo
+            echo "A PR opened by the workflow token does not start the layer's checks: push to this branch or close and re-open the PR to run them."
+          } > "$RUNNER_TEMP/body.md"
+          url=$(gh pr create --head "$branch" --title "Translation adjudication from #$N" --body-file "$RUNNER_TEMP/body.md")
+          { cat "$RUNNER_TEMP/summary.md"; echo; echo "Pull request: $url"; } > "$RUNNER_TEMP/comment.md"
+          gh issue comment "$N" --body-file "$RUNNER_TEMP/comment.md"
+
+      - name: Say why nothing was recorded
+        if: steps.once.outputs.skip != 'true' && steps.plan.outputs.code == '3'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          N: ${{ github.event.issue.number }}
+        run: gh issue comment "$N" --body-file "$RUNNER_TEMP/summary.md"

@@ -1,0 +1,180 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "bean-claim-check",
+    "title": "Check a bean is free, then claim it on every copy",
+    "description": "For one bean: fetch every bean copy, read the last three commits on its file, skip it if another agent committed within the window or its last note is a claim, look for an open PR naming it in every listed repository, and only then set it in-progress with a dated claim note as a plain commit on every copy. A rejected push is fetched, rebased and re-checked, never forced.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat beans:claim-check",
+      "inProcess": {
+        "module": "scripts/bean-claim-check.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "id",
+          "schema": {
+            "$type": "BeanId"
+          },
+          "description": "The bean, full or short id.",
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "copy",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A local checkout of a bean copy. Repeat once per copy. Defaults to the current checkout.",
+          "required": false,
+          "repeated": true,
+          "arg": {
+            "flag": "--copy"
+          }
+        },
+        {
+          "name": "repo",
+          "schema": {
+            "$type": "RepoFullName"
+          },
+          "description": "A repository whose open PRs are searched for the id. Repeat. Defaults to the copies' repositories.",
+          "required": false,
+          "repeated": true,
+          "arg": {
+            "flag": "--repo"
+          }
+        },
+        {
+          "name": "minePr",
+          "schema": {
+            "$type": "Url"
+          },
+          "description": "The link of an open PR that is the caller's own, when resuming a bean it already holds. Every cloud thread's PR has the same author, so without this any open PR naming the bean is a skip.",
+          "required": false,
+          "repeated": true,
+          "arg": {
+            "flag": "--mine-pr"
+          }
+        },
+        {
+          "name": "as",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "Which agent is asking, by its name in the agents table. Defaults to `cloud`.",
+          "required": false,
+          "arg": {
+            "flag": "--as"
+          }
+        },
+        {
+          "name": "session",
+          "schema": {
+            "$type": "Url"
+          },
+          "description": "The caller's session link, matched against the `Claude-Session:` trailer so a sibling thread of the same agent is told apart. Defaults to $CLAUDE_SESSION_URL.",
+          "required": false,
+          "arg": {
+            "flag": "--session"
+          }
+        },
+        {
+          "name": "agents",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A JSON file of agents and their commit authors, as in the skill's input schema.",
+          "required": false,
+          "arg": {
+            "flag": "--agents"
+          }
+        },
+        {
+          "name": "window",
+          "schema": {
+            "$type": "TimeWindow"
+          },
+          "description": "Defaults to 24h.",
+          "required": false,
+          "arg": {
+            "flag": "--window"
+          }
+        },
+        {
+          "name": "dryRun",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Check only; report `would-claim` and write nothing.",
+          "required": false,
+          "arg": {
+            "flag": "--dry-run"
+          }
+        },
+        {
+          "name": "json",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Emit `definitions.claimCheck` as JSON.",
+          "required": false,
+          "arg": {
+            "flag": "--json"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "One of claimed, would-claim, skip-recent-commit, skip-claim-note, skip-open-pr, skip-closed or unknown, with the evidence per copy and the open PRs found. Exit 0 for claimed or would-claim, 1 for a skip, 2 for unknown. Unknown is never reported as free. With --json, `definitions.claimCheck` of schemas/skills/bean-drain/output.schema.json."
+        },
+        {
+          "name": "result",
+          "schema": {
+            "$type": "BeanClaimCheck"
+          },
+          "description": "With --json, the check as one `BeanClaimCheck` record: the state, the evidence per copy and the open PRs found. Programs and BPMN gateways read this; people read `check`."
+        }
+      ]
+    },
+    "satisfies": [
+      "bean-coordination"
+    ],
+    "selection": {
+      "when": "Before any work on a bean, when more than one agent may be draining the same store.",
+      "limits": "It sees commits and open PRs, not an agent's intent: an agent that works without committing or opening a PR is invisible until it does. One bean per call. `beans:claim` is the right claim when the store has one copy and no other agents drain it.",
+      "cost": "One fetch and one push per copy, and one paged GitHub REST listing of open PRs per repository."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "With no fetch or push, nothing is claimed and the state is unknown. Claim by hand per the skill once the network is back."
+      },
+      {
+        "host": "api.github.com",
+        "none": "With no PR listing the open-work step cannot run, so the state is unknown rather than free. A session with the GitHub MCP server can list open PRs with `list_pull_requests` and search them for the id by hand."
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "The Tool node for the drain's check-then-claim step.\n\nBean `n7x7`, skill `bean-drain` step 2. The measured case is f1e1 on\n2026-10-24: agy opened the tools layer's PR #686 at 07:47:35Z\n(https://github.com/litlfred/cat-harness-tools/pull/686), a cloud thread\nmade its first commit at 07:50:08Z and opened #688, and neither had claimed.\nBoth bean copies said `in-progress` since 2026-10-16 with no newer commit, so\na status check would have said nothing. The open PR said everything, which is\nwhy this tool calls `open-work-lookup` before it claims.\n\nWhy not `beans:claim`: `claimOnBranchStore` writes the one copy this checkout\npoints at, and reads status, not activity. This tool keeps its race safety\n(re-read after a rejected push, never force) and adds the activity reads and\nthe second copy. When the bean store is one copy again, this becomes a thin\nwrapper over `beans:claim` plus the lookup.\n\n@module work-plan/tools/bean-claim-check"
+    }
+  ]
+}

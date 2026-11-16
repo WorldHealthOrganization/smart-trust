@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  smart-base — act on decision-support guidance: the point-of-care system
+  applies a DAK decision table's PlanDefinition, the health worker accepts or
+  declines what it proposes, and the system writes what was accepted. The
+  health worker MAY note why, on a side path the main path never waits for.
+  Generic for any DAK; a DAK's diagram calls it with
+  a callActivity whose calledElement is Process_ActOnDecisionSupport.
+
+  Source of truth: this file. The picture beside it (act-on-decision-support.svg) is drawn by
+  `bun run cat render:bpmn`;
+  never hand-edit it.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_ActOnDecisionSupport"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+
+  <bpmn:resource id="point-of-care-system" name="Point-of-care system" />
+  <bpmn:resource id="health-worker" name="Health worker" />
+
+  <bpmn:collaboration id="Collaboration_ActOnDecisionSupport">
+    <bpmn:participant id="Participant_ActOnDecisionSupport" name="Act on decision-support guidance" processRef="Process_ActOnDecisionSupport" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_ActOnDecisionSupport" name="Act on decision-support guidance" isExecutable="false">
+    <bpmn:documentation>The point-of-care system applies one of the DAK's decision tables, published as a CPG-on-FHIR PlanDefinition, to one client ($apply) and shows the health worker what it proposes (a RequestGroup, or CDS Hooks cards). The health worker accepts or declines each action, one tap each, and the system makes the accepted requests active in the client's CarePlan; a declined action is never written. Recording why is OPTIONAL and never blocks: Event_AddReason is a non-interrupting boundary event on the review. It happens only when the health worker taps "add a reason" while reviewing, starts the rationale task beside the review, and takes nothing away from it: the review completes and the care plan is updated whether or not a reason is ever recorded. Skipping is the default, because the event is absent unless chosen. The record, when made, is one FHIR Provenance. Skills: apply-decision-support, review-decision-support-guidance, record-decision-rationale, activate-accepted-guidance (package authoring-who-smart-guidelines).</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_ActOnDecisionSupport_LaneSet">
+      <bpmn:lane id="Lane_System" name="Point-of-care system" partitionElementRef="point-of-care-system">
+        <bpmn:documentation>The app or EHR: applies the PlanDefinition and writes what the health worker accepted. Decides nothing clinical.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_GuidanceDue</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Apply</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_HasGuidance</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NoGuidance</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Activate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Activated</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_HealthWorker" name="Health worker" partitionElementRef="health-worker">
+        <bpmn:documentation>A person in the health-worker role: accepts or declines the guidance and stays accountable for the care given. Never required to say why.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_AddReason</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Accepted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NoChange</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Rationale</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Noted</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_GuidanceDue" name="Guidance is due">
+      <bpmn:documentation>The DAK's process reaches a step its decision table informs: what is due, what a result means, what to do next.</bpmn:documentation>
+      <bpmn:outgoing>D01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_Apply" name="Apply the PlanDefinition">
+      <bpmn:documentation>PlanDefinition/$apply for this client (or a CDS Hooks call): every proposed request is a draft proposal, and nothing is written to the record.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="apply-decision-support" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>D01</bpmn:incoming>
+      <bpmn:outgoing>D02</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_HasGuidance" name="Anything proposed?">
+      <bpmn:documentation>Read from the result: an empty RequestGroup (or no card) asks the health worker nothing.</bpmn:documentation>
+      <bpmn:incoming>D02</bpmn:incoming>
+      <bpmn:outgoing>D03</bpmn:outgoing>
+      <bpmn:outgoing>D04</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_NoGuidance" name="Nothing to act on">
+      <bpmn:documentation>The decision table proposed no action for this client.</bpmn:documentation>
+      <bpmn:incoming>D04</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_Review" name="Accept or decline the guidance">
+      <bpmn:documentation>See the proposed actions on the device and accept or decline each one, one tap each ("accept all" is one tap); modify one only where the device offers it. Nothing else is asked; an "add a reason" link is shown, never required.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="review-decision-support-guidance" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>D03</bpmn:incoming>
+      <bpmn:outgoing>D05</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="Event_AddReason" name="Taps &quot;add a reason&quot;" attachedToRef="Task_Review" cancelActivity="false">
+      <bpmn:documentation>Non-interrupting and opt-in: it happens only when the health worker taps "add a reason" while reviewing. The review carries on, and the care plan is updated whether or not a reason is ever recorded.</bpmn:documentation>
+      <bpmn:outgoing>D08</bpmn:outgoing>
+      <bpmn:conditionalEventDefinition id="Event_AddReason_Condition">
+        <bpmn:condition xsi:type="bpmn:tFormalExpression">the health worker chose to add a reason</bpmn:condition>
+      </bpmn:conditionalEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:exclusiveGateway id="Gateway_Accepted" name="Any action accepted?">
+      <bpmn:documentation>Read from the decisions: at least one action accepted or modified.</bpmn:documentation>
+      <bpmn:incoming>D05</bpmn:incoming>
+      <bpmn:outgoing>D06</bpmn:outgoing>
+      <bpmn:outgoing>D07</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Activate" name="Update the care plan">
+      <bpmn:documentation>Make each accepted request active (intent plan or order) and reference it from the client's CarePlan, in one transaction; write nothing for a declined action.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="activate-accepted-guidance" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>D06</bpmn:incoming>
+      <bpmn:outgoing>D09</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Activated" name="Care plan updated">
+      <bpmn:documentation>The accepted actions are in the client's care plan.</bpmn:documentation>
+      <bpmn:incoming>D09</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_NoChange" name="Guidance declined">
+      <bpmn:documentation>Nothing was accepted; the record is unchanged.</bpmn:documentation>
+      <bpmn:incoming>D07</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_Rationale" name="Note the reason (optional)">
+      <bpmn:documentation>Optional: pick a coded reason or type one, or neither; one FHIR Provenance records who decided what about which guidance, and why. Never required, never waited for.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="record-decision-rationale" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>D08</bpmn:incoming>
+      <bpmn:outgoing>D10</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_Noted" name="Reason recorded">
+      <bpmn:documentation>The Provenance is saved beside the decision.</bpmn:documentation>
+      <bpmn:incoming>D10</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="D01" sourceRef="Start_GuidanceDue" targetRef="Task_Apply" />
+    <bpmn:sequenceFlow id="D02" sourceRef="Task_Apply" targetRef="Gateway_HasGuidance" />
+    <bpmn:sequenceFlow id="D03" name="yes" sourceRef="Gateway_HasGuidance" targetRef="Task_Review" />
+    <bpmn:sequenceFlow id="D04" name="no" sourceRef="Gateway_HasGuidance" targetRef="End_NoGuidance" />
+    <bpmn:sequenceFlow id="D05" sourceRef="Task_Review" targetRef="Gateway_Accepted" />
+    <bpmn:sequenceFlow id="D06" name="yes" sourceRef="Gateway_Accepted" targetRef="Task_Activate" />
+    <bpmn:sequenceFlow id="D07" name="no" sourceRef="Gateway_Accepted" targetRef="End_NoChange" />
+    <bpmn:sequenceFlow id="D08" sourceRef="Event_AddReason" targetRef="Task_Rationale" />
+    <bpmn:sequenceFlow id="D09" sourceRef="Task_Activate" targetRef="End_Activated" />
+    <bpmn:sequenceFlow id="D10" sourceRef="Task_Rationale" targetRef="End_Noted" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ActOnDecisionSupport">
+    <bpmndi:BPMNPlane id="BPMNPlane_ActOnDecisionSupport" bpmnElement="Collaboration_ActOnDecisionSupport">
+      <bpmndi:BPMNShape id="Participant_ActOnDecisionSupport_di" bpmnElement="Participant_ActOnDecisionSupport" isHorizontal="true">
+        <dc:Bounds x="100" y="40" width="880" height="430" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System" isHorizontal="true">
+        <dc:Bounds x="130" y="40" width="850" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_HealthWorker_di" bpmnElement="Lane_HealthWorker" isHorizontal="true">
+        <dc:Bounds x="130" y="210" width="850" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_GuidanceDue_di" bpmnElement="Start_GuidanceDue">
+        <dc:Bounds x="180" y="107" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="158" y="150" width="80" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Apply_di" bpmnElement="Task_Apply">
+        <dc:Bounds x="260" y="85" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_HasGuidance_di" bpmnElement="Gateway_HasGuidance" isMarkerVisible="true">
+        <dc:Bounds x="430" y="100" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="385" y="62" width="140" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_NoGuidance_di" bpmnElement="End_NoGuidance">
+        <dc:Bounds x="530" y="107" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="504" y="150" width="88" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Activate_di" bpmnElement="Task_Activate">
+        <dc:Bounds x="720" y="85" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Activated_di" bpmnElement="End_Activated">
+        <dc:Bounds x="900" y="107" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="872" y="150" width="92" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Review_di" bpmnElement="Task_Review">
+        <dc:Bounds x="390" y="265" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Accepted_di" bpmnElement="Gateway_Accepted" isMarkerVisible="true">
+        <dc:Bounds x="580" y="280" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="625" y="252" width="110" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_NoChange_di" bpmnElement="End_NoChange">
+        <dc:Bounds x="900" y="287" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="870" y="330" width="96" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Rationale_di" bpmnElement="Task_Rationale">
+        <dc:Bounds x="570" y="360" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Noted_di" bpmnElement="End_Noted">
+        <dc:Bounds x="750" y="382" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="728" y="425" width="90" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_AddReason_di" bpmnElement="Event_AddReason">
+        <dc:Bounds x="487" y="327" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="380" y="372" width="100" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="D01_di" bpmnElement="D01">
+        <di:waypoint x="216" y="125" />
+        <di:waypoint x="260" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D02_di" bpmnElement="D02">
+        <di:waypoint x="390" y="125" />
+        <di:waypoint x="430" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D03_di" bpmnElement="D03">
+        <di:waypoint x="455" y="150" />
+        <di:waypoint x="455" y="265" />
+        <bpmndi:BPMNLabel><dc:Bounds x="461" y="225" width="18" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D04_di" bpmnElement="D04">
+        <di:waypoint x="480" y="125" />
+        <di:waypoint x="530" y="125" />
+        <bpmndi:BPMNLabel><dc:Bounds x="498" y="107" width="14" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D05_di" bpmnElement="D05">
+        <di:waypoint x="520" y="305" />
+        <di:waypoint x="580" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D06_di" bpmnElement="D06">
+        <di:waypoint x="605" y="280" />
+        <di:waypoint x="605" y="125" />
+        <di:waypoint x="720" y="125" />
+        <bpmndi:BPMNLabel><dc:Bounds x="611" y="190" width="18" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D07_di" bpmnElement="D07">
+        <di:waypoint x="630" y="305" />
+        <di:waypoint x="900" y="305" />
+        <bpmndi:BPMNLabel><dc:Bounds x="760" y="287" width="14" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D08_di" bpmnElement="D08">
+        <di:waypoint x="505" y="363" />
+        <di:waypoint x="505" y="400" />
+        <di:waypoint x="570" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D09_di" bpmnElement="D09">
+        <di:waypoint x="850" y="125" />
+        <di:waypoint x="900" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D10_di" bpmnElement="D10">
+        <di:waypoint x="700" y="400" />
+        <di:waypoint x="750" y="400" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

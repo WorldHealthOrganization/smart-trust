@@ -1,0 +1,36 @@
+{
+  "$schema": "cache/1.0.0",
+  "id": "lpc-writer-cone",
+  "title": "Layer PR checks: writer cone records",
+  "instance": "cat-harness-tools",
+  "kind": "actions-cache",
+  "trustClass": "c",
+  "location": "writer-cone-v1-",
+  "keyRecipe": {
+    "source": "script",
+    "implementation": "writer-cone.ts",
+    "expression": "writer-cone-v1-${{ github.repository }}-${{ github.sha }} (save) / -${{ github.event.pull_request.base.sha }} (restore)"
+  },
+  "derivedInputs": "the main commit the records were taken at; each record is matched against the PR's reads by writer-cone.ts",
+  "holds": "fa/build/writer-cone",
+  "producer": "record-writers (push, RECORD_WRITERS)",
+  "consumers": [
+    "prepare-head/prepare-base on PRs",
+    "record-writers on push (an incremental record starts from the newest one, #1702)"
+  ],
+  "savePolicy": "push only (RECORD_WRITERS env set only in record-writers)",
+  "verify": "writer-cone.ts re-checks each recorded read before a writer is skipped",
+  "owner": "cache-first CI (CI speed 14)",
+  "uses": [
+    ".github/workflows/layer-pr-checks.yml:921",
+    ".github/workflows/layer-pr-checks.yml:1052",
+    ".github/workflows/layer-pr-checks.yml:1415",
+    ".github/workflows/layer-pr-checks.yml:1418",
+    ".github/workflows/layer-pr-checks.yml:1466"
+  ],
+  "notes": "Saved on every push to main (#1702): a full record once per writer-record-hours window, an incremental one otherwise, which carries each matching writer's record forward and traces only the rest.",
+  "stateInputs": {
+    "reads": "unmeasured",
+    "how": "not yet derived from a recorded read set; the producer may read state:mount graphs"
+  }
+}

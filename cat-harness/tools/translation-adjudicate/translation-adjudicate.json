@@ -1,0 +1,83 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "translation-adjudicate",
+    "title": "Record a translation adjudication",
+    "description": "Turn one translation-review issue into the recorded adjudication: read the `issues` event (never the body from a shell variable), refuse an author who is not an owner, member or collaborator, refuse an item whose catalogue hash changed since the page showed it, then write the translation node's sign-off, the fuzzy suggestions and an append-only `translation-qa` attestation, and leave a Markdown summary. Exit 0 recorded, 3 nothing recorded, 2 could not determine.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat translation:adjudicate"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "root",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The layer root holding the catalogues. Default: the current directory.",
+          "required": false,
+          "arg": {
+            "flag": "--root"
+          }
+        },
+        {
+          "name": "event",
+          "schema": {
+            "$type": "FilesystemPath"
+          },
+          "description": "The `issues` event file GitHub wrote. Absent: `$GITHUB_EVENT_PATH`, which is how the workflow passes it.",
+          "required": false
+        },
+        {
+          "name": "dry_run",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Plan and report, write nothing.",
+          "required": false,
+          "arg": {
+            "flag": "--dry-run"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The files written: catalogues, translation nodes and attestations under the layer's translations and attestation directories."
+        },
+        {
+          "name": "summary",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "What was recorded and what was refused, with each reason — the issue comment and the PR body."
+        }
+      ]
+    },
+    "satisfies": [
+      "translation-adjudication"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/io/inputs/1",
+      "comment": "A runner path, so `FilesystemPath` and no `arg`: it is not an injection-safe command-line word. The script also takes `--event <file>` and `--summary <file>` when run by hand."
+    },
+    {
+      "at": "/invoke",
+      "comment": "`bun run cat translation:adjudicate`, now that the tools layer declares the key (it was `manual` until then). The reusable workflow `translation-adjudication-workflow` still runs it on an `issues` event."
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{%- comment -%}
+  One library item's README, rendered by `library-readmes.ts` into the
+  `kg:subgraph` marker region of `<library>/<slug>/README.md` — the same
+  region, and the same rule, as bootstrap's subgraph READMEs: the platform
+  owns the markers, never the file.
+
+  Every value is read from the item's own `manifest.jsonld` or counted on
+  disk; nothing is composed:
+    item    slug, title, disposition, provenance, docId, sourceFile,
+            sha256 (first 12), pages, arxiv, doi
+    counts  sections, blocks, images — files present under the item
+    library the declared library it sits in: id (its path in the
+            repository), readme (relative link)
+{%- endcomment -%}
+# {{ item.title | default: item.slug }}
+
+{% if item.disposition != "" -%}
+{{ item.disposition }}
+{%- else -%}
+_No disposition is recorded for `{{ item.slug }}`._
+{%- endif %}
+
+Held in the library [`{{ library.id }}/`]({{ library.readme }}) as `{{ item.slug }}`.
+
+| | |
+|---|---|
+| document id | `{{ item.docId }}` |
+| source file | `{{ item.sourceFile }}`{% if item.sha256 != "" %} (sha256 `{{ item.sha256 }}…`){% endif %} |
+{%- if item.pages != "" %}
+| pages | {{ item.pages }} |
+{%- endif %}
+{%- if item.arxiv != "" %}
+| arXiv | [{{ item.arxiv }}](https://arxiv.org/abs/{{ item.arxiv }}) |
+{%- endif %}
+{%- if item.doi != "" %}
+| DOI | [{{ item.doi }}](https://doi.org/{{ item.doi }}) |
+{%- endif %}
+| provenance | {{ item.provenance | default: "not recorded" }} |
+
+| holds | count |
+|---|---|
+| [sections](sections/) | {{ counts.sections }} |
+| [blocks](blocks/) | {{ counts.blocks }} |
+| images | {{ counts.images }} |

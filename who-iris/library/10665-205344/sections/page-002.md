@@ -1,0 +1,89 @@
+---
+doc_id: 10665-205344
+doc_title: "Information, education and communication: a guide for AIDS programme managers"
+section_id: page-002
+section_title: "Page 2"
+pages: 2-2
+pdf_page: 2
+source_pdf: 10665-205344.pdf
+source_sha256: 0fdcc9d570f32d5f
+text_source: ocr
+granularity: page
+---
+SEA/AIDS/81
+
+4.1
+4.2
+43
+44
+
+5.1
+5.2
+5.3
+5.4
+
+CONTENTS
+
+Foreword
+INTRODUCTION
+
+What is IEC?
+
+How can this Guide Help?
+
+HIV/AIDS BURDEN IN THE SOUTH-EAST ASIA REGION
+
+THE ROLE OF IEC IN HIV/AIDS PREVENTION
+
+Process of Behavioural Change : A continuum
+
+The Role of IEC in STD/AIDS Prevention and Control
+LESSONS LEARNT FROM IEC PROGRAMME EXPERIENCES
+Using Appropriate Communication Approaches
+
+Designing Appropriate Audience Communications
+
+Targeting AIDS Education
+
+IEC as a Part of an Integrated Intervention Package
+
+STEPS IN IEC PLANNING, IMPLEMENTATION AND EVALUATION
+Planning
+
+Preparatory Activities
+
+Materials Development
+Monitoring and Evaluation
+
+ACKNOWLEDGEMENTS
+
+Annexes
+IEC for Specific Target Audiences — Youth as an Example
+
+Planning a Mass Awareness Campaign
+
+Page
+
+aS -_
+
+OO ON
+
+10
+10
+14
+
+15
+18
+
+21
+
+23
+
+33
+
+The issue of this document does not constitute formal publication. It should not be reviewed, abstracted or
+
+quoted without the agreement of the World Health Organization. Authors alone are responsible for views
+appearing under their names.
+
+Reprinted in January 2000

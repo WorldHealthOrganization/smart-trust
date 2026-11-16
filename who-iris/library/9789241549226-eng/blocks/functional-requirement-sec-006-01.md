@@ -1,0 +1,1 @@
+In a national context an electronic health workforce registry can be considered the single authoritative source of health workforce information that can provide an accurate count of all health care personnel that either have worked or are currently working at national or sub-national levels, including in the private sector.

@@ -1,0 +1,239 @@
+{
+  "$schema": "qa-attestations/v1",
+  "family": "adversarial-review",
+  "subject": {
+    "kind": "skill",
+    "id": "merge-conflict-patterns",
+    "path": "sdlc/skills/sdlc-core/merge-conflict-patterns.md"
+  },
+  "adversarial_reviews": [
+    {
+      "reviewer": {
+        "by": "agent",
+        "session": "session_backfill_lvlv",
+        "model": "not-disclosed"
+      },
+      "author_sessions": [],
+      "skill_hash": "hash:adversarial-checklist:v1",
+      "at": "2026-10-09T16:54:43.277Z",
+      "coverage": {
+        "files_total": 1,
+        "files_reviewed": 1,
+        "skipped": []
+      },
+      "result": "pass",
+      "flags": [],
+      "findings": []
+    },
+    {
+      "reviewer": {
+        "by": "agent",
+        "session": "session_01VQDpPffYARDQ8juksAZScf",
+        "model": "not-disclosed"
+      },
+      "author_sessions": [],
+      "skill_hash": "hash:adversarial-checklist:v1",
+      "at": "2026-11-05T17:14:24.396Z",
+      "coverage": {
+        "files_total": 1,
+        "files_reviewed": 1,
+        "skipped": []
+      },
+      "result": "fail",
+      "flags": [
+        {
+          "id": "adv-merge-conflict-patterns-hand-merge-theirs",
+          "category": "data-loss",
+          "severity": "major",
+          "weight": "blocking",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:133-137 (\u00a7\"Four things a round needs to know\", first bullet)",
+          "evidence": "The hand recipe says: take each declared path with `git checkout --theirs <path>` and stage it with `git add -f`. For a `readme-generated-regions` path that replaces the whole README with main's stage-3 blob, discarding the branch's authored hunks in that README, including ones git had merged cleanly; regen rewrites only the generated regions, and no listed check (the deletion audit is scoped to */test/results/*) sees lost prose. merge-base.ts resolves that pattern hunk by hunk (resolveGeneratedRegions) and refuses a hunk outside a region. The same file says --theirs has nothing to take in a modify/delete (\u00a7\"When one side deleted the file\", l.200-204) and writes marked bytes in a rename/rename payload (l.480-481), and the hand path runs neither droppedInMerge checkpoint (merge-queue: 'A hand `git merge` gets no such check').",
+          "detail": "Fix: in the hand recipe, resolve each path by its pattern's strategy (take-base incl. `git rm` for a base deletion; owned-tree from the parents' commits; region-by-region for READMEs), and run the deletion audit over every path, not only test/results.",
+          "status": "open"
+        }
+      ],
+      "findings": [
+        {
+          "id": "adv-merge-conflict-patterns-hand-merge-theirs",
+          "category": "data-loss",
+          "severity": "major",
+          "weight": "blocking",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:133-137 (\u00a7\"Four things a round needs to know\", first bullet)",
+          "evidence": "The hand recipe says: take each declared path with `git checkout --theirs <path>` and stage it with `git add -f`. For a `readme-generated-regions` path that replaces the whole README with main's stage-3 blob, discarding the branch's authored hunks in that README, including ones git had merged cleanly; regen rewrites only the generated regions, and no listed check (the deletion audit is scoped to */test/results/*) sees lost prose. merge-base.ts resolves that pattern hunk by hunk (resolveGeneratedRegions) and refuses a hunk outside a region. The same file says --theirs has nothing to take in a modify/delete (\u00a7\"When one side deleted the file\", l.200-204) and writes marked bytes in a rename/rename payload (l.480-481), and the hand path runs neither droppedInMerge checkpoint (merge-queue: 'A hand `git merge` gets no such check').",
+          "detail": "Fix: in the hand recipe, resolve each path by its pattern's strategy (take-base incl. `git rm` for a base deletion; owned-tree from the parents' commits; region-by-region for READMEs), and run the deletion audit over every path, not only test/results.",
+          "status": "open"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-rule3-never-under-report",
+          "category": "correctness",
+          "severity": "major",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:52-59 (\u00a7\"Applying rule 3\")",
+          "evidence": "'A stale tree can only ever over-report authored conflicts, never under-report, because a pattern is added and an authored path is the fallback.' That holds only if declarations are append-only. Nothing makes them so: first match wins (l.614-615), docs-pages enumerates slugs (l.411-417) so a page that becomes authored loses its slug, and the registry's history rewrites and retires entries (cat-harness-tools 3d7d8832 retired the kg-qa-sidecar strategy). After a narrowing, a stale branch's `merge:main` (merge-base.ts imports PATTERNS from the running checkout) takes base on a path main now refuses: the silent-discard direction. The remedy offered (`git show origin/<base>:\u2026merge-conflict-patterns.ts`) cannot be given to merge:main; the mechanism CI uses, main's merge-base.ts run with `--root` on the branch (folio-assistant merge-main.yml, step 'merge main in, with main's merge-base.ts'), is not named.",
+          "status": "open"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-ci-section-stale",
+          "category": "provenance",
+          "severity": "major",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:620-656 (\u00a7\"In CI \u2014 opt in with the merge-main label\")",
+          "evidence": "Against folio-assistant .github/workflows/merge-main.yml at 575b57e: (a) 'runs merge:main on every open, same-repository PR labelled merge-main that is behind main' \u2014 a sweep now merges only a CONFLICTED PR (a clean one only when the label is added or a dispatch names it) and never a draft, per the owner ruling of 2026-11-05 that branch-freshness quotes; (b) 'one live run per PR (a newer run cancels an older one)' \u2014 concurrency is per PR and per event, push-triggered runs queue and are never cancelled in progress, and two runs for one PR can run at once; (c) 'pushed with MERGE_MAIN_TOKEN' \u2014 the workflow uses the PUSH_BRANCH_TRIGGERING_CI capability (harness App, or a secret of that name); (d) `.github/workflows/merge-main.yml` lives in the folio-assistant index, not in cat-harness, where this skill is read.",
+          "status": "open"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-train-resolves-conflicts",
+          "category": "correctness",
+          "severity": "major",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:660-664 (\u00a7\"When a merge-train member is refused\")",
+          "evidence": "A train is described as `merge-base.ts --no-regen` per member, refusing a member 'when its merge hits an authored or undeclared conflict', so declared conflicts are resolved inside the train. merge-queue \u00a7'A train admits only members that STACK cleanly (STRICT)' requires 'no conflict at all, generated paths included', checked with merge-tree before admission: 'Conflict resolution belongs on the member's branch, never in the train'; merge-manager-watcher: 'It is never fixed inside the train.' One of the two skills is wrong; this one does not mention stacking.",
+          "status": "open"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-dispatch-cannot-sign",
+          "category": "correctness",
+          "severity": "major",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:712-716, 757-775 (\u00a71 Done when; \u00a73 dispatch one agent)",
+          "evidence": "\u00a73 fires when the owning session is 'gone', and the dispatched agent's budget is 'one fix, one push, one report'. The work item's Done-when needs 'a new `ready: <sha>`', and merge:guard accepts a ready marker only from the session the PR body names (merge-queue \u00a7'Stalled for days' step 3; an unblocker 'never posts a `ready:` marker'). With the owner gone and no takeover of the body's session line, which \u00a73 does not provide, Done-when cannot be met and the item becomes the 'stale hold' \u00a75 warns of.",
+          "status": "open"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-fail-thresholds",
+          "category": "correctness",
+          "severity": "minor",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:735-741 (\u00a72 Fails if)",
+          "evidence": "'no started line within 4 hours; or no push within 24 hours' is given with no ruling or source. merge-manager-watcher routes 'a PR whose owner has not pushed or answered for 2+ hours' to stalled-agent-triage, 'tell the owner and take it over'; merge-queue's `stale` row is 24 h without push or human comment. Three thresholds for one situation.",
+          "status": "open"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-steward-edits",
+          "category": "correctness",
+          "severity": "minor",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:743-746 vs 686-688",
+          "evidence": "\u00a72: 'After that, the steward does not edit the work item: anything it learns goes to the PR.' \u00a71: a second refusal of the same PR is added to the open work item under `## Attempts` with `--body-append`, by the steward, while the owning session holds it. (\u00a73's dispatch record and \u00a75's close follow a takeover or settle the fate, so they are arguably outside \u00a72's window; \u00a71's case is not.)",
+          "status": "open"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-read-only-name",
+          "category": "provenance",
+          "severity": "minor",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:589",
+          "evidence": "'task-io.ts classifies check:artefact-verification as READ_ONLY'. task-io.ts:136 has `\"check:artefact-verification\": TREE_READER` ({ inputs: [TRACKED], outputs: [] }); READ_ONLY is a different constant. The substance (no outputs, so no writer and take-base would discard) holds; the identifier does not.",
+          "status": "open"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-regen-every-check",
+          "category": "provenance",
+          "severity": "minor",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:35-39, 70",
+          "evidence": "Rule 2: regen 'asks every check the CI workflow runs'; the round table: a standalone regen after merge:main adds 'nothing \u2014 same tree, same gate set'. merge:main runs regen with `--changed <fork point>` (merge-base.ts regenArgs, bean 94zs), i.e. only pairs whose inputs changed since the fork; a standalone `regen` asks the full set and can find a pair already stale at both parents. The practical cost is small (CI reports it), but both sentences are false as written.",
+          "status": "open"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-unsourced-measurements",
+          "category": "provenance",
+          "severity": "minor",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:66-72, 88-89, 138-140",
+          "evidence": "The round table (238-309 s, 601-639 s, 1429 s, ~21.8k tests, 3-4 cores), 'Cold, it needs \u22651200 s', and 'the two reds a generated-only merge actually hit in CI' are stated as standing facts with no date, run or re-measure command (cat-harness-tools has scripts/measure-merge-round.ts). They are in tension with each other (5-10 min vs \u22651200 s cold) and with merge-main.yml's measured 19-46 min round (#1754, 2026-10-01). skill-no-prose-counts.",
+          "status": "open"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-touched-code-undefined",
+          "category": "correctness",
+          "severity": "minor",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:79-81, 122-123",
+          "evidence": "The choice between the trimmed and the full local round turns on 'the merge touched code (yours or main's reconciled against yours)', which is not defined. Almost every merge of main brings code in; read broadly, the trimmed round never applies, read narrowly (textual conflict only) it admits the semantic conflict l.126-129 says the targeted list cannot see.",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "reviewer": {
+        "by": "agent",
+        "session": "session_01VQDpPffYARDQ8juksAZScf",
+        "model": "not-disclosed"
+      },
+      "author_sessions": [],
+      "skill_hash": "hash:adversarial-checklist:v1",
+      "at": "2026-11-05T17:29:09.280Z",
+      "coverage": {
+        "files_total": 1,
+        "files_reviewed": 1,
+        "skipped": []
+      },
+      "result": "pass",
+      "flags": [],
+      "findings": [
+        {
+          "id": "adv-merge-conflict-patterns-r2-boundary-hunk",
+          "category": "correctness",
+          "severity": "minor",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:hand recipe, readme bullet",
+          "evidence": "The per-hunk rule named only hunks inside or outside a region; a hunk that moves a region boundary is neither, and the pattern section refuses it. Now named as authored.",
+          "detail": "Raised against the fixed text and corrected in the same commit before this review was recorded; the recorded text answers it.",
+          "status": "resolved"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-r2-dispatch-events",
+          "category": "correctness",
+          "severity": "minor",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:In CI, third bullet",
+          "evidence": "The concurrency bullet omitted workflow_dispatch runs, which merge-main.yml cancels per event (cancel-in-progress is true for every event but push), and said 'one of each kind' for three event kinds. Now: any non-push event cancels an earlier run of the same event.",
+          "detail": "Raised against the fixed text and corrected in the same commit before this review was recorded; the recorded text answers it.",
+          "status": "resolved"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-r2-unmerged-workflow",
+          "category": "correctness",
+          "severity": "minor",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:train paragraph",
+          "evidence": "Said the automated train is 'run by merge-train.yml in folio-assistant' and the ruling's section was 'added by cat-harness#1053'; neither is on main (folio-assistant#2960 and cat-harness#1053 are open). Now 'proposed in'.",
+          "detail": "Raised against the fixed text and corrected in the same commit before this review was recorded; the recorded text answers it.",
+          "status": "resolved"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-r2-takeover-owner",
+          "category": "correctness",
+          "severity": "minor",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:\u00a73 signing bullet",
+          "evidence": "merge-queue \u00a7'Stalled for days' has the owner start the takeover agent; the new bullet let a steward-dispatched agent rewrite the PR body's session line with no owner involvement. Now 'with the owner's go-ahead as there'.",
+          "detail": "Raised against the fixed text and corrected in the same commit before this review was recorded; the recorded text answers it.",
+          "status": "resolved"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-r2-container-claim",
+          "category": "correctness",
+          "severity": "minor",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:timings note",
+          "evidence": "'recorded ... in one container' was not shown by any source. Removed; only the date bound (cat-harness seed 6e8a3f85, 2026-10-08) and the re-measure command remain.",
+          "detail": "Raised against the fixed text and corrected in the same commit before this review was recorded; the recorded text answers it.",
+          "status": "resolved"
+        },
+        {
+          "id": "adv-merge-conflict-patterns-r2-base-tools",
+          "category": "correctness",
+          "severity": "minor",
+          "weight": "suggestion",
+          "where": "sdlc/skills/sdlc-core/merge-conflict-patterns.md:Applying rule 3",
+          "evidence": "'classify with the BASE's own merge-base.ts' did not say where that file comes from. Now: a worktree of the tools at the base.",
+          "detail": "Raised against the fixed text and corrected in the same commit before this review was recorded; the recorded text answers it.",
+          "status": "resolved"
+        }
+      ]
+    }
+  ],
+  "source_hash": "4a2cf04c8d91"
+}
