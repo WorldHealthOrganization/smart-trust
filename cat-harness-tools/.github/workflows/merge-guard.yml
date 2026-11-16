@@ -1,0 +1,38 @@
+# This layer's own caller of `layer-merge-guard.yml`: the `merge-guard`
+# commit status on every PR head here (owner, 2026-11-13, card "A.
+# merge-guard required status"). The header of `layer-merge-guard.yml` says
+# what the status means. It never merges: only the merge manager does.
+#
+# Keep this file's name: `scripts/merge-guard.ts` ignores runs of
+# `.github/workflows/merge-guard.yml` as evidence about the head.
+
+name: Merge guard
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, labeled, unlabeled, edited]
+  issue_comment:
+    types: [created, edited]
+  workflow_run:
+    workflows: ["PR checks"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "PR number; empty: every open PR"
+        type: string
+        required: false
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+  actions: read
+  checks: read
+  statuses: write
+
+jobs:
+  guard:
+    uses: ./.github/workflows/layer-merge-guard.yml
+    with:
+      pr: ${{ inputs.pr || '' }}

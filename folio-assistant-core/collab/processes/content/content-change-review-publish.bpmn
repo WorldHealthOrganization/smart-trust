@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+ xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_ContentChangeReviewPublish"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="0.1.0">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="reviewer" name="Reviewer / SME"/>
+
+  <bpmn:collaboration id="Collaboration_ContentChangeReviewPublish">
+    <bpmn:participant id="Participant_ContentChangeReviewPublish" name="Merge and publish a content change" processRef="Process_ContentChangeReviewPublish" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_ContentChangeReviewPublish" name="Merge and publish a content change" isExecutable="false">
+    <bpmn:documentation>Merging an approved content change on the owner's explicit confirmation and publishing it: remove the staging preview, rebuild the main site and watch it. A change that is not merged keeps its preview.
+
+Called from content-change-review after the committee approves. Approving is the committee's judgement and merging is a separate, confirmed act, which is why the merge opens this phase rather than closing the review.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_ContentChangeReviewPublish">
+      <bpmn:lane id="Lane_Reviewer" name="Review Committee" partitionElementRef="reviewer">
+        <bpmn:documentation>Merges only on the owner's explicit confirmation.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Publish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Merge</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pipeline" name="CI/CD Pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>GW_Merged checks whether the approval resulted in a merge; it does not decide whether to approve one, and a "No" ends the run instead of looping back into review.</bpmn:documentation>
+        <bpmn:flowNodeRef>GW_Merged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NotMerged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CleanupStaging</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RebuildMain</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_WatchMainCI</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Pipeline</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Publish" name="Change approved">
+      <bpmn:outgoing>r0</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_Merge" name="Merge, on explicit confirmation">
+      <bpmn:documentation>
+        The owner says "merge it", and only then is the branch merged. Merge
+        to main triggers:
+        1. the main site rebuilds with the changes;
+        2. the staging preview's cleanup runs;
+        3. the review comments committed on the feature branch land on main,
+           as the review record.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="prepare-merge" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>r0</bpmn:incoming>
+      <bpmn:outgoing>flow_approve_to_pipeline</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Merged" name="PR merged?">
+  <bpmn:documentation>Was the PR merged? `Yes` removes the branches/&lt;slug&gt;/ preview; `No` ends this run at End_NotMerged without deploying and without looping back into review (the lane note says why); the preview stays in place, and the next push starts a new run.</bpmn:documentation>
+      <bpmn:incoming>flow_approve_to_pipeline</bpmn:incoming>
+      <bpmn:outgoing>p5</bpmn:outgoing>
+      <bpmn:outgoing>p8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_NotMerged" name="Not merged: preview kept">
+      <bpmn:documentation>The approval did not end in a merge. Nothing is deployed and branches/&lt;slug&gt;/ is left up; a later push to the branch starts a new run of this process.</bpmn:documentation>
+      <bpmn:incoming>p8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_CleanupStaging" name="Remove branches/&lt;slug&gt;/">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="feature-staging"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>
+        When the PR is merged or closed, the cleanup job
+        removes the branches/&lt;slug&gt;/ directory from gh-pages
+        so stale previews don't accumulate.
+      </bpmn:documentation>
+      <bpmn:incoming>p5</bpmn:incoming>
+      <bpmn:outgoing>p6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_RebuildMain" name="Rebuild main site">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-publish"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>
+        docs-site.yml triggers on the merge commit to main,
+        rebuilding the root of gh-pages with the accepted changes.
+        The build SHA stamp now reflects the merged state.
+      </bpmn:documentation>
+      <bpmn:incoming>p6</bpmn:incoming>
+      <bpmn:outgoing>p7</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_WatchMainCI" name="Note the main-branch watch">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="watch" />
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>
+        Second dispatch point: the change was approved and merged, and the
+        root of the site has been rebuilt from main. A failing main build
+        can look like a green run from inside the repo.
+
+        `note` rather than `claim`: the branch-watch bean already exists, and
+        whether the publish SUCCEEDED is not this step's judgement (the build
+        reports its own exit code). A bean is not closed on someone else's
+        say-so, so the step records what it observed and leaves the verdict
+        to the watcher.
+      </bpmn:documentation>
+      <bpmn:incoming>p7</bpmn:incoming>
+      <bpmn:outgoing>p7b</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Pipeline" name="Deployment complete">
+      <bpmn:incoming>p7b</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="r0" sourceRef="Start_Publish" targetRef="Task_Merge" />
+    <bpmn:sequenceFlow id="flow_approve_to_pipeline" sourceRef="Task_Merge" targetRef="GW_Merged" />
+    <bpmn:sequenceFlow id="p5" name="Yes" sourceRef="GW_Merged" targetRef="Task_CleanupStaging" />
+    <bpmn:sequenceFlow id="p8" name="No" sourceRef="GW_Merged" targetRef="End_NotMerged" />
+    <bpmn:sequenceFlow id="p6" sourceRef="Task_CleanupStaging" targetRef="Task_RebuildMain" />
+    <bpmn:sequenceFlow id="p7" sourceRef="Task_RebuildMain" targetRef="Task_WatchMainCI" />
+    <bpmn:sequenceFlow id="p7b" sourceRef="Task_WatchMainCI" targetRef="End_Pipeline" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ContentChangeReviewPublish">
+    <bpmndi:BPMNPlane id="BPMNPlane_ContentChangeReviewPublish" bpmnElement="Collaboration_ContentChangeReviewPublish">
+      <bpmndi:BPMNShape id="Participant_ContentChangeReviewPublish_di" bpmnElement="Participant_ContentChangeReviewPublish" isHorizontal="true">
+        <dc:Bounds x="100" y="80" width="1240" height="430" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Reviewer_di" bpmnElement="Lane_Reviewer" isHorizontal="true">
+        <dc:Bounds x="130" y="80" width="1210" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Pipeline_di" bpmnElement="Lane_Pipeline" isHorizontal="true">
+        <dc:Bounds x="130" y="230" width="1210" height="280" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_Publish_di" bpmnElement="Start_Publish">
+        <dc:Bounds x="202" y="137" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Merge_di" bpmnElement="Task_Merge">
+        <dc:Bounds x="290" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Merged_di" bpmnElement="GW_Merged">
+        <dc:Bounds x="465" y="280" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="445" y="258" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_NotMerged_di" bpmnElement="End_NotMerged">
+        <dc:Bounds x="472" y="417" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CleanupStaging_di" bpmnElement="Task_CleanupStaging">
+        <dc:Bounds x="580" y="245" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RebuildMain_di" bpmnElement="Task_RebuildMain">
+        <dc:Bounds x="735" y="245" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_WatchMainCI_di" bpmnElement="Task_WatchMainCI">
+        <dc:Bounds x="890" y="245" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Pipeline_di" bpmnElement="End_Pipeline">
+        <dc:Bounds x="1082" y="287" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="r0_di" bpmnElement="r0">
+        <di:waypoint x="238" y="155" />
+        <di:waypoint x="290" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_approve_to_pipeline_di" bpmnElement="flow_approve_to_pipeline">
+        <di:waypoint x="410" y="155" />
+        <di:waypoint x="438" y="155" />
+        <di:waypoint x="438" y="305" />
+        <di:waypoint x="465" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p5_di" bpmnElement="p5">
+        <di:waypoint x="515" y="305" />
+        <di:waypoint x="580" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p8_di" bpmnElement="p8">
+        <di:waypoint x="490" y="330" />
+        <di:waypoint x="490" y="417" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p6_di" bpmnElement="p6">
+        <di:waypoint x="700" y="305" />
+        <di:waypoint x="735" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p7_di" bpmnElement="p7">
+        <di:waypoint x="855" y="305" />
+        <di:waypoint x="890" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p7b_di" bpmnElement="p7b">
+        <di:waypoint x="1010" y="305" />
+        <di:waypoint x="1082" y="305" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

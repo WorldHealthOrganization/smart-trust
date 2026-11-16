@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_ThemeUIReview" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="ingestion-agent" name="Ingestion engine"/>
+  <bpmn:resource id="reviewer" name="Reviewer / SME"/>
+  <bpmn:collaboration id="Collaboration_Process_ThemeUIReview">
+    <bpmn:participant id="Participant_Process_ThemeUIReview" name="Theme and UI review — at ingestion" processRef="Process_ThemeUIReview"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_ThemeUIReview" name="Theme and UI review — at ingestion" isExecutable="false">
+    <bpmn:documentation>Reviewing GRAPHICAL ASSETS AS THEY ARE INGESTED — accessibility, branding, languages — in the context of the website or app design they are for, to determine what the graphical assets and the UI are going to be.
+
+AT INGESTION ONLY: it is called from `ingest-theme.bpmn`.
+
+WHY THE MOMENT MATTERS. Reviewed after a build, a finding is a defect in something shipped. Reviewed at ingestion, the same finding is a decision about what the assets WILL be, taken while it is still cheap. The question the review asks is unchanged; the object it asks it of moved upstream, and so did the cost of the answer.
+
+There is no role-to-theme mapping — theme choice remains an authoring judgement, per note — so nothing here checks a binding. What gets reviewed is the ingested art in its design context.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_ThemeUIReview">
+      <bpmn:lane id="Lane_Reviewer" name="Reviewer" partitionElementRef="reviewer">
+        <bpmn:documentation>The single point in this process where a person looks rather than a tool measures, reached only after all four agent passes are done — so what this lane judges is the ingested assets as a whole, in the design they are for — not any one axis in isolation. Its finding is the only thing that can send the process to A_RaiseFindings; a clean ingest, a passing accessibility check and a correct branding pass can each be true and still miss what only laying the assets out and looking catches.</bpmn:documentation>
+        <bpmn:flowNodeRef>R_Judge</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Agent" partitionElementRef="ingestion-agent">
+        <bpmn:documentation>Four measured passes into R_Judge — inventory, accessibility, branding, locales — each one required to MEASURE rather than assert, because an automated pass alone misses defects a rendered look catches. If GW_Findings comes back yes, this lane still does not fix anything: A_RaiseFindings sends the finding back to whoever authored the theme choice, since picking it was a judgement call this lane does not get to override.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_TUR</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Inventory</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Accessibility</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Branding</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Locales</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Findings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_RaiseFindings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_TUR</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_TUR" name="Graphical assets&#10;ingested"/>
+    <bpmn:task id="A_Inventory" name="Inventory the&#10;ingested assets">
+      <bpmn:documentation>Which graphical assets arrived, for which surfaces of the website or app design, in which locales, and at which VIEWPORTS: every surface at a web width and at a mobile width. Read off the ingested artefacts rather than off the intent — a layout the source declares but does not supply is not in the inventory, and a surface the design needs but no asset covers is the one that would ship wrong.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="theme-ui-review"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Accessibility" name="Accessibility:&#10;measure, do not assert">
+      <bpmn:documentation>Contrast COMPUTED against the real ground, including the worst case a backdrop can present; a non-colour channel wherever colour carries meaning (SC 1.4.1); an accessible name on every region; keyboard and focus order. An automated pass is necessary and not sufficient — axe accepts a non-empty placeholder as an accessible name, and a CSS selector that matches nothing raises no error at all.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="theme-ui-review"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Branding" name="Branding:&#10;does it read as this layer?">
+      <bpmn:documentation>Marks, palettes and art against the layer's own declaration rather than a remembered style. The question a downstream folio makes sharp: would this layer inherit something it did not choose?</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="theme-ui-review"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Locales" name="Languages: extracted,&#10;rendered, and RTL">
+      <bpmn:documentation>Every user-facing string reaches the .pot; every declared locale renders without clipping or overflow; right-to-left is laid out rather than mirrored by accident. New UI is where untranslated strings enter, because nothing was stale — there was nothing there before.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="theme-ui-review"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="R_Judge" name="Judge the assets&#10;in their design">
+      <bpmn:documentation>A person looks at the ingested assets laid out in the design they are for, at BOTH a web and a mobile width. THIS IS A HUMAN STEP INSIDE INGESTION, stated rather than hidden: ingestion of a THEME SOURCE is attended at this step, while ingestion of everything else never reaches it. A judgement made at one viewport is incomplete, not passed, and the wireframe of the surface (wireframe-design-review) says what each layout was meant to be. A clean build, a passing suite and every gate can all miss what only rendering the page and looking finds.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="A person exercising judgement over a rendered artefact. The skill governs what the agent PREPARES and measures for them, which is the four steps before this one."/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Findings" name="Findings?">
+      <bpmn:documentation>The reviewer's judgement of the ingested assets in their design. `yes` raises findings before the assets land; `none` ends reviewed and the Theme node proceeds.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="A_RaiseFindings" name="Raise findings&#10;before the assets land">
+      <bpmn:documentation>Findings go back to whoever authored the choice, because the choice was theirs: a theme is picked per note by a human or an agent, and there is no mapping to correct instead. Raised, never silently fixed — a reviewer who re-themes a note has substituted their judgement for the author's without saying so.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="theme-ui-review"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_TUR" name="Assets reviewed"/>
+    <bpmn:sequenceFlow id="SF_TUR_1" sourceRef="Start_TUR" targetRef="A_Inventory"/>
+    <bpmn:sequenceFlow id="SF_TUR_2" sourceRef="A_Inventory" targetRef="A_Accessibility"/>
+    <bpmn:sequenceFlow id="SF_TUR_3" sourceRef="A_Accessibility" targetRef="A_Branding"/>
+    <bpmn:sequenceFlow id="SF_TUR_4" sourceRef="A_Branding" targetRef="A_Locales"/>
+    <bpmn:sequenceFlow id="SF_TUR_5" sourceRef="A_Locales" targetRef="R_Judge"/>
+    <bpmn:sequenceFlow id="SF_TUR_6" sourceRef="R_Judge" targetRef="GW_Findings"/>
+    <bpmn:sequenceFlow id="SF_TUR_7" name="yes" sourceRef="GW_Findings" targetRef="A_RaiseFindings"/>
+    <bpmn:sequenceFlow id="SF_TUR_8" sourceRef="A_RaiseFindings" targetRef="End_TUR"/>
+    <bpmn:sequenceFlow id="SF_TUR_9" name="none" sourceRef="GW_Findings" targetRef="End_TUR"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_ThemeUIReview">
+    <bpmndi:BPMNPlane id="Plane_Process_ThemeUIReview" bpmnElement="Collaboration_Process_ThemeUIReview">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_ThemeUIReview" bpmnElement="Participant_Process_ThemeUIReview" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1350" height="340" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Reviewer" bpmnElement="Lane_Reviewer" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1320" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="250" width="1320" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_TUR" bpmnElement="Start_TUR">
+        <dc:Bounds x="240" y="317" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Inventory" bpmnElement="A_Inventory">
+        <dc:Bounds x="305" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Accessibility" bpmnElement="A_Accessibility">
+        <dc:Bounds x="460" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Branding" bpmnElement="A_Branding">
+        <dc:Bounds x="615" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Locales" bpmnElement="A_Locales">
+        <dc:Bounds x="770" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_R_Judge" bpmnElement="R_Judge">
+        <dc:Bounds x="940" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Findings" bpmnElement="GW_Findings" isMarkerVisible="true">
+        <dc:Bounds x="1110" y="310" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1090" y="288" width="90" height="18" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_RaiseFindings" bpmnElement="A_RaiseFindings">
+        <dc:Bounds x="1220" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_TUR" bpmnElement="End_TUR">
+        <dc:Bounds x="1410" y="317" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1383" y="278" width="90" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_TUR_1" bpmnElement="SF_TUR_1">
+        <di:waypoint x="276" y="335" />
+        <di:waypoint x="305" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_TUR_2" bpmnElement="SF_TUR_2">
+        <di:waypoint x="425" y="335" />
+        <di:waypoint x="460" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_TUR_3" bpmnElement="SF_TUR_3">
+        <di:waypoint x="580" y="335" />
+        <di:waypoint x="615" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_TUR_4" bpmnElement="SF_TUR_4">
+        <di:waypoint x="735" y="335" />
+        <di:waypoint x="770" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_TUR_5" bpmnElement="SF_TUR_5">
+        <di:waypoint x="890" y="335" />
+        <di:waypoint x="915" y="335" />
+        <di:waypoint x="915" y="165" />
+        <di:waypoint x="940" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_TUR_6" bpmnElement="SF_TUR_6">
+        <di:waypoint x="1060" y="165" />
+        <di:waypoint x="1085" y="165" />
+        <di:waypoint x="1085" y="335" />
+        <di:waypoint x="1110" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_TUR_7" bpmnElement="SF_TUR_7">
+        <di:waypoint x="1160" y="335" />
+        <di:waypoint x="1220" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_TUR_8" bpmnElement="SF_TUR_8">
+        <di:waypoint x="1340" y="335" />
+        <di:waypoint x="1410" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_TUR_9" bpmnElement="SF_TUR_9">
+        <di:waypoint x="1135" y="360" />
+        <di:waypoint x="1135" y="405" />
+        <di:waypoint x="1428" y="405" />
+        <di:waypoint x="1428" y="353" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1139" y="376.5" width="90" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

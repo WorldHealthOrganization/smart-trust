@@ -1,0 +1,61 @@
+# Fetch the PDFs of referenced IRIS items so their covers can be rendered.
+# Only the small, emblem-masked cover PNGs are ever committed; the PDFs travel
+# as a short-lived workflow artifact and are never written to the repository.
+name: IRIS cover PDFs
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "comma-separated item slugs (empty = every referenced item)"
+        required: false
+        default: ""
+  push:
+    branches: [claude/iris-cover-pdfs]
+    paths: [".github/workflows/iris-cover-pdfs.yml", "scripts/iris-covers/**"]
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Can a runner reach IRIS?
+        run: |
+          curl -sS -o /dev/null -w "iris.who.int HTTP %{http_code}\n" -A "litlfred-who-iris-covers/0.1" https://iris.who.int/server/api || true
+      - name: Fetch referenced PDFs
+        # The input reaches bash as a variable, never as script text, and is
+        # refused unless it is a comma-separated list of item slugs.
+        env:
+          ONLY: ${{ inputs.only }}
+        run: |
+          if [ -n "$ONLY" ] && ! printf '%s' "$ONLY" | grep -Eq '^[a-z0-9][a-z0-9._-]*(,[a-z0-9][a-z0-9._-]*)*$'; then
+            echo "::error::'only' must be comma-separated item slugs" >&2
+            exit 1
+          fi
+          python3 scripts/iris-covers/fetch-referenced-pdfs.py . out ${ONLY:+--only "$ONLY"}
+      - name: Render masked cover previews
+        run: |
+          # Pinned: the renderer is fetched at a fixed commit and checked
+          # against its digest before it runs in this write-token job.
+          pip install --quiet pymupdf==2.0
+          curl -sSfL -o /tmp/pdf-cover.py https://raw.githubusercontent.com/litlfred/cat-harness-tools/45b0894620099663f17abb584f376502d702422a/scripts/pdf-cover.py
+          echo "5a074215f4d8b5c8ab972a44828e54a31fd35e6515a44b79bd77ec38ce674f2b  /tmp/pdf-cover.py" | sha256sum -c -
+          python3 scripts/iris-covers/render-previews.py out /tmp/pdf-cover.py covers-review
+          cp out/report.json covers-review/fetch-report.json
+      # Only the masked PNGs and the two reports are committed, to this branch
+      # only, for review. The PDFs stay in the artifact below.
+      - name: Commit the review folder to this branch
+        if: github.ref != 'refs/heads/main'
+        run: |
+          git config user.name "who-iris cover renderer"
+          git config user.email "iris-covers@users.noreply.github.com"
+          git add covers-review
+          git diff --cached --quiet && exit 0
+          git commit -q -m "Masked cover previews for review (run ${GITHUB_RUN_ID})"
+          git push origin HEAD:${GITHUB_REF_NAME}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: iris-cover-pdfs
+          path: out
+          retention-days: 2

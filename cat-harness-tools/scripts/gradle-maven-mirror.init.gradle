@@ -1,0 +1,26 @@
+// Gradle init script: resolve Maven Central through a mirror.
+//
+// Use when repo.maven.apache.org answers 429 (Too Many Requests) through the
+// agent proxy — measured 2026-10-06 while building Grobid for issue #2302,
+// when repo1.maven.org and Google's mirror both answered 200 for the same POM.
+// Skill: cat-harness/sdlc/skills/sdlc-core/blocked-build-dependencies.md
+//
+//   ./gradlew build --init-script /path/to/gradle-maven-mirror.init.gradle
+//
+// Override the mirror with -Dmaven.mirror=<url>. The Gradle plugin portal is
+// kept for plugins; it answered 200 in the same session.
+
+def MIRROR = System.getProperty('maven.mirror',
+    'https://maven-central.storage-download.googleapis.com/maven2/')
+
+settingsEvaluated { settings ->
+  settings.pluginManagement.repositories {
+    maven { url MIRROR }
+    gradlePluginPortal()
+  }
+}
+
+allprojects {
+  buildscript.repositories { maven { url MIRROR } }
+  repositories { maven { url MIRROR } }
+}

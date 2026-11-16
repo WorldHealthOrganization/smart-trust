@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — L1 document ingestion — a document to the L1 source knowledge graph.
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool. The SVG under docs/assets/img/workflows/ is generated from it
+  by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  The <bootstrap.processes:skill> extension on an activity names the folio-assistant skill
+  that implements it; <cat-harness.processes:bean> marks a step that reads or writes the shared
+  work plan in beans/.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_L1DocumentIngestion"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="corpus" name="Corpus"/>
+  <bpmn:resource id="ingestion-agent" name="Ingestion engine"/>
+  <bpmn:resource id="work-plan" name="Work plan (beans)"/>
+  <bpmn:import namespace="https://litlfred.github.io/folio-assistant/workflows" location="ingest-extract-structure.bpmn" importType="http://www.omg.org/spec/BPMN/20100524/MODEL" />
+  <bpmn:import namespace="https://litlfred.github.io/folio-assistant/workflows" location="ingest-derive-content.bpmn" importType="http://www.omg.org/spec/BPMN/20100524/MODEL" />
+  <bpmn:import namespace="https://litlfred.github.io/folio-assistant/workflows" location="ingest-build-l1-kg.bpmn" importType="http://www.omg.org/spec/BPMN/20100524/MODEL" />
+  <bpmn:import namespace="https://litlfred.github.io/folio-assistant/workflows" location="ingest-l1-completeness-gate.bpmn" importType="http://www.omg.org/spec/BPMN/20100524/MODEL" />
+  <bpmn:collaboration id="Collaboration_L1DocumentIngestion">
+    <bpmn:participant id="Participant_L1DocumentIngestion" name="L1 document ingestion — a document to the L1 source knowledge graph" processRef="Process_L1DocumentIngestion" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_L1DocumentIngestion" name="L1 document ingestion — a document to the L1 source knowledge graph" isExecutable="false">
+    <bpmn:documentation>L1 document ingestion — a document to the L1 source knowledge graph.
+
+The harness holds only the basic, high-level document-ingestion flow; the detailed ingestion and cataloguing method is here.
+
+IT REFINES THE HARNESS FLOW BY CALLING IT. CallActivity_Basic runs the harness's `Process_Ingestion` first — accept the upload, put its metadata into the KG, catalogue the asset in library/ — and this process then reads the document into a complete L1 entry. That is the inversion the harness skill `library-ingestion` describes: the call points DOWN, from core to the harness, and nothing in the harness names this process. The theme branch's call into the harness's `ingest-theme.bpmn` is downward for the same reason; the four `ingest-*` phases sit beside this file. The method is the `l1-document-ingestion` skill.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_L1DocumentIngestion_LaneSet">
+      <bpmn:lane id="Lane_1" name="Ingestion Engine (agent, runs unattended)" partitionElementRef="ingestion-agent">
+        <bpmn:documentation>Runs the whole pipeline from CallActivity_Basic through Task_Promote and CallActivity_PublishStatements, and then Task_SummaryQueue, where it drains a few prose blocks of the advisory summary queue, and Task_Errata, where it records errors found in the source's own text — including the theme branch, which stays in THIS lane rather than dipping into Lane_2: deciding a document is a theme source is the engine asking its author a question, not a write to the shared work plan. It does not stop at a gap: Gateway_Complete's 'gap' branch leaves this lane only for Lane_2 to record the bean, then Flow_i8 returns here at CallActivity_Derive, until Gateway_Complete says complete.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_Document</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CallActivity_Basic</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanOpen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_BeanYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_BeanNotYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Detect</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Licence</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CallActivity_Extract</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CallActivity_Derive</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ThemeSource</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CallActivity_IngestTheme</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CallActivity_BuildKg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CallActivity_Gate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Complete</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Promote</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CallActivity_PublishStatements</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SummaryQueue</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Errata</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenBean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Citeable</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Ingested</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanClose</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Document" name="A document is offered
+for L1 ingestion">
+      <bpmn:documentation>A document whose text and structure are wanted as L1 source content. How it reached the queue, and whether it is held or only referenced, is the harness's basic flow's business, which CallActivity_Basic runs first.</bpmn:documentation>
+      <bpmn:outgoing>Flow_i1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="CallActivity_Basic" name="Basic ingestion
+(harness)" calledElement="Process_Ingestion">
+      <bpmn:documentation>The harness's `document-ingestion.bpmn`: accept the upload by a declared route, extract its metadata into the KG, and catalogue the asset in library/ — placed if materialized, recorded as referenced if not. Everything below refines that result for a document. Called, not copied.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="library-ingestion" />
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_i1a</bpmn:outgoing>
+      <bpmn:incoming>SF_Bean_1</bpmn:incoming>
+    </bpmn:callActivity>
+    <bpmn:serviceTask id="Task_Detect" name="Detect media type, mint a doc id">
+      <bpmn:documentation>Sniff the media type rather than trusting the extension, and mint the doc id from the page-1 arXiv stamp where there is one, else from the filename.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_i1a</bpmn:incoming>
+      <bpmn:outgoing>Flow_i2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Licence" name="Establish the licence from the upload">
+      <bpmn:documentation>EARLY: before any derivation, because library/ is holds: content and anything derived first is committed, so refusing it later is a deletion nobody may take unasked. This step sees only the upload itself — the licence recorded in its intake.json (the same stated / unknown record a library manifest carries) and whether a LICENSE file sits beside it. It never infers a licence from extracted text. The verdict is stated, unknown, or UNDETERMINED, and undetermined is never reported as cleared: the pipeline proceeds and says so, because a licence that only extraction can reveal is a later check's to find.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_i2</bpmn:incoming>
+      <bpmn:outgoing>Flow_i2a</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:callActivity id="CallActivity_Extract" name="Extract structure" calledElement="Process_ExtractStructure">
+      <bpmn:documentation>See ingest-extract-structure.bpmn.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_i2a</bpmn:incoming>
+      <bpmn:outgoing>Flow_i3</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="CallActivity_Derive" name="Derive content from the assets" calledElement="Process_DeriveContent">
+      <bpmn:documentation>See ingest-derive-content.bpmn. Most of this subprocess is not implemented yet.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_i3</bpmn:incoming>
+      <bpmn:incoming>Flow_i8</bpmn:incoming>
+      <bpmn:outgoing>Flow_i4</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="Gateway_ThemeSource" name="A theme source?
+(author's judgement)">
+      <bpmn:documentation>Human or agentic judgement at the gateway, not a declared predicate. THE PREDICATE IS DELIBERATELY ABSENT: no testable rule (a captured web deployment, or a document that STATES palette and typography rules) decides it, because whether a source is a theme is an authoring decision.
+
+So this gateway is answered by whoever is ingesting, not computed. An arbitrary branded PDF is not a theme source because a rule says so; it is not one because the author says it is not.
+
+WHY IT IS A GATEWAY AND NOT A FILTER INSIDE THE SUBPROCESS. `ingest-theme.bpmn` starts at "Theme source in hand" and can refuse as incomplete. Routing every document into it would make "this is not a theme" and "this theme is malformed" the same refusal, and the second is a defect while the first is the normal case.</bpmn:documentation>
+      <bpmn:incoming>Flow_i4</bpmn:incoming>
+      <bpmn:outgoing>Flow_theme_yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_theme_no</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="CallActivity_IngestTheme" name="Ingest the theme" calledElement="Process_IngestTheme">
+      <bpmn:documentation>See ingest-theme.bpmn. The subprocess derives one Theme node with kind sticky|webpage|publication, and refuses a source it cannot complete rather than emitting a partial theme.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="theme-art-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_theme_yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_theme_join</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_BeanOpen" name="Open the bean" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Process_BeanOpen: check before you create, find out whose the bean is, and claim it — or leave it alone when it is someone else's. The one place a claim is drawn; the gateway after this reads which end it reached.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_i1</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_2</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_BeanYours" name="Bean claimed?">
+      <bpmn:documentation>Reads which end Process_BeanOpen reached. `claimed`: the bean is in progress and this process works it. `not yours`: a sibling session or a human holds it, nothing was written to it, and this process stops here rather than work a bean it does not own (bean-coordination).</bpmn:documentation>
+      <bpmn:outgoing>SF_Bean_1</bpmn:outgoing>
+      <bpmn:incoming>SF_Bean_2</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_3</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_BeanNotYours" name="Not yours —&#10;left alone">
+      <bpmn:documentation>Someone else holds the bean; this run stops without touching it.</bpmn:documentation>
+      <bpmn:incoming>SF_Bean_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Call_BeanClose" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>Process_BeanClose: end the bean in a state that says why — complete and archive it, scrap it with its reasons and archive it, or record the blocker and hand it back. The one place resolve and archive are drawn; placed straight before the end so the engine's resolve sees nothing left but the archive step.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_i11</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_4</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="Flow_theme_yes" name="yes" sourceRef="Gateway_ThemeSource" targetRef="CallActivity_IngestTheme" />
+    <bpmn:sequenceFlow id="Flow_theme_join" sourceRef="CallActivity_IngestTheme" targetRef="CallActivity_BuildKg" />
+    <bpmn:sequenceFlow id="Flow_theme_no" name="no" sourceRef="Gateway_ThemeSource" targetRef="CallActivity_BuildKg" />
+    <bpmn:callActivity id="CallActivity_BuildKg" name="Build the L1 knowledge graph" calledElement="Process_BuildL1Kg">
+      <bpmn:documentation>See ingest-build-l1-kg.bpmn.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_theme_join</bpmn:incoming>
+      <bpmn:incoming>Flow_theme_no</bpmn:incoming>
+      <bpmn:outgoing>Flow_i5</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="CallActivity_Gate" name="L1 completeness gate" calledElement="Process_L1Gate">
+      <bpmn:documentation>See ingest-l1-completeness-gate.bpmn.
+
+Skill-backed by `l1-document-ingestion`: its section
+"What a complete L1 entry holds" names `check:l1-complete` as the gate and
+states its three results.
+
+The gate contains one adjudication (Task_FlagDrift: `real`, `spurious` or `source-wrong`), and its own Task_Verdict records the answer as a reason against the verdict before returning. So both answers reach this step, and nothing here branches on them; Gateway_Complete branches on the gate's completeness verdict instead.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l1-document-ingestion" />
+        <cat-harness.processes:adjudication accepts="real spurious source-wrong"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_i5</bpmn:incoming>
+      <bpmn:outgoing>Flow_i6</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="Gateway_Complete" name="L1 complete?">
+      <bpmn:documentation>The verdict of the L1 completeness gate. `gap` records the gap as a bean; `complete` promotes the source into library/&lt;bib-slug&gt;/.</bpmn:documentation>
+      <bpmn:incoming>Flow_i6</bpmn:incoming>
+      <bpmn:outgoing>Flow_i7</bpmn:outgoing>
+      <bpmn:outgoing>Flow_i9</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_OpenBean" name="Record the gap
+as a bean">
+      <bpmn:documentation>A missing derived artefact is a tracked gap, not a silent omission. The document stays in uploads/ until the gap closes.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_i7</bpmn:incoming>
+      <bpmn:outgoing>Flow_i8</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_OpenBean">
+        <bpmn:targetRef>DSR_work_plan</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Promote" name="Move into
+library/&lt;bib-slug&gt;/">
+      <bpmn:documentation>The folder name IS the bibliography citation key, so a citation and a directory are the same string.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_i9</bpmn:incoming>
+      <bpmn:outgoing>Flow_i10</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:callActivity id="CallActivity_PublishStatements" name="Publish the extracted
+statements" calledElement="Process_PublishExtractedStatements">
+      <bpmn:documentation>THE ENTRY IS COMPLETE HERE, so its statements are published here. Every statement the extraction captured from this entry (a recommendation, a requirement, a candidate a person still has to rule on) becomes readable in two places: the folio's working artifact, in the pages its content profile renders, and the shared extraction viewer. Each one links back to the library entry and to the section it came from.
+
+WHY IN INGESTION AND NOT LATER. A statement nobody can read beside its source is reviewed from memory, or not at all. Publishing when the entry is promoted means a reviewer can check every extracted statement against its source the moment it exists.
+
+The sub-process is the same for every content type. The content type decides only how its pages look, through its adapter. An entry that yields no statements (a referenced source, a dataset) passes through it with nothing to publish, and says so.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="publish-extracted-statements" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_i10</bpmn:incoming>
+      <bpmn:outgoing>Flow_i10b</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:serviceTask id="Task_SummaryQueue" name="Summarise prose blocks, in every language">
+      <bpmn:documentation>A QA sidecar of general document ingestion, drained slowly.
+
+Nothing is written to ENQUEUE a block: the queue is derived (every prose block in every declared library, minus those whose summaries.json record is a current draft or confirmation), so a promoted entry is in it the moment its blocks are. A re-ingested document whose text changed re-enters it on its own, because the record's source_hash no longer matches.
+
+What an agent doing ingestion work does here is DRAIN a few: `bun run cat summaries:next -- --n K` hands it the next K blocks with their text, it writes a short summary of each in its own words, and `bun run cat summaries:record` writes them into library/&lt;bib-slug&gt;/summaries.json as drafts naming the agent and its model. The block itself stays verbatim and `ingested`.
+
+A library can ask for a summary in more than one language (the six UN languages for a WHO publications library, owner 2026-11-11): the English draft, one in the document's own language read from the source, and translations of the English into the rest, each its own narrative in the block's slot. Method: skill l1-document-ingestion, "Summarising prose blocks".
+
+ADVISORY, never a gate: this step does not hold up Task_Citeable, and check:l1-complete reports the backlog (`block-summaries`) without failing on it. Confirming or rejecting a draft is a person's act, in `bun run cat narratives`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l1-document-ingestion"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_i10b</bpmn:incoming>
+      <bpmn:outgoing>Flow_i12a</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Errata" name="Record errata in the
+source's own text">
+      <bpmn:documentation>Owner, 2026-11-11 (card Q-ODD-1 = A, and "add to L1 doc schema errata"). Reading the blocks to summarise them finds errors that are in the publication itself, not in the extraction: a title that says June 2006 over an introduction that says June 2005, a Spanish edition announcing nine recommendations where the English lists ten. The block stays as printed. The agent records an erratum in library/&lt;bib-slug&gt;/errata.json (folio-document-errata/v1): the kind, the block or page, the words as printed, the reading the evidence supports, the evidence, and its note as a draft narrative a person confirms in `bun run cat narratives`. An extraction defect is not an erratum: it is fixed by re-deriving the entry. ADVISORY: check:l1-complete reports errata and fails only on a file that does not mean what it says. Method: skill l1-document-ingestion, "Errata: errors in the source's own text".</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l1-document-ingestion"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_i12a</bpmn:incoming>
+      <bpmn:outgoing>Flow_i12</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:task id="Task_Citeable" name="Available to cite
+as an L1 source">
+      <bpmn:documentation>Every knowledge-graph reference to this source now resolves through library/. Authoring and review consume it from here -- see authoring-a-document.bpmn.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_i12</bpmn:incoming>
+      <bpmn:outgoing>Flow_i11</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_Citeable">
+        <bpmn:targetRef>DSR_corpus</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_Ingested" name="Ingested">
+      <bpmn:incoming>SF_Bean_4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_i1" sourceRef="StartEvent_Document" targetRef="Call_BeanOpen" />
+    <bpmn:sequenceFlow id="Flow_i1a" sourceRef="CallActivity_Basic" targetRef="Task_Detect" />
+    <bpmn:sequenceFlow id="Flow_i2" sourceRef="Task_Detect" targetRef="Task_Licence" />
+    <bpmn:sequenceFlow id="Flow_i2a" sourceRef="Task_Licence" targetRef="CallActivity_Extract" />
+    <bpmn:sequenceFlow id="Flow_i3" sourceRef="CallActivity_Extract" targetRef="CallActivity_Derive" />
+    <bpmn:sequenceFlow id="Flow_i4" sourceRef="CallActivity_Derive" targetRef="Gateway_ThemeSource" />
+    <bpmn:sequenceFlow id="Flow_i5" sourceRef="CallActivity_BuildKg" targetRef="CallActivity_Gate" />
+    <bpmn:sequenceFlow id="Flow_i6" sourceRef="CallActivity_Gate" targetRef="Gateway_Complete" />
+    <bpmn:sequenceFlow id="Flow_i7" name="gap" sourceRef="Gateway_Complete" targetRef="Task_OpenBean" />
+    <bpmn:sequenceFlow id="Flow_i8" sourceRef="Task_OpenBean" targetRef="CallActivity_Derive" />
+    <bpmn:sequenceFlow id="Flow_i9" name="complete" sourceRef="Gateway_Complete" targetRef="Task_Promote" />
+    <bpmn:sequenceFlow id="Flow_i10" sourceRef="Task_Promote" targetRef="CallActivity_PublishStatements" />
+    <bpmn:sequenceFlow id="Flow_i10b" sourceRef="CallActivity_PublishStatements" targetRef="Task_SummaryQueue" />
+    <bpmn:sequenceFlow id="Flow_i12a" sourceRef="Task_SummaryQueue" targetRef="Task_Errata" />
+    <bpmn:sequenceFlow id="Flow_i12" sourceRef="Task_Errata" targetRef="Task_Citeable" />
+    <bpmn:sequenceFlow id="Flow_i11" sourceRef="Task_Citeable" targetRef="Call_BeanClose" />
+    <bpmn:sequenceFlow id="SF_Bean_1" name="claimed" sourceRef="GW_BeanYours" targetRef="CallActivity_Basic"/>
+    <bpmn:sequenceFlow id="SF_Bean_2" sourceRef="Call_BeanOpen" targetRef="GW_BeanYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_3" name="not yours" sourceRef="GW_BeanYours" targetRef="End_BeanNotYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_4" sourceRef="Call_BeanClose" targetRef="EndEvent_Ingested"/>
+    <bpmn:dataStoreReference id="DSR_work_plan" name="Work plan (beans)" dataStoreRef="work-plan"/>
+    <bpmn:dataStoreReference id="DSR_corpus" name="Corpus" dataStoreRef="corpus"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_L1DocumentIngestion">
+    <bpmndi:BPMNPlane id="Plane_L1DocumentIngestion" bpmnElement="Collaboration_L1DocumentIngestion">
+      <bpmndi:BPMNShape id="Participant_L1DocumentIngestion_di" bpmnElement="Participant_L1DocumentIngestion" isHorizontal="true"><dc:Bounds x="40" y="40" width="1360" height="800" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1_di" bpmnElement="Lane_1" isHorizontal="true"><dc:Bounds x="70" y="40" width="1330" height="800" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Document_di" bpmnElement="StartEvent_Document"><dc:Bounds x="112" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="104" y="236" width="82" height="76" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanOpen_di" bpmnElement="Call_BeanOpen"><dc:Bounds x="190" y="150" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_BeanYours_di" bpmnElement="GW_BeanYours" isMarkerVisible="true"><dc:Bounds x="355" y="185" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="335" y="243" width="90" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_BeanNotYours_di" bpmnElement="End_BeanNotYours"><dc:Bounds x="362" y="68" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="406" y="67" width="90" height="38" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_Basic_di" bpmnElement="CallActivity_Basic"><dc:Bounds x="470" y="150" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Detect_di" bpmnElement="Task_Detect"><dc:Bounds x="630" y="150" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Licence_di" bpmnElement="Task_Licence"><dc:Bounds x="790" y="150" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_Extract_di" bpmnElement="CallActivity_Extract"><dc:Bounds x="950" y="150" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_Derive_di" bpmnElement="CallActivity_Derive"><dc:Bounds x="1110" y="150" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ThemeSource_di" bpmnElement="Gateway_ThemeSource" isMarkerVisible="true"><dc:Bounds x="1275" y="185" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1245" y="109" width="110" height="72" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_IngestTheme_di" bpmnElement="CallActivity_IngestTheme"><dc:Bounds x="1240" y="390" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_BuildKg_di" bpmnElement="CallActivity_BuildKg"><dc:Bounds x="1060" y="390" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_Gate_di" bpmnElement="CallActivity_Gate"><dc:Bounds x="900" y="390" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Complete_di" bpmnElement="Gateway_Complete" isMarkerVisible="true"><dc:Bounds x="795" y="425" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="775" y="385" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenBean_di" bpmnElement="Task_OpenBean"><dc:Bounds x="610" y="390" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_DSR_work_plan" bpmnElement="DSR_work_plan"><dc:Bounds x="500" y="425" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="480" y="483" width="90" height="38" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Promote_di" bpmnElement="Task_Promote"><dc:Bounds x="110" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_PublishStatements_di" bpmnElement="CallActivity_PublishStatements"><dc:Bounds x="280" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SummaryQueue_di" bpmnElement="Task_SummaryQueue"><dc:Bounds x="450" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Errata_di" bpmnElement="Task_Errata"><dc:Bounds x="620" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Citeable_di" bpmnElement="Task_Citeable"><dc:Bounds x="790" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanClose_di" bpmnElement="Call_BeanClose"><dc:Bounds x="960" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Ingested_di" bpmnElement="EndEvent_Ingested"><dc:Bounds x="1130" y="652" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1118" y="696" width="60" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_DSR_corpus" bpmnElement="DSR_corpus"><dc:Bounds x="825" y="760" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="885" y="775" width="60" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_i1_di" bpmnElement="Flow_i1">
+        <di:waypoint x="148" y="210" />
+        <di:waypoint x="190" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_2_di" bpmnElement="SF_Bean_2">
+        <di:waypoint x="310" y="210" />
+        <di:waypoint x="355" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_3_di" bpmnElement="SF_Bean_3">
+        <di:waypoint x="380" y="185" />
+        <di:waypoint x="380" y="104" />
+        <bpmndi:BPMNLabel><dc:Bounds x="305" y="135" width="68" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_1_di" bpmnElement="SF_Bean_1">
+        <di:waypoint x="405" y="210" />
+        <di:waypoint x="470" y="210" />
+        <bpmndi:BPMNLabel><dc:Bounds x="410" y="186" width="55" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i1a_di" bpmnElement="Flow_i1a">
+        <di:waypoint x="590" y="210" />
+        <di:waypoint x="630" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i2_di" bpmnElement="Flow_i2">
+        <di:waypoint x="750" y="210" />
+        <di:waypoint x="790" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i2a_di" bpmnElement="Flow_i2a">
+        <di:waypoint x="910" y="210" />
+        <di:waypoint x="950" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i3_di" bpmnElement="Flow_i3">
+        <di:waypoint x="1070" y="210" />
+        <di:waypoint x="1110" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i4_di" bpmnElement="Flow_i4">
+        <di:waypoint x="1230" y="210" />
+        <di:waypoint x="1275" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_theme_yes_di" bpmnElement="Flow_theme_yes">
+        <di:waypoint x="1300" y="235" />
+        <di:waypoint x="1300" y="390" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1308" y="300" width="30" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_theme_join_di" bpmnElement="Flow_theme_join">
+        <di:waypoint x="1240" y="450" />
+        <di:waypoint x="1180" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_theme_no_di" bpmnElement="Flow_theme_no">
+        <di:waypoint x="1325" y="210" />
+        <di:waypoint x="1380" y="210" />
+        <di:waypoint x="1380" y="540" />
+        <di:waypoint x="1120" y="540" />
+        <di:waypoint x="1120" y="510" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1340" y="186" width="25" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i5_di" bpmnElement="Flow_i5">
+        <di:waypoint x="1060" y="450" />
+        <di:waypoint x="1020" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i6_di" bpmnElement="Flow_i6">
+        <di:waypoint x="900" y="450" />
+        <di:waypoint x="845" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i7_di" bpmnElement="Flow_i7">
+        <di:waypoint x="795" y="450" />
+        <di:waypoint x="730" y="450" />
+        <bpmndi:BPMNLabel><dc:Bounds x="748" y="426" width="32" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i8_di" bpmnElement="Flow_i8">
+        <di:waypoint x="670" y="390" />
+        <di:waypoint x="670" y="320" />
+        <di:waypoint x="1170" y="320" />
+        <di:waypoint x="1170" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DOA_Task_OpenBean_di" bpmnElement="DOA_Task_OpenBean">
+        <di:waypoint x="610" y="450" />
+        <di:waypoint x="550" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i9_di" bpmnElement="Flow_i9">
+        <di:waypoint x="820" y="475" />
+        <di:waypoint x="820" y="575" />
+        <di:waypoint x="170" y="575" />
+        <di:waypoint x="170" y="610" />
+        <bpmndi:BPMNLabel><dc:Bounds x="745" y="548" width="68" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i10_di" bpmnElement="Flow_i10">
+        <di:waypoint x="230" y="670" />
+        <di:waypoint x="280" y="670" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i10b_di" bpmnElement="Flow_i10b">
+        <di:waypoint x="400" y="670" />
+        <di:waypoint x="450" y="670" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i12a_di" bpmnElement="Flow_i12a">
+        <di:waypoint x="570" y="670" />
+        <di:waypoint x="620" y="670" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i12_di" bpmnElement="Flow_i12">
+        <di:waypoint x="740" y="670" />
+        <di:waypoint x="790" y="670" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DOA_Task_Citeable_di" bpmnElement="DOA_Task_Citeable">
+        <di:waypoint x="850" y="730" />
+        <di:waypoint x="850" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i11_di" bpmnElement="Flow_i11">
+        <di:waypoint x="910" y="670" />
+        <di:waypoint x="960" y="670" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_4_di" bpmnElement="SF_Bean_4">
+        <di:waypoint x="1080" y="670" />
+        <di:waypoint x="1130" y="670" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

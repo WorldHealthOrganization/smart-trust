@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — Subscribe to an external knowledge graph
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool. The SVG under docs/assets/img/workflows/ is generated from it
+  by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  The <bootstrap.processes:skill> extension on an activity names the skill that
+  implements it.
+  The engine keeps the work context; no step carries work-plan markup.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_SubscribeKg"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="corpus" name="Corpus"/>
+  <bpmn:resource id="ingestion-agent" name="Ingestion engine"/>
+  <bpmn:resource id="user" name="User"/>
+
+  <bpmn:collaboration id="Collaboration_SubscribeKg">
+    <bpmn:participant id="Participant_SubscribeKg" name="Subscribe to an external knowledge graph" processRef="Process_SubscribeKg" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_SubscribeKg" name="Subscribe to an external knowledge graph" isExecutable="false">
+    <bpmn:documentation>Subscribe a folio or harness to an external knowledge graph pinned to a full commit SHA, then take each chosen part from referenced to materialized through `materialize-remote` and instantiate each chosen harness once its needs are held, so the harness appears in the subscriber's navbar.
+
+A SUBSCRIPTION IS NOT A NEW MECHANISM, and this diagram is where that claim is kept honest. Every byte that arrives does so through Process_MaterializeRemote, called once per chosen subgraph or asset; every held copy is refreshed through Process_RefreshMaterialized. Neither is re-described here. What this process adds is only the walk: pin, validate, choose, and then carry each chosen part from referenced to materialised one at a time.
+
+A SUBSTRATE is a repository whose root declaration meets bootstrap's schema requirements and declares at least one harness. Both are answerable from the declaration file alone, so validating one never needs the whole repository.
+
+WHERE IT LIVES: library/processes/, beside Process_MaterializeRemote and Process_RefreshMaterialized, which it calls, naming the kg-subscription and materialize-remote skills in library/skills/large-datasets/; every ref stays inside the harness.
+
+STRICT. The pin and the five gates are the reason: an unpinned subscription is how two subscribers see two graphs under one name, and a gate that only warned is a gate nobody fails.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_SubscribeKg_LaneSet">
+      <bpmn:lane id="Lane_0" name="Subscriber (the folio's owner)" partitionElementRef="user">
+        <bpmn:documentation>Every CHOICE in the walk is made here and nowhere else: which substrate and at which commit, which of its subgraphs, asset classes and harnesses to hold. The engine never chooses a part on the subscriber's behalf — a subgraph not chosen stays referenced, which is a state, not an omission — and the pre-check on harness needs sends the choice back here rather than resolving it silently.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_Wanted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Pin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Choose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_NeedsHeld</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_1" name="Ingestion Engine (agent, runs unattended)" partitionElementRef="ingestion-agent">
+        <bpmn:documentation>Validates the substrate at the pin, then walks the chosen parts one at a time: each subgraph or asset through the shared materialisation subprocess, each held copy through the shared refresh, each harness by writing its config. Every loop here re-enters its decision after each part, so a refusal on one part is recorded and the walk continues to the next rather than aborting the subscription.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Validate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Substrate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Kind</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_NextHeld_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_NextHeld</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Refresh</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_NextPart_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_NextPart</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Materialize</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_NextHarness_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_NextHarness</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Instantiate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Refuse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Refused</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Record</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RePin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Summarise</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Done</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Wanted" name="A substrate is wanted,
+or a held pin is due to move">
+      <bpmn:documentation>Two ways in, one path: a first subscription, or an existing one whose pin should move. Both start by naming a commit, because refresh is not re-subscribe but it does need the new declaration validated before anything held is compared against it.</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Pin" name="Name the substrate,
+pin a full commit SHA">
+      <bpmn:documentation>`owner/repo` and a 40-character commit SHA — never a branch, never an abbreviated SHA. The schema refuses anything else (SubscriptionSchema.ref), and this step exists so the refusal is met while choosing rather than at commit time. A tag replaces the SHA only once the substrate publishes releases.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-subscription" />
+        <cat-harness.processes:policy relaxable="false" />
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_Validate" name="Fetch and validate the pinned declaration">
+      <bpmn:documentation>A sparse, shallow fetch of the substrate's root declaration only. Two questions: does it parse as bootstrap's KnowledgeGraphDeclarationSchema, and does it declare at least one harness? `could not fetch` is a third answer and is never read as `conforms`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-subscription" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Substrate" name="A substrate
+at this pin?">
+      <bpmn:documentation>Decided from Task_Validate's result, not by a person. `yes` needs both answers positive; a declaration that does not conform, declares no harness, or could not be fetched all take `no`, and the reason is recorded rather than the subscription half-written.</bpmn:documentation>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Refuse" name="Record why it is not
+a substrate; write no entry">
+      <bpmn:documentation>No subscription entry is written for a repository that is not a substrate. What is recorded is the reason (non-conforming, no harness, or unreachable) and the pin it was asked at, so a later attempt at a different commit starts from what failed.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-subscription" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_Refuse">
+        <bpmn:targetRef>DSR_corpus</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Refused" name="Not subscribed,
+and the record says why">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Gateway_Kind" name="New subscription,
+or moving a held pin?">
+      <bpmn:documentation>Answered by the subscriber's declaration: an entry with this id already exists or it does not. A new one is recorded and reviewed; an existing one first refreshes every part it already holds against the new pin, because a pin that moved under held bytes would leave their records describing a commit nobody is subscribed to.</bpmn:documentation>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Record" name="Write the entry and
+cache the declaration">
+      <bpmn:documentation>The `subscriptions` entry in the subscriber's layer declaration — id, repository, ref, and nothing chosen yet — plus a cached copy of the substrate's declaration at the pin. The entry holds the choice and the pin, never state: whether a part is held is answered by its materialisation record, and a second answer here would be free to disagree with it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-subscription" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_Record">
+        <bpmn:targetRef>DSR_corpus</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_NextHeld_Join">
+      <bpmn:documentation>Brings the paths together before the decision after it, so that decision only splits.</bpmn:documentation>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gateway_NextHeld_Join</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_NextHeld" name="Another held part
+not yet refreshed?">
+      <bpmn:documentation>Walks the parts this subscription already holds — every subgraph and asset with a materialisation record — one at a time. `yes` refreshes the next; `no` re-pins. Held parts are found from their records, never from the entry's `subgraphs` list, which says what was chosen, not what arrived.</bpmn:documentation>
+      
+      <bpmn:incoming>Flow_Gateway_NextHeld_Join</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_Refresh" name="Refresh the held part" calledElement="Process_RefreshMaterialized">
+      <bpmn:documentation>The shared refresh, called, not re-described: what changed upstream, what changed locally, and what to do when both did. An archival copy is fixity-checked and never re-fetched. Whatever that process decides — refreshed, kept divergent, or deferred — is the part's new state; this loop only moves to the next part.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote" />
+        <cat-harness.processes:adjudication accepts="remote local merge defer" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:serviceTask id="Task_RePin" name="Move the entry's ref
+and re-cache the declaration">
+      <bpmn:documentation>Only after every held part has been through the refresh. Moving the ref first would make the records of parts not yet refreshed describe a commit the entry no longer names. The cached declaration is replaced so the review that follows shows what the NEW pin offers, including subgraphs that did not exist at the old one.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-subscription" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_RePin">
+        <bpmn:targetRef>DSR_corpus</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_Review" name="Review what the
+substrate offers">
+      <bpmn:documentation>Every subgraph, asset class and harness the cached declaration names, each with its current state — referenced, materialised, unknown, stale, or refused by a gate. Shown whole, because a reader who sees only what was chosen cannot tell &quot;not offered&quot; from &quot;not taken&quot;.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-subscription" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Choose" name="Choose subgraphs,
+assets, harnesses">
+      <bpmn:documentation>Written to the entry as `subgraphs`, `assets.policy` (none, on-demand or all) and `harnesses`. Choosing is not holding: a chosen subgraph is still referenced until the gates below let it through. Choosing nothing is legitimate — a subscription with no parts chosen is a pinned reference, the case associatedHarnesses covers today.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-subscription" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+      <bpmn:incoming>Flow_16</bpmn:incoming>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_NeedsHeld" name="Every chosen harness's
+needs held here?">
+      <bpmn:documentation>For each chosen harness, is every layer it `needs` either local to this checkout or itself subscribed? Decided from the two declarations, before any byte moves. `no` goes back to the choice — subscribe the missing dependency first, or leave that harness referenced — because instantiating a harness whose needs cannot load writes a navbar entry that fails check:instance-render.</bpmn:documentation>
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+      <bpmn:outgoing>Flow_16</bpmn:outgoing>
+      <bpmn:outgoing>Flow_17</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_NextPart_Join">
+      <bpmn:documentation>Brings the paths together before the decision after it, so that decision only splits.</bpmn:documentation>
+      <bpmn:incoming>Flow_17</bpmn:incoming>
+      <bpmn:incoming>Flow_19</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gateway_NextPart_Join</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_NextPart" name="Another chosen subgraph
+or asset not yet walked?">
+      <bpmn:documentation>One part at a time, in the order chosen. `yes` hands the next subgraph — or, under an `all` asset policy, the next referenced asset — to the shared subprocess. Under `on-demand`, assets are not walked here at all: each is materialised through the same subprocess when first asked for. `no` moves on to harnesses.</bpmn:documentation>
+      
+      <bpmn:incoming>Flow_Gateway_NextPart_Join</bpmn:incoming>
+      <bpmn:outgoing>Flow_18</bpmn:outgoing>
+      <bpmn:outgoing>Flow_20</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_Materialize" name="Materialise the part" calledElement="Process_MaterializeRemote">
+      <bpmn:documentation>The ONLY way bytes arrive. Purpose first, then the five gates — size, restrictions, copyright, retention, source loss — then fetch with fixity, or stay referenced with the refusing gate's basis recorded. Both ends of that subprocess return here and the walk continues: one part refused is not the subscription refused.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote" />
+        <cat-harness.processes:policy relaxable="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_18</bpmn:incoming>
+      <bpmn:outgoing>Flow_19</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="Gateway_NextHarness_Join">
+      <bpmn:documentation>Brings the paths together before the decision after it, so that decision only splits.</bpmn:documentation>
+      <bpmn:incoming>Flow_20</bpmn:incoming>
+      <bpmn:incoming>Flow_22</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gateway_NextHarness_Join</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_NextHarness" name="Another chosen harness
+not yet instantiated?">
+      <bpmn:documentation>Walks the chosen harnesses, whose needs the pre-check already found held. `yes` instantiates the next; `no` closes the walk. A harness already instantiated at this pin is skipped rather than rewritten.</bpmn:documentation>
+      
+      <bpmn:incoming>Flow_Gateway_NextHarness_Join</bpmn:incoming>
+      <bpmn:outgoing>Flow_21</bpmn:outgoing>
+      <bpmn:outgoing>Flow_23</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Instantiate" name="Instantiate the harness:
+write its config">
+      <bpmn:documentation>Write `&lt;harness&gt;.config.json` at the repository root, plus the state directories the harness declares, and — where the checkout has a root `index.config.json` — add the harness to its `instances[]` (kg:instantiate does both), because the index, not the file, is then what reads as INSTANTIATED (index-config skill); a root config the index does not list fails check:landing-instance. That instantiation is what puts the harness in the navbar's bottom region. check:instance-render must be green on the result; a config that renders nothing is an entry pointing nowhere.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-subscription" />
+        <bootstrap.processes:skill ref="index-config" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_21</bpmn:incoming>
+      <bpmn:outgoing>Flow_22</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Summarise" name="Record how each part of the walk ended">
+      <bpmn:documentation>One line per offered part: materialised, referenced by choice, or referenced because a gate refused (and which). Nothing new is decided here; it is the account the visualizer and the next refresh read, written once rather than reconstructed from the loop.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-subscription" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_23</bpmn:incoming>
+      <bpmn:outgoing>Flow_24</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_Summarise">
+        <bpmn:targetRef>DSR_corpus</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Done" name="Subscribed, every part
+in a recorded state">
+      <bpmn:incoming>Flow_24</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_Wanted" targetRef="Task_Pin" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Pin" targetRef="Task_Validate" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_Validate" targetRef="Gateway_Substrate" />
+    <bpmn:sequenceFlow id="Flow_4" name="no, or could not tell" sourceRef="Gateway_Substrate" targetRef="Task_Refuse" />
+    <bpmn:sequenceFlow id="Flow_5" name="yes" sourceRef="Gateway_Substrate" targetRef="Gateway_Kind" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_Refuse" targetRef="EndEvent_Refused" />
+    <bpmn:sequenceFlow id="Flow_7" name="new" sourceRef="Gateway_Kind" targetRef="Task_Record" />
+    <bpmn:sequenceFlow id="Flow_8" name="moving a held pin" sourceRef="Gateway_Kind" targetRef="Gateway_NextHeld_Join" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_Record" targetRef="Task_Review" />
+    <bpmn:sequenceFlow id="Flow_10" name="yes" sourceRef="Gateway_NextHeld" targetRef="Call_Refresh" />
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Call_Refresh" targetRef="Gateway_NextHeld_Join" />
+    <bpmn:sequenceFlow id="Flow_Gateway_NextHeld_Join" sourceRef="Gateway_NextHeld_Join" targetRef="Gateway_NextHeld"/>
+    <bpmn:sequenceFlow id="Flow_12" name="no, all refreshed" sourceRef="Gateway_NextHeld" targetRef="Task_RePin" />
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="Task_RePin" targetRef="Task_Review" />
+    <bpmn:sequenceFlow id="Flow_14" sourceRef="Task_Review" targetRef="Task_Choose" />
+    <bpmn:sequenceFlow id="Flow_15" sourceRef="Task_Choose" targetRef="Gateway_NeedsHeld" />
+    <bpmn:sequenceFlow id="Flow_16" name="no — choose again" sourceRef="Gateway_NeedsHeld" targetRef="Task_Choose" />
+    <bpmn:sequenceFlow id="Flow_17" name="yes" sourceRef="Gateway_NeedsHeld" targetRef="Gateway_NextPart_Join" />
+    <bpmn:sequenceFlow id="Flow_18" name="yes" sourceRef="Gateway_NextPart" targetRef="Call_Materialize" />
+    <bpmn:sequenceFlow id="Flow_19" sourceRef="Call_Materialize" targetRef="Gateway_NextPart_Join" />
+    <bpmn:sequenceFlow id="Flow_Gateway_NextPart_Join" sourceRef="Gateway_NextPart_Join" targetRef="Gateway_NextPart"/>
+    <bpmn:sequenceFlow id="Flow_20" name="no, every part walked" sourceRef="Gateway_NextPart" targetRef="Gateway_NextHarness_Join" />
+    <bpmn:sequenceFlow id="Flow_21" name="yes" sourceRef="Gateway_NextHarness" targetRef="Task_Instantiate" />
+    <bpmn:sequenceFlow id="Flow_22" sourceRef="Task_Instantiate" targetRef="Gateway_NextHarness_Join" />
+    <bpmn:sequenceFlow id="Flow_Gateway_NextHarness_Join" sourceRef="Gateway_NextHarness_Join" targetRef="Gateway_NextHarness"/>
+    <bpmn:sequenceFlow id="Flow_23" name="no, every harness walked" sourceRef="Gateway_NextHarness" targetRef="Task_Summarise" />
+    <bpmn:sequenceFlow id="Flow_24" sourceRef="Task_Summarise" targetRef="EndEvent_Done" />
+    <bpmn:dataStoreReference id="DSR_corpus" name="Corpus" dataStoreRef="corpus"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_SubscribeKg">
+    <bpmndi:BPMNPlane id="Plane_SubscribeKg" bpmnElement="Collaboration_SubscribeKg">
+      <bpmndi:BPMNShape id="Participant_SubscribeKg_di" bpmnElement="Participant_SubscribeKg" isHorizontal="true">
+        <dc:Bounds x="80" y="60" width="1360" height="720" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0_di" bpmnElement="Lane_0" isHorizontal="true">
+        <dc:Bounds x="110" y="60" width="1330" height="205" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1_di" bpmnElement="Lane_1" isHorizontal="true">
+        <dc:Bounds x="110" y="265" width="1330" height="515" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Wanted_di" bpmnElement="StartEvent_Wanted">
+        <dc:Bounds x="148" y="85" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="142" y="130" width="75" height="50" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Pin_di" bpmnElement="Task_Pin">
+        <dc:Bounds x="230" y="80" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Validate_di" bpmnElement="Task_Validate">
+        <dc:Bounds x="230" y="290" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Substrate_di" bpmnElement="Gateway_Substrate" isMarkerVisible="true">
+        <dc:Bounds x="380" y="345" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="355" y="295" width="100" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Refuse_di" bpmnElement="Task_Refuse">
+        <dc:Bounds x="345" y="460" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Refused_di" bpmnElement="EndEvent_Refused">
+        <dc:Bounds x="505" y="502" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="480" y="544" width="90" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Kind_di" bpmnElement="Gateway_Kind" isMarkerVisible="true">
+        <dc:Bounds x="550" y="345" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="480" y="275" width="90" height="45" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Record_di" bpmnElement="Task_Record">
+        <dc:Bounds x="680" y="290" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_NextHeld_Join" bpmnElement="Gateway_NextHeld_Join" isMarkerVisible="true">
+        <dc:Bounds x="630" y="495" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_Gateway_NextHeld_Join" bpmnElement="Flow_Gateway_NextHeld_Join">
+        <di:waypoint x="680" y="520"/>
+        <di:waypoint x="710" y="520"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Gateway_NextHeld_di" bpmnElement="Gateway_NextHeld" isMarkerVisible="true">
+        <dc:Bounds x="710" y="495" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="685" y="555" width="95" height="42" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Refresh_di" bpmnElement="Call_Refresh">
+        <dc:Bounds x="805" y="460" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RePin_di" bpmnElement="Task_RePin">
+        <dc:Bounds x="830" y="290" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Review_di" bpmnElement="Task_Review">
+        <dc:Bounds x="780" y="130" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Choose_di" bpmnElement="Task_Choose">
+        <dc:Bounds x="930" y="130" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_NeedsHeld_di" bpmnElement="Gateway_NeedsHeld" isMarkerVisible="true">
+        <dc:Bounds x="1080" y="165" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1140" y="155" width="130" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_NextPart_Join" bpmnElement="Gateway_NextPart_Join" isMarkerVisible="true">
+        <dc:Bounds x="1060" y="325" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_Gateway_NextPart_Join" bpmnElement="Flow_Gateway_NextPart_Join">
+        <di:waypoint x="1110" y="350"/>
+        <di:waypoint x="1135" y="350"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Gateway_NextPart_di" bpmnElement="Gateway_NextPart" isMarkerVisible="true">
+        <dc:Bounds x="1135" y="325" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="965" y="275" width="90" height="50" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Materialize_di" bpmnElement="Call_Materialize">
+        <dc:Bounds x="1230" y="290" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_NextHarness_Join" bpmnElement="Gateway_NextHarness_Join" isMarkerVisible="true">
+        <dc:Bounds x="1060" y="495" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_Gateway_NextHarness_Join" bpmnElement="Flow_Gateway_NextHarness_Join">
+        <di:waypoint x="1110" y="520"/>
+        <di:waypoint x="1135" y="520"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Gateway_NextHarness_di" bpmnElement="Gateway_NextHarness" isMarkerVisible="true">
+        <dc:Bounds x="1135" y="495" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="985" y="545" width="110" height="45" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Instantiate_di" bpmnElement="Task_Instantiate">
+        <dc:Bounds x="1230" y="460" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Summarise_di" bpmnElement="Task_Summarise">
+        <dc:Bounds x="1195" y="615" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Done_di" bpmnElement="EndEvent_Done">
+        <dc:Bounds x="1350" y="675" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1325" y="605" width="80" height="45" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="184" y="103"/>
+        <di:waypoint x="230" y="103"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="290" y="200" />
+        <di:waypoint x="290" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="350" y="370" />
+        <di:waypoint x="380" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="405" y="395" />
+        <di:waypoint x="405" y="460" />
+        <bpmndi:BPMNLabel><dc:Bounds x="411" y="405" width="90" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="430" y="370" />
+        <di:waypoint x="550" y="370" />
+        <bpmndi:BPMNLabel><dc:Bounds x="455" y="346" width="40" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="465" y="520" />
+        <di:waypoint x="505" y="520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="575" y="345" />
+        <di:waypoint x="575" y="315" />
+        <di:waypoint x="680" y="315" />
+        <bpmndi:BPMNLabel><dc:Bounds x="585" y="293" width="35" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="600" y="370" />
+        <di:waypoint x="655" y="370" />
+        <di:waypoint x="655" y="495" />
+        <bpmndi:BPMNLabel><dc:Bounds x="660" y="440" width="70" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+        <di:waypoint x="740" y="290" />
+        <di:waypoint x="740" y="160" />
+        <di:waypoint x="780" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="760" y="520" />
+        <di:waypoint x="805" y="520" />
+        <bpmndi:BPMNLabel><dc:Bounds x="763" y="496" width="38" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+        <di:waypoint x="865" y="580" />
+        <di:waypoint x="865" y="630" />
+        <di:waypoint x="655" y="630" />
+        <di:waypoint x="655" y="545" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12_di" bpmnElement="Flow_12">
+        <di:waypoint x="735" y="495" />
+        <di:waypoint x="735" y="435" />
+        <di:waypoint x="890" y="435" />
+        <di:waypoint x="890" y="410" />
+        <bpmndi:BPMNLabel><dc:Bounds x="741" y="412" width="110" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13_di" bpmnElement="Flow_13">
+        <di:waypoint x="890" y="290" />
+        <di:waypoint x="890" y="258" />
+        <di:waypoint x="840" y="258" />
+        <di:waypoint x="840" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14_di" bpmnElement="Flow_14">
+        <di:waypoint x="900" y="190" />
+        <di:waypoint x="930" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15_di" bpmnElement="Flow_15">
+        <di:waypoint x="1050" y="190" />
+        <di:waypoint x="1080" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16_di" bpmnElement="Flow_16">
+        <di:waypoint x="1105" y="165" />
+        <di:waypoint x="1105" y="82" />
+        <di:waypoint x="990" y="82" />
+        <di:waypoint x="990" y="130" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1005" y="88" width="95" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_17_di" bpmnElement="Flow_17">
+        <di:waypoint x="1105" y="215" />
+        <di:waypoint x="1105" y="245" />
+        <di:waypoint x="1085" y="245" />
+        <di:waypoint x="1085" y="325" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1111" y="218" width="40" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18_di" bpmnElement="Flow_18">
+        <di:waypoint x="1185" y="350" />
+        <di:waypoint x="1230" y="350" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1188" y="326" width="40" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19_di" bpmnElement="Flow_19">
+        <di:waypoint x="1290" y="290" />
+        <di:waypoint x="1290" y="272" />
+        <di:waypoint x="1085" y="272" />
+        <di:waypoint x="1085" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_20_di" bpmnElement="Flow_20">
+        <di:waypoint x="1160" y="375" />
+        <di:waypoint x="1160" y="430" />
+        <di:waypoint x="1085" y="430" />
+        <di:waypoint x="1085" y="495" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1075" y="382" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_21_di" bpmnElement="Flow_21">
+        <di:waypoint x="1185" y="520" />
+        <di:waypoint x="1230" y="520" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1188" y="496" width="40" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_22_di" bpmnElement="Flow_22">
+        <di:waypoint x="1350" y="520" />
+        <di:waypoint x="1375" y="520" />
+        <di:waypoint x="1375" y="445" />
+        <di:waypoint x="1085" y="445" />
+        <di:waypoint x="1085" y="495" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_23_di" bpmnElement="Flow_23">
+        <di:waypoint x="1160" y="545" />
+        <di:waypoint x="1160" y="675" />
+        <di:waypoint x="1195" y="675" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1040" y="635" width="110" height="24" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_24_di" bpmnElement="Flow_24">
+        <di:waypoint x="1315" y="693"/>
+        <di:waypoint x="1350" y="693"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_DSR_corpus" bpmnElement="DSR_corpus">
+        <dc:Bounds x="945" y="690" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="880" y="725" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_Refuse" bpmnElement="DOA_Task_Refuse">
+        <di:waypoint x="405" y="580"/>
+        <di:waypoint x="405" y="715"/>
+        <di:waypoint x="945" y="715"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_Record" bpmnElement="DOA_Task_Record">
+        <di:waypoint x="710" y="290"/>
+        <di:waypoint x="710" y="68"/>
+        <di:waypoint x="1432" y="68"/>
+        <di:waypoint x="1432" y="760"/>
+        <di:waypoint x="970" y="760"/>
+        <di:waypoint x="970" y="740"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_RePin" bpmnElement="DOA_Task_RePin">
+        <di:waypoint x="950" y="380" />
+        <di:waypoint x="970" y="380" />
+        <di:waypoint x="970" y="690" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_Summarise" bpmnElement="DOA_Task_Summarise">
+        <di:waypoint x="1195" y="715"/>
+        <di:waypoint x="995" y="715"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

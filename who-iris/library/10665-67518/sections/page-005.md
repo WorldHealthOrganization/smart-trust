@@ -1,0 +1,74 @@
+---
+doc_id: 10665-67518
+doc_title: "Caracteristiques d' activité et de stabilité des vaccines antivarioliques utilisés dans les programmes d' éradication de la variole en Afrique de l' ouest et du centre-ouest / par A. Bernstein et M.Z. Bierly"
+section_id: page-005
+section_title: "Page 5"
+pages: 5-5
+pdf_page: 5
+source_pdf: 10665-67518.pdf
+source_sha256: 7c3395c0b0559fe6
+text_source: ocr
+granularity: page
+---
+WHo/SE/72.49
+Page 5
+
+Une deuxième étude a été entreprise pour déterminer les caractéristiques de stabilité
+de vaccin lyophilisé de Wyeth par la méthode MCA. Les courbes de la figure 5 représentent les
+variations moyennes du titre pour six lots de vaccin stockés à 37°C, 25°C et 5°C, par rapport
+au titre du vaccin stocké à -20°C, déterminé aux mêmes intervalles, Pour le vaccin stocké à
+25°C, le titre a diminué progressivement de 0,3 à 0,4 logo U.inf. par ml. Après trois mois de
+stockage à 37°C, l'activité a baissé de 0,4 logo et après six mois le titre était inférieur de
+0,5 log1o à celui des vaccins témoins. Ces résultats concordent bien avec ceux qu'ont donnés
+les titrages sur système de cellules RSC, ce qui confirme la possibilité d'utiliser indiffé-
+remment l'une ou l'autre méthode de titrage.
+
+Pour étudier la stabilité à long terme des vaccins stockés entre 2° et 8°C, on a
+titré des échantillons de 27 lots de production stockés pendant des périodes allant de un an
+et demi à huit ans et demi. Les sept lots les plus anciens avaient été soumis, au moment de
+leur fabrication, à des épreuves d'activité par la méthode de scarification sur le lapin. Ils
+ont été titrés en oeufs embryonnés une première fois en 1968 (titres de 8,0 à 8,3 logjo U.inf.
+par ml), puis trois ans après le titre MCA des 20 autres lots s'échelonnait, au moment de leur
+préparation, de 8,0 à 8,6 logjo U.inf. par ml. La figure 6, qui représente le titre des 27 lots
+de vaccins en fonction du temps de stockage, montre que les vaccins lyophilisés peuvent être
+stockés jusqu'à 8 ans et demi entre 2° et 8°C sans perte importante d'activité.
+
+Dans une autre étude, on a cherché à définir les caractéristiques de stabilité des
+vaccins réhydratés pour inoculation par aiguille bifide, en simulant les conditions d'emploi
+du produit dans le cabinet du médecin ou au centre de vaccination, endroits où le vaccin peut
+être exposé à la température ambiante pendant des périodes de temps variables, jusqu'à ce qu'il
+soit épuisé. Des échantillons de six lots de vaccins réhydratés ont été' stockés à :
+
+A. 2-8°C seulement;
+
+B. 2-8°C avec expositions 'à 25°C; à raison de 1 heure deux fois par semaine pendant les
+deux premiers mois, et de 1 heure une fois par semaine pendant les deux derniers mois,
+L'exposition totale à 25°C a donc été de 24 heures en 16 semaines;
+
+€. 2-8°C avec expositions de 20 minutes à 25°C cinq jours par semaine, En 16 semaines,
+la durée totale de l'exposition à 25°C a donc été de 26 heures ;
+
+D. -10 à -20°C seulement.
+
+Tous les vaccins ont été titrés à intervalles de quatre semaines, Les titres des
+six lots étant presque identiques au moment de leur fabrication (8,3, 8,4, 8,3, 8,5, 8,4 et
+8,5 1080 U.inf./ml), les données ont été réunies, et c'est leurs valeurs moyennes qui sont
+présentées dans le tableau 8. Les vaccins stockés dans les quatre conditions expérimentales
+ci-dessus ont conservé pendant 16 semaines des titres d'activité équivalents à ceux du vaccin
+de référence. Des échantillons codés de certains de ces vaccins ont été administrés à l'aiguille
+bifide à de jeunes adultes déjà vaccinés, Un échantillon codé du vaccin de référence a été
+inoculé en même temps sur l'autre bras, comme précédemment. Le tableau 9 montre que le rapport
+des pourcentages de réactions majeures apparues après l'administration, respectivement du
+vaccin à expertiser (B) et du vaccin de référence (A) était compris entre 0,87 et 1,09 au
+cours des 17 semaines d'observation. Au bout de 15, 16 et 17 semaines, sa valeur était respec-
+tivement de 1,0, 1,0 et 0,94, ce qui confirme les titrages faits au laboratoire selon
+lesquels le vaccin antivariolique de Wyeth conserve une activité suffisante après réhydratation
+et stockage entre 2° et 8°C pendant quatre mois,
+
+Dans 1e tableau 10 sont récapitulés les résultats des trois études sur les caracté-
+ristiques de stabilité des vaccins réhydratés destinés à l'administration par injecteur sans
+aiguille. Au cours de cette recherche, on a également évalué l'emploi d'un diluant sans agent
+de conservation, destiné à être utilisé en Afrique, ainsi que d'un diluant avec 0,25 % de
+phénol. Après stockage à 37°C pendant 32 heures, on n'a pas constaté de baisse du titre dans
+le vaccin réhydraté avec le diluant sans phénol. Per contre, le titre du vaccin réhydraté
+avec le diluant contenant du phénol avait diminué de 0,3 logo.

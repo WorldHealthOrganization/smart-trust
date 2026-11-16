@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "Stands alone?" — GW_Isolated in graph-detanglement.bpmn.
+
+  Stage 3. Zero cross-edges is NOT the same as standing alone, and collapsing
+  the two is what turns an extraction into a file-by-file sift. A sub-graph
+  with no inbound edges can still have no declaration of its own, no namespace
+  of its own, and nothing it publishes — in which case lifting the directory
+  produces a repository that cannot say what it is.
+
+  `bootstrap/` is the demonstrated case and the shape to match: its own
+  `<name>.json`, its own `bs:` namespace, its own graph document.
+
+  Facts:
+
+    ownDeclaration  the sub-graph carries its own layer declaration, whose
+                    paths resolve against ITS directory — so the whole graph
+                    relocates by moving one folder
+    ownNamespace    it mints its own terms, and `ns:check` finds every one of
+                    them defined (bean `blv9`: a link-shaped value that does
+                    not dereference)
+    ownArtefact     it publishes something — a graph document, a package
+
+  All three, or stage 4 does not open. There is no "mostly isolated".
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_IsolationGate"
+             name="Isolation gate"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_IsolationGate" name="Stands alone?">
+    <decisionTable id="Table_IsolationGate" hitPolicy="FIRST">
+      <input id="In_OwnDecl" label="own declaration, paths relative to itself">
+        <inputExpression id="Expr_OwnDecl" typeRef="boolean">
+          <text>ownDeclaration</text>
+        </inputExpression>
+      </input>
+      <input id="In_OwnNs" label="own namespace, every minted term defined">
+        <inputExpression id="Expr_OwnNs" typeRef="boolean">
+          <text>ownNamespace</text>
+        </inputExpression>
+      </input>
+      <input id="In_OwnArtefact" label="publishes its own artefact">
+        <inputExpression id="Expr_OwnArtefact" typeRef="boolean">
+          <text>ownArtefact</text>
+        </inputExpression>
+      </input>
+      <output id="Out_IsolationGate" name="outcome" typeRef="string" />
+
+      <rule id="Rule_NoDecl">
+        <description>No declaration of its own: the directory moves and nothing downstream can resolve it.</description>
+        <inputEntry id="IE_NoDecl_1"><text>false</text></inputEntry>
+        <inputEntry id="IE_NoDecl_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_NoDecl_3"><text>-</text></inputEntry>
+        <outputEntry id="OE_NoDecl"><text>"not yet"</text></outputEntry>
+      </rule>
+      <rule id="Rule_NoNs">
+        <description>Terms minted with no definition behind them — `blv9`, a link-shaped value that does not dereference.</description>
+        <inputEntry id="IE_NoNs_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_NoNs_2"><text>false</text></inputEntry>
+        <inputEntry id="IE_NoNs_3"><text>-</text></inputEntry>
+        <outputEntry id="OE_NoNs"><text>"not yet"</text></outputEntry>
+      </rule>
+      <rule id="Rule_NoArtefact">
+        <description>Nothing published: a consumer would have to reach into the tree, which is the edge the extraction exists to remove.</description>
+        <inputEntry id="IE_NoArt_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_NoArt_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_NoArt_3"><text>false</text></inputEntry>
+        <outputEntry id="OE_NoArt"><text>"not yet"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Isolated">
+        <description>Own declaration, own namespace, own artefact. Stage 3 measures done, and stage 4 is a directory move rather than a sift.</description>
+        <inputEntry id="IE_Isolated_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Isolated_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Isolated_3"><text>-</text></inputEntry>
+        <outputEntry id="OE_Isolated"><text>"isolated"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

@@ -1,0 +1,74 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "archimate-blocks",
+    "title": "Draw a document's tables and figures from its ArchiMate data, and check the model against the document's relationship rules",
+    "description": "For each table a layer's `cat-archimate.config.json` lists under `tables`, rewrites the block's Markdown table from an `archimate-relationship-rules/v1` file (`relationship-rules`: source, relationship, target, note; `relationship-types`: picture, verb, meaning), keeping the caption and footnotes. For each figure under `figures` that names an `svg`, writes the view as SVG (the same drawing as the view's page). For a rules table that names a `model`, reports the rules the model never uses, the relationships no rule covers, the rules ArchiMate's relationship table refuses, and the relationship types the rules use without a meaning. The rules are in charge: nothing is rewritten from the model.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat archimate:blocks"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The layer root whose config, models, rules and blocks are read.",
+          "required": true,
+          "arg": {
+            "flag": "--instance"
+          }
+        },
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Write nothing; exit 1 when a block or SVG is not what the data draws.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        },
+        {
+          "name": "strict",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Also exit 1 when the model has relationships no rule covers, or a rule is one ArchiMate does not allow.",
+          "required": false,
+          "arg": {
+            "flag": "--strict"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "blocks",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The rewritten table blocks and figure SVGs, at the paths the config names; the rules check on stdout."
+        }
+      ]
+    },
+    "satisfies": [
+      "archimate-models"
+    ],
+    "selection": {
+      "when": "When a document's table or figure restates an ArchiMate model (the element and relationship types it uses, the rules between them, a view): generate it instead of typing it, and run `--check` in CI so it cannot drift.",
+      "limits": "Draws relationship tables and view figures only; element-type tables and glossary tables are not covered yet. Checks a relationship's end types only, not derivation chains or viewpoints.",
+      "cost": "One parse per model named, one table lookup per relationship; milliseconds. No network, no JVM."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  }
+}
