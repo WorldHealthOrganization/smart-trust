@@ -1,0 +1,89 @@
+{%- comment -%}
+  Overrides just-the-docs' own footer_custom.html.
+
+  The build stamp lives HERE rather than in `footer_content` for a reason that
+  is easy to get wrong: the theme emits that setting as `{{ site.footer_content }}`,
+  a plain variable output. Liquid does not re-parse a variable's value, so
+  `{{ site.data.build.short_sha }}` written into _config.yml would render on
+  the page as those literal characters. An include is parsed, so it works here
+  and only here.
+
+  WHY A STAMP AT ALL. Without one there is no way to tell from the page whether
+  a change is live: a stale browser cache and a deploy that has not run look
+  identical, and the reader is left inferring deployment state from rendered
+  behaviour. That is not a hypothetical — it is how this site's last few rounds
+  of changes were assessed.
+
+  RENDERED CONSTANT, FILLED IN THE BROWSER (owner, 2026-10-31). The values
+  were baked in from `docs/_data/build.yml`, so every page changed on every
+  deploy: a preview could share none of main's unchanged pages, and a cone
+  deploy could skip none. Now no build writes `short_sha`, `built_at` or
+  `run_url`, every build renders "deployed dev" here, and the browser fills
+  the real stamp: `docs-ui.js` (`fillBuildStamp`) from `<base>/build.json` on
+  the live site, the staging banner's script from `staging.json` on a
+  preview. The keys stay readable below, so a site that still writes them
+  keeps its stamp.
+{%- endcomment -%}
+{%- comment -%}
+  THE LINEAR FLOOR, and it is page content rather than a script's output.
+
+  `generated/todo-listing.html` is written by `gen-docs-pages.ts` from the same
+  `items` array that produces `assets/todos/index.json`. The JSON is FETCHED by
+  `docs-ui.js` after the page loads; this fragment is already in the bytes the
+  server sent, which is the whole point — measured on `main`, 2026-09-21, a
+  reader with JavaScript off got no note, no count, and no hint that notes
+  exist.
+
+  IT IS INCLUDED HERE, in the footer of every page, and not only where
+  somebody remembered to put it: the board is launched from every page, so a
+  floor that exists on some of them is not a floor. `docs-ui.js` collapses it
+  into a disclosure once the board is available — collapsed, never removed,
+  because an action whose inverse is not reachable is not a toggle
+  (`board-windows`, bean `l4zi`).
+
+  EACH PAGE LISTS ITS OWN (bean `lwjc`). A page includes only the notes
+  attached to it, from `generated/todo-listing/<page>.html`, and its count is
+  its own. A page with no note includes NOTHING -- no empty section -- because
+  `_data/todo_listing.json` has no entry for it. The todos board
+  (`fa_todo_listing: all` in its front matter) keeps the whole listing, and so
+  does any site whose generator predates the index, so this cannot drop the
+  floor on a site that has not regenerated.
+{%- endcomment -%}
+{%- comment -%}
+  NO `assign` OF `site.data.todo_listing`. Liquid 4's `assign` walks the value it binds, element
+  by element, to score it against the render's resource limits, so binding a
+  whole data file costs its full size on every page (~3 ms for a 180 KB
+  `harness.json`, measured). The fields are read where they are used.
+{%- endcomment -%}
+{%- if page.fa_todo_listing == "all" or site.data.todo_listing == nil -%}
+  {%- include generated/todo-listing.html -%}
+{%- else -%}
+  {%- assign fa_todo_key = page.path | remove_first: ".md" | remove_first: ".html" -%}
+  {%- assign fa_todo_include = site.data.todo_listing.pages[fa_todo_key] -%}
+  {%- if fa_todo_include -%}{%- include {{ fa_todo_include }} -%}{%- endif -%}
+{%- endif -%}
+{%- comment -%}
+  THE PROVENANCE FOOTER (owner, 2026-11-05, "2B"). The docs QA moved who
+  decided, when, and under which work item out of each document into a
+  `<document>.prov.jsonld` log. This shows that log, collapsed, on the page
+  it belongs to.
+
+  Each generator that writes pages adds a SLICE of site data,
+  `_data/provenance/<producer>.json`, mapping a page key to a fragment it
+  wrote (`cat-harness-tools/scripts/provenance-footer.ts`). The key is the
+  todo index's: `page.path` without its extension. A page with no log entry
+  is in no slice, so it gets nothing, not an empty section.
+{%- endcomment -%}
+{%- assign fa_prov_key = page.path | remove_first: ".md" | remove_first: ".html" -%}
+{%- for fa_prov_slice in site.data.provenance -%}
+  {%- assign fa_prov_include = fa_prov_slice[1].pages[fa_prov_key] -%}
+  {%- if fa_prov_include -%}{%- include {{ fa_prov_include }} -%}{%- break -%}{%- endif -%}
+{%- endfor -%}
+{%- if site.footer_content -%}
+  <p class="text-small mb-0">{{ site.footer_content }}</p>
+{%- endif -%}
+<p class="text-small mb-0 fa-build-stamp">
+  deployed
+  <a href="{{ site.data.build.run_url | default: 'https://github.com/litlfred/folio-assistant/actions' }}"><code>{{ site.data.build.short_sha | default: 'dev' }}</code></a>
+  {%- if site.data.build.built_at %} &middot; {{ site.data.build.built_at }}{% endif -%}
+</p>

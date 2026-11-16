@@ -1,0 +1,57 @@
+---
+doc_id: 10665-75211
+doc_title: "National eHealth Strategy Toolkit"
+section_id: sec-061-11-suggested-structure-for-a-national-ehealth-vi
+section_title: "Suggested structure for a national eHealth vision"
+section_number: 11
+pages: 98-99
+source_pdf: 10665-75211.pdf
+source_sha256: 87120f0b3c3bb638
+toc_source: inferred
+---
+sections can be modified according to the intended audience. For example, some audiences may 
+prefer to describe the current state of eHealth before outlining the future eHealth requirements. 
+Regardless of the audience, every section should be addressed in the national eHealth vision.
+Box 11. Suggested structure for a national eHealth vision
+	
+	
+Title
+Foreword
+Purpose
+Audience
+How to read this document
+ Executive summary
+1.	 Strategic context for eHealth
+	
+1.1	 Population health
+	
+1.2	 Health system status
+	
+1.3	 Strategic health and development goals and challenges
+	
+1.4	 Implications for eHealth
+2.	 Vision for eHealth
+	
+2.1	 Our national eHealth vision
+	
+2.2	 eHealth outcomes for the health system
+	
+2.3	 Changes and impact on stakeholders
+	
+2.4	 The eHealth vision in practice (optional scenario)
+3.	 Foundations for change
+	
+3.1	 Leadership and governance
+	
+3.2	 Strategies and innovation
+	
+3.3	 ICT services and applications
+	
+3.4	 Infrastructure
+	
+3.5	 Standards and interoperability
+	
+3.6	 Legislation, policy and compliance
+	
+3.7	 Workforce
+4.	 Strategic recommendations

@@ -1,0 +1,1 @@
+Legally authorized users of the registry shall be required to have unique user names and passwords that will be provided by the national Steering Committee, on the approval of the highest health authority at national and sub-national levels. Level of access to the registry shall be determined by the national Steering Committee or its authorized agent.

@@ -1,0 +1,202 @@
+# Publish a layer's subgraph index files for ONE PIN, as a package, as one
+# reusable workflow (bean `mo75` G2b).
+#
+# Owner, 2026-10-24 (decision card, option A): the subgraph index files
+# (`index.jsonld`, `index.hydrated.jsonld` under `<docs>/subgraph/<HARNESS>/`)
+# are published per pin in a package, and a hydrated mount fetches them through
+# the Tool its source names. They are `builtAtPublish`, so no commit carries
+# them; until this ran, a hydrated mount of any real pin found nothing.
+# Rejected: committing them in each repository (B), generating them at mount
+# time (C). The contract is `remote-mount` §"Hydrated: the index files are
+# published per pin, in a package" in cat-harness.
+#
+# A caller is one `uses:` line, on push to main:
+#
+#   on: { push: { branches: [main] }, workflow_dispatch: {} }
+#   permissions: { contents: write }
+#   jobs:
+#     publish:
+#       uses: litlfred/cat-harness-tools/.github/workflows/layer-publish-subgraph-index.yml@main
+#
+# What it does, in the layout `layer-publish-context.yml` uses:
+#   1. Check out the folio-assistant index at `index-ref` and mount every
+#      instance from its lock; put THE CALLER, at the pushed commit and without
+#      its `.git`, in place of its locked mount; take its dependency harness and
+#      cat-harness-tools at main.
+#   2. Skip when the pin already has its release: a pin's package is published
+#      once and never replaced, so a consumer's lock stays true.
+#   3. Build the subgraph files (`subgraph:jsonld`), then pack this instance's
+#      own (`subgraph-index-package`, which goes through `pack-tarball`). An
+#      instance that builds none is a skip with a WARNING, never an empty
+#      package.
+#   4. Create the prerelease `subgraph-index-<sha>` at the pushed commit with
+#      the tarball and its `folio-binary-release/v1` record as assets. Every
+#      name is `subgraphIndexPackage` in cat-harness's
+#      `schemas/kg/subgraph-manifest.ts`; nothing here spells one.
+
+name: Layer publish subgraph index
+
+on:
+  workflow_call:
+    inputs:
+      instance:
+        description: "The instance's directory in the folio-assistant index (its mount path); empty means the calling repository's name."
+        required: false
+        type: string
+        default: ""
+      path-in-repo:
+        description: "Where the instance sits in the calling repository; '.' for the repository root."
+        required: false
+        type: string
+        default: "."
+      index-ref:
+        description: "The folio-assistant ref to check out."
+        required: false
+        type: string
+        default: "main"
+
+permissions:
+  contents: write
+
+# Never cancelled in progress, so a release is not left without its assets.
+concurrency:
+  group: layer-publish-subgraph-index-${{ github.repository }}
+  cancel-in-progress: false
+
+env:
+  INSTANCE: ${{ inputs.instance != '' && inputs.instance || github.event.repository.name }}
+
+jobs:
+  publish:
+    name: Publish the subgraph index package for this pin
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the folio-assistant index
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: litlfred/folio-assistant
+          ref: ${{ inputs.index-ref }}
+          path: fa
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+      - name: Mount every instance from the index's lock
+        # The same replayer choice as layer-publish-context.yml.
+        run: |
+          set -euo pipefail
+          if [ -f fa/.github/mount-from-lock.sh ]; then
+            bash fa/.github/mount-from-lock.sh --root fa
+            exit 0
+          fi
+          work="$(mktemp -d)"
+          git -C "$work" init -q
+          for layer in cat-harness-tools cat-harness; do
+            read -r repo sha < <(bun -e '
+              const l = JSON.parse(require("node:fs").readFileSync("fa/index.lock.json", "utf-8"));
+              const i = (l.instances ?? []).find((x) => x.instance === process.argv[1]);
+              console.log(i ? `${i.repository} ${i.sha}` : "- -");
+            ' "$layer")
+            [ "$repo" = "-" ] && continue
+            git -C "$work" fetch -q --depth 1 --filter=blob:none "https://github.com/${repo}.git" "$sha"
+            if git -C "$work" checkout -q FETCH_HEAD -- scripts/mount-from-lock.ts 2>/dev/null; then
+              bun "$work/scripts/mount-from-lock.ts" --root fa
+              exit 0
+            fi
+          done
+          echo "::error::no mount-from-lock replayer at the cat-harness-tools or cat-harness commit fa/index.lock.json pins"
+          exit 2
+      - name: Check out the caller
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: src
+      - name: Put the caller in place of its locked mount
+        env:
+          SUBDIR: ${{ inputs.path-in-repo }}
+        run: |
+          set -euo pipefail
+          rm -rf "fa/$INSTANCE"
+          if [ "$SUBDIR" = "." ]; then mv src "fa/$INSTANCE"; else mv "src/$SUBDIR" "fa/$INSTANCE"; fi
+          rm -rf "fa/$INSTANCE/.git"
+          test -f "fa/$INSTANCE/$INSTANCE.json" || { echo "::error::fa/$INSTANCE/$INSTANCE.json is missing: is path-in-repo right?"; exit 2; }
+      - name: Take the dependency harness and the generator at main
+        run: |
+          set -euo pipefail
+          git clone -q --depth 1 --filter=blob:none --sparse https://github.com/litlfred/cat-harness-tools ci
+          git -C ci sparse-checkout set .github/scripts/layer-publish-context
+          bun ci/.github/scripts/layer-publish-context/needs-at-main.ts fa "$INSTANCE" --always cat-harness-tools
+      - name: Install
+        working-directory: fa
+        run: bun install
+      - name: Is this pin published already?
+        id: tag
+        working-directory: fa
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          tag="$(bun -e '
+            import { subgraphIndexPackage } from "@litlfred/cat-harness-tools/schemas/kg/subgraph-manifest.ts";
+            const [repo, sha, inst] = process.argv.slice(1);
+            console.log(subgraphIndexPackage(repo, sha, inst).tag);
+          ' "$REPO" "$SHA" "$INSTANCE")"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" --repo "$REPO" >/dev/null 2>&1; then
+            echo "::notice::$tag is already published; a pin's package is never replaced"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build the subgraph files
+        if: steps.tag.outputs.exists == 'false'
+        working-directory: fa
+        run: bun run cat subgraph:jsonld
+      - name: Pack this instance's subgraph index package
+        id: pack
+        if: steps.tag.outputs.exists == 'false'
+        working-directory: fa
+        env:
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/subgraph-index"
+          built_in="litlfred/folio-assistant@$(git rev-parse HEAD)"
+          if bun run cat-harness-tools/scripts/subgraph-index-package.ts --root "$INSTANCE" --repository "$REPO" --ref "$SHA" --out-dir "$out" --built-in "$built_in" > "$RUNNER_TEMP/pack.json" 2> "$RUNNER_TEMP/pack.err"; then
+            echo "packed=true" >> "$GITHUB_OUTPUT"
+            echo "tarball=$(jq -r .tarball "$RUNNER_TEMP/pack.json")" >> "$GITHUB_OUTPUT"
+            echo "release=$(jq -r .release "$RUNNER_TEMP/pack.json")" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::nothing published for $INSTANCE at $SHA: $(cat "$RUNNER_TEMP/pack.err")"
+            echo "packed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish the release
+        if: steps.pack.outputs.packed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+          RECORD: ${{ steps.pack.outputs.release }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" "$TARBALL" "$RECORD" \
+            --repo "$REPO" --target "$SHA" --prerelease --latest=false \
+            --title "$INSTANCE subgraph index @ ${SHA:0:12}" \
+            --notes "The subgraph index files of \`$INSTANCE\` at $SHA, for a hydrated mount (bean mo75). Published per pin, never replaced."
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Subgraph index package: $INSTANCE @ ${{ github.sha }}"
+            if [ -f "$RUNNER_TEMP/pack.json" ]; then
+              echo '```json'
+              cat "$RUNNER_TEMP/pack.json"
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

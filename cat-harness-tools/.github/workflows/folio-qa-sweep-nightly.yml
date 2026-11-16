@@ -1,0 +1,66 @@
+name: Folio QA sweep nightly
+
+# Keeps a folio's QA verdicts current on the orphan `qa-reports` branch, as
+# ONE reusable workflow (see folio-qa-sweep.yml). Sweeps the non-proof axes
+# on the default branch and publishes under main/<sha>. Never opens a pull
+# request committing derived verdicts to the default branch.
+#
+#   on:
+#     workflow_dispatch:
+#       inputs:
+#         axes: { required: false, default: "canonical,one-voice,q-usage,compute,detangler" }
+#   jobs:
+#     qa-sweep:
+#       uses: litlfred/cat-harness-tools/.github/workflows/folio-qa-sweep-nightly.yml@main
+#       with:
+#         axes: ${{ inputs.axes }}
+
+on:
+  workflow_call:
+    inputs:
+      folio:
+        description: "The folio's content root in the calling repository."
+        type: string
+        default: folio
+      axes:
+        description: "Comma-separated axes to sweep."
+        type: string
+        default: "canonical,one-voice,q-usage,compute,detangler"
+
+permissions:
+  contents: write       # write to the orphan qa-reports branch
+
+jobs:
+  qa-sweep:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      FOLIO: ${{ inputs.folio }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - uses: litlfred/cat-harness-tools/.github/actions/mount-layers@1257da8bbbb8e661391d08b014b16464de19613f # last change to .github/actions/mount-layers
+
+      - name: Run QA sweep across non-proof axes
+        env:
+          AXES: ${{ inputs.axes || 'canonical,one-voice,q-usage,compute,detangler' }}
+        run: |
+          set -e
+          IFS=',' read -ra AXIS_LIST <<< "$AXES"
+          for axis in "${AXIS_LIST[@]}"; do
+            axis_trim="$(echo "$axis" | xargs)"
+            echo "::group::axis $axis_trim"
+            bun run "$FA_TOOLS/pipeline/qa-sweep.ts" "$FOLIO" --axis "$axis_trim" --ci
+            echo "::endgroup::"
+          done
+
+      - name: Publish QA verdicts to qa-reports
+        run: |
+          if [ ! -d test/results ] || [ -z "$(find test/results -type f 2>/dev/null)" ]; then
+            echo "No QA results to publish — exiting cleanly."
+            exit 0
+          fi
+          bun run "$FA_TOOLS/scripts/qa-store.ts" publish --ref "main/$(git rev-parse HEAD)" --root test/results

@@ -1,0 +1,50 @@
+{%- comment -%}
+  One declared directory's README. Rendered by `subgraph-readmes` into the
+  `kg:subgraph` marker region of `<directory>/README.md`.
+
+  Every value comes from the Knowledge Graph:
+    subgraph  the directory's declaration entry (id, path, title,
+              description, kinds) — `kg.directories[]` in the declaration
+    instance  the declaring layer (name, title, readme: a relative link)
+    release   its version, and for a layer declaring an iriBase its
+              release addresses: version, major, agent and human (both
+              <iriBase>v<major>/ since 2026-10-23: what a program reads and
+              the pages a person reads). Empty strings where not declared — never a typed number.
+    kg        the whole declaration, for any field a template wants
+    files     each file directly here: path, what (read from the file),
+              usedBy (from diagrams that name it)
+    subdirs   each subdirectory: name, count, description (what it is, as
+              the CALLER resolved it from whatever declares that
+              subdirectory — empty when nothing does, and the row then
+              shows the count), readme (a link, or empty)
+    banner    the generated-by notice (`generated-by.ts`), first on the page
+    process   the DECLARED governing process (`coverage.process`), resolved
+              to its diagram and its rendered SVG — or nil when the directory
+              declares none, which is an answer and not a gap
+{%- endcomment -%}
+{%- if banner %}{{ banner }}
+
+{% endif -%}
+# {{ subgraph.title | default: subgraph.id }}
+
+{% if subgraph.description -%}
+{{ subgraph.description }}
+{%- else -%}
+_No description is declared for `{{ subgraph.id }}`._
+{%- endif %}
+
+Part of [{{ instance.title | default: instance.name }}]({{ instance.readme }}){% if release.version != "" %} {{ release.version }}{% endif %}, declared as `{{ subgraph.id }}`, holding {% for k in subgraph.kinds %}`{{ k }}`{% unless forloop.last %}, {% endunless %}{% endfor %}.
+
+{% if process -%}
+{% include process.liquid -%}
+
+{%- comment -%}
+  The file table is headed ONLY when a section precedes it. With nothing
+  above, the table is the body of the page and a heading over it says
+  nothing; with the process section above, an unheaded table reads as part
+  of THAT section, which is the one thing the reader would be wrong about.
+{%- endcomment %}
+## Files
+
+{% endif -%}
+{% include files.liquid -%}

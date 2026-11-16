@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "All five answered, none refused?" — Gateway_Gates in materialize-remote.bpmn.
+
+  The five gates are those of schemas/materialization.ts in the layer that
+  runs this process (size,
+  restrictions, copyright, retention, sourceLoss), each answered with a
+  GateVerdict: permitted, refused or unknown. `unknown` is a first-class
+  verdict and NOT a synonym for `permitted` (owner: "no restrictions known in
+  context" is an absence of knowledge). An unanswered gate is `unknown`.
+
+  Only five `permitted` verdicts fetch. Any other answer on any one gate keeps
+  the node `referenced`, and the gate that stopped it is the recorded reason.
+  The gates are not averaged.
+
+  Shared block G10 of the BPMN guidance review (2026-11-01): the five gates
+  were drawn as a row of steps; they are one decision over five answers.
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_MaterializationGate"
+             name="Materialization gate"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_MaterializationGate" name="All five answered, none refused?">
+    <decisionTable id="Table_MaterializationGate" hitPolicy="FIRST">
+      <input id="In_Size" label="size: what fraction, and what the whole would cost">
+        <inputExpression id="Expr_Size" typeRef="string"><text>size</text></inputExpression>
+      </input>
+      <input id="In_Restrictions" label="restrictions: unknown is an answer, not a green light">
+        <inputExpression id="Expr_Restrictions" typeRef="string"><text>restrictions</text></inputExpression>
+      </input>
+      <input id="In_Copyright" label="copyright: per bitstream, and for the derived work">
+        <inputExpression id="Expr_Copyright" typeRef="string"><text>copyright</text></inputExpression>
+      </input>
+      <input id="In_Retention" label="retention: what expires this copy">
+        <inputExpression id="Expr_Retention" typeRef="string"><text>retention</text></inputExpression>
+      </input>
+      <input id="In_SourceLoss" label="source loss: what survives if the origin goes">
+        <inputExpression id="Expr_SourceLoss" typeRef="string"><text>sourceLoss</text></inputExpression>
+      </input>
+      <output id="Out_MaterializationGate" name="outcome" typeRef="string" />
+
+      <rule id="Rule_AllPermitted">
+        <description>Every gate answered `permitted`: fetch the copy and record its fixity.</description>
+        <inputEntry id="IE_All_1"><text>"permitted"</text></inputEntry>
+        <inputEntry id="IE_All_2"><text>"permitted"</text></inputEntry>
+        <inputEntry id="IE_All_3"><text>"permitted"</text></inputEntry>
+        <inputEntry id="IE_All_4"><text>"permitted"</text></inputEntry>
+        <inputEntry id="IE_All_5"><text>"permitted"</text></inputEntry>
+        <outputEntry id="OE_All"><text>"yes"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Otherwise">
+        <description>Any gate refused, unknown or unanswered: the node stays `referenced`, and the gate that stopped it is recorded.</description>
+        <inputEntry id="IE_Else_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Else_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Else_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Else_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Else_5"><text>-</text></inputEntry>
+        <outputEntry id="OE_Else"><text>"no, or unknown"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

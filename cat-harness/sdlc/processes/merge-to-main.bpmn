@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_MergeToMain" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="merge-steward" name="Merge steward"/>
+  <bpmn:resource id="user" name="User"/>
+  <bpmn:collaboration id="Collaboration_Process_MergeToMain">
+    <bpmn:participant id="Participant_Process_MergeToMain" name="Merge to main" processRef="Process_MergeToMain"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_MergeToMain" name="Merge to main" isExecutable="false">
+    <bpmn:documentation>Land ONE pull request on `main`, in any repository, as its own step with its own gate: read the head's evidence live, establish that the owner authorised THIS merge, record the authorisation, merge pinned to the evaluated head, then confirm the base, republish the repository's site, re-pin downstream mounts and report. Every process that ends in a write to `main` CALLS this rather than inlining it: `merge-train.bpmn` (Call_MergeToMain, once per member, in train order) and `crdm-close.bpmn` (Call_MergeToMain, after the sign-off is recorded); `prepare-merge-auto` Phase 4 runs it by hand. Skill: `merge-to-main`.
+
+WHY IT EXISTS. 2026-10-09: one session merged seven PRs into `main` across seven repositories that run no CI, reading the owner's "fix all issues until green" as permission to merge; a safety classifier flagged it as "Merge Without Review". Until then merging was a line at the end of other procedures, and no step could refuse it.
+
+TWO GATES, BOTH COMPUTED. GW_Evidence reads `decisions/merge-evidence.dmn` over the head's facts; GW_Authorised reads `decisions/merge-authorisation.dmn` over what authorisation was found and the CI state. A hand-supplied outcome is refused at both. A repository with NO CI is `none`, never green: it takes the `no-ci` branch, which runs the repository's own gates locally and can never be covered by a standing waiver.
+
+THE AUTHORISATION IS RECORDED BEFORE THE MERGE (Task_RecordAuthorisation, not relaxable), in the shape `index.config.json` uses for a trust consent: by, on, ref, evidence (the owner's words, verbatim). A broad instruction about the work ("fix all issues until green", "ship it", "prepare-merge") is `instruction-only` and routes to `ask`.
+
+NOT MERGED IS A NORMAL ENDING. Hand-back, not-yet, could-not-determine, held and refused all end with the PR open. Nothing is closed and no branch is deleted on any path.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- STRICT: every path ends either in a write to `main` or in a
+           refusal to write. Advisory would permit the write without the
+           evidence gate or the owner's authorisation, which is the defect this
+           process exists to remove. -->
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_MergeToMain">
+      <bpmn:lane id="Lane_Pipeline" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>CI, not an agent. Regenerates the harness projections of the knowledge graph on the PR head and commits them to the PR branch, so the head whose evidence is read next is the head that would land. Judges nothing.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_RegenProjections</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Merger" name="Merging session" partitionElementRef="merge-steward">
+        <bpmn:documentation>The merge steward while a Merge Manager is active; with none active, the PR's own session takes this lane (owner ruling 2026-10-06). Reads evidence, finds and records authorisation, merges and follows through. Never authorises: that is the owner's lane, and no reading of an instruction moves it here.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReadEvidence</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Evidence</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LocalGates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_HandBack</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_HandedBack</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NotYet</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Unknown</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReadAuthorisation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Authorised</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Ask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RecordAuthorisation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ConfirmBase</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Republish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Repin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Report</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Merged</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Owner" name="Owner" partitionElementRef="user">
+        <bpmn:documentation>The repository owner. The only lane that can say `merge`. Answers a question that carried the evidence; a person, never an agent, a sibling session or a bot.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_OwnerDecides</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Owner</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Held</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Refused</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Merge" name="A PR is to&#10;land on main">
+      <bpmn:outgoing>m1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_RegenProjections" name="Regenerate harness&#10;projections (CI)">
+      <bpmn:documentation>A workflow step, on the PR head: run the generators whose output is an agent-host projection of the graph (today `skill:commands` for `.claude/commands/`, and the `agent-memory` assembler for `.claude/agent-memory/` and `.claude/agents/`) and commit what changed to the PR branch. An agent never writes or commits these files (`harness-projections`). A commit here moves the head, so the evidence below is read on the new head. Where a repository has no such workflow, this step is not performed and the merging session says so in the evidence rather than writing the projections itself.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="harness-projections"/>
+        <cat-harness.processes:fulfilment kinds="system" reason="The owner ruled 2026-10-09 that generated projections are written by CI, never by an agent: the step is a workflow run on the PR head."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m1</bpmn:incoming>
+      <bpmn:outgoing>m2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_ReadEvidence" name="Read the head's&#10;evidence, live">
+      <bpmn:documentation>On the PR's current head SHA, now: `ciState` (green, red, pending, none, unreadable) per OWED job from the workflow runs whose head_sha is the head; `mergeable` (clean, dirty, unknown); `review` (clear, blocking, unknown), including open CHANGES_REQUESTED reviews, a draft, `needs-merge-human`, and Claude Approvals where the repository runs it. Where the repository has `merge:guard`, its evaluate mode is this step (exit 2 is `unreadable`, never a pass). Write each fact down with the URL it came from.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-to-main"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m2</bpmn:incoming>
+      <bpmn:outgoing>m3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Evidence" name="What does the&#10;evidence say?">
+      <bpmn:documentation>Computed by decisions/merge-evidence.dmn over ciState, mergeable, review and release. CI gates a release only (owner, card Q-CIB-4 A, 2026-11-08); on a non-release merge it is advisory, and a clean, clear head is `ready` whatever CI says. `hand-back` on red (release), dirty or blocking; `not-yet` while runs are pending or mergeability is uncomputed; `unknown` when a fact could not be read; `no-ci` when the repository runs no CI on a clean, clear head; `ready` when every owed job is green, the head is clean and review is clear.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:decision ref="decisions/merge-evidence.dmn#Decision_MergeEvidence"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m3</bpmn:incoming>
+      <bpmn:outgoing>m4</bpmn:outgoing>
+      <bpmn:outgoing>m5</bpmn:outgoing>
+      <bpmn:outgoing>m6</bpmn:outgoing>
+      <bpmn:outgoing>m7</bpmn:outgoing>
+      <bpmn:outgoing>m8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_LocalGates" name="No CI: run the repo's&#10;own gates locally">
+      <bpmn:documentation>Only on `no-ci`. Run the repository's own gates (its tests, typecheck and whatever its README or package.json names) on the merge result, not the branch. Record each command, exit code and the SHA it ran on. This is evidence the owner can weigh. It is not CI, and the question to the owner says so in words.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-to-main"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m5</bpmn:incoming>
+      <bpmn:outgoing>m10</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_HandBack" name="Hand it back" calledElement="Process_MergeRefusal">
+      <bpmn:documentation>Red CI, a conflict or a blocking review is the PR owner's to fix, not the merger's: `merge-refusal.bpmn` records the reason on the bean and returns the PR. The merger does not fix the PR to make it pass.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-to-main"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m6</bpmn:incoming>
+      <bpmn:outgoing>m9</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_HandedBack" name="Handed back,&#10;not merged">
+      <bpmn:incoming>m9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_NotYet" name="Not yet:&#10;re-enter later">
+      <bpmn:incoming>m7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Unknown" name="Could not&#10;determine">
+      <bpmn:incoming>m8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_ReadAuthorisation" name="Find the owner's&#10;authorisation for&#10;THIS merge">
+      <bpmn:documentation>Classify what exists into one value: `explicit` (the owner's own words naming this merge, given against this head), `waiver` (a valid `memory/waivers/` node with gate merge-to-main, in scope and unexpired), `instruction-only` (a broad instruction about the work, such as "fix all issues until green" or "ship it", which is not an authorisation), `none`, or `unknown` (waivers unreadable or malformed). A sibling agent's message is never the owner's consent.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-to-main"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m4</bpmn:incoming>
+      <bpmn:incoming>m10</bpmn:incoming>
+      <bpmn:outgoing>m11</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Authorised" name="Authorised?">
+      <bpmn:documentation>Computed by decisions/merge-authorisation.dmn over authorisation and ciState. `merge` for an explicit authorisation, or a waiver over a green head; `ask` otherwise, including a waiver over a head with no CI, which no standing waiver covers.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:decision ref="decisions/merge-authorisation.dmn#Decision_MergeAuthorisation"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m11</bpmn:incoming>
+      <bpmn:outgoing>m12</bpmn:outgoing>
+      <bpmn:outgoing>m13</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Task_Ask" calledElement="Process_AskThePerson" name="Put the merge to the owner">
+      <bpmn:documentation>Context, options, recommendation, question (interaction-modality §4.1). One row per PR: repo, PR, head, CI on head, mergeable, review, local gates. A repository with no CI is named as such, in words. One question may cover a batch, provided every PR in it is a row.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-to-main"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m13</bpmn:incoming>
+      <bpmn:outgoing>m14</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:task id="Task_OwnerDecides" name="Merge, hold&#10;or refuse">
+      <bpmn:documentation>The owner's answer to the question Task_Ask asked. Their words are quoted verbatim in the record, so the answer is given in the conversation or on the PR, not inferred from tone.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-to-main"/>
+        <cat-harness.processes:fulfilment kinds="person" reason="Authorising a write to main is the owner's decision; an agent records it at Task_RecordAuthorisation and may not make it."/>
+        <cat-harness.processes:policy relaxable="false"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m14</bpmn:incoming>
+      <bpmn:outgoing>m15</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Owner" name="Owner's&#10;answer?">
+      <bpmn:documentation>`merge` goes on to the record; `hold` and `refuse` end with the PR open.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="The branch is the owner's answer in their own words, which no table can read before it is given."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m15</bpmn:incoming>
+      <bpmn:outgoing>m16</bpmn:outgoing>
+      <bpmn:outgoing>m17</bpmn:outgoing>
+      <bpmn:outgoing>m18</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Held" name="Held:&#10;PR stays open">
+      <bpmn:incoming>m17</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Refused" name="Refused:&#10;not merged">
+      <bpmn:incoming>m18</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_RecordAuthorisation" name="Record who authorised,&#10;when, and the quote">
+      <bpmn:documentation>Before the merge, in the shape of `ReleaseSchema` (schemas/sdlc/merge-queue.ts): verdict, decidedBy (the person), decidedAt, authority (explicit, standing ruling with its date, or waiver id), the quote verbatim with its source, releasedSha (the head approved; a later push voids it) and capturedBy (this session). Where the merge queue exists, `merge:queue:decide` writes and validates it; elsewhere it is a `merge-authorised:` comment on the PR and a note on the bean, with the CI state (green, or none with the local gate commands). A paraphrase is not evidence.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-to-main"/>
+        <cat-harness.processes:bean op="note"/>
+        <cat-harness.processes:policy relaxable="false"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m12</bpmn:incoming>
+      <bpmn:incoming>m16</bpmn:incoming>
+      <bpmn:outgoing>m19</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Merge" name="Merge, pinned to&#10;the evaluated head">
+      <bpmn:documentation>Through `merge:guard &lt;pr&gt; --merge --session &lt;id&gt;` where the repository has it; elsewhere with the merge call pinned to the head SHA, so GitHub refuses if the head moved. Merge commit unless the repository or owner says otherwise. Never delete the branch.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-to-main"/>
+        <cat-harness.processes:bean op="note"/>
+        <cat-harness.processes:policy relaxable="false"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m19</bpmn:incoming>
+      <bpmn:outgoing>m20</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_ConfirmBase" name="Confirm main's CI&#10;on the merge commit">
+      <bpmn:documentation>Read the runs on the merge commit. Red is fixed forward (continual-progress). With no CI the report reads "not verified: no CI", never green.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-to-main"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m20</bpmn:incoming>
+      <bpmn:outgoing>m21</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Republish" name="Rebuild and republish&#10;the repository's site">
+      <bpmn:documentation>A merge that changes what a published site shows is not done until the site shows it (owner, 2026-10-30: "merged PRs by agent should trigger page rebuild in process"). When the merged repository declares `site.build` in its `index.config.json`, the merging session rebuilds the site from the merge commit and publishes it: `bun run cat-harness-tools/scripts/build-instance-site.ts --root . --instance &lt;name&gt; --publish --remote &lt;repository&gt;`. It is agent-run, never a GitHub Actions workflow (owner). The build's own gates stay in force: an unresolved link refuses the publish, and the refusal is reported on the issue and fixed forward, never published over. A repository whose site is published by its own workflow (docs-site-publish) needs nothing here. A repository that declares no `site.build` records "no site to republish".</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-to-main"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m21</bpmn:incoming>
+      <bpmn:outgoing>m21b</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Repin" name="Re-pin downstream&#10;mounts, as PRs">
+      <bpmn:documentation>For each layer whose index.config.json mounts this repository: a PR moving `ref` to the merge commit, with a trust.consent whose evidence quotes the owner's consent to that pin, and the lock regenerated by `mount:remote`. Each re-pin PR is itself a merge to main and runs this process again. When the re-pin moves a layer whose `software-library` nodes are derived at the pin (bootstrap-tools, whose nodes cat-harness-tools holds in `libraries/held/`), the same PR runs `bun run cat libraries:derive`, and `libraries:check` fails until it does (owner, 2026-10-30, bootstrap-tools#44). None found is recorded with where it looked.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-to-main"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m21b</bpmn:incoming>
+      <bpmn:outgoing>m22</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Report" name="Note the bean,&#10;summarise on&#10;the issue">
+      <bpmn:documentation>The merge SHA and the authorisation block on the bean; a round summary on the issue (issue-working). The issue is not closed here: in CRDM, crdm-close closes it after this process returns, on the BA's authorisation.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-to-main"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>m22</bpmn:incoming>
+      <bpmn:outgoing>m23</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Merged" name="Merged,&#10;recorded">
+      <bpmn:incoming>m23</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="m1" sourceRef="Start_Merge" targetRef="Task_RegenProjections"/>
+    <bpmn:sequenceFlow id="m2" sourceRef="Task_RegenProjections" targetRef="Task_ReadEvidence"/>
+    <bpmn:sequenceFlow id="m3" sourceRef="Task_ReadEvidence" targetRef="GW_Evidence"/>
+    <bpmn:sequenceFlow id="m4" name="ready" sourceRef="GW_Evidence" targetRef="Task_ReadAuthorisation"/>
+    <bpmn:sequenceFlow id="m5" name="no-ci" sourceRef="GW_Evidence" targetRef="Task_LocalGates"/>
+    <bpmn:sequenceFlow id="m6" name="hand-back" sourceRef="GW_Evidence" targetRef="Call_HandBack"/>
+    <bpmn:sequenceFlow id="m7" name="not-yet" sourceRef="GW_Evidence" targetRef="End_NotYet"/>
+    <bpmn:sequenceFlow id="m8" name="unknown" sourceRef="GW_Evidence" targetRef="End_Unknown"/>
+    <bpmn:sequenceFlow id="m9" sourceRef="Call_HandBack" targetRef="End_HandedBack"/>
+    <bpmn:sequenceFlow id="m10" sourceRef="Task_LocalGates" targetRef="Task_ReadAuthorisation"/>
+    <bpmn:sequenceFlow id="m11" sourceRef="Task_ReadAuthorisation" targetRef="GW_Authorised"/>
+    <bpmn:sequenceFlow id="m12" name="merge" sourceRef="GW_Authorised" targetRef="Task_RecordAuthorisation"/>
+    <bpmn:sequenceFlow id="m13" name="ask" sourceRef="GW_Authorised" targetRef="Task_Ask"/>
+    <bpmn:sequenceFlow id="m14" sourceRef="Task_Ask" targetRef="Task_OwnerDecides"/>
+    <bpmn:sequenceFlow id="m15" sourceRef="Task_OwnerDecides" targetRef="GW_Owner"/>
+    <bpmn:sequenceFlow id="m16" name="merge" sourceRef="GW_Owner" targetRef="Task_RecordAuthorisation"/>
+    <bpmn:sequenceFlow id="m17" name="hold" sourceRef="GW_Owner" targetRef="End_Held"/>
+    <bpmn:sequenceFlow id="m18" name="refuse" sourceRef="GW_Owner" targetRef="End_Refused"/>
+    <bpmn:sequenceFlow id="m19" sourceRef="Task_RecordAuthorisation" targetRef="Task_Merge"/>
+    <bpmn:sequenceFlow id="m20" sourceRef="Task_Merge" targetRef="Task_ConfirmBase"/>
+    <bpmn:sequenceFlow id="m21" sourceRef="Task_ConfirmBase" targetRef="Task_Republish"/>
+    <bpmn:sequenceFlow id="m21b" sourceRef="Task_Republish" targetRef="Task_Repin"/>
+    <bpmn:sequenceFlow id="m22" sourceRef="Task_Repin" targetRef="Task_Report"/>
+    <bpmn:sequenceFlow id="m23" sourceRef="Task_Report" targetRef="End_Merged"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_MergeToMain">
+    <bpmndi:BPMNPlane id="Plane_Process_MergeToMain" bpmnElement="Collaboration_Process_MergeToMain">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_MergeToMain" bpmnElement="Participant_Process_MergeToMain" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1390" height="890" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Pipeline_Process_MergeToMain" bpmnElement="Lane_Pipeline" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1360" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Merger_Process_MergeToMain" bpmnElement="Lane_Merger" isHorizontal="true">
+        <dc:Bounds x="190" y="230" width="1360" height="530" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Owner_Process_MergeToMain" bpmnElement="Lane_Owner" isHorizontal="true">
+        <dc:Bounds x="190" y="760" width="1360" height="210" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Merge" bpmnElement="Start_Merge">
+        <dc:Bounds x="230" y="287" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="225" y="330" width="76" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RegenProjections" bpmnElement="Task_RegenProjections">
+        <dc:Bounds x="305" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReadEvidence" bpmnElement="Task_ReadEvidence">
+        <dc:Bounds x="305" y="245" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Evidence" bpmnElement="GW_Evidence" isMarkerVisible="true">
+        <dc:Bounds x="465" y="280" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="440" y="240" width="100" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_LocalGates" bpmnElement="Task_LocalGates">
+        <dc:Bounds x="555" y="385" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_HandBack" bpmnElement="Call_HandBack">
+        <dc:Bounds x="555" y="520" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_HandedBack" bpmnElement="End_HandedBack">
+        <dc:Bounds x="710" y="562" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="683" y="603" width="90" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_NotYet" bpmnElement="End_NotYet">
+        <dc:Bounds x="555" y="655" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="600" y="650" width="90" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Unknown" bpmnElement="End_Unknown">
+        <dc:Bounds x="555" y="708" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="600" y="705" width="90" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReadAuthorisation" bpmnElement="Task_ReadAuthorisation">
+        <dc:Bounds x="710" y="245" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Authorised" bpmnElement="GW_Authorised" isMarkerVisible="true">
+        <dc:Bounds x="860" y="280" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="840" y="255" width="90" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Ask" bpmnElement="Task_Ask">
+        <dc:Bounds x="825" y="425" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_OwnerDecides" bpmnElement="Task_OwnerDecides">
+        <dc:Bounds x="825" y="805" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Owner" bpmnElement="GW_Owner" isMarkerVisible="true">
+        <dc:Bounds x="1000" y="840" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="955" y="895" width="70" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Held" bpmnElement="End_Held">
+        <dc:Bounds x="1150" y="810" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1195" y="805" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Refused" bpmnElement="End_Refused">
+        <dc:Bounds x="1150" y="895" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1195" y="890" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RecordAuthorisation" bpmnElement="Task_RecordAuthorisation">
+        <dc:Bounds x="965" y="245" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Merge" bpmnElement="Task_Merge">
+        <dc:Bounds x="1115" y="245" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ConfirmBase" bpmnElement="Task_ConfirmBase">
+        <dc:Bounds x="1265" y="245" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Republish" bpmnElement="Task_Republish">
+        <dc:Bounds x="1265" y="425" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Repin" bpmnElement="Task_Repin">
+        <dc:Bounds x="1115" y="425" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Report" bpmnElement="Task_Report">
+        <dc:Bounds x="1115" y="595" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Merged" bpmnElement="End_Merged">
+        <dc:Bounds x="1307" y="637" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1280" y="680" width="90" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_m1" bpmnElement="m1">
+        <di:waypoint x="248" y="287" />
+        <di:waypoint x="248" y="155" />
+        <di:waypoint x="305" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m2" bpmnElement="m2">
+        <di:waypoint x="365" y="215" />
+        <di:waypoint x="365" y="245" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m3" bpmnElement="m3">
+        <di:waypoint x="425" y="305" />
+        <di:waypoint x="465" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m4" bpmnElement="m4">
+        <di:waypoint x="515" y="305" />
+        <di:waypoint x="710" y="305" />
+        <bpmndi:BPMNLabel><dc:Bounds x="580" y="283" width="50" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m5" bpmnElement="m5">
+        <di:waypoint x="490" y="330" />
+        <di:waypoint x="490" y="445" />
+        <di:waypoint x="555" y="445" />
+        <bpmndi:BPMNLabel><dc:Bounds x="496" y="422" width="45" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m6" bpmnElement="m6">
+        <di:waypoint x="490" y="330" />
+        <di:waypoint x="490" y="580" />
+        <di:waypoint x="555" y="580" />
+        <bpmndi:BPMNLabel><dc:Bounds x="425" y="555" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m7" bpmnElement="m7">
+        <di:waypoint x="490" y="330" />
+        <di:waypoint x="490" y="673" />
+        <di:waypoint x="555" y="673" />
+        <bpmndi:BPMNLabel><dc:Bounds x="496" y="650" width="50" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m8" bpmnElement="m8">
+        <di:waypoint x="490" y="330" />
+        <di:waypoint x="490" y="726" />
+        <di:waypoint x="555" y="726" />
+        <bpmndi:BPMNLabel><dc:Bounds x="496" y="704" width="55" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m9" bpmnElement="m9">
+        <di:waypoint x="675" y="580" />
+        <di:waypoint x="710" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m10" bpmnElement="m10">
+        <di:waypoint x="675" y="445" />
+        <di:waypoint x="770" y="445" />
+        <di:waypoint x="770" y="365" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m11" bpmnElement="m11">
+        <di:waypoint x="830" y="305" />
+        <di:waypoint x="860" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m12" bpmnElement="m12">
+        <di:waypoint x="910" y="305" />
+        <di:waypoint x="965" y="305" />
+        <bpmndi:BPMNLabel><dc:Bounds x="915" y="283" width="45" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m13" bpmnElement="m13">
+        <di:waypoint x="885" y="330" />
+        <di:waypoint x="885" y="425" />
+        <bpmndi:BPMNLabel><dc:Bounds x="891" y="365" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m14" bpmnElement="m14">
+        <di:waypoint x="885" y="545" />
+        <di:waypoint x="885" y="805" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m15" bpmnElement="m15">
+        <di:waypoint x="945" y="865" />
+        <di:waypoint x="1000" y="865" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m16" bpmnElement="m16">
+        <di:waypoint x="1025" y="840" />
+        <di:waypoint x="1025" y="365" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1031" y="600" width="45" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m17" bpmnElement="m17">
+        <di:waypoint x="1050" y="865" />
+        <di:waypoint x="1100" y="865" />
+        <di:waypoint x="1100" y="828" />
+        <di:waypoint x="1150" y="828" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1055" y="842" width="35" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m18" bpmnElement="m18">
+        <di:waypoint x="1025" y="890" />
+        <di:waypoint x="1025" y="913" />
+        <di:waypoint x="1150" y="913" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1055" y="892" width="45" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m19" bpmnElement="m19">
+        <di:waypoint x="1085" y="305" />
+        <di:waypoint x="1115" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m20" bpmnElement="m20">
+        <di:waypoint x="1235" y="305" />
+        <di:waypoint x="1265" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m21" bpmnElement="m21">
+        <di:waypoint x="1325" y="365" />
+        <di:waypoint x="1325" y="425" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m21b" bpmnElement="m21b">
+        <di:waypoint x="1265" y="485" />
+        <di:waypoint x="1235" y="485" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m22" bpmnElement="m22">
+        <di:waypoint x="1175" y="545" />
+        <di:waypoint x="1175" y="595" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m23" bpmnElement="m23">
+        <di:waypoint x="1235" y="655" />
+        <di:waypoint x="1307" y="655" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — Basic ingestion — an upload to an asset catalogued in library/.
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool. The SVG under docs/assets/img/workflows/ is generated from it
+  by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  The <bootstrap.processes:skill> extension on an activity names the folio-assistant skill
+  that implements it.
+  The engine keeps the work context; no step carries work-plan markup.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Ingestion"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="ingestion-agent" name="Ingestion engine"/>
+  <bpmn:resource id="user" name="User"/>
+  <bpmn:collaboration id="Collaboration_Ingestion">
+    <bpmn:participant id="Participant_Ingestion" name="Basic ingestion — an upload to an asset catalogued in library/" processRef="Process_Ingestion" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Ingestion" name="Basic ingestion — an upload to an asset catalogued in library/" isExecutable="false">
+    <bpmn:documentation>Accepts an upload, records its extracted metadata in the knowledge graph, and catalogues the asset in `library/` — held if materialized, referenced if not.
+
+THE BASIC FLOW, with very little process context assumed. Accept, extract the metadata into the KG, ask whether the asset is materialized, place it in library/&lt;slug&gt;/. It calls NO subprocess and makes no content-type decision.
+
+THE ID `Process_Ingestion` IS KEPT ON PURPOSE: `methodology-from-source.bpmn`'s Call_Ingest names it, and so does every higher-layer process that refines this flow. Refinement is by INVERSION — a refining process calls this one as its first step and continues with its own work; nothing here names a refinement, because the corpus has no BPMN extension point and a harness diagram naming a higher one would be an upward edge. The document pipeline (rungs, the four ingest phases, the L1 completeness gate, promotion, the summary queue) is such a refinement, in the layer above.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_Ingestion_LaneSet">
+      <bpmn:lane id="Lane_0" name="Contributor (human or agent)" partitionElementRef="user">
+        <bpmn:documentation>Whoever puts the file in the queue.
+
+"HUMAN OR AGENT" IS A MEASUREMENT, NOT A HEDGE: both place files here. That is why Task_Place is a plain `bpmn:task` rather than a `userTask` — asserting a human performs it would contradict the lane's own role graph, which is what `activity-fulfilment-kind` exists to catch.
+
+WHAT THE LANE IS ACCOUNTABLE FOR, and where it ends. Choosing a route, writing the bytes into the DECLARED queue of the layer that will own them, and discharging afterwards whatever that route could not — the web form has no working tree, so no pre-commit hook and no generator runs on it. The lane does NOT ingest and does not clean the queue: it hands over, and Lane_1 takes it from there. `upload-routes` carries the routes and their obligations.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_Dropped</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Place</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_1" name="Ingestion Engine (agent, runs unattended)" partitionElementRef="ingestion-agent">
+        <bpmn:documentation>Runs the basic flow from the metadata step to the placement in library/, unattended: every decision in it is decidable from the material and its declarations. It asks one question — is the asset materialized? — and that is answered from the materialization state vocabulary (`schemas/kg/materialization-state.ts`), not by judgement. It does NOT choose a reader for the bytes, derive sections or blocks, or describe images: those are a refining process's work, which calls this flow first.
+
+THE FLOW ENDS IN THIS LANE. The asset catalogued in library/ — held, or recorded as referenced — is the terminal state, and every knowledge-graph reference to it resolves through library/ from here; a refining process continues from it rather than being drawn into this one. There is no separate corpus lane: it would hold only the end event, and a lane with no activity has no performer to describe.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ExtractMetadata</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Materialized</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PlaceInLibrary</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CatalogueReference</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Catalogued</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Dropped" name="A contributor has a
+file for the folio">
+      <bpmn:documentation>ONE OF TWO ENTRY POINTS. A drop during an editing session triggers ingestion in the background; the contributor does not wait for it.
+
+THE OTHER is materialization: an asset listed in a remote graph that this layer, or one of its dependencies, declares in `remoteGraphs`.
+
+That path runs materialize-remote.bpmn FIRST -- purpose, then the five gates -- and re-enters at the metadata step with a file that already carries its provenance and its fixity. It does NOT pass through uploads/, and that is deliberate: uploads/ is a queue for things somebody dropped, and a materialized asset was never dropped. Recording it as an upload would lose the one fact that distinguishes the two, which is that somebody decided it could be held.
+
+The event is named for the intent, not the arrival, because Task_Place follows it. Its id stays `StartEvent_Dropped`: it is referenced from `library/skills/library-core/content-acquisition.md` and from the translation catalogues, and an id is an identifier rather than a description.</bpmn:documentation>
+      <bpmn:outgoing>Flow_i1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_Place" name="Place it in uploads/
+by a declared route">
+      <bpmn:documentation>THE FIRST LINK: everything downstream of here takes a file that is already in the queue, so without this step how the file got there is governed by nothing.
+
+WHAT THIS STEP IS. The basic flow's ACCEPT step: choosing an arrival route, writing the bytes into the declared queue of the layer that will own them, and discharging what that route does not discharge for you. The routes, what each writer owes, and the two that are mechanisms against the one that is a persona are in the `upload-routes` skill; `upload-url` composes the forge URL for the web route from the declaration rather than from a literal, because a hand-written one can 404.
+
+WHY A PLAIN `bpmn:task` AND NOT A `userTask`. A `userTask` asserts a human performs it, and this lane is "Contributor (human or agent)" because both do; asserting human-only would be an `activity-fulfilment-kind` contradiction. A plain task asserts nothing about the performer.
+
+WHY THE BEAN OP IS `note` AND NOT `claim`. Placing a file claims nothing; it adds to a queue. What it owes the work plan is visibility. A note against the ingestion bean is what makes the queue's growth something another session can see.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="upload-routes" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_i1</bpmn:incoming>
+      <bpmn:outgoing>Flow_i2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:serviceTask id="Task_ExtractMetadata" name="Extract its metadata into the KG">
+      <bpmn:documentation>THE METADATA STEP. What enters the knowledge graph is the asset's INDEX — what it is, how big, what type, when it says it was written — and, for a container, what is in it; its contents do not go in unless somebody asks, with a reason. The tool is `cat-harness-tools/scripts/extract-assets.ts`, writing a `folio-extraction/v1` record (`schemas/content/extraction.ts`).
+
+The media type is sniffed from the leading bytes, never taken from the extension.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="asset-extraction" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_i2</bpmn:incoming>
+      <bpmn:outgoing>Flow_i3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Materialized" name="Materialized?">
+      <bpmn:documentation>Answered from the materialization state (`schemas/kg/materialization-state.ts`): `materialized` means the bytes are here; `referenced` means we know where they are and hold none. `unknown` is not a third branch here because a node must DECLARE its state — there is no default — and an asset this flow cannot classify is recorded as referenced-with-a-reason rather than placed as if held. Collapsing referenced into materialized is the failure the vocabulary exists to stop: corpus-grep searches library/ only, so a referenced node placed as held reads as present to every consumer.</bpmn:documentation>
+      <bpmn:incoming>Flow_i3</bpmn:incoming>
+      <bpmn:outgoing>Flow_held</bpmn:outgoing>
+      <bpmn:outgoing>Flow_referenced</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_PlaceInLibrary" name="Place the asset in
+library/&lt;slug&gt;/">
+      <bpmn:documentation>The materialized branch. The asset lands in library/&lt;slug&gt;/ with its metadata record, its provenance and its fixity. The folder name IS the citation key, so a citation and a directory are the same string.
+
+The upload is then RETIRED, not left and not deleted: it moves to fsh-guts/uploads/ beside a sidecar naming where it came from and when, and `check:uploads-retired` finds one that was not. A refining process that derives content from the bytes does so before that retirement; `library-ingestion` carries the rule.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="library-ingestion" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_held</bpmn:incoming>
+      <bpmn:outgoing>Flow_held_done</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_CatalogueReference" name="Record it in library/ as referenced">
+      <bpmn:documentation>The referenced branch. Nothing is fetched and no bytes are written: the catalogue record says where the asset is and that we hold none. A reference is not a fetch — it stays navigable without being held, and materializing it later is `materialize-remote.bpmn`'s decision, with its purpose and five gates, not this flow's.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="library-ingestion" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_referenced</bpmn:incoming>
+      <bpmn:outgoing>Flow_referenced_done</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Catalogued" name="Asset catalogued">
+      <bpmn:incoming>Flow_held_done</bpmn:incoming>
+      <bpmn:incoming>Flow_referenced_done</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_i1" sourceRef="StartEvent_Dropped" targetRef="Task_Place" />
+    <bpmn:sequenceFlow id="Flow_i2" sourceRef="Task_Place" targetRef="Task_ExtractMetadata" />
+    <bpmn:sequenceFlow id="Flow_i3" sourceRef="Task_ExtractMetadata" targetRef="Gateway_Materialized" />
+    <bpmn:sequenceFlow id="Flow_held" name="materialized" sourceRef="Gateway_Materialized" targetRef="Task_PlaceInLibrary" />
+    <bpmn:sequenceFlow id="Flow_referenced" name="referenced" sourceRef="Gateway_Materialized" targetRef="Task_CatalogueReference" />
+    <bpmn:sequenceFlow id="Flow_held_done" sourceRef="Task_PlaceInLibrary" targetRef="EndEvent_Catalogued" />
+    <bpmn:sequenceFlow id="Flow_referenced_done" sourceRef="Task_CatalogueReference" targetRef="EndEvent_Catalogued" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Ingestion">
+    <bpmndi:BPMNPlane id="Plane_Ingestion" bpmnElement="Collaboration_Ingestion">
+      <bpmndi:BPMNShape id="Participant_Ingestion_di" bpmnElement="Participant_Ingestion" isHorizontal="true">
+        <dc:Bounds x="160" y="50" width="800" height="570" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0_di" bpmnElement="Lane_0" isHorizontal="true">
+        <dc:Bounds x="190" y="50" width="770" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1_di" bpmnElement="Lane_1" isHorizontal="true">
+        <dc:Bounds x="190" y="270" width="770" height="350" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Dropped_di" bpmnElement="StartEvent_Dropped">
+        <dc:Bounds x="246" y="132" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="226" y="173" width="80" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Place_di" bpmnElement="Task_Place">
+        <dc:Bounds x="312" y="90" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ExtractMetadata_di" bpmnElement="Task_ExtractMetadata">
+        <dc:Bounds x="312" y="330" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Materialized_di" bpmnElement="Gateway_Materialized" isMarkerVisible="true">
+        <dc:Bounds x="472" y="365" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="447" y="320" width="100" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PlaceInLibrary_di" bpmnElement="Task_PlaceInLibrary">
+        <dc:Bounds x="612" y="330" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CatalogueReference_di" bpmnElement="Task_CatalogueReference">
+        <dc:Bounds x="612" y="470" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Catalogued_di" bpmnElement="EndEvent_Catalogued">
+        <dc:Bounds x="812" y="372" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="855" y="372" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_i1_di" bpmnElement="Flow_i1">
+        <di:waypoint x="282" y="150" />
+        <di:waypoint x="312" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i2_di" bpmnElement="Flow_i2">
+        <di:waypoint x="372" y="210" />
+        <di:waypoint x="372" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_i3_di" bpmnElement="Flow_i3">
+        <di:waypoint x="432" y="390" />
+        <di:waypoint x="472" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_held_di" bpmnElement="Flow_held">
+        <di:waypoint x="522" y="390" />
+        <di:waypoint x="612" y="390" />
+        <bpmndi:BPMNLabel><dc:Bounds x="526" y="370" width="82" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_referenced_di" bpmnElement="Flow_referenced">
+        <di:waypoint x="497" y="415" />
+        <di:waypoint x="497" y="530" />
+        <di:waypoint x="612" y="530" />
+        <bpmndi:BPMNLabel><dc:Bounds x="502" y="490" width="75" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_held_done_di" bpmnElement="Flow_held_done">
+        <di:waypoint x="732" y="390" />
+        <di:waypoint x="812" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_referenced_done_di" bpmnElement="Flow_referenced_done">
+        <di:waypoint x="732" y="530" />
+        <di:waypoint x="830" y="530" />
+        <di:waypoint x="830" y="408" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

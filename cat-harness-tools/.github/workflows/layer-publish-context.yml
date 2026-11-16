@@ -1,0 +1,208 @@
+# Publish a layer's JSON-LD `@context` to its OWN GitHub Pages, as ONE reusable
+# workflow (bean folio-assistant-63q4).
+#
+# Owner, 2026-10-15: each instance's context is published by its own
+# repository at `<iriBase>ns/context/v1.jsonld` (or, for an instance whose `ns`
+# is a document, beside it at `<iriBase>ns.context.v1.jsonld`: owner D1,
+# `contextPathFor` in scripts/gen-instance-contexts.ts), through a reusable workflow
+# the harness owns, and the harness's initiation process sets the caller up.
+# Until then the per-instance contexts were "built at publish" (f94bae4) and
+# nothing published them, so every per-instance context URL a document named
+# answered 404.
+#
+# A caller is one `uses:` line, on push to main:
+#
+#   on: { push: { branches: [main] }, workflow_dispatch: {} }
+#   permissions: { contents: write }
+#   jobs:
+#     publish:
+#       uses: litlfred/cat-harness-tools/.github/workflows/layer-publish-context.yml@main
+#
+# What it does, in the layout `layer-pr-checks.yml` uses:
+#   1. Check out the folio-assistant index at `index-ref` (main) and mount every
+#      instance from its lock.
+#   2. Put THE CALLER, at the pushed commit and WITHOUT its `.git`, in place of
+#      its locked mount. A directory holding its own `.git` is a foreign
+#      checkout to instance discovery, so with it the caller is not an instance
+#      at all and its context is built over nothing.
+#   3. Take its dependency harness (transitive `needs`, read at main) and
+#      cat-harness-tools at main: the lock may pin layers from before the
+#      prefix tables or the generator existed.
+#   4. Build ONLY this instance's context, judged on ITS findings only
+#      (`publish-instance-context.ts build`): another instance's unresolved
+#      prefix is that repository's to fix, and must not stop this publish.
+#      No `iriBase`, or no `.jsonld` documents, is a skip with a WARNING, so a
+#      run that published nothing is not mistaken for one that did.
+#   5. Put the context, at the path the build reported, on the caller's `gh-pages` with the caller's
+#      GITHUB_TOKEN (contents API, one path, skipped when unchanged, nothing
+#      else on the branch touched). No `gh-pages` yet: an orphan one is created
+#      holding `.nojekyll`, the context and a placeholder `index.html`.
+#   6. Build the instance's own vocabulary (`publish-instance-context.ts vocab`)
+#      and put it where its term IRIs point, `<iriBase>v<major>/ns` plus
+#      `.jsonld` and `.json`, the same way. No terms of its own: a skip.
+#
+# GitHub Pages itself is switched on by the owner once, after the first run:
+# Settings → Pages → "Deploy from a branch: gh-pages, / (root)". A workflow
+# cannot do that with GITHUB_TOKEN.
+
+name: Layer publish context
+
+on:
+  workflow_call:
+    inputs:
+      instance:
+        description: "The instance's directory in the folio-assistant index (its mount path); empty means the calling repository's name."
+        required: false
+        type: string
+        default: ""
+      path-in-repo:
+        description: "Where the instance sits in the calling repository; '.' for the repository root."
+        required: false
+        type: string
+        default: "."
+      index-ref:
+        description: "The folio-assistant ref to check out."
+        required: false
+        type: string
+        default: "main"
+
+permissions:
+  contents: write
+
+# A publish: never cancelled in progress, so a run is not stopped between
+# its context and vocabulary writes to `gh-pages` (owner, 2026-10-23). Without
+# cancel-in-progress the group still keeps only the NEWEST pending run, so a
+# burst of main pushes publishes the running one and the latest.
+concurrency:
+  group: layer-publish-context-${{ github.repository }}
+  cancel-in-progress: false
+
+env:
+  INSTANCE: ${{ inputs.instance != '' && inputs.instance || github.event.repository.name }}
+
+jobs:
+  publish:
+    name: Publish the JSON-LD context
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the folio-assistant index
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: litlfred/folio-assistant
+          ref: ${{ inputs.index-ref }}
+          path: fa
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+      - name: Mount every instance from the index's lock
+        # The same replayer choice as layer-pr-checks.yml: the index's own
+        # `.github/mount-from-lock.sh` when it has one, else `mount-from-lock.ts`
+        # at the cat-harness-tools or cat-harness commit the lock pins.
+        run: |
+          set -euo pipefail
+          if [ -f fa/.github/mount-from-lock.sh ]; then
+            bash fa/.github/mount-from-lock.sh --root fa
+            exit 0
+          fi
+          work="$(mktemp -d)"
+          git -C "$work" init -q
+          for layer in cat-harness-tools cat-harness; do
+            read -r repo sha < <(bun -e '
+              const l = JSON.parse(require("node:fs").readFileSync("fa/index.lock.json", "utf-8"));
+              const i = (l.instances ?? []).find((x) => x.instance === process.argv[1]);
+              console.log(i ? `${i.repository} ${i.sha}` : "- -");
+            ' "$layer")
+            [ "$repo" = "-" ] && continue
+            git -C "$work" fetch -q --depth 1 --filter=blob:none "https://github.com/${repo}.git" "$sha"
+            if git -C "$work" checkout -q FETCH_HEAD -- scripts/mount-from-lock.ts 2>/dev/null; then
+              bun "$work/scripts/mount-from-lock.ts" --root fa
+              exit 0
+            fi
+          done
+          echo "::error::no mount-from-lock replayer at the cat-harness-tools or cat-harness commit fa/index.lock.json pins"
+          exit 2
+      - name: Check out the caller
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: src
+      - name: Put the caller in place of its locked mount
+        env:
+          SUBDIR: ${{ inputs.path-in-repo }}
+        run: |
+          set -euo pipefail
+          rm -rf "fa/$INSTANCE"
+          if [ "$SUBDIR" = "." ]; then mv src "fa/$INSTANCE"; else mv "src/$SUBDIR" "fa/$INSTANCE"; fi
+          rm -rf "fa/$INSTANCE/.git"
+          test -f "fa/$INSTANCE/$INSTANCE.json" || { echo "::error::fa/$INSTANCE/$INSTANCE.json is missing: is path-in-repo right?"; exit 2; }
+      - name: Take the dependency harness and the generator at main
+        run: |
+          set -euo pipefail
+          git clone -q --depth 1 --filter=blob:none --sparse https://github.com/litlfred/cat-harness-tools ci
+          git -C ci sparse-checkout set .github/scripts/layer-publish-context
+          bun ci/.github/scripts/layer-publish-context/needs-at-main.ts fa "$INSTANCE" --always cat-harness-tools
+      - name: Install
+        working-directory: fa
+        run: bun install
+      - name: Build the context
+        id: build
+        working-directory: fa
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/context.jsonld"
+          bun run cat-harness-tools/scripts/publish-instance-context.ts build --root . --instance "$INSTANCE" --out "$out" --report "$RUNNER_TEMP/context-report.json"
+          if [ -s "$out" ]; then echo "built=true" >> "$GITHUB_OUTPUT"; else echo "built=false" >> "$GITHUB_OUTPUT"; fi
+          # Where it is served is the build's answer (D1), never spelled here.
+          echo "path=$(jq -r '.path // empty' "$RUNNER_TEMP/context-report.json")" >> "$GITHUB_OUTPUT"
+      - name: Publish to gh-pages
+        if: steps.build.outputs.built == 'true'
+        working-directory: fa
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          CONTEXT_PATH: ${{ steps.build.outputs.path }}
+        run: bun run cat-harness-tools/scripts/publish-instance-context.ts publish --repo "$REPO" --file "$RUNNER_TEMP/context.jsonld" --path "$CONTEXT_PATH" --sha "$SHA"
+      # The instance's own VOCABULARY, at the address its term IRIs name
+      # (`<iriBase>v<major>/ns#Term`), read off the vocabulary's `@id` by the
+      # script rather than written here (owner, 2026-10-15, "Serve vocab at own
+      # iriBase"). Before this, an instance's gh-pages had no `<version>/`
+      # (measured on two of them, cat-harness one) and every term IRI it
+      # mints answered 404. An instance that mints no terms is a skip with a
+      # notice.
+      - name: Build the vocabulary
+        id: vocab
+        working-directory: fa
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/vocab"
+          bun run cat-harness-tools/scripts/publish-instance-context.ts vocab --root . --instance "$INSTANCE" --out-dir "$dir"
+          if [ -s "$dir/.paths" ]; then echo "built=true" >> "$GITHUB_OUTPUT"; else echo "built=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Publish the vocabulary to gh-pages
+        if: steps.vocab.outputs.built == 'true'
+        working-directory: fa
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/vocab"
+          while IFS= read -r p; do
+            [ -n "$p" ] || continue
+            bun run cat-harness-tools/scripts/publish-instance-context.ts publish --repo "$REPO" --file "$dir/$p" --path "$p" --sha "$SHA"
+          done < "$dir/.paths"
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### JSON-LD context: $INSTANCE"
+            if [ -f "$RUNNER_TEMP/context-report.json" ]; then
+              echo '```json'
+              cat "$RUNNER_TEMP/context-report.json"
+              echo '```'
+            fi
+            echo "Served once GitHub Pages is on (Settings → Pages → Deploy from a branch: gh-pages, / (root)). Check: \`curl -sI <iriBase><path above>\` answers 200 with \`content-type: application/ld+json\`."
+          } >> "$GITHUB_STEP_SUMMARY"
