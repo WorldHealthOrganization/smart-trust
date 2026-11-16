@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script data-folio-saved-scheme>(function(){var d=document.documentElement,s=null,c="dark";try{s=localStorage.getItem("fa-color-scheme")}catch(e){}if(s!=="light"&&s!=="dark"){s="light";try{if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)s="dark"}catch(e){}}try{var n=document.getElementById("fa-site-scheme");if(n)c=JSON.parse(n.textContent).scheme==="light"?"light":"dark"}catch(e){}d.setAttribute("data-fa-scheme",s);var j=window.jtd;if(s!==c&&j&&typeof j.setTheme==="function"){try{j.setTheme(s)}catch(e){}}})();</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C@T Harness Tools — cat-harness-declaration</title>
+<style>
+  :root { color-scheme: light dark; --fg:#1b1b1b; --bg:#fdfdfb; --muted:#5b5b5b; --line:#d6d6d0; --link:#0b5cad; --panel:#f3f4f2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-fa-scheme="light"]) { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; } }
+  :root[data-fa-scheme="dark"] { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; }
+  :root[data-fa-scheme="light"] { color-scheme: light; } :root[data-fa-scheme="dark"] { color-scheme: dark; }
+  body { margin:0; font:1rem/1.5 system-ui,sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width:80rem; margin:0 auto; padding:1.5rem 1.5rem 4rem; min-width:0; overflow-wrap:anywhere; }
+  h1 { font-size:1.35rem; margin:0 0 .25rem; } h2 { font-size:1.05rem; margin:1.5rem 0 .5rem; }
+  a { color:var(--link); } a:focus-visible, select:focus-visible { outline:3px solid var(--link); outline-offset:2px; }
+  .m { color:var(--muted); font-size:.9rem; }
+  .tiles { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; padding:0; list-style:none; }
+  .tiles li { border:1px solid var(--line); border-radius:.4rem; padding:.35rem .7rem; }
+  .tiles b { font-size:1.2rem; margin-right:.3rem; }
+  .clip { width:100%; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; vertical-align:top; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
+  th { background:var(--panel); white-space:nowrap; }
+  /* Only the node's path and long text may break mid-word; a status or a date
+     broken across lines ("in_pr ogres s") is unreadable. */
+  td { overflow-wrap:normal; } td.p, td.t { overflow-wrap:anywhere; } td.s { white-space:nowrap; }
+  dl { display:grid; grid-template-columns:minmax(8rem,14rem) 1fr; gap:.25rem 1rem; }
+  dt { font-weight:600; } dd { margin:0; }
+  pre { background:var(--panel); padding:.75rem; overflow-x:auto; font-size:.85rem; }
+  label { margin-right:1rem; }
+  @media (max-width:40rem) { dl { grid-template-columns:1fr; } }
+</style>
+<link rel="stylesheet" href="../../../../../assets/css/navbar.css"><script src="../../../../../assets/navbar/rail-7t3avro5y7.js" defer></script><script src="../../../../../assets/js/navbar.js" defer></script><style data-folio-narrow-viewport>
+/* Narrow viewports: nothing may widen the PAGE — bean `2r2n`.
+ *
+ * At 390 px, 105 of 249 built pages scrolled sideways (measured 2026-09-24).
+ * The rule here is the bean's: wide content scrolls INSIDE ITS OWN BOX with a
+ * visible cue, and the page itself never pans.
+ *
+ * ONE FILE, TWO WAYS IN. Themed pages link it from `_includes/head_custom.html`.
+ * The standalone viewer pages carry no theme stylesheet at all, so
+ * `withViewerNav` in `scripts/viewer-page.ts` inlines this same file when it
+ * adds the rail. A copy of these rules in each place would be two answers to
+ * "what does a table do at 390 px", free to drift apart.
+ *
+ * Every selector here is written to be safe on both kinds of page: no
+ * `.main-content` scope (a standalone page has none), the navbar excluded by
+ * name, and the theme's own `.table-wrapper` left alone, since it already does
+ * this job for Markdown tables. */
+
+@media (max-width: 799.98px) {
+  /* A table the theme did not wrap: raw HTML from a generator, or one built at
+   * runtime. `display: block` makes the table its own scroll box. Its cells
+   * still lay out as a table inside the anonymous table box. */
+  table:not(.table-wrapper > table):not(.fa-nav table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* THE CUE: the edge that has more content past it fades out. The fade is a
+   * MASK over the table's own pixels, driven by its own scroll position, so
+   * it needs no knowledge of the page's background. A painted cover (the
+   * usual `background-attachment: local` trick) does: the first version used
+   * `Canvas`, and on a page that is dark under a LIGHT scheme it laid a white
+   * band over the first column.
+   *
+   * A table that does not overflow has an inactive scroll timeline, so the
+   * animation has no effect and both fades stay at their initial 0: no cue
+   * where there is nothing to scroll to. A browser without scroll-driven
+   * animations shows no fade, and the table still scrolls. */
+  @supports (animation-timeline: scroll()) {
+    table:not(.table-wrapper > table):not(.fa-nav table) {
+      mask-image: linear-gradient(to right,
+        transparent 0, #000 var(--fa-cue-l),
+        #000 calc(100% - var(--fa-cue-r)), transparent 100%);
+      animation: fa-scroll-cue linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+
+  /* A code block scrolls in its own box, which is what `pre` is for. Mermaid
+   * SOURCE sits in a `pre` until the renderer replaces it, and at 390 px a
+   * diagram's source line is longer than the screen. */
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Prose that has no break opportunity: a long path in inline code, or a
+   * glossary definition naming one. Breaking the string is better than
+   * widening the page it sits on. */
+  :not(pre) > code,
+  dd {
+    overflow-wrap: anywhere;
+  }
+}
+
+@property --fa-cue-l { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --fa-cue-r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+@keyframes fa-scroll-cue {
+  0%   { --fa-cue-l: 0px;    --fa-cue-r: 2.5rem; }
+  12%  { --fa-cue-l: 2.5rem; }
+  88%  { --fa-cue-r: 2.5rem; }
+  100% { --fa-cue-l: 2.5rem; --fa-cue-r: 0px; }
+}
+
+</style>
+<script type="application/json" id="fa-translation-meta">{"lang":"en","translationStatus":"","translationSource":"","supportedLocales":["ar","zh","en","fr","ru","es"],"availableLocales":[]}</script><link rel="stylesheet" href="../../../../../assets/page-layout.css" data-fa-page-layout><script src="../../../../../assets/page-layout.js" defer data-fa-page-layout></script><link rel="stylesheet" href="../../../../../assets/ig-artifact.css"><style data-ig-version-chrome>.ig-topbar-head{flex:0 0 100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .9rem}.ig-topbar-head .ig-topbar-home{flex:none}.ig-topbar-ver{font-weight:400;font-size:.9em;opacity:.95;white-space:nowrap}.ig-topbar-flag{font-size:1.1em}.ig-version-banner{box-sizing:border-box;margin:0;padding:.5rem 1.5rem;background:#ffffa0;color:#222;border-bottom:1px solid #0a0008;font-size:.95rem;line-height:1.45}.ig-version-banner a{color:#1a4b8c;text-decoration:underline}html:not([data-fa-scheme="light"]) .ig-version-banner{background:#4a4520;color:#fff8d0;border-color:#8a7d2a}html:not([data-fa-scheme="light"]) .ig-version-banner a{color:#ffe680}.ig-metadata{border-collapse:collapse;margin:0 0 1rem;font-size:.95rem}.ig-metadata td{border:1px solid #c8c8c8;padding:.25rem .6rem;vertical-align:top}.ig-metadata code{overflow-wrap:anywhere}</style></head>
+<body data-fa-node-kind-page>
+<header class="ig-search-top fa-page-bar"><a class="ig-search-home" href="../../../../../index.html">WHO SMART Trust</a><span class="ig-topbar-ver"><span class="ig-topbar-flag" role="img" aria-label="International" title="International">🌐</span> 1.7.5 - ci-build</span><form class="ig-search" role="search" data-ig-search-index="../../../../../assets/ig-search.json"><label class="ig-search-label" for="search-input">Search WHO SMART Trust</label><input type="search" id="search-input" class="ig-search-input" placeholder="Search pages and artefacts" autocomplete="off" aria-controls="ig-search-results" aria-expanded="false"><ul id="ig-search-results" class="ig-search-results" hidden></ul></form><span class="ig-locale-slot" data-fa-slot="locale"></span></header><p class="ig-version-banner" role="note">This page is part of the WHO SMART Trust (v1.7.5: ci-build) based on <a href="http://hl7.org/fhir/R4/">FHIR (HL7® FHIR® Standard) v4.0.1</a>. This is the continuous integration build: it follows the source and is not a published version. For a full list of available versions, see the <a href="http://smart.who.int/trust/history.html">Directory of published versions</a>.</p><script type="application/json" id="fa-rail" data-fa-root="../../../../.." data-fa-to-root="../../../../..">{"data":"rail-7t3avro5y7","here":"/en/cat-harness/cat-harness-declaration/cat-harness-tools/cat-harness-tools/"}</script><nav class="fa-nav" aria-label="folio-assistant" data-fa-rail="pending"><a href="../../../../../">folio-assistant</a></nav>
+<main>
+<h1 id="nk-title">C@T Harness Tools</h1>
+<p class="m">A <a href="../../">cat-harness-declaration</a> node held by <a href="../">cat-harness-tools</a>, at <code>cat-harness-tools/cat-harness-tools.json</code>.</p>
+
+<h2 id="fields">Fields</h2>
+<dl>
+<dt>$schema</dt><dd>cat-harness-declaration/1.0.0</dd>
+<dt>_comment</dt><dd>THE TOOL IMPLEMENTATION LAYER of the harness, created 2026-10-01 for bean w2gr. The owner&#39;s rulings: (2026-09-30, option A) tool DEFINITIONS stay in cat-harness (cat-harness/tools/ and its discover.ts reader) and this instance IMPLEMENTS them -- the split bootstrap / bootstrap-tools already uses; (2026-10-01) the content core does NOT depend on this instance, so the document adapter was cut into a server-free content class and a server wrapper -- SUPERSEDED the same day by ruling C1, which put this layer BELOW the content core (see `_needs_comment`): the core may depend on it, it may not depend on the core, and a server part that needs the core moves up into it; (2026-10-01) it carries its OWN package.json, like bootstrap-tools; and a content package&#39;s own server half lives in a named subgraph of that package rather than here. Step 3a moves the standalone MCP server (adapters/mcp-server/) in and nothing else, so this declaration names only what exists (bean dh4f). The layout MIRRORS cat-harness&#39;s (adapters/, src/, test/) so that, as step 3b moves src/ here, the relative imports between modules that move together come out unchanged.</dd>
+<dt>name</dt><dd>cat-harness-tools</dd>
+<dt>repository</dt><dd>litlfred/cat-harness-tools</dd>
+<dt>version</dt><dd>0.1.0</dd>
+<dt>_title_comment</dt><dd>The HUMAN display name, for the LHS navbar&#39;s harness tabs (bean `t3n8`). `name` stays the machine identifier that filenames and `needs` edges resolve against.</dd>
+<dt>title</dt><dd>C@T Harness Tools</dd>
+<dt>description</dt><dd>What implements the harness&#39;s Tool definitions: the MCP servers, their tool registrars and routes. Definitions stay in cat-harness; this layer runs them.</dd>
+<dt>avatar</dt><dd><pre>{
+  &quot;glyph&quot;: &quot;M14.5 5.5a4 4 0 005 5L11 19a2.1 2.1 0 01-3-3l8.5-8.5a4 4 0 01-2-2zM8.5 16.5h.01&quot;,
+  &quot;tone&quot;: 268,
+  &quot;reads&quot;: &quot;a wrench, in cat-harness&#39;s colour — the code that implements its tools&quot;
+}</pre></dd>
+<dt>_avatar_comment</dt><dd>A wrench — what implements the harness&#39;s tool definitions. Moved here from cat-harness/schemas/content/avatars.ts, 2026-10-05 (bean sod4 #4): an instance declares its own mark.</dd>
+<dt>directories</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-adapters&quot;,
+    &quot;path&quot;: &quot;adapters/&quot;,
+    &quot;description&quot;: &quot;The standalone MCP server (`adapters/mcp-server/`): its tool registrars, the declared tool groups that load them, and the Dockerfile that packages it. Tool implementations live here; their definitions stay in cat-harness.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-validators&quot;,
+    &quot;path&quot;: &quot;validators/&quot;,
+    &quot;description&quot;: &quot;The validators this layer&#39;s code provides, one folio-validator/v1 node each naming the graph typology and $schema family it checks, as cat-harness and the layers above it declare theirs. Among them, `dynamic-state.json` checks the `cat-harness-dynamic-state/v1` document `writeDynamicState` writes; its family is listed in the docs typology here, so its node is here too.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;validators&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-ui&quot;,
+    &quot;path&quot;: &quot;ui/&quot;,
+    &quot;description&quot;: &quot;The standalone tool pages the MCP server serves at `/ui/` (`adapters/mcp-server/server.ts`): the bibliography QA, glossary curator and source-relevance pages, their index and shared stylesheet. Static HTML with no build step.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-viewer&quot;,
+    &quot;path&quot;: &quot;viewer/&quot;,
+    &quot;description&quot;: &quot;The content viewer the MCP server serves at `/viewer/` (`adapters/mcp-server/server.ts`, `VIEWER_DIR`): one HTML page carrying the whole single-page app, which reads `/api/folio` and opens the first paper the folio lists. A platform viewer, not folio content: it names no folio, and `test/tools/test-server.e2e.ts` and `scripts/tests/ui/viewer-script.test.ts` assert it.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-schemas&quot;,
+    &quot;path&quot;: &quot;schemas/&quot;,
+    &quot;description&quot;: &quot;The harness&#39;s Zod schema corpus and the tests that exercise it, so this directory is typed `schemas` as well as `code`. cat-harness keeps the schemas that are data: the per-skill JSON Schemas in `schemas/skills/`, `staging-comparison.schema.json` and the PlantUML model.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;schemas&quot;,
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-scripts&quot;,
+    &quot;path&quot;: &quot;scripts/&quot;,
+    &quot;description&quot;: &quot;Scripts this layer runs. `lib/roots.ts` is the one place that names the three roots a file can mean (HARNESS_ROOT, TOOLS_ROOT, REPO_ROOT). `gen-id-lookup.ts` builds the prefix-sharded lookup over a catalogue&#39;s REFERENCED nodes for every instance that declares an `id-lookup` directory, and writes it THERE (`bun run cat id-lookup`, gated by `id-lookup:check`); `bench-id-lookup.ts` measures it at full catalogue scale on a seeded synthetic corpus. Neither names a corpus: both read the checkout&#39;s declarations. `extract-assets.ts` is the tool behind the harness&#39;s `asset-extraction` skill: it turns a container&#39;s INDEX into a `folio-extraction/v1` record, whose contract is `schemas/content/extraction.ts`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ],
+    &quot;coverage&quot;: {
+      &quot;skill&quot;: &quot;where-does-this-go&quot;
+    }
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-id-lookup&quot;,
+    &quot;path&quot;: &quot;id-lookup/&quot;,
+    &quot;description&quot;: &quot;The identifier-lookup CLIENT a reader&#39;s browser runs: `lookup.js` (plain ES module, no dependencies) with its hand-written `lookup.d.ts`, and a one-form `index.html` told which index to open by `?index=&lt;directory&gt;`. The indexes themselves are generated output hosted by the instance each is about (its own `id-lookup/`), never here. JavaScript, so it never sits under the plain docs pipeline.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ],
+    &quot;coverage&quot;: {
+      &quot;skill&quot;: &quot;where-does-this-go&quot;
+    }
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-tests&quot;,
+    &quot;path&quot;: &quot;test/&quot;,
+    &quot;description&quot;: &quot;Tests of the code this layer holds, among them `composition-roots` (the declared tool groups and route mounting) and `mcp-graph-tools`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-src&quot;,
+    &quot;path&quot;: &quot;src/&quot;,
+    &quot;description&quot;: &quot;The MCP and HTTP server — what `bun run cat start` and `.mcp.json` start, from `src/index.ts`: the composition roots (`server.ts`, `route-groups.ts`, `tool-groups.ts`), the plug-in contract `types.ts`, the MCP tool registrars (`tools/`), the harness&#39;s own routes (`routes/`), authentication (`auth/`, `core/github-auth.ts`), access control (`core/rbac.ts`), the MCP projection (`mcp/`) and the no-content adapter. The Tool nodes it serves are declared in `cat-harness/tools/` with their `src/tools/*` paths, and the loader finds each module here through `needs`. Content routes (feedback, glossary, relevance) live in the content layer that owns their content, and the route loader finds them the same way.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-types&quot;,
+    &quot;path&quot;: &quot;types/&quot;,
+    &quot;description&quot;: &quot;Ambient type declarations for untyped dependencies: `bpmn-moddle.d.ts` and `dmn-moddle.d.ts`. This layer&#39;s `tsconfig.json` includes `types/**/*.d.ts`, and so does the content core&#39;s (`../cat-harness-tools/types/**/*.d.ts`), so the path is a contract with a layer above and must not move.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-tools&quot;,
+    &quot;path&quot;: &quot;tools/&quot;,
+    &quot;description&quot;: &quot;`discover.ts`, the reader that finds every declared `tools` graph&#39;s Tool nodes by asking the declarations, and `index.ts`, this layer&#39;s own `tools` graph: the Tool nodes whose in-process module is code here (`bpmn-engine`), declared beside that code so the module path is instance-relative. Every other Tool node, the shell-invoked ones included, is declared in `cat-harness/tools/`. Declared as a named `code` subgraph, so a remote mount lays it down (the content core&#39;s `glossary-extract.ts` imports it) and it is exported by package name (`scripts/package-exports.ts`).&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;tools&quot;,
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-python&quot;,
+    &quot;path&quot;: &quot;python/&quot;,
+    &quot;description&quot;: &quot;The Python toolchain&#39;s dependency manifests: `requirements.txt` (the LEAN set CI installs, `pip install -r cat-harness-tools/python/requirements.txt` from the checkout root) and `requirements-extended.txt` (declared, deliberately not installed in CI — its cost is stated per entry). GENERATED, never hand-edited: the source is `schemas/sdlc/python-deps.ts`, whose `requirementsPath` is the one place this location is written, and `bun run cat deps:python` writes both (`deps:python:check` fails when either is stale). Dependabot&#39;s pip `directory:` names this directory. `code`: a dependency manifest is the toolchain&#39;s, the same class as a `package.json`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-libraries&quot;,
+    &quot;coverage&quot;: {
+      &quot;exempt&quot;: {
+        &quot;visualiser&quot;: &quot;Owner, 2026-10-29 (cat-harness#691): no viewer by design. Each node is an outside package whose registry tarball and SPDX licence the node already links, so a viewer would only repeat the registry.&quot;
+      }
+    },
+    &quot;path&quot;: &quot;libraries/&quot;,
+    &quot;title&quot;: &quot;Software libraries&quot;,
+    &quot;description&quot;: &quot;The outside libraries this layer&#39;s code imports: one `software-library/1.0.0` node per dependency in `package.json`, with the version and sha512 that `bun.lock` pins, the registry tarball, the SPDX licence read from the installed package, the range, whether it is a dev dependency, the files that import it (`usedBy`) and the `types/*.d.ts` shim that types it (bpmn-moddle, dmn-moddle). GENERATED, never hand-edited: `bun run cat libraries:derive` writes it and `libraries:check` fails on a stale node, an import no node names, and a shim no node names. The kind is cat-harness&#39;s; this layer keeps its own nodes because it pins its own versions. `held/&lt;layer&gt;/` holds the nodes of each layer below the kind, which may not name it (bootstrap-tools): `software-library/1.2.0` with `layer` naming the layer it describes, derived at this layer&#39;s pins.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;software-library&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-caches&quot;,
+    &quot;path&quot;: &quot;caches/&quot;,
+    &quot;title&quot;: &quot;CI caches&quot;,
+    &quot;description&quot;: &quot;The CI caches this layer declares (cache-first CI, rule 6): one `cache/1.0.0` node per cache in this layer&#39;s reusable workflows and scripts (`layer-pr-checks.yml`, `pr-tests.yml`), with its key recipe, trust class, location, producer, consumers, save policy, verify and uses; and `cache-inventory/1.0.0` snapshots of the caches found across the harness repositories, dated, which are never read as declarations. `viewer.md` is generated by `bun run cat caches:viz` and held current by `caches:viz:check`; it computes the key today&#39;s pins imply and joins the stored key, size and hit rate from the daily cache report, so staleness is computed, never claimed.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cache&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;beans&quot;,
+    &quot;path&quot;: &quot;beans/&quot;,
+    &quot;description&quot;: &quot;The work plan for cat-harness-tools.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;beans&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-pipeline&quot;,
+    &quot;path&quot;: &quot;pipeline/&quot;,
+    &quot;description&quot;: &quot;The content pipeline — build, render, QA checkers and generators over a folio&#39;s content graph. Its QA script sidecars stay in the harness, under `test/results/script-sidecars/`, because they are the harness&#39;s QA state.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;folio-templates&quot;,
+    &quot;path&quot;: &quot;templates/&quot;,
+    &quot;description&quot;: &quot;Files `folio_init` WRITES INTO a new folio, kept as real files rather than strings inside `scripts/init-folio.ts`. `init-folio.ts` looks the directory up by this id (`TEMPLATES_ID`), so the id must not change.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ],
+    &quot;coverage&quot;: {
+      &quot;skill&quot;: &quot;where-does-this-go&quot;
+    }
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-deploy&quot;,
+    &quot;path&quot;: &quot;deploy/&quot;,
+    &quot;description&quot;: &quot;How a folio-assistant host is stood up and kept current: `provision.sh`, `deploy.sh`, `self-update.sh`, `docker-compose.yml`, `Caddyfile.template` and `GOOGLE_OAUTH_SETUP.md`. Its governing skill is `deployment-auth`, whose architecture diagram is of these files.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-upstream&quot;,
+    &quot;path&quot;: &quot;upstream/&quot;,
+    &quot;description&quot;: &quot;This layer&#39;s pinned-upstream registry, `upstream-pins.json` (`\&quot;$schema\&quot;: \&quot;folio-upstream-pins/v1\&quot;`): one row for each upstream dependency whose pin literal is in a file this layer holds (today only the pdf.js viewer, pinned in `scripts/pdf-viewer.ts`). Each row names the file the pin is READ from (`pinnedIn`, resolved against this instance&#39;s root), the pattern that reads it, and what of ours binds to the dependency; it holds no version. `bun run cat check:upstream-pins` reads it together with cat-harness&#39;s `upstream/` registry (`cat-harness-upstream`), which keeps the rows whose files are in the harness, since a harness row naming a file in this layer would be a wrong-direction reference. `code`: the checker&#39;s input table, not content any reader renders.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-archimate&quot;,
+    &quot;path&quot;: &quot;archimate/scripts/&quot;,
+    &quot;description&quot;: &quot;The ArchiMate subgraph&#39;s generators, checker and tests. Its Zod schema is in `archimate/schemas/`; its content stays in `cat-harness/archimate/`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-archimate-schemas&quot;,
+    &quot;path&quot;: &quot;archimate/schemas/&quot;,
+    &quot;description&quot;: &quot;The ArchiMate subgraph&#39;s Zod schema. The subgraph&#39;s content stays in `cat-harness/archimate/`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;schemas&quot;,
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-openapi&quot;,
+    &quot;path&quot;: &quot;openapi/scripts/&quot;,
+    &quot;description&quot;: &quot;The OpenAPI subgraph&#39;s ingester, page generator and tests. Its Zod schema is in `openapi/schemas/`; its content stays in `cat-harness/openapi/`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;cat-harness-tools-openapi-schemas&quot;,
+    &quot;path&quot;: &quot;openapi/schemas/&quot;,
+    &quot;description&quot;: &quot;The OpenAPI subgraph&#39;s Zod schema. The subgraph&#39;s content stays in `cat-harness/openapi/`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;schemas&quot;,
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;health&quot;,
+    &quot;path&quot;: &quot;health/&quot;,
+    &quot;description&quot;: &quot;Repository health reports for THIS repository: the one `health-report/v1` document `bun run cat-harness-tools/test/health/run.ts --instance &lt;this instance&gt;` writes. Each repository carries its own report. The graph typology is cat-harness&#39;s; its `health` entry says what separates a health report (about the repository) from a `qa` verdict (about an artefact). It sits at the root, not under `test/`, because `test/` is declared as code and a declared directory may not nest inside another; at the root a state graph&#39;s path equals its id, as `beans/` does.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;health&quot;
+    ],
+    &quot;_source_comment&quot;: &quot;MOUNTED, owner 2026-10-11 (session_01UC1NuEuSy1MBNpEhnDuiGj, 05:58:12Z: \&quot;move health to state branch now\&quot;). The report is generated state, not reviewed content, so it is kept on its own per-graph branch (owner, 2026-10-03, bean laqs) and mounted at this path by `bun run cat state:mount`; main dropped it in the same commit that declared this source, because `mountTip` refuses a path the checkout still tracks.&quot;,
+    &quot;source&quot;: {
+      &quot;kind&quot;: &quot;branch&quot;,
+      &quot;branch&quot;: &quot;cat/cat-harness-tools/health&quot;,
+      &quot;keyedBy&quot;: &quot;tip&quot;
+    }
+  }
+]</pre></dd>
+<dt>assets</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;agent-instructions&quot;,
+    &quot;src&quot;: &quot;AGENTS.md&quot;,
+    &quot;role&quot;: &quot;agent-instructions&quot;,
+    &quot;title&quot;: &quot;AGENTS.md — cat-harness-tools&quot;,
+    &quot;description&quot;: &quot;Cold start for work in this layer: what belongs here, what does not, and which way the dependencies run.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;instance-readme&quot;,
+    &quot;src&quot;: &quot;README.md&quot;,
+    &quot;role&quot;: &quot;instance-readme&quot;,
+    &quot;title&quot;: &quot;cat-harness-tools&quot;,
+    &quot;description&quot;: &quot;What the layer is and how it relates to cat-harness&#39;s Tool definitions.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;npm-manifest&quot;,
+    &quot;src&quot;: &quot;package.json&quot;,
+    &quot;role&quot;: &quot;package-manifest&quot;,
+    &quot;title&quot;: &quot;package.json&quot;,
+    &quot;description&quot;: &quot;The npm pre-packaging source manifest declaring package identity, exports, dependencies, scripts, and tarball whitelist.&quot;
+  }
+]</pre></dd>
+<dt>_needs_comment</dt><dd>The layers this instance sits on: cat-harness, whose Tool DEFINITIONS it implements, and bootstrap-tools, the tool layer one level down. Owner ruling C1 (2026-10-01, epic 7x5n, bean rmi6): this layer sits BELOW the content core -- the order is bootstrap, bootstrap-tools, cat-harness, this layer, then the content layers. It declared the content core as its one need until then, for the document adapter&#39;s server wrapper; the placement audit measured 0 of this layer&#39;s 27 files importing the core, so the edge was declared and never used. The core now needs THIS layer, and the reverse edge -- anything here importing a layer above -- is wrong-direction, which `check:import-direction` enforces from the declared `needs` lists rather than from any table. The layer above is deliberately not named here: a lower layer naming a higher one is the wrong direction `check:reference-direction` grades.</dd>
+<dt>_gateExemptions_comment</dt><dd>Checks this instance declares and runs in its OWN CI, not in an index&#39;s workflows. Read by scripts/gates.ts (bean 0r7u), so an index checkout does not report them as unrun.</dd>
+<dt>gateExemptions</dt><dd><pre>{
+  &quot;scripts&quot;: [
+    {
+      &quot;script&quot;: &quot;caches:viz:check&quot;,
+      &quot;kind&quot;: &quot;covered-by&quot;,
+      &quot;reason&quot;: &quot;this layer&#39;s own CI runs it: `layer-pr-checks.yml` runs every `*:check` script of the calling instance on every pull request, and an index mounts this layer at a pin that has passed it. The committed `caches/viewer.md` is rendered with the layer as root and no cache report, so the check is a byte comparison that does not depend on the checkout.&quot;
+    }
+  ]
+}</pre></dd>
+<dt>seedsWith</dt><dd><pre>[
+  &quot;cat-harness&quot;
+]</pre></dd>
+<dt>needs</dt><dd><pre>[
+  &quot;cat-harness&quot;,
+  &quot;bootstrap-tools&quot;
+]</pre></dd>
+<dt>liquid</dt><dd><pre>{
+  &quot;prefix&quot;: &quot;site.data&quot;,
+  &quot;passThrough&quot;: true
+}</pre></dd>
+<dt>_canonicalUrl_comment</dt><dd>A placeholder base under this repository&#39;s own publication root, not a FHIR canonical. It exists because a Tool node&#39;s I/O type IRIs are minted against it at load and Zod refuses a relative one.</dd>
+<dt>canonicalUrl</dt><dd>https://litlfred.github.io/folio-assistant/cat-harness-tools</dd>
+<dt>_name_comment</dt><dd>THE NAME IS NOT AN INSTANTIATION CLAIM. Instantiation is a `&lt;name&gt;.config.json` at the repository root (`harness-tiles`, bean `6n23`), and there is none for this layer. Staged as a sibling directory like bootstrap-tools; after the split it becomes its own repository and only `livesAt` changes.</dd>
+</dl>
+</main>
+<script src="../../../../../assets/ig-search.js" defer></script>
+</body>
+</html>

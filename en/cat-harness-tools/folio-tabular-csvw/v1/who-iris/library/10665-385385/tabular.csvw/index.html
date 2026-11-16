@@ -1,0 +1,1591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script data-folio-saved-scheme>(function(){var d=document.documentElement,s=null,c="dark";try{s=localStorage.getItem("fa-color-scheme")}catch(e){}if(s!=="light"&&s!=="dark"){s="light";try{if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)s="dark"}catch(e){}}try{var n=document.getElementById("fa-site-scheme");if(n)c=JSON.parse(n.textContent).scheme==="light"?"light":"dark"}catch(e){}d.setAttribute("data-fa-scheme",s);var j=window.jtd;if(s!==c&&j&&typeof j.setTheme==="function"){try{j.setTheme(s)}catch(e){}}})();</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>library/10665-385385/tabular.csvw — folio-tabular-csvw/v1</title>
+<style>
+  :root { color-scheme: light dark; --fg:#1b1b1b; --bg:#fdfdfb; --muted:#5b5b5b; --line:#d6d6d0; --link:#0b5cad; --panel:#f3f4f2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-fa-scheme="light"]) { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; } }
+  :root[data-fa-scheme="dark"] { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; }
+  :root[data-fa-scheme="light"] { color-scheme: light; } :root[data-fa-scheme="dark"] { color-scheme: dark; }
+  body { margin:0; font:1rem/1.5 system-ui,sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width:80rem; margin:0 auto; padding:1.5rem 1.5rem 4rem; min-width:0; overflow-wrap:anywhere; }
+  h1 { font-size:1.35rem; margin:0 0 .25rem; } h2 { font-size:1.05rem; margin:1.5rem 0 .5rem; }
+  a { color:var(--link); } a:focus-visible, select:focus-visible { outline:3px solid var(--link); outline-offset:2px; }
+  .m { color:var(--muted); font-size:.9rem; }
+  .tiles { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; padding:0; list-style:none; }
+  .tiles li { border:1px solid var(--line); border-radius:.4rem; padding:.35rem .7rem; }
+  .tiles b { font-size:1.2rem; margin-right:.3rem; }
+  .clip { width:100%; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; vertical-align:top; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
+  th { background:var(--panel); white-space:nowrap; }
+  /* Only the node's path and long text may break mid-word; a status or a date
+     broken across lines ("in_pr ogres s") is unreadable. */
+  td { overflow-wrap:normal; } td.p, td.t { overflow-wrap:anywhere; } td.s { white-space:nowrap; }
+  dl { display:grid; grid-template-columns:minmax(8rem,14rem) 1fr; gap:.25rem 1rem; }
+  dt { font-weight:600; } dd { margin:0; }
+  pre { background:var(--panel); padding:.75rem; overflow-x:auto; font-size:.85rem; }
+  label { margin-right:1rem; }
+  @media (max-width:40rem) { dl { grid-template-columns:1fr; } }
+</style>
+<link rel="stylesheet" href="../../../../../../../../assets/css/navbar.css"><script src="../../../../../../../../assets/navbar/rail-zcon6vgt4x.js" defer></script><script src="../../../../../../../../assets/js/navbar.js" defer></script><style data-folio-narrow-viewport>
+/* Narrow viewports: nothing may widen the PAGE — bean `2r2n`.
+ *
+ * At 390 px, 105 of 249 built pages scrolled sideways (measured 2026-09-24).
+ * The rule here is the bean's: wide content scrolls INSIDE ITS OWN BOX with a
+ * visible cue, and the page itself never pans.
+ *
+ * ONE FILE, TWO WAYS IN. Themed pages link it from `_includes/head_custom.html`.
+ * The standalone viewer pages carry no theme stylesheet at all, so
+ * `withViewerNav` in `scripts/viewer-page.ts` inlines this same file when it
+ * adds the rail. A copy of these rules in each place would be two answers to
+ * "what does a table do at 390 px", free to drift apart.
+ *
+ * Every selector here is written to be safe on both kinds of page: no
+ * `.main-content` scope (a standalone page has none), the navbar excluded by
+ * name, and the theme's own `.table-wrapper` left alone, since it already does
+ * this job for Markdown tables. */
+
+@media (max-width: 799.98px) {
+  /* A table the theme did not wrap: raw HTML from a generator, or one built at
+   * runtime. `display: block` makes the table its own scroll box. Its cells
+   * still lay out as a table inside the anonymous table box. */
+  table:not(.table-wrapper > table):not(.fa-nav table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* THE CUE: the edge that has more content past it fades out. The fade is a
+   * MASK over the table's own pixels, driven by its own scroll position, so
+   * it needs no knowledge of the page's background. A painted cover (the
+   * usual `background-attachment: local` trick) does: the first version used
+   * `Canvas`, and on a page that is dark under a LIGHT scheme it laid a white
+   * band over the first column.
+   *
+   * A table that does not overflow has an inactive scroll timeline, so the
+   * animation has no effect and both fades stay at their initial 0: no cue
+   * where there is nothing to scroll to. A browser without scroll-driven
+   * animations shows no fade, and the table still scrolls. */
+  @supports (animation-timeline: scroll()) {
+    table:not(.table-wrapper > table):not(.fa-nav table) {
+      mask-image: linear-gradient(to right,
+        transparent 0, #000 var(--fa-cue-l),
+        #000 calc(100% - var(--fa-cue-r)), transparent 100%);
+      animation: fa-scroll-cue linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+
+  /* A code block scrolls in its own box, which is what `pre` is for. Mermaid
+   * SOURCE sits in a `pre` until the renderer replaces it, and at 390 px a
+   * diagram's source line is longer than the screen. */
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Prose that has no break opportunity: a long path in inline code, or a
+   * glossary definition naming one. Breaking the string is better than
+   * widening the page it sits on. */
+  :not(pre) > code,
+  dd {
+    overflow-wrap: anywhere;
+  }
+}
+
+@property --fa-cue-l { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --fa-cue-r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+@keyframes fa-scroll-cue {
+  0%   { --fa-cue-l: 0px;    --fa-cue-r: 2.5rem; }
+  12%  { --fa-cue-l: 2.5rem; }
+  88%  { --fa-cue-r: 2.5rem; }
+  100% { --fa-cue-l: 2.5rem; --fa-cue-r: 0px; }
+}
+
+</style>
+<script type="application/json" id="fa-translation-meta">{"lang":"en","translationStatus":"","translationSource":"","supportedLocales":["ar","zh","en","fr","ru","es"],"availableLocales":[]}</script><link rel="stylesheet" href="../../../../../../../../assets/page-layout.css" data-fa-page-layout><script src="../../../../../../../../assets/page-layout.js" defer data-fa-page-layout></script><link rel="stylesheet" href="../../../../../../../../assets/ig-artifact.css"><style data-ig-version-chrome>.ig-topbar-head{flex:0 0 100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .9rem}.ig-topbar-head .ig-topbar-home{flex:none}.ig-topbar-ver{font-weight:400;font-size:.9em;opacity:.95;white-space:nowrap}.ig-topbar-flag{font-size:1.1em}.ig-version-banner{box-sizing:border-box;margin:0;padding:.5rem 1.5rem;background:#ffffa0;color:#222;border-bottom:1px solid #0a0008;font-size:.95rem;line-height:1.45}.ig-version-banner a{color:#1a4b8c;text-decoration:underline}html:not([data-fa-scheme="light"]) .ig-version-banner{background:#4a4520;color:#fff8d0;border-color:#8a7d2a}html:not([data-fa-scheme="light"]) .ig-version-banner a{color:#ffe680}.ig-metadata{border-collapse:collapse;margin:0 0 1rem;font-size:.95rem}.ig-metadata td{border:1px solid #c8c8c8;padding:.25rem .6rem;vertical-align:top}.ig-metadata code{overflow-wrap:anywhere}</style></head>
+<body data-fa-node-kind-page>
+<header class="ig-search-top fa-page-bar"><a class="ig-search-home" href="../../../../../../../../index.html">WHO SMART Trust</a><span class="ig-topbar-ver"><span class="ig-topbar-flag" role="img" aria-label="International" title="International">🌐</span> 1.7.5 - ci-build</span><form class="ig-search" role="search" data-ig-search-index="../../../../../../../../assets/ig-search.json"><label class="ig-search-label" for="search-input">Search WHO SMART Trust</label><input type="search" id="search-input" class="ig-search-input" placeholder="Search pages and artefacts" autocomplete="off" aria-controls="ig-search-results" aria-expanded="false"><ul id="ig-search-results" class="ig-search-results" hidden></ul></form><span class="ig-locale-slot" data-fa-slot="locale"></span></header><p class="ig-version-banner" role="note">This page is part of the WHO SMART Trust (v1.7.5: ci-build) based on <a href="http://hl7.org/fhir/R4/">FHIR (HL7® FHIR® Standard) v4.0.1</a>. This is the continuous integration build: it follows the source and is not a published version. For a full list of available versions, see the <a href="http://smart.who.int/trust/history.html">Directory of published versions</a>.</p><script type="application/json" id="fa-rail" data-fa-root="../../../../../../../.." data-fa-to-root="../../../../../../../..">{"data":"rail-zcon6vgt4x","here":"/en/cat-harness-tools/folio-tabular-csvw/v1/who-iris/library/10665-385385/tabular.csvw/"}</script><nav class="fa-nav" aria-label="folio-assistant" data-fa-rail="pending"><a href="../../../../../../../../">folio-assistant</a></nav>
+<main>
+<h1 id="nk-title">library/10665-385385/tabular.csvw</h1>
+<p class="m">A <a href="../../../../">folio-tabular-csvw/v1</a> node held by <a href="../../../">who-iris</a>, at <code>who-iris/library/10665-385385/tabular.csvw.json</code>.</p>
+
+<h2 id="fields">Fields</h2>
+<dl>
+<dt>$schema</dt><dd>folio-tabular-csvw/v1</dd>
+<dt>doc_id</dt><dd>10665-385385</dd>
+<dt>tables</dt><dd><pre>[
+  {
+    &quot;url&quot;: &quot;tables/table-2-1.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;indicators&quot;,
+          &quot;titles&quot;: &quot;Indicators&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;targets-for-2030&quot;,
+          &quot;titles&quot;: &quot;Targets for 2030&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 19,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:merged&quot;: [
+      &quot;A4:B4&quot;,
+      &quot;A11:B11&quot;
+    ],
+    &quot;fac:label&quot;: &quot;Table 2.1&quot;,
+    &quot;fac:caption&quot;: &quot;Table 2.1. The global strategy on viral hepatitis, 2022–2030: vision, goal, indicators and elimination targets for 2030&quot;,
+    &quot;fac:pages&quot;: [
+      21
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;HBV, hepatitis B virus; HCV, hepatitis C virus. a In the GHSS (2022–2030) strategy document (3), the targets for relative (%) reductions in incidence and mortality were shown in terms of absolute numbers and rates. Given updates to time series of estimates (Chapter 3, Annex 1), including for the baseline year of 2015, these absolute numbers are not shown in this table. [The Vision and Goal rows sit above the \&quot;Indicators | Targets for 2030\&quot; header row in the printed table; transcribed here as body rows 1-2.]&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;Summary of the global health sector strategy on viral hepatitis 2022–2030: its vision and goal, followed by indicators and their 2030 elimination targets, grouped into epidemic impact (incidence, prevalence, mortality) and service coverage (vaccination, diagnosis, treatment, harm reduction, blood and injection safety).&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;ملخص للاستراتيجية العالمية لقطاع الصحة بشأن التهاب الكبد الفيروسي 2022–2030: رؤيتها وهدفها، تليهما المؤشرات وغايات التخلص المحددة لعام 2030، مجمعة في أثر الوباء (معدل الوقوع والانتشار والوفيات) والتغطية بالخدمات (التطعيم والتشخيص والعلاج والحد من الضرر ومأمونية الدم والحقن).&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;《2022–2030年病毒性肝炎全球卫生部门战略》概要：其愿景和目标，以及各项指标和2030年消除目标，分为流行影响（发病率、患病率、死亡率）和服务覆盖（疫苗接种、诊断、治疗、减少危害、血液和注射安全）两组。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Resumen de la estrategia mundial del sector de la salud sobre las hepatitis víricas 2022-2030: su visión y meta, seguidas de los indicadores y sus metas de eliminación para 2030, agrupados en impacto epidémico (incidencia, prevalencia, mortalidad) y cobertura de servicios (vacunación, diagnóstico, tratamiento, reducción de daños, seguridad de la sangre y de las inyecciones).&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Synthèse de la stratégie mondiale du secteur de la santé contre l’hépatite virale 2022-2030 : sa vision et son but, suivis des indicateurs et de leurs cibles d’élimination pour 2030, regroupés en impact épidémique (incidence, prévalence, mortalité) et couverture des services (vaccination, diagnostic, traitement, réduction des risques, sécurité transfusionnelle et des injections).&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Краткое изложение глобальной стратегии сектора здравоохранения по вирусному гепатиту на 2022–2030 гг.: видение и цель, затем показатели и целевые ориентиры элиминации на 2030 г., сгруппированные по эпидемиологическому воздействию (заболеваемость, распространенность, смертность) и охвату услугами (вакцинация, диагностика, лечение, снижение вреда, безопасность крови и инъекций).&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-3-1.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;who-region&quot;,
+          &quot;titles&quot;: &quot;WHO region&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;number-of-studies-included&quot;,
+          &quot;titles&quot;: &quot;Number of studies included&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;percentage-contribution-of-unsafe-medical-injections-to-new-hcv-infections-95-ui&quot;,
+          &quot;titles&quot;: &quot;Percentage contribution of unsafe medical injections to new HCV infections (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 3.1&quot;,
+    &quot;fac:caption&quot;: &quot;Table 3.1. Contribution of unsafe medical injections to new HCV infections by WHO region, 2023&quot;,
+    &quot;fac:pages&quot;: [
+      30
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;For each WHO region and globally, the table gives the number of studies included and the estimated percentage of new HCV infections attributable to unsafe medical injections in 2023, with 95% uncertainty intervals.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يعرض الجدول، لكل إقليم من أقاليم المنظمة وعلى الصعيد العالمي، عدد الدراسات المشمولة والنسبة المئوية المقدرة لحالات العدوى الجديدة بفيروس التهاب الكبد C التي تُعزى إلى الحقن الطبية غير المأمونة في عام 2023، مع فترات عدم اليقين 95%.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表按世卫组织区域及全球列出纳入研究数，以及2023年新发丙肝病毒感染中可归因于不安全医疗注射的估计百分比及95%不确定区间。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Para cada región de la OMS y a nivel mundial, el cuadro indica el número de estudios incluidos y el porcentaje estimado de nuevas infecciones por el VHC atribuibles a inyecciones médicas peligrosas en 2023, con intervalos de incertidumbre del 95%.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Pour chaque Région de l’OMS et au niveau mondial, le tableau indique le nombre d’études incluses et le pourcentage estimé de nouvelles infections par le VHC attribuables à des injections médicales à risque en 2023, avec des intervalles d’incertitude à 95 %.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;По каждому региону ВОЗ и в мире в целом в таблице приведено число включенных исследований и расчетная доля новых случаев инфицирования ВГС, обусловленных небезопасными медицинскими инъекциями, в 2023 г. с 95%-ными интервалами неопределенности.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-3-2.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;who-region&quot;,
+          &quot;titles&quot;: &quot;WHO region&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;pre-2015-per-100-person-years-95-ui&quot;,
+          &quot;titles&quot;: &quot;Pre-2015 (per 100 person years; 95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;2015-2021-per-100-person-years-95-ui&quot;,
+          &quot;titles&quot;: &quot;2015–2021 (per 100 person years; 95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;hcv-incidence-rate-ratio-95-ui-for-2015-2021-versus-pre-2015a&quot;,
+          &quot;titles&quot;: &quot;HCV incidence rate ratio (95% UI) for 2015–2021 versus pre-2015a&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 4,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 3.2&quot;,
+    &quot;fac:caption&quot;: &quot;Table 3.2. HCV incidence among people who inject drugs, globally and by WHO region, pre-2015 and in the period 2015–2021 (47)&quot;,
+    &quot;fac:pages&quot;: [
+      30
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;NE: not estimated. a Estimate only for countries with HCV incidence data across both time periods. The incidence rate ratio could not be estimated for the WHO African and South-East Asia regions, where five countries or fewer had data across both time periods. Also, it was not possible to estimate the global rate ratio, because these two WHO regions lacked sufficient data. b Globally, HCV incidence data were available for 85 countries for pre-2015 and 97 countries for 2015–2021.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;HCV incidence among people who inject drugs, per 100 person-years, by WHO region and globally, comparing the pre-2015 period with 2015–2021, plus the incidence rate ratio between the two periods where it could be estimated.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;معدل وقوع العدوى بفيروس التهاب الكبد C بين متعاطي المخدرات بالحقن، لكل 100 شخص-سنة، بحسب أقاليم المنظمة وعلى الصعيد العالمي، مع مقارنة الفترة السابقة لعام 2015 بالفترة 2015–2021، ونسبة معدل الوقوع بين الفترتين حيثما أمكن تقديرها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;按世卫组织区域及全球列出注射吸毒者中丙肝病毒发病率（每100人年），比较2015年以前与2015–2021年两个时期，并在可估计时给出两期之间的发病率比。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Incidencia del VHC entre las personas que se inyectan drogas, por 100 personas-año, por región de la OMS y a nivel mundial, comparando el período anterior a 2015 con 2015-2021, junto con la razón de tasas de incidencia entre ambos períodos cuando pudo estimarse.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Incidence du VHC chez les personnes qui s’injectent des drogues, pour 100 personnes-années, par Région de l’OMS et au niveau mondial, comparant la période antérieure à 2015 à 2015-2021, avec le rapport des taux d’incidence entre les deux périodes lorsqu’il a pu être estimé.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Заболеваемость ВГС среди людей, употребляющих инъекционные наркотики, на 100 человеко-лет, по регионам ВОЗ и в мире, в сравнении периода до 2015 г. и 2015–2021 гг., а также отношение показателей заболеваемости между периодами там, где его удалось оценить.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-3-3.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;who-region&quot;,
+          &quot;titles&quot;: &quot;WHO region&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;percentage-prevalence-95-ui&quot;,
+          &quot;titles&quot;: &quot;Percentage prevalence (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 3.3&quot;,
+    &quot;fac:caption&quot;: &quot;Table 3.3. Prevalence of chronic HBV infection among children aged under 5 years, globally and by WHO region, 2024&quot;,
+    &quot;fac:pages&quot;: [
+      30
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;Estimated percentage prevalence of chronic HBV infection among children under 5 years in 2024, for each WHO region and globally, with 95% uncertainty intervals.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;معدل الانتشار المقدر (بالنسبة المئوية) للعدوى المزمنة بفيروس التهاب الكبد B بين الأطفال دون سن الخامسة في عام 2024، لكل إقليم من أقاليم المنظمة وعلى الصعيد العالمي، مع فترات عدم اليقين 95%.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;2024年各世卫组织区域及全球5岁以下儿童慢性乙肝病毒感染的估计患病率（%）及95%不确定区间。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Prevalencia estimada (%) de la infección crónica por el VHB en niños menores de 5 años en 2024, por región de la OMS y a nivel mundial, con intervalos de incertidumbre del 95%.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Prévalence estimée (%) de l’infection chronique par le VHB chez les enfants de moins de 5 ans en 2024, par Région de l’OMS et au niveau mondial, avec des intervalles d’incertitude à 95 %.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Расчетная распространенность (%) хронической инфекции ВГВ среди детей в возрасте до 5 лет в 2024 г. по регионам ВОЗ и в мире с 95%-ными интервалами неопределенности.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-3-4.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;who-region&quot;,
+          &quot;titles&quot;: &quot;WHO region&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;country&quot;,
+          &quot;titles&quot;: &quot;Country&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 6,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 3.4&quot;,
+    &quot;fac:caption&quot;: &quot;Table 3.4. Countries that had surpassed (in 2024) the 2030 SDG target of reducing the prevalence of chronic HBV infection among children aged under 5 years to 0.1%&quot;,
+    &quot;fac:pages&quot;: [
+      32
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;Lists, by WHO region and with the number of countries in each, the countries that by 2024 had already reduced the prevalence of chronic HBV infection among children under 5 to the 2030 SDG target of 0.1% or below.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول، بحسب أقاليم المنظمة ومع عدد البلدان في كل إقليم، البلدان التي خفضت بحلول عام 2024 معدل انتشار العدوى المزمنة بفيروس التهاب الكبد B بين الأطفال دون الخامسة إلى غاية أهداف التنمية المستدامة لعام 2030 البالغة 0.1% أو أقل.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;按世卫组织区域列出截至2024年已将5岁以下儿童慢性乙肝病毒感染率降至2030年可持续发展目标0.1%或以下的国家，并注明各区域国家数。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Enumera, por región de la OMS y con el número de países de cada una, los países que en 2024 ya habían reducido la prevalencia de la infección crónica por el VHB en menores de 5 años a la meta de los ODS para 2030 del 0,1% o menos.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Liste, par Région de l’OMS et avec le nombre de pays dans chacune, les pays qui, en 2024, avaient déjà ramené la prévalence de l’infection chronique par le VHB chez les enfants de moins de 5 ans à la cible ODD 2030 de 0,1 % ou moins.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Перечень стран по регионам ВОЗ (с указанием их числа), которые к 2024 г. уже снизили распространенность хронической инфекции ВГВ среди детей до 5 лет до целевого показателя ЦУР на 2030 г. — 0,1% или ниже.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-3-5.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;who-region&quot;,
+          &quot;titles&quot;: &quot;WHO region&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;chronic-hbv-infection&quot;,
+          &quot;titles&quot;: &quot;Chronic HBV infection&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Prevalence in the general population (%) (95% UI)&quot;
+        },
+        {
+          &quot;name&quot;: &quot;hcv-infection&quot;,
+          &quot;titles&quot;: &quot;HCV infection&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Prevalence in the general population (%) (95% UI)&quot;
+        },
+        {
+          &quot;name&quot;: &quot;chronic-hbv-infection-4&quot;,
+          &quot;titles&quot;: &quot;Chronic HBV infection&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Total number (all ages) of people infected (millions) (95% UI)&quot;
+        },
+        {
+          &quot;name&quot;: &quot;hcv-infection-5&quot;,
+          &quot;titles&quot;: &quot;HCV infection&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Total number (all ages) of people infected (millions) (95% UI)&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 5,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 3.5&quot;,
+    &quot;fac:caption&quot;: &quot;Table 3.5. Prevalence of HBV and HCV infections, globally and by WHO region, 2024&quot;,
+    &quot;fac:pages&quot;: [
+      33
+    ],
+    &quot;fac:headerRows&quot;: 2,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;For each WHO region and globally in 2024, the table gives the prevalence (%) of chronic HBV infection and of HCV infection in the general population, and the total number of people of all ages infected (millions), each with 95% uncertainty intervals.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يعرض الجدول، لكل إقليم من أقاليم المنظمة وعلى الصعيد العالمي في عام 2024، معدل انتشار العدوى المزمنة بفيروس التهاب الكبد B والعدوى بفيروس التهاب الكبد C في عموم السكان (%)، والعدد الإجمالي للمصابين من جميع الأعمار (بالملايين)، مع فترات عدم اليقين 95%.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出2024年各世卫组织区域及全球一般人群中慢性乙肝病毒感染和丙肝病毒感染的患病率（%），以及各年龄段感染者总数（百万），均附95%不确定区间。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Para cada región de la OMS y a nivel mundial en 2024, el cuadro indica la prevalencia (%) de la infección crónica por el VHB y de la infección por el VHC en la población general, y el número total de personas infectadas de todas las edades (millones), con intervalos de incertidumbre del 95%.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Pour chaque Région de l’OMS et au niveau mondial en 2024, le tableau donne la prévalence (%) de l’infection chronique par le VHB et de l’infection par le VHC dans la population générale, ainsi que le nombre total de personnes infectées, tous âges confondus (en millions), avec des intervalles d’incertitude à 95 %.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;По каждому региону ВОЗ и в мире за 2024 г. в таблице приведены распространенность (%) хронической инфекции ВГВ и инфекции ВГС среди населения в целом и общее число инфицированных всех возрастов (млн) с 95%-ными интервалами неопределенности.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-4-1.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;intervention&quot;,
+          &quot;titles&quot;: &quot;Intervention&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;2024-status&quot;,
+          &quot;titles&quot;: &quot;2024 status&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;2025-target&quot;,
+          &quot;titles&quot;: &quot;2025 target&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;2030-target&quot;,
+          &quot;titles&quot;: &quot;2030 target&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 13,
+      &quot;columns&quot;: 4,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:merged&quot;: [
+      &quot;A2:D2&quot;,
+      &quot;A5:D5&quot;,
+      &quot;A10:D10&quot;,
+      &quot;A13:D13&quot;
+    ],
+    &quot;fac:label&quot;: &quot;Table 4.1&quot;,
+    &quot;fac:caption&quot;: &quot;Table 4.1. Global status of progress (in 2024) towards intervention coverage targets for elimination set in WHO’s global health sector strategy (GHSS) on viral hepatitis, 2022–2030&quot;,
+    &quot;fac:pages&quot;: [
+      51
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;a To allow comparability across countries and facilitate global monitoring, HBV treatment coverage is reported as the percentage of all people with a chronic HBV infection who initiated antiviral therapy. It is acknowledged that eligibility criteria for treatment vary across countries and regions, and that the total number of people eligible for treatment globally is unknown. It is estimated that, once the latest (2024) WHO guidelines are fully implemented, about 50% of diagnosed individuals would meet eligibility criteria; thus, treatment coverage among those eligible would be higher than the current global estimate. [Table text is not in the PDF text layer; transcribed from the page image.]&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;Global status in 2024 of the GHSS viral hepatitis intervention coverage indicators, set against their 2025 and 2030 targets, grouped into hepatitis B vaccination, hepatitis B and C diagnosis and treatment, safety of blood and health-care injections, and harm-reduction services.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;الوضع العالمي في عام 2024 لمؤشرات التغطية بالتدخلات الواردة في الاستراتيجية العالمية لقطاع الصحة بشأن التهاب الكبد الفيروسي، مقارنة بغاياتها لعامي 2025 و2030، مجمعة في التطعيم ضد التهاب الكبد B، وتشخيص التهاب الكبد B وC وعلاجهما، ومأمونية الدم وحقن الرعاية الصحية، وخدمات الحد من الضرر.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;2024年全球病毒性肝炎全球卫生部门战略干预措施覆盖指标的现状，与2025年和2030年目标对照，分为乙肝疫苗接种、乙肝和丙肝诊断与治疗、血液和卫生保健注射安全以及减少危害服务四组。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Situación mundial en 2024 de los indicadores de cobertura de intervenciones de la estrategia mundial del sector de la salud sobre las hepatitis víricas, frente a sus metas para 2025 y 2030, agrupados en vacunación contra la hepatitis B, diagnóstico y tratamiento de las hepatitis B y C, seguridad de la sangre y de las inyecciones, y servicios de reducción de daños.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Situation mondiale en 2024 des indicateurs de couverture des interventions de la stratégie mondiale du secteur de la santé contre l’hépatite virale, au regard de leurs cibles pour 2025 et 2030, regroupés en vaccination contre l’hépatite B, diagnostic et traitement des hépatites B et C, sécurité transfusionnelle et des injections, et services de réduction des risques.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Глобальное положение в 2024 г. по показателям охвата вмешательствами глобальной стратегии сектора здравоохранения по вирусному гепатиту в сравнении с целевыми ориентирами на 2025 и 2030 гг., сгруппированным по вакцинации против гепатита B, диагностике и лечению гепатитов B и C, безопасности крови и инъекций и услугам по снижению вреда.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-4-2.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;who-region&quot;,
+          &quot;titles&quot;: &quot;WHO region&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;number-of-people-with-a-chronic-hbv-infection-in-2024-millions-95-ui&quot;,
+          &quot;titles&quot;: &quot;Number of people with a chronic HBV infection in 2024 (millions) (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;number-of-people-with-a-chronic-hbv-infection-who-had-been-diagnosed-by-the-end-of-2024-millions-95-ui&quot;,
+          &quot;titles&quot;: &quot;Number of people with a chronic HBV infection who had been diagnosed by the end of 2024 (millions) (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;number-of-people-on-treatment-for-hbv-by-the-end-of-2024-millions-95-ui&quot;,
+          &quot;titles&quot;: &quot;Number of people on treatment for HBV by the end of 2024 (millions) (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;percentage-of-people-with-a-chronic-hbv-infection-who-had-been-diagnosed-by-the-end-of-2024-95-ui&quot;,
+          &quot;titles&quot;: &quot;Percentage of people with a chronic HBV infection who had been diagnosed by the end of 2024 (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;percentage-of-people-diagnosed-with-a-chronic-hbv-infection-who-were-on-treatment-by-the-end-of-2024-95-ui&quot;,
+          &quot;titles&quot;: &quot;Percentage of people diagnosed with a chronic HBV infection who were on treatment by the end of 2024 (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;percentage-of-all-people-with-a-chronic-hbv-infection-who-were-on-treatment-by-the-end-of-2024-95-ui&quot;,
+          &quot;titles&quot;: &quot;Percentage of all people with a chronic HBV infection who were on treatment by the end of 2024 (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 7,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 4.2&quot;,
+    &quot;fac:caption&quot;: &quot;Table 4.2. Coverage of HBV diagnosis and treatment, globally and by WHO region, 2024&quot;,
+    &quot;fac:pages&quot;: [
+      62
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;HBV cascade of care in 2024 by WHO region and globally: number of people with chronic HBV infection, number diagnosed and number on treatment (millions), and the percentages diagnosed, on treatment among those diagnosed, and on treatment among all infected, each with 95% uncertainty intervals.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;سلسلة الرعاية الخاصة بفيروس التهاب الكبد B في عام 2024 بحسب أقاليم المنظمة وعلى الصعيد العالمي: عدد المصابين بالعدوى المزمنة وعدد المشخَّصين وعدد من يتلقون العلاج (بالملايين)، ونسب المشخَّصين، ومن يتلقون العلاج من بين المشخَّصين ومن بين جميع المصابين، مع فترات عدم اليقين 95%.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;2024年按世卫组织区域及全球的乙肝病毒关怀级联：慢性乙肝感染者人数、已诊断人数和正在治疗人数（百万），以及已诊断比例、已诊断者中接受治疗的比例和全部感染者中接受治疗的比例，均附95%不确定区间。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Cascada de atención del VHB en 2024 por región de la OMS y a nivel mundial: número de personas con infección crónica por el VHB, número de diagnosticadas y número en tratamiento (millones), y porcentajes de diagnosticadas, en tratamiento entre las diagnosticadas y en tratamiento entre todas las infectadas, con intervalos de incertidumbre del 95%.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Cascade de soins du VHB en 2024 par Région de l’OMS et au niveau mondial : nombre de personnes atteintes d’une infection chronique par le VHB, nombre de personnes diagnostiquées et sous traitement (en millions), et pourcentages de personnes diagnostiquées, sous traitement parmi les diagnostiquées et sous traitement parmi l’ensemble des infectées, avec des intervalles d’incertitude à 95 %.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Каскад помощи при ВГВ в 2024 г. по регионам ВОЗ и в мире: число людей с хронической инфекцией ВГВ, число диагностированных и получающих лечение (млн), а также доли диагностированных, получающих лечение среди диагностированных и среди всех инфицированных с 95%-ными интервалами неопределенности.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-4-3.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;who-region&quot;,
+          &quot;titles&quot;: &quot;WHO region&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;cumulative-number-of-people-with-hcv-infection-at-any-time-in-the-period-2015-2024-millions-95-ui&quot;,
+          &quot;titles&quot;: &quot;Cumulative number of people with HCV infection at any time in the period 2015–2024 (millions) (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;cumulative-number-of-people-with-hcv-infection-who-had-been-diagnosed-at-any-time-in-the-period-2015-2024-millions-95-ui&quot;,
+          &quot;titles&quot;: &quot;Cumulative number of people with HCV infection who had been diagnosed at any time in the period 2015–2024 (millions) (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;cumulative-number-of-people-on-treatment-for-hcv-at-any-time-in-the-period-2015-2024-millions-95-ui&quot;,
+          &quot;titles&quot;: &quot;Cumulative number of people on treatment for HCV at any time in the period 2015–2024 (millions) (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;percentage-of-people-with-hcv-infection-who-had-been-diagnosed-at-any-time-in-the-period-2015-2024-95-ui&quot;,
+          &quot;titles&quot;: &quot;Percentage of people with HCV infection who had been diagnosed at any time in the period 2015–2024 (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;percentage-of-all-people-with-hcv-infection-who-were-on-treatment-at-any-time-in-the-period-2015-2024-95-ui&quot;,
+          &quot;titles&quot;: &quot;Percentage of all people with HCV infection who were on treatment at any time in the period 2015–2024 (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;number-of-people-diagnosed-with-hcv-infection-and-alive-in-2024-but-not-yet-treated-millions-95-ui&quot;,
+          &quot;titles&quot;: &quot;Number of people diagnosed with HCV infection and alive in 2024 but not yet treated (millions) (95% UI)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 7,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 4.3&quot;,
+    &quot;fac:caption&quot;: &quot;Table 4.3. Coverage of HCV diagnosis and treatment, globally and by WHO region, 2024&quot;,
+    &quot;fac:pages&quot;: [
+      65
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;HCV diagnosis and treatment coverage by WHO region and globally: cumulative numbers of people with HCV infection, diagnosed and treated at any time in 2015–2024 (millions), the corresponding percentages diagnosed and treated, and the number diagnosed, alive in 2024 and not yet treated, each with 95% uncertainty intervals.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;التغطية بتشخيص العدوى بفيروس التهاب الكبد C وعلاجها بحسب أقاليم المنظمة وعلى الصعيد العالمي: الأعداد التراكمية للمصابين والمشخَّصين والمعالَجين في أي وقت خلال الفترة 2015–2024 (بالملايين)، والنسب المقابلة للمشخَّصين والمعالَجين، وعدد المشخَّصين الأحياء في 2024 الذين لم يُعالَجوا بعد، مع فترات عدم اليقين 95%.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;按世卫组织区域及全球的丙肝病毒诊断和治疗覆盖情况：2015–2024年间任何时候的丙肝感染者、已诊断者和已治疗者累计人数（百万）、相应的诊断和治疗比例，以及2024年仍存活但尚未治疗的已诊断人数，均附95%不确定区间。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Cobertura del diagnóstico y el tratamiento del VHC por región de la OMS y a nivel mundial: números acumulados de personas con infección por el VHC, diagnosticadas y tratadas en algún momento de 2015-2024 (millones), los porcentajes correspondientes de diagnosticadas y tratadas, y el número de diagnosticadas vivas en 2024 aún no tratadas, con intervalos de incertidumbre del 95%.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Couverture du diagnostic et du traitement du VHC par Région de l’OMS et au niveau mondial : nombres cumulés de personnes infectées par le VHC, diagnostiquées et traitées à tout moment en 2015-2024 (en millions), pourcentages correspondants de personnes diagnostiquées et traitées, et nombre de personnes diagnostiquées, en vie en 2024 et non encore traitées, avec des intervalles d’incertitude à 95 %.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Охват диагностикой и лечением ВГС по регионам ВОЗ и в мире: накопленное число людей с инфекцией ВГС, диагностированных и получавших лечение в любой момент в 2015–2024 гг. (млн), соответствующие доли диагностированных и пролеченных, а также число диагностированных, живых в 2024 г. и еще не получавших лечения, с 95%-ными интервалами неопределенности.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-4-4.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;country-income-group&quot;,
+          &quot;titles&quot;: &quot;Country income group&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;hiv&quot;,
+          &quot;titles&quot;: &quot;HIV&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Percentage of blood donations with positive/reactive results (median and interquartile range, %)&quot;
+        },
+        {
+          &quot;name&quot;: &quot;hbv&quot;,
+          &quot;titles&quot;: &quot;HBV&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Percentage of blood donations with positive/reactive results (median and interquartile range, %)&quot;
+        },
+        {
+          &quot;name&quot;: &quot;hcv&quot;,
+          &quot;titles&quot;: &quot;HCV&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Percentage of blood donations with positive/reactive results (median and interquartile range, %)&quot;
+        },
+        {
+          &quot;name&quot;: &quot;syphilis&quot;,
+          &quot;titles&quot;: &quot;Syphilis&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Percentage of blood donations with positive/reactive results (median and interquartile range, %)&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 4,
+      &quot;columns&quot;: 5,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 4.4&quot;,
+    &quot;fac:caption&quot;: &quot;Table 4.4. Proportions of blood donations with positive/reactive results on screening tests, by country income group&quot;,
+    &quot;fac:pages&quot;: [
+      70
+    ],
+    &quot;fac:headerRows&quot;: 2,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;Source: World Bank (77), data are for 2018.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;Median and interquartile range of the percentage of blood donations testing positive or reactive for HIV, HBV, HCV and syphilis, by World Bank country income group (high, upper-middle, lower-middle and low income).&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;الوسيط والمدى الربيعي للنسبة المئوية لتبرعات الدم التي جاءت نتائج فحصها إيجابية أو تفاعلية لفيروس العوز المناعي البشري وفيروس التهاب الكبد B وفيروس التهاب الكبد C والزهري، بحسب فئة دخل البلد وفق تصنيف البنك الدولي (مرتفع، وشريحة عليا من الدخل المتوسط، وشريحة دنيا من الدخل المتوسط، ومنخفض).&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;按世界银行国家收入组别（高收入、中高收入、中低收入、低收入）列出艾滋病毒、乙肝病毒、丙肝病毒和梅毒筛查结果为阳性或反应性的献血百分比的中位数和四分位距。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Mediana y rango intercuartílico del porcentaje de donaciones de sangre con resultado positivo o reactivo para el VIH, el VHB, el VHC y la sífilis, por grupo de ingresos del país según el Banco Mundial (ingresos altos, medianos altos, medianos bajos y bajos).&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Médiane et intervalle interquartile du pourcentage de dons de sang positifs ou réactifs au VIH, au VHB, au VHC et à la syphilis, par groupe de revenu des pays selon la Banque mondiale (revenu élevé, intermédiaire de la tranche supérieure, intermédiaire de la tranche inférieure et faible).&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Медиана и межквартильный размах доли донаций крови с положительными или реактивными результатами на ВИЧ, ВГВ, ВГС и сифилис по группам стран по уровню дохода согласно Всемирному банку (высокий, выше среднего, ниже среднего, низкий).&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-a2-1.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;who-region&quot;,
+          &quot;titles&quot;: &quot;WHO region&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;number-of-member-states&quot;,
+          &quot;titles&quot;: &quot;Number of Member States&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;number-of-member-states-that-reported-data&quot;,
+          &quot;titles&quot;: &quot;Number of Member States that reported data&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table A2.1&quot;,
+    &quot;fac:caption&quot;: &quot;Table A2.1. Number of Member States that reported data in the 2025 round of global hepatitis reporting, globally and by WHO region&quot;,
+    &quot;fac:pages&quot;: [
+      91
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;For each WHO region and all regions combined, the number of Member States and the number that reported data in the 2025 round of global hepatitis reporting.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;عدد الدول الأعضاء في كل إقليم من أقاليم المنظمة وفي جميع الأقاليم مجتمعة، وعدد الدول التي أبلغت عن بيانات في جولة الإبلاغ العالمي عن التهاب الكبد لعام 2025.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;各世卫组织区域及所有区域合计的会员国数量，以及在2025年全球肝炎报告轮次中报告数据的会员国数量。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Para cada región de la OMS y para todas las regiones en conjunto, número de Estados Miembros y número de los que notificaron datos en la ronda de 2025 de notificación mundial sobre las hepatitis.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Pour chaque Région de l’OMS et l’ensemble des Régions, nombre d’États Membres et nombre de ceux ayant communiqué des données lors du cycle 2025 de notification mondiale sur l’hépatite.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;По каждому региону ВОЗ и всем регионам вместе: число государств-членов и число представивших данные в рамках раунда глобальной отчетности по гепатиту 2025 г.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  }
+]</pre></dd>
+<dt>source</dt><dd><pre>{
+  &quot;file&quot;: &quot;10665-385385.pdf&quot;,
+  &quot;sha256&quot;: &quot;78c074427087f3cbefd94c1bbc705ead678c8c3a326a8681f559e3246aa2656d&quot;,
+  &quot;note&quot;: &quot;tables transcribed from the PDF pages; the PDF itself is not held&quot;
+}</pre></dd>
+<dt>narrative</dt><dd><pre>{
+  &quot;text&quot;: null,
+  &quot;state&quot;: &quot;not-authored&quot;
+}</pre></dd>
+</dl>
+</main>
+<script src="../../../../../../../../assets/ig-search.js" defer></script>
+</body>
+</html>

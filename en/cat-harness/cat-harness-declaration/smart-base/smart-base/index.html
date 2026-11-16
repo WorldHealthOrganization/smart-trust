@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script data-folio-saved-scheme>(function(){var d=document.documentElement,s=null,c="dark";try{s=localStorage.getItem("fa-color-scheme")}catch(e){}if(s!=="light"&&s!=="dark"){s="light";try{if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)s="dark"}catch(e){}}try{var n=document.getElementById("fa-site-scheme");if(n)c=JSON.parse(n.textContent).scheme==="light"?"light":"dark"}catch(e){}d.setAttribute("data-fa-scheme",s);var j=window.jtd;if(s!==c&&j&&typeof j.setTheme==="function"){try{j.setTheme(s)}catch(e){}}})();</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMART Base — cat-harness-declaration</title>
+<style>
+  :root { color-scheme: light dark; --fg:#1b1b1b; --bg:#fdfdfb; --muted:#5b5b5b; --line:#d6d6d0; --link:#0b5cad; --panel:#f3f4f2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-fa-scheme="light"]) { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; } }
+  :root[data-fa-scheme="dark"] { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; }
+  :root[data-fa-scheme="light"] { color-scheme: light; } :root[data-fa-scheme="dark"] { color-scheme: dark; }
+  body { margin:0; font:1rem/1.5 system-ui,sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width:80rem; margin:0 auto; padding:1.5rem 1.5rem 4rem; min-width:0; overflow-wrap:anywhere; }
+  h1 { font-size:1.35rem; margin:0 0 .25rem; } h2 { font-size:1.05rem; margin:1.5rem 0 .5rem; }
+  a { color:var(--link); } a:focus-visible, select:focus-visible { outline:3px solid var(--link); outline-offset:2px; }
+  .m { color:var(--muted); font-size:.9rem; }
+  .tiles { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; padding:0; list-style:none; }
+  .tiles li { border:1px solid var(--line); border-radius:.4rem; padding:.35rem .7rem; }
+  .tiles b { font-size:1.2rem; margin-right:.3rem; }
+  .clip { width:100%; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; vertical-align:top; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
+  th { background:var(--panel); white-space:nowrap; }
+  /* Only the node's path and long text may break mid-word; a status or a date
+     broken across lines ("in_pr ogres s") is unreadable. */
+  td { overflow-wrap:normal; } td.p, td.t { overflow-wrap:anywhere; } td.s { white-space:nowrap; }
+  dl { display:grid; grid-template-columns:minmax(8rem,14rem) 1fr; gap:.25rem 1rem; }
+  dt { font-weight:600; } dd { margin:0; }
+  pre { background:var(--panel); padding:.75rem; overflow-x:auto; font-size:.85rem; }
+  label { margin-right:1rem; }
+  @media (max-width:40rem) { dl { grid-template-columns:1fr; } }
+</style>
+<link rel="stylesheet" href="../../../../../assets/css/navbar.css"><script src="../../../../../assets/navbar/rail-1602vd2tckq.js" defer></script><script src="../../../../../assets/js/navbar.js" defer></script><style data-folio-narrow-viewport>
+/* Narrow viewports: nothing may widen the PAGE — bean `2r2n`.
+ *
+ * At 390 px, 105 of 249 built pages scrolled sideways (measured 2026-09-24).
+ * The rule here is the bean's: wide content scrolls INSIDE ITS OWN BOX with a
+ * visible cue, and the page itself never pans.
+ *
+ * ONE FILE, TWO WAYS IN. Themed pages link it from `_includes/head_custom.html`.
+ * The standalone viewer pages carry no theme stylesheet at all, so
+ * `withViewerNav` in `scripts/viewer-page.ts` inlines this same file when it
+ * adds the rail. A copy of these rules in each place would be two answers to
+ * "what does a table do at 390 px", free to drift apart.
+ *
+ * Every selector here is written to be safe on both kinds of page: no
+ * `.main-content` scope (a standalone page has none), the navbar excluded by
+ * name, and the theme's own `.table-wrapper` left alone, since it already does
+ * this job for Markdown tables. */
+
+@media (max-width: 799.98px) {
+  /* A table the theme did not wrap: raw HTML from a generator, or one built at
+   * runtime. `display: block` makes the table its own scroll box. Its cells
+   * still lay out as a table inside the anonymous table box. */
+  table:not(.table-wrapper > table):not(.fa-nav table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* THE CUE: the edge that has more content past it fades out. The fade is a
+   * MASK over the table's own pixels, driven by its own scroll position, so
+   * it needs no knowledge of the page's background. A painted cover (the
+   * usual `background-attachment: local` trick) does: the first version used
+   * `Canvas`, and on a page that is dark under a LIGHT scheme it laid a white
+   * band over the first column.
+   *
+   * A table that does not overflow has an inactive scroll timeline, so the
+   * animation has no effect and both fades stay at their initial 0: no cue
+   * where there is nothing to scroll to. A browser without scroll-driven
+   * animations shows no fade, and the table still scrolls. */
+  @supports (animation-timeline: scroll()) {
+    table:not(.table-wrapper > table):not(.fa-nav table) {
+      mask-image: linear-gradient(to right,
+        transparent 0, #000 var(--fa-cue-l),
+        #000 calc(100% - var(--fa-cue-r)), transparent 100%);
+      animation: fa-scroll-cue linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+
+  /* A code block scrolls in its own box, which is what `pre` is for. Mermaid
+   * SOURCE sits in a `pre` until the renderer replaces it, and at 390 px a
+   * diagram's source line is longer than the screen. */
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Prose that has no break opportunity: a long path in inline code, or a
+   * glossary definition naming one. Breaking the string is better than
+   * widening the page it sits on. */
+  :not(pre) > code,
+  dd {
+    overflow-wrap: anywhere;
+  }
+}
+
+@property --fa-cue-l { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --fa-cue-r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+@keyframes fa-scroll-cue {
+  0%   { --fa-cue-l: 0px;    --fa-cue-r: 2.5rem; }
+  12%  { --fa-cue-l: 2.5rem; }
+  88%  { --fa-cue-r: 2.5rem; }
+  100% { --fa-cue-l: 2.5rem; --fa-cue-r: 0px; }
+}
+
+</style>
+<script type="application/json" id="fa-translation-meta">{"lang":"en","translationStatus":"","translationSource":"","supportedLocales":["ar","zh","en","fr","ru","es"],"availableLocales":[]}</script><link rel="stylesheet" href="../../../../../assets/page-layout.css" data-fa-page-layout><script src="../../../../../assets/page-layout.js" defer data-fa-page-layout></script><link rel="stylesheet" href="../../../../../assets/ig-artifact.css"><style data-ig-version-chrome>.ig-topbar-head{flex:0 0 100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .9rem}.ig-topbar-head .ig-topbar-home{flex:none}.ig-topbar-ver{font-weight:400;font-size:.9em;opacity:.95;white-space:nowrap}.ig-topbar-flag{font-size:1.1em}.ig-version-banner{box-sizing:border-box;margin:0;padding:.5rem 1.5rem;background:#ffffa0;color:#222;border-bottom:1px solid #0a0008;font-size:.95rem;line-height:1.45}.ig-version-banner a{color:#1a4b8c;text-decoration:underline}html:not([data-fa-scheme="light"]) .ig-version-banner{background:#4a4520;color:#fff8d0;border-color:#8a7d2a}html:not([data-fa-scheme="light"]) .ig-version-banner a{color:#ffe680}.ig-metadata{border-collapse:collapse;margin:0 0 1rem;font-size:.95rem}.ig-metadata td{border:1px solid #c8c8c8;padding:.25rem .6rem;vertical-align:top}.ig-metadata code{overflow-wrap:anywhere}</style></head>
+<body data-fa-node-kind-page>
+<header class="ig-search-top fa-page-bar"><a class="ig-search-home" href="../../../../../index.html">WHO SMART Trust</a><span class="ig-topbar-ver"><span class="ig-topbar-flag" role="img" aria-label="International" title="International">🌐</span> 1.7.5 - ci-build</span><form class="ig-search" role="search" data-ig-search-index="../../../../../assets/ig-search.json"><label class="ig-search-label" for="search-input">Search WHO SMART Trust</label><input type="search" id="search-input" class="ig-search-input" placeholder="Search pages and artefacts" autocomplete="off" aria-controls="ig-search-results" aria-expanded="false"><ul id="ig-search-results" class="ig-search-results" hidden></ul></form><span class="ig-locale-slot" data-fa-slot="locale"></span></header><p class="ig-version-banner" role="note">This page is part of the WHO SMART Trust (v1.7.5: ci-build) based on <a href="http://hl7.org/fhir/R4/">FHIR (HL7® FHIR® Standard) v4.0.1</a>. This is the continuous integration build: it follows the source and is not a published version. For a full list of available versions, see the <a href="http://smart.who.int/trust/history.html">Directory of published versions</a>.</p><script type="application/json" id="fa-rail" data-fa-root="../../../../.." data-fa-to-root="../../../../..">{"data":"rail-1602vd2tckq","here":"/en/cat-harness/cat-harness-declaration/smart-base/smart-base/"}</script><nav class="fa-nav" aria-label="folio-assistant" data-fa-rail="pending"><a href="../../../../../">folio-assistant</a></nav>
+<main>
+<h1 id="nk-title">SMART Base</h1>
+<p class="m">A <a href="../../">cat-harness-declaration</a> node held by <a href="../">smart-base</a>, at <code>smart-base/smart-base.json</code>.</p>
+
+<h2 id="fields">Fields</h2>
+<dl>
+<dt>$schema</dt><dd>cat-harness-declaration/1.0.0</dd>
+<dt>_comment</dt><dd>The WHO SMART Base layer: the knowledge-graph assets of the WHO SMART Guidelines base — the ingested WHO digital-health corpus, the methodologies read out of it, and the voices derived from it. It takes no position on the DAK/IG pipeline layering. The upstream toolchain is not vendored here: `WorldHealthOrganization/smart-base` stays the home of its ~54 Python scripts, and `smart-base-tools` wraps them.</dd>
+<dt>name</dt><dd>smart-base</dd>
+<dt>repository</dt><dd>litlfred/smart-base</dd>
+<dt>livesAt</dt><dd><pre>{
+  &quot;repository&quot;: &quot;litlfred/smart-base&quot;,
+  &quot;path&quot;: &quot;smart-base&quot;
+}</pre></dd>
+<dt>version</dt><dd>0.1.0</dd>
+<dt>iriBase</dt><dd>https://litlfred.github.io/smart-base/</dd>
+<dt>_title_comment</dt><dd>The HUMAN display name, for the LHS navbar&#39;s harness tabs. `name` stays the machine identifier that filenames, `needs` edges and `declaredBy` resolve against; `title` is what a reader sees and nothing resolves against it. Bean `t3n8`.</dd>
+<dt>title</dt><dd>SMART Base</dd>
+<dt>description</dt><dd>The WHO SMART Guidelines base layer — the ingested WHO digital-health corpus, the methodologies read out of it, and the editorial voices derived from it.</dd>
+<dt>_skillPrefix_comment</dt><dd>Skills from this layer install as smartbase-&lt;name&gt; (cat-harness-tools&#39; install-skills, bean x4mt; owner ruling 2026-10-11: each harness has its own prefix, e.g. cat, fa). Without one, `install-skills --root smart-base` skipped every smart-base skill and installed only cat- and fa- ones (bean folio-assistant-dtda). Lowercase letters and digits only: the schema refuses a hyphen.</dd>
+<dt>skillPrefix</dt><dd>smartbase</dd>
+<dt>avatar</dt><dd><pre>{
+  &quot;glyph&quot;: &quot;M3 18h18M6 14h12M9 10h6M11 6h2&quot;,
+  &quot;tone&quot;: 199,
+  &quot;reads&quot;: &quot;a broad base under narrowing courses — the layer the SMART stack rests on, in WHO blue&quot;
+}</pre></dd>
+<dt>_avatar_comment</dt><dd>WHO blue (tone 199, measured from #0093D5), shared with `who-iris` on purpose: both are the same organisation&#39;s material, so the navbar shows them as a family. The registry requires distinct glyphs, not distinct tones: the glyph says which instance, the tone says whose. No emblem: an organisation&#39;s published colour with a neutral glyph does not invent its identity. The glyph is a broad base with three narrowing courses above it, the layer the stack rests on: `fhir-harness` sits under smart-base and `smart-ig` and the IGs that need it are built on top.</dd>
+<dt>enableSubgraphs</dt><dd><pre>[
+  &quot;smart-base.smart-base-L1&quot;,
+  &quot;smart-base.smart-base-L2&quot;,
+  &quot;smart-base.smart-base-L2-bpmn&quot;,
+  &quot;smart-base.smart-base-L2-dmn&quot;,
+  &quot;smart-base.smart-base-L3&quot;,
+  &quot;smart-base.smart-base-L4&quot;,
+  &quot;smart-base.collab&quot;,
+  &quot;smart-base.L2-collab&quot;,
+  &quot;smart-base.L3-collab&quot;
+]</pre></dd>
+<dt>directories</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;smart-base-site-docs&quot;,
+    &quot;path&quot;: &quot;site-docs/&quot;,
+    &quot;description&quot;: &quot;This instance&#39;s pages for the platform&#39;s docs site: the WHO SMART DAK and IG authoring guides and the WHO SMART content types. Composed through just-the-docs (`composed: true`), so its pages land in the platform&#39;s site under this instance&#39;s name. `docs.json` declares `source/`, which the platform&#39;s docs-page run renders, one `source/&lt;group&gt;-&lt;slug&gt;/` into `&lt;group&gt;/&lt;slug&gt;.md`; `compose-docs` leaves `source/` out. Separate from `docs/` (this instance&#39;s IG pages, wholly generated by `smart-base:pages`) and `findings/`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;docs&quot;
+    ],
+    &quot;composed&quot;: true
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-qa-checkers&quot;,
+    &quot;path&quot;: &quot;qa-checkers/&quot;,
+    &quot;description&quot;: &quot;The dak adapter&#39;s automated QA checkers, one folio-qa-checker/v1 node per criterion, naming DAK_AUTOMATED_CHECKERS in pipeline/qa-checkers-dak.ts. loadContributions registers them for a folio through its dependency tree.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;qa-checkers&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-block-kinds&quot;,
+    &quot;path&quot;: &quot;block-kinds/&quot;,
+    &quot;description&quot;: &quot;The `dak` adapter&#39;s block kinds, one folio-block-kind/v1 node per file: kind, builder, label prefix and RDF types. Read by schemas/dak-kinds.ts and dak-jsonld.ts; loadContributions registers them for a folio only when its dependency tree includes smart-base.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;block-kinds&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-content-adapters&quot;,
+    &quot;path&quot;: &quot;content-adapters/&quot;,
+    &quot;description&quot;: &quot;The dak block vocabulary&#39;s node, folio-content-adapter/v1: its name, its companion roles, and its vocabulary module schemas/dak-blocks.ts. cat-harness does not type it, so loadContributions registers it for a folio only through that folio&#39;s dependency tree.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;content-adapters&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-translations&quot;,
+    &quot;path&quot;: &quot;translations/&quot;,
+    &quot;description&quot;: &quot;The gettext side of smart-base&#39;s own strings, one directory per target locale: the `processes/` templates of the BPMN diagrams this instance draws.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;translation-sources&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;library&quot;,
+    &quot;path&quot;: &quot;library/&quot;,
+    &quot;description&quot;: &quot;L1 source content: one `&lt;bib-slug&gt;/` per ingested publication, holding `sections/*.md` and `structure.json`. Every knowledge-graph reference to one of these sources resolves through here, never to a loose path, a bare URL or `uploads/`: the corpus-grep checklist searches `library/` only. The id is the conventional `library`, so this entry overrides the default; overrides match on id, never on path. WHO IRIS publications live in who-iris: cite them as `{instance: \&quot;litlfred/who-iris\&quot;}`. smart-base&#39;s own L1 extraction of an IRIS handbook lives in `l1-extractions/`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;library&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;l1-extraction-9789240116191-eng&quot;,
+    &quot;path&quot;: &quot;l1-extractions/9789240116191-eng/&quot;,
+    &quot;description&quot;: &quot;What the recommendation-extraction skill read out of who-iris library entry `9789240116191-eng` (Digital transformation handbook for health product catalogue): the L1 A-Box graph `l1.json`, the L2 scenario candidates `scenarios/scenario-candidates.l2.json`, and the curation, vocabulary and run context behind them. One declaration per extracted entry at `l1-extractions/&lt;entry&gt;/`, never a wildcard: `scripts/l1-extraction-declared.test.ts` fails on an undeclared directory or a declaration with none.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;l1-extraction&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;methodologies&quot;,
+    &quot;path&quot;: &quot;methodologies/&quot;,
+    &quot;description&quot;: &quot;Methodologies adopted whole from the WHO digital-health corpus, each rendered from its source, never a house process with a citation added. `diig.md` is the first. `skip`: a downstream instance inherits the method by depending on this layer, not by copying the directory.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;methodology&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;collab&quot;,
+    &quot;path&quot;: &quot;collab/&quot;,
+    &quot;optIn&quot;: true,
+    &quot;requires&quot;: [
+      &quot;cat-harness.sdlc&quot;,
+      &quot;smart-base.smart-base-L1&quot;,
+      &quot;smart-base.smart-base-L2&quot;,
+      &quot;smart-base.smart-base-L3&quot;,
+      &quot;smart-base.smart-base-L4&quot;
+    ],
+    &quot;description&quot;: &quot;The collaborative-development sub-graph — a NAMED SUB-GRAPH of this layer, OPT-IN: off in every layer, this one included, unless that layer lists `smart-base.collab` in its own `enableSubgraphs` (owner, 2026-11-13, check:optin-refs follow-up). It holds the processes that run on cat-harness&#39;s work plan and delivery process — they claim and close a bean, keep the work plan, or stage, preview and release a change: `smart-guideline-end-to-end`, `SGAuthoring.DAKLifecycle`, and DIIG&#39;s `diig-investment-path`. The L2 and L3 processes of the same kind are in each level&#39;s own opt-in collab group, `L2/collab/` and `L3/collab/` (`smart-base.L2-collab`, `smart-base.L3-collab`; owner, 2026-11-13: L2/L3 own collab). It `requires` `cat-harness.sdlc`, which requires `cat-harness.work-plan`, and the four knowledge-graph levels `smart-base-L1`..`smart-base-L4` whose skills its end-to-end process calls (owner, 2026-11-13), so switching it on switches all of them on. The graph inside it is declared FROM WITHIN, in `collab/graph.json`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cat-harness&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-artifact-index&quot;,
+    &quot;path&quot;: &quot;fhir-artifact-index/&quot;,
+    &quot;description&quot;: &quot;The IG&#39;s artefact index. `index.json`, `menu.json`, `releases.json`, `package.tgz` and `sidecars/` are not committed: fhir-harness&#39;s `ig-index:build` writes them at publish from the IG&#39;s AST (`builtAtPublish`; `sidecars/` via this layer&#39;s `ig-site:sidecars` step). Committed here: `upstream-report-CDHIv1toCDHIv2.md` and `README.md`. The four CDHI/CDSC ConceptMaps (the v1-to-v2 crosswalks and the two hierarchy maps) are indexed `referenced`: the index says where they are and holds none of their rows; materializing one is `materialize-remote.bpmn`. The IG template&#39;s chrome (`chrome.json`) lives in `themes/`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;fhir-artifact-index&quot;
+    ],
+    &quot;readOnly&quot;: true,
+    &quot;readOnlyBasis&quot;: &quot;Generated: fhir-harness&#39;s `ig-index:build` writes this index from the IG&#39;s own AST at publish; a person does not edit or commit it. A hand edit here would silently change what this repository claims upstream published, and `check:materialized-fixity` catches one. Declared rather than left silent, because silence is read as `undeclared`, never as writable.&quot;,
+    &quot;served&quot;: true
+  },
+  {
+    &quot;id&quot;: &quot;tools&quot;,
+    &quot;path&quot;: &quot;tools/&quot;,
+    &quot;description&quot;: &quot;smart-base&#39;s Tool nodes: DAK-shaped capabilities such as DMN to FHIR Questionnaire. A Tool node is a declaration (what it consumes, what it produces, which skill it satisfies), not a copy of upstream Python; execution stays upstream until it moves too. Capabilities that are not DAK-shaped, such as the two Library strippers, belong to `fhir-harness` by `smart-stack-layering`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;tools&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;qa&quot;,
+    &quot;path&quot;: &quot;test/results/&quot;,
+    &quot;storage&quot;: {
+      &quot;branch&quot;: &quot;cat/cat-harness/qa-reports&quot;,
+      &quot;keyedBy&quot;: &quot;commit&quot;
+    },
+    &quot;description&quot;: &quot;What auditing this instance produced, committed so a consumer can tell \&quot;never audited\&quot; from \&quot;audited clean\&quot;. Two kinds, each file naming its own via $schema: kg-qa/v1, one per audited subject in a tree mirroring the subject&#39;s path, and one kg-qa-manifest/v1 recording the auditor&#39;s identity for all of them (written by kg-audit.ts). No qa-results/v1 and no witnesses: this instance runs no document build or witness-producing computation. `reproduce`: a dependent audits its own graph, and inheriting these verdicts would attribute one instance&#39;s findings to another.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;qa&quot;
+    ]
+  },
+  {
+    &quot;_comment&quot;: &quot;The WHO SMART IG template&#39;s web theme, derived from the stylesheet the IG builds with. The source is not this IG: an IG&#39;s `ig.ini` selects `#local-template`, whose package.json declares `base: who.template.root`, which is `WorldHealthOrganization/smart-ig-template`; its `content/assets/css/who.css` is the branding. It is vendored under `upstream/` so the test reads a committed artefact rather than the network, because `who.template.root#current` can re-skin at any time; its CC0-1.0 licence permits vendoring. The theme is the template&#39;s, so it lives in smart-base, which every smart-* IG instantiates. Keeps just-the-docs&#39; machinery, with WHO&#39;s styling and the nav on the left.&quot;,
+    &quot;id&quot;: &quot;smart-base-themes&quot;,
+    &quot;path&quot;: &quot;themes/&quot;,
+    &quot;description&quot;: &quot;The WHO SMART IG template&#39;s web theme, measured from `who.template.root`&#39;s own `who.css` and pinned by commit. Colour and geometry only: the IG&#39;s top navbar is not reproduced, because the nav stays on the left. `upstream/who.css` is the vendored source the tests re-read, CC0-1.0.&quot;,
+    &quot;_dependents_comment&quot;: &quot;skip, not reproduce -- the same reasoning `who-iris-themes` carries. This entry says where THIS layer&#39;s theme lives; a dependent with no theme of its own needs no themes/ directory, and reproduce would ship an empty one downstream, which is the `dh4f` shape arriving by inheritance.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;themes&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-docs&quot;,
+    &quot;path&quot;: &quot;docs/&quot;,
+    &quot;instanceRoot&quot;: true,
+    &quot;description&quot;: &quot;The reader-facing pages, and the landing page `/smart-base/` serves. Generated by `smart-base:pages` (`fhir-harness/scripts/gen-ig-pages.ts --summary`) from `fhir-artifact-index/index.json` plus this declaration: the index page opens with this instance&#39;s description and every declared graph with its viewer, then the artefact index. Nothing here is authored or committed: the pages are built at publish (`builtAtPublish`). The banner names this IG (`smart.who.int.base`) from the index and draws no status watermark, because the chrome&#39;s status is smart-trust&#39;s.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;docs&quot;,
+      &quot;ig-pages&quot;
+    ],
+    &quot;derivedFrom&quot;: [
+      &quot;smart-base-artifact-index&quot;,
+      &quot;smart-base-themes&quot;
+    ],
+    &quot;writer&quot;: [
+      &quot;fhir-harness/scripts/gen-ig-pages.ts&quot;,
+      &quot;fhir-harness/scripts/templates/ig-pages/&quot;
+    ],
+    &quot;igSite&quot;: true,
+    &quot;_comment_igSite&quot;: &quot;Built into smart-base&#39;s own IG site at /smart-base/, as the WHO SMART Trust IG&#39;s docs are, so a change reaches every IG built on smart-base without drift. The IG&#39;s own home page is the root; the harness is reached through the navbar.&quot;,
+    &quot;tile&quot;: {
+      &quot;icon&quot;: &quot;docs&quot;
+    }
+  },
+  {
+    &quot;_comment&quot;: &quot;Document kinds this harness contributes: named structures of sections a document authored with smart-base follows. L1 and DAK are document kinds inside smart-base, not harness layers. dak.json is generated from DAK_COMPONENTS by smart-base/scripts/gen-document-kinds.ts (gated by smart-base:document-kinds:check); the others are authored from their sources.&quot;,
+    &quot;id&quot;: &quot;smart-base-document-kinds&quot;,
+    &quot;path&quot;: &quot;document-kinds/&quot;,
+    &quot;description&quot;: &quot;WHO SMART document kinds: the DAK (a fixed structure, the ten components), L1 and L1 guideline, the Digital Transformation Handbook (an L1 subtype) and the L2 DTH.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;document-kinds&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-findings&quot;,
+    &quot;path&quot;: &quot;findings/&quot;,
+    &quot;dependents&quot;: &quot;skip&quot;,
+    &quot;description&quot;: &quot;Findings about the WHO digital-health corpus recorded for the owner rather than adopted: where sources disagree, each version is kept as an alternative with its citation. `dth-term-alternatives.json` is authored (the DIIG phase figure and its reproductions, and what \&quot;actor\&quot; means in the RA, SMART Guidelines and folio-assistant, with one proposal per layer); `dth-terms.md` is generated from it and the DTH candidate list by `smart-base:dth-terms` (`smart-base/scripts/gen-dth-term-findings.ts`), and `smart-base:dth-terms:check` fails on a stale page or a quote that no longer matches its source. `wireframes/` holds the as-is wireframes of this instance&#39;s visualisers with their review findings (`check:wireframes` reads the `wireframes/` of every declared `docs` directory). Separate from `docs/`, which `smart-base:pages` wholly generates.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;docs&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-platform&quot;,
+    &quot;path&quot;: &quot;platform/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ],
+    &quot;description&quot;: &quot;The import seam: `platform/index.ts` re-exports every platform symbol this instance uses, so re-pointing the platform is an edit in this directory only; `platform/schema.ts` carries the symbols of the files the platform loads by glob (`themes/`, `schemas/`, `pipeline/qa-checkers-*`), so the checks that load them do not pull the IG-site code into their closure. Declared because a remote mount brings declared directories only.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-typologies&quot;,
+    &quot;path&quot;: &quot;typologies/&quot;,
+    &quot;description&quot;: &quot;The graph typologies smart-base owns, one folio-graph-typology/v1 node per file, as fhir-harness&#39;s typologies/ are: `l1-extraction`, and `web-annex` (a WHO publication&#39;s web annexes, L1 or L2, held as data; smart-base&#39;s because a web annex is a WHO concept fhir-harness may not name).&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;typologies&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-validators&quot;,
+    &quot;path&quot;: &quot;validators/&quot;,
+    &quot;description&quot;: &quot;The validators smart-base&#39;s code provides, one folio-validator/v1 node each naming the graph typology and $schema family it checks, as fhir-harness&#39;s validators/ do: the two families of the `web-annex` kind, dak-data-dictionary/v1 and dak-swimlanes/v1 (schemas/dak-annexes.ts), checked by check:kind-validators:require-all.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;validators&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-L1&quot;,
+    &quot;path&quot;: &quot;L1/&quot;,
+    &quot;optIn&quot;: true,
+    &quot;title&quot;: &quot;L1 — what a WHO publication says&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cat-harness&quot;
+    ],
+    &quot;description&quot;: &quot;Knowledge-graph layer L1 as a NAMED SUBGRAPH of this layer (owner, 2026-11-13: &#39;L1..L3 as named subgraphs&#39;, after smart-kg&#39;s deprecation, issue #359). OPT-IN like cat-harness&#39;s `sdlc/`, so that each layer&#39;s `tools/` is a tools graph of its own: off in a downstream layer unless it lists `smart-base.smart-base-L1` in its `enableSubgraphs`; this layer enables all six. `L1/graph.json` names what it holds FROM WITHIN: `schemas/` (L1 3.0 and the `l1-library` extension as Zod, the engine every layer uses, and their generated JSON and contexts), and the L1 `skills/`, `processes/`, `tools/` and the `scripts/` those tools run. The layers above, `L2/`, `L2-bpmn/`, `L2-dmn/`, `L3/` and `L4/`, are its siblings and import from it; nothing in L1 imports from them.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-L2&quot;,
+    &quot;path&quot;: &quot;L2/&quot;,
+    &quot;optIn&quot;: true,
+    &quot;requires&quot;: [
+      &quot;smart-base.smart-base-L1&quot;
+    ],
+    &quot;title&quot;: &quot;L2 — what a DAK declares&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cat-harness&quot;
+    ],
+    &quot;description&quot;: &quot;Knowledge-graph layer L2 as a NAMED SUBGRAPH of this layer, OPT-IN like `L1/` (a downstream layer lists `smart-base.smart-base-L2` in its `enableSubgraphs`), beside `L1/` (owner, 2026-11-13: &#39;L1..L3 as named subgraphs&#39;, issue #359). `L2/graph.json` names what it holds FROM WITHIN: its `schemas/` and, as they move in, its tools, skills and processes. It imports only from the layers below it.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-L2-bpmn&quot;,
+    &quot;path&quot;: &quot;L2-bpmn/&quot;,
+    &quot;optIn&quot;: true,
+    &quot;title&quot;: &quot;L2-BPMN — inside a BPMN file&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cat-harness&quot;
+    ],
+    &quot;description&quot;: &quot;Knowledge-graph layer L2-bpmn as a NAMED SUBGRAPH of this layer, OPT-IN like `L1/` (a downstream layer lists `smart-base.smart-base-L2-bpmn` in its `enableSubgraphs`), beside `L1/` (owner, 2026-11-13: &#39;L1..L3 as named subgraphs&#39;, issue #359). `L2-bpmn/graph.json` names what it holds FROM WITHIN: its `schemas/` and, as they move in, its tools, skills and processes. It imports only from the layers below it.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-L2-dmn&quot;,
+    &quot;path&quot;: &quot;L2-dmn/&quot;,
+    &quot;optIn&quot;: true,
+    &quot;title&quot;: &quot;L2-DMN — inside a DMN file&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cat-harness&quot;
+    ],
+    &quot;description&quot;: &quot;Knowledge-graph layer L2-dmn as a NAMED SUBGRAPH of this layer, OPT-IN like `L1/` (a downstream layer lists `smart-base.smart-base-L2-dmn` in its `enableSubgraphs`), beside `L1/` (owner, 2026-11-13: &#39;L1..L3 as named subgraphs&#39;, issue #359). `L2-dmn/graph.json` names what it holds FROM WITHIN: its `schemas/` and, as they move in, its tools, skills and processes. It imports only from the layers below it.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-L3&quot;,
+    &quot;path&quot;: &quot;L3/&quot;,
+    &quot;optIn&quot;: true,
+    &quot;requires&quot;: [
+      &quot;smart-base.smart-base-L2&quot;
+    ],
+    &quot;title&quot;: &quot;L3 — the FHIR artefacts&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cat-harness&quot;
+    ],
+    &quot;description&quot;: &quot;Knowledge-graph layer L3 as a NAMED SUBGRAPH of this layer, OPT-IN like `L1/` (a downstream layer lists `smart-base.smart-base-L3` in its `enableSubgraphs`), beside `L1/` (owner, 2026-11-13: &#39;L1..L3 as named subgraphs&#39;, issue #359). `L3/graph.json` names what it holds FROM WITHIN: its `schemas/` and, as they move in, its tools, skills and processes. It imports only from the layers below it.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-L4&quot;,
+    &quot;path&quot;: &quot;L4/&quot;,
+    &quot;optIn&quot;: true,
+    &quot;title&quot;: &quot;L4 — the application&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cat-harness&quot;
+    ],
+    &quot;description&quot;: &quot;The L4 work as a NAMED SUBGRAPH, OPT-IN like `L1/`..`L3/` (a downstream layer lists `smart-base.smart-base-L4` in its `enableSubgraphs`), beside them (owner, 2026-11-13: an L4 subgraph for the point-of-care and application skills, processes and tools): what a running application does with a DAK at the point of care, and briefing, building and running one. `L4/graph.json` names what it holds FROM WITHIN: `skills/`, `processes/` and `tools/`. No `schemas/`: the knowledge graph has no L4 layer.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-schemas&quot;,
+    &quot;path&quot;: &quot;schemas/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;,
+      &quot;schemas&quot;
+    ],
+    &quot;description&quot;: &quot;The dak vocabulary in code: `dak-blocks.ts` (the block builders `content-adapters/dak.json` names), `dak-kinds.ts` and `dak-jsonld.ts` (read off `block-kinds/`), `dak-content-type.ts`, `dak.ts`, and `skills/`: the input/output JSON Schemas of the two skills that span L1-L4 (guideline-use-case, smart-guideline-end-to-end). Every other skill&#39;s contracts sit in its subgraph, `L&lt;n&gt;/schemas/skills/` (bean folio-assistant-kjea). The mounted adapter and QA checkers name these modules. Also the `schemas` graph, declared so the schema reader never falls back to `&lt;instance&gt;/schemas/` by convention, which stops once any instance stacked on smart-base has a `schemas` directory.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-pipeline&quot;,
+    &quot;path&quot;: &quot;pipeline/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ],
+    &quot;description&quot;: &quot;`pipeline/qa-checkers-dak.ts`, the automated DAK checkers `qa-checkers/` names (`DAK_AUTOMATED_CHECKERS`). Declared so a remote mount brings it.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-scripts&quot;,
+    &quot;path&quot;: &quot;scripts/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ],
+    &quot;description&quot;: &quot;This layer&#39;s own scripts and their tests: document kinds, the DAK components figure, the DTH term findings, the `l1-extraction` viewer&#39;s pages (`gen-l1-extraction-pages.ts`) and the statement lists they read, the fhir-harness exclusions check, the L1 recommendation scenario candidates with the vocabulary reader they resolve against (fixtures and the measles run under `scripts/fixtures/`), and `dth-init.ts`, which writes a new DTH repository&#39;s wiring. The L1 extraction code (the smart-kg L1 extractor, the recommendation candidates, the L1 IRIs) is in the opt-in `L1/scripts/`. The L2-only scripts (the data dictionary and its diff, the L2 DTH check) are in `L2/scripts/`. Declared so a remote mount brings them.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-templates&quot;,
+    &quot;path&quot;: &quot;templates/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ],
+    &quot;description&quot;: &quot;Files this layer&#39;s tools write into a repository they set up, kept as real files rather than strings inside a script. `dth/` holds the AGENTS.md, session-start hook, PR checks workflow and other wiring that `scripts/dth-init.ts` copies into a new DTH repository (`TEMPLATE_DIR`).&quot;
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-skills&quot;,
+    &quot;path&quot;: &quot;skills/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;skills&quot;
+    ],
+    &quot;description&quot;: &quot;The authoring-who-smart-guidelines skill package, its skill definitions and the two WHO voices; `skills/skills.json` declares the subgroups.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-scenarios&quot;,
+    &quot;path&quot;: &quot;scenarios/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;scenarios&quot;
+    ],
+    &quot;description&quot;: &quot;`scenarios/roles.json`: the roles this layer&#39;s processes bind. Declared so a remote mount brings it.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;smart-base-code-lists&quot;,
+    &quot;path&quot;: &quot;code-lists/&quot;,
+    &quot;description&quot;: &quot;The GRADE code lists (certainty of evidence, reasons to rate certainty down and up, the Evidence-to-Decision criteria, and recommendation direction and strength), one `\&quot;$schema\&quot;: \&quot;folio-code-list/v1\&quot;` file per list, read with the `grade` skill; and the SMART Guidelines KG class lists `sgkg-l1-classes.json` and `sgkg-l2-classes.json`, the class ids document kinds name in `modelledBy` (read by `smart-base/scripts/kg-classes.ts`). Only this layer&#39;s own lists; the harness&#39;s generic lists reach it through the dependency overlay.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code-list&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;glossary&quot;,
+    &quot;path&quot;: &quot;glossary/&quot;,
+    &quot;description&quot;: &quot;SMART Base&#39;s generated glossary (`glossary/generated/smart-base/`): candidate `folio-glossary/v1` schemes extracted from this layer&#39;s tools, skills, BPMN activities and schema fields by `glossary:page`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;glossary&quot;
+    ]
+  }
+]</pre></dd>
+<dt>_directories_comment</dt><dd>Every directory declared here exists and holds content; a declared-but-absent directory would make every consumer scan nothing and report a clean run.</dd>
+<dt>assets</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;agent-instructions&quot;,
+    &quot;src&quot;: &quot;AGENTS.md&quot;,
+    &quot;role&quot;: &quot;agent-instructions&quot;,
+    &quot;title&quot;: &quot;AGENTS.md — smart-base&quot;,
+    &quot;description&quot;: &quot;Cold start for work in this layer: what is ingested rather than authored, what is referenced upstream rather than vendored, and why a voice rule with no resolvable citation is refused.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;instance-readme&quot;,
+    &quot;src&quot;: &quot;README.md&quot;,
+    &quot;role&quot;: &quot;instance-readme&quot;,
+    &quot;title&quot;: &quot;smart-base&quot;,
+    &quot;description&quot;: &quot;What this layer holds and how to re-derive an entry.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;checkout-scripts&quot;,
+    &quot;src&quot;: &quot;package.json&quot;,
+    &quot;role&quot;: &quot;checkout-scripts&quot;,
+    &quot;title&quot;: &quot;package.json — smart-base&quot;,
+    &quot;description&quot;: &quot;The checkout scripts this instance&#39;s code runs, under `checkoutScripts`, each relative to the downstream checkout root. A downstream that mounts this instance reads them with `bun run cat` and `check:script-placement` only while this file&#39;s sha256 matches the mount lock.&quot;
+  }
+]</pre></dd>
+<dt>_visualisers_comment</dt><dd>The visualisers this harness declares. `artifact-index` is the artefact index of the SMART IGs, drawn by fhir-harness&#39;s `ig-pages` Tool per layer: &lt;base&gt;/smart-base/artifact-index/ opens this IG&#39;s own artifacts page, and &lt;base&gt;/smart-base/artifact-index/&lt;instance&gt;/ each covered IG&#39;s (smart-trust, smart-immunizations). `l1-extraction` is this layer&#39;s own kind, drawn by smart-base&#39;s `l1-extraction-pages` Tool per layer (in the always-on `tools/`, not the opt-in `L1/tools/`, so a layer that does not enable `smart-base-L1` still resolves it): &lt;base&gt;/smart-base/l1-extraction/&lt;instance&gt;/ shows what each declared extraction holds, or unknown where the directory is not in the build. Routes are computed by visualiserRoute. Not `artifacts`: the IG already publishes artifacts.html beside it, and check:visualiser-routes refuses a route a harness&#39;s own served directory also answers.</dd>
+<dt>visualisers</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;artifact-index&quot;,
+    &quot;renderedBy&quot;: &quot;ig-pages&quot;,
+    &quot;coversKinds&quot;: [
+      &quot;fhir-artifact-index&quot;
+    ],
+    &quot;subgraphs&quot;: &quot;instance&quot;,
+    &quot;title&quot;: &quot;Artefact index&quot;
+  },
+  {
+    &quot;id&quot;: &quot;l1-extraction&quot;,
+    &quot;renderedBy&quot;: &quot;l1-extraction-pages&quot;,
+    &quot;coversKinds&quot;: [
+      &quot;l1-extraction&quot;
+    ],
+    &quot;subgraphs&quot;: &quot;instance&quot;,
+    &quot;title&quot;: &quot;L1 extraction&quot;
+  }
+]</pre></dd>
+<dt>needs</dt><dd><pre>[
+  &quot;fhir-harness&quot;,
+  &quot;who-iris&quot;
+]</pre></dd>
+<dt>_canonicalUrl_comment</dt><dd>smart-base&#39;s published base, read from `sushi-config.yaml` (`canonical: http://smart.who.int/base`). A Tool node&#39;s I/O type IRIs are minted against it at load, and Zod refuses a relative one.</dd>
+<dt>canonicalUrl</dt><dd>http://smart.who.int/base</dd>
+<dt>_needs_comment</dt><dd>`needs` governs the layer order: `dependency-order.ts` sorts on it and `harness-tiles.ts` builds the navbar spine from it. smart-base needs `fhir-harness` (the layer below) and `who-iris`, which holds the WHO IRIS publications its voices, methodologies and l1-extraction cite. `needs` does not compose the skill or content overlay: that is `dependencies.folioAssistant` in `&lt;name&gt;.config.json`, walked by `resolveSkillDirs`. No `smart-*` instance declares config dependencies, so `resolveSkillDirs` returns each instance&#39;s own skills only.</dd>
+<dt>taskIo</dt><dd><pre>{
+  &quot;smart-base:diig-figure:check&quot;: {
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;python; `write_text` only without `--check`&quot;
+  },
+  &quot;smart-base:pages:check&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;writes nothing under `--check`&quot;
+  },
+  &quot;smart-base:document-kinds:check&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;writes nothing under `--check`&quot;
+  },
+  &quot;smart-base:l1-scenarios:check&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;writer&quot;: &quot;smart-base:l1-scenarios&quot;,
+    &quot;because&quot;: &quot;exits before either writeFileSync under `--check`; this is the handbook example&#39;s run (9789240116191-eng)&quot;
+  },
+  &quot;smart-base:dth-terms:check&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;writes nothing under `--check`&quot;
+  },
+  &quot;smart-base:smart-kg-l1:check&quot;: {
+    &quot;outputs&quot;: [],
+    &quot;writer&quot;: &quot;smart-base:smart-kg-l1:all&quot;,
+    &quot;afterMerge&quot;: true,
+    &quot;because&quot;: &quot;`continue`s before `writeFileSync` under `check`. Writer: `--all` rewrites every entry `--check` examines; afterMerge re-extracts per entry&quot;
+  }
+}</pre></dd>
+<dt>contentTranslations</dt><dd><pre>[
+  {
+    &quot;contentType&quot;: &quot;dak&quot;,
+    &quot;name&quot;: &quot;WHO SMART Guidelines DAK (L2)&quot;,
+    &quot;formats&quot;: [
+      {
+        &quot;id&quot;: &quot;markdown&quot;,
+        &quot;name&quot;: &quot;Markdown&quot;,
+        &quot;extensions&quot;: [
+          &quot;.md&quot;
+        ],
+        &quot;extractModule&quot;: &quot;pipeline/pot-extract.ts&quot;,
+        &quot;injectModule&quot;: &quot;pipeline/po-inject.ts&quot;
+      },
+      {
+        &quot;id&quot;: &quot;plantuml&quot;,
+        &quot;name&quot;: &quot;PlantUML diagrams&quot;,
+        &quot;extensions&quot;: [
+          &quot;.puml&quot;,
+          &quot;.plantuml&quot;
+        ],
+        &quot;smartBaseScript&quot;: &quot;extract_translations.py&quot;,
+        &quot;smartBaseExtractRef&quot;: &quot;L1–200 (extract_plantuml)&quot;,
+        &quot;smartBaseInjectRef&quot;: &quot;inject_translations.py L820–933 (inject_plantuml)&quot;
+      },
+      {
+        &quot;id&quot;: &quot;svg&quot;,
+        &quot;name&quot;: &quot;SVG diagrams&quot;,
+        &quot;extensions&quot;: [
+          &quot;.svg&quot;
+        ],
+        &quot;smartBaseScript&quot;: &quot;extract_translations.py&quot;,
+        &quot;smartBaseExtractRef&quot;: &quot;L200–400 (extract_svg)&quot;,
+        &quot;smartBaseInjectRef&quot;: &quot;inject_translations.py (inject_svg)&quot;
+      },
+      {
+        &quot;id&quot;: &quot;archimate&quot;,
+        &quot;name&quot;: &quot;ArchiMate models&quot;,
+        &quot;extensions&quot;: [
+          &quot;.archimate&quot;
+        ],
+        &quot;smartBaseScript&quot;: &quot;extract_translations.py&quot;,
+        &quot;smartBaseExtractRef&quot;: &quot;L400–633 (extract_archimate)&quot;,
+        &quot;smartBaseInjectRef&quot;: &quot;inject_translations.py (inject_archimate)&quot;
+      },
+      {
+        &quot;id&quot;: &quot;excel&quot;,
+        &quot;name&quot;: &quot;Data dictionaries (Excel)&quot;,
+        &quot;extensions&quot;: [
+          &quot;.xlsx&quot;
+        ],
+        &quot;notes&quot;: &quot;Data dictionary translation uses openpyxl. Column headers and cell values in translatable columns.&quot;
+      },
+      {
+        &quot;id&quot;: &quot;bpmn&quot;,
+        &quot;name&quot;: &quot;BPMN process diagrams&quot;,
+        &quot;extensions&quot;: [
+          &quot;.bpmn&quot;
+        ],
+        &quot;extractModule&quot;: &quot;pipeline/bpmn-translate.ts&quot;,
+        &quot;injectModule&quot;: &quot;pipeline/bpmn-translate.ts&quot;,
+        &quot;notes&quot;: &quot;Element names and &lt;documentation&gt;. Ids, sourceRef/targetRef, calledElement and the folio: extensions are NEVER offered for translation — a translated id disconnects the graph and a translated skill ref is exactly the dangling reference check:workflow-refs exists to catch. Re-render with `bun run cat render:bpmn` after injection. On overflow: measured 2026-09-18, a French set ~18% longer with every authored &amp;#10; break dropped re-wrapped to the same 3 lines, 42px of an 80px task box, because bpmn-js re-wraps regardless. The authored breaks are not load-bearing; if a diagram does overflow, the fix is its shape bounds, not the string.&quot;
+      }
+    ],
+    &quot;rtlSupported&quot;: true,
+    &quot;bpmnDiagrams&quot;: [
+      &quot;processes/library/translation-workflow.bpmn&quot;,
+      &quot;processes/library/human-translation-workflow.bpmn&quot;
+    ],
+    &quot;notes&quot;: &quot;Full smart-base translation coverage. PlantUML, SVG, and ArchiMate extractors are the Python originals; TypeScript ports are planned. The same `inject_translations.py` (its FHIR resource translation section) also injects translations into a WHO IG&#39;s FHIR JSON resources; that reference lives here rather than on fhir-harness&#39;s `ig` profile because fhir-harness must stay WHO-free.&quot;
+  }
+]</pre></dd>
+<dt>gateExemptions</dt><dd><pre>{
+  &quot;scripts&quot;: [
+    {
+      &quot;script&quot;: &quot;smart-base:pages:check&quot;,
+      &quot;kind&quot;: &quot;covered-by&quot;,
+      &quot;reason&quot;: &quot;covered-by `smart:pages`, which every reader job in the index checkout runs straight after the mount. The pages are built from the mount and never committed, so there is no copy for this `:check` to compare; the build itself is the gate.&quot;
+    },
+    {
+      &quot;script&quot;: &quot;check:dak-annexes&quot;,
+      &quot;kind&quot;: &quot;covered-by&quot;,
+      &quot;reason&quot;: &quot;covered-by `check:web-annexes`, which `code-quality-gates.yml` runs: this is the same script under an older name, kept as an alias for callers that still use it. Running both would judge the same annexes twice.&quot;
+    }
+  ]
+}</pre></dd>
+<dt>_builtAtPublish_comment</dt><dd>This instance&#39;s JSON-LD @context is generated by `jsonld:contexts` (cat-harness-tools scripts/gen-instance-contexts.ts) from the prefixes and content-context terms its documents use, flattened with the prefix tables of every instance it needs. Those tables are read at the checkout&#39;s pins, so no commit can hold the file current: it is built at publish and never committed (schema: cat-harness&#39;s built-at-publish.ts).</dd>
+<dt>builtAtPublish</dt><dd><pre>[
+  {
+    &quot;path&quot;: &quot;fhir-artifact-index/index.json&quot;,
+    &quot;writer&quot;: [
+      &quot;ig-index:build&quot;
+    ],
+    &quot;because&quot;: &quot;checkout&quot;,
+    &quot;reason&quot;: &quot;the IG&#39;s artefact index: built by fhir-harness&#39;s ig-index:build from the IG&#39;s AST (restored from the IG repository&#39;s AST cache) and its own sushi-config.yaml, so it moves when the IG&#39;s default branch or its AST cache moves, not with a commit of this instance&quot;
+  },
+  {
+    &quot;path&quot;: &quot;fhir-artifact-index/menu.json&quot;,
+    &quot;writer&quot;: [
+      &quot;ig-index:build&quot;
+    ],
+    &quot;because&quot;: &quot;checkout&quot;,
+    &quot;reason&quot;: &quot;the IG&#39;s menu: built by fhir-harness&#39;s ig-index:build from the IG&#39;s AST (restored from the IG repository&#39;s AST cache) and its own sushi-config.yaml, so it moves when the IG&#39;s default branch or its AST cache moves, not with a commit of this instance&quot;
+  },
+  {
+    &quot;path&quot;: &quot;fhir-artifact-index/releases.json&quot;,
+    &quot;writer&quot;: [
+      &quot;ig-index:build&quot;
+    ],
+    &quot;because&quot;: &quot;checkout&quot;,
+    &quot;reason&quot;: &quot;the IG&#39;s release list: built by fhir-harness&#39;s ig-index:build from the IG&#39;s AST (restored from the IG repository&#39;s AST cache) and its own sushi-config.yaml, so it moves when the IG&#39;s default branch or its AST cache moves, not with a commit of this instance&quot;
+  },
+  {
+    &quot;path&quot;: &quot;fhir-artifact-index/package.tgz&quot;,
+    &quot;writer&quot;: [
+      &quot;ig-index:build&quot;
+    ],
+    &quot;because&quot;: &quot;checkout&quot;,
+    &quot;reason&quot;: &quot;the Publisher-shaped package the JSON view pages read each resource from: built by fhir-harness&#39;s ig-index:build from the IG&#39;s AST (restored from the IG repository&#39;s AST cache) and its own sushi-config.yaml, so it moves when the IG&#39;s default branch or its AST cache moves, not with a commit of this instance&quot;
+  },
+  {
+    &quot;path&quot;: &quot;fhir-artifact-index/sidecars/&quot;,
+    &quot;writer&quot;: [
+      &quot;ig-index:build&quot;
+    ],
+    &quot;because&quot;: &quot;checkout&quot;,
+    &quot;reason&quot;: &quot;the IG API sidecars bound to each artefact: copied by fhir-harness&#39;s ig-index:build from what a mounted layer&#39;s ig-site:sidecars leaves in its work directory, so it moves with the checkout&#39;s layers and the IG&#39;s AST cache, not with a commit of this instance&quot;
+  },
+  {
+    &quot;path&quot;: &quot;document-kinds/dak.coverage.smart-base.json&quot;,
+    &quot;writer&quot;: [
+      &quot;smart-base:document-kinds&quot;
+    ],
+    &quot;because&quot;: &quot;checkout&quot;,
+    &quot;directory&quot;: &quot;smart-base-document-kinds&quot;,
+    &quot;reason&quot;: &quot;the DAK view of this IG&#39;s artefact index, which is itself built at publish (fhir-artifact-index/index.json above), so the report moves with the index and is built after it&quot;
+  },
+  {
+    &quot;path&quot;: &quot;ns/context/v1.jsonld&quot;,
+    &quot;writer&quot;: [
+      &quot;jsonld:contexts&quot;
+    ],
+    &quot;because&quot;: &quot;checkout&quot;,
+    &quot;reason&quot;: &quot;the prefixes and content-context terms its documents use, flattened with the jsonldPrefixes of the layers it needs at the checkout&#39;s pins&quot;
+  },
+  {
+    &quot;path&quot;: &quot;docs/&quot;,
+    &quot;writer&quot;: [
+      &quot;smart-base:pages&quot;,
+      &quot;smart-base:l1-extraction:pages&quot;
+    ],
+    &quot;because&quot;: &quot;checkout&quot;,
+    &quot;directory&quot;: &quot;smart-base-docs&quot;,
+    &quot;reason&quot;: &quot;the artefact pages gen-ig-pages renders from this instance&#39;s artefact index with fhir-harness&#39;s IG-page templates and this instance&#39;s themes and chrome, all read at the checkout&#39;s pins; and, where this instance&#39;s docs are the site (no cat-harness mounted), the l1-extraction viewer&#39;s pages under docs/en/smart-base/l1-extraction/, read from every instance in the checkout that declares the kind. One entry, because a second nested inside docs/ is refused (one route, one declared writer); its writer runs after smart-base:pages, which replaces docs/ wholesale&quot;
+  }
+]</pre></dd>
+</dl>
+</main>
+<script src="../../../../../assets/ig-search.js" defer></script>
+</body>
+</html>

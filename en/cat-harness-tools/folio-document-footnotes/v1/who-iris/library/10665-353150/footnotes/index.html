@@ -1,0 +1,1559 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script data-folio-saved-scheme>(function(){var d=document.documentElement,s=null,c="dark";try{s=localStorage.getItem("fa-color-scheme")}catch(e){}if(s!=="light"&&s!=="dark"){s="light";try{if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)s="dark"}catch(e){}}try{var n=document.getElementById("fa-site-scheme");if(n)c=JSON.parse(n.textContent).scheme==="light"?"light":"dark"}catch(e){}d.setAttribute("data-fa-scheme",s);var j=window.jtd;if(s!==c&&j&&typeof j.setTheme==="function"){try{j.setTheme(s)}catch(e){}}})();</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>library/10665-353150/footnotes — folio-document-footnotes/v1</title>
+<style>
+  :root { color-scheme: light dark; --fg:#1b1b1b; --bg:#fdfdfb; --muted:#5b5b5b; --line:#d6d6d0; --link:#0b5cad; --panel:#f3f4f2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-fa-scheme="light"]) { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; } }
+  :root[data-fa-scheme="dark"] { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; }
+  :root[data-fa-scheme="light"] { color-scheme: light; } :root[data-fa-scheme="dark"] { color-scheme: dark; }
+  body { margin:0; font:1rem/1.5 system-ui,sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width:80rem; margin:0 auto; padding:1.5rem 1.5rem 4rem; min-width:0; overflow-wrap:anywhere; }
+  h1 { font-size:1.35rem; margin:0 0 .25rem; } h2 { font-size:1.05rem; margin:1.5rem 0 .5rem; }
+  a { color:var(--link); } a:focus-visible, select:focus-visible { outline:3px solid var(--link); outline-offset:2px; }
+  .m { color:var(--muted); font-size:.9rem; }
+  .tiles { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; padding:0; list-style:none; }
+  .tiles li { border:1px solid var(--line); border-radius:.4rem; padding:.35rem .7rem; }
+  .tiles b { font-size:1.2rem; margin-right:.3rem; }
+  .clip { width:100%; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; vertical-align:top; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
+  th { background:var(--panel); white-space:nowrap; }
+  /* Only the node's path and long text may break mid-word; a status or a date
+     broken across lines ("in_pr ogres s") is unreadable. */
+  td { overflow-wrap:normal; } td.p, td.t { overflow-wrap:anywhere; } td.s { white-space:nowrap; }
+  dl { display:grid; grid-template-columns:minmax(8rem,14rem) 1fr; gap:.25rem 1rem; }
+  dt { font-weight:600; } dd { margin:0; }
+  pre { background:var(--panel); padding:.75rem; overflow-x:auto; font-size:.85rem; }
+  label { margin-right:1rem; }
+  @media (max-width:40rem) { dl { grid-template-columns:1fr; } }
+</style>
+<link rel="stylesheet" href="../../../../../../../../assets/css/navbar.css"><script src="../../../../../../../../assets/navbar/rail-evmqt6bfap.js" defer></script><script src="../../../../../../../../assets/js/navbar.js" defer></script><style data-folio-narrow-viewport>
+/* Narrow viewports: nothing may widen the PAGE — bean `2r2n`.
+ *
+ * At 390 px, 105 of 249 built pages scrolled sideways (measured 2026-09-24).
+ * The rule here is the bean's: wide content scrolls INSIDE ITS OWN BOX with a
+ * visible cue, and the page itself never pans.
+ *
+ * ONE FILE, TWO WAYS IN. Themed pages link it from `_includes/head_custom.html`.
+ * The standalone viewer pages carry no theme stylesheet at all, so
+ * `withViewerNav` in `scripts/viewer-page.ts` inlines this same file when it
+ * adds the rail. A copy of these rules in each place would be two answers to
+ * "what does a table do at 390 px", free to drift apart.
+ *
+ * Every selector here is written to be safe on both kinds of page: no
+ * `.main-content` scope (a standalone page has none), the navbar excluded by
+ * name, and the theme's own `.table-wrapper` left alone, since it already does
+ * this job for Markdown tables. */
+
+@media (max-width: 799.98px) {
+  /* A table the theme did not wrap: raw HTML from a generator, or one built at
+   * runtime. `display: block` makes the table its own scroll box. Its cells
+   * still lay out as a table inside the anonymous table box. */
+  table:not(.table-wrapper > table):not(.fa-nav table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* THE CUE: the edge that has more content past it fades out. The fade is a
+   * MASK over the table's own pixels, driven by its own scroll position, so
+   * it needs no knowledge of the page's background. A painted cover (the
+   * usual `background-attachment: local` trick) does: the first version used
+   * `Canvas`, and on a page that is dark under a LIGHT scheme it laid a white
+   * band over the first column.
+   *
+   * A table that does not overflow has an inactive scroll timeline, so the
+   * animation has no effect and both fades stay at their initial 0: no cue
+   * where there is nothing to scroll to. A browser without scroll-driven
+   * animations shows no fade, and the table still scrolls. */
+  @supports (animation-timeline: scroll()) {
+    table:not(.table-wrapper > table):not(.fa-nav table) {
+      mask-image: linear-gradient(to right,
+        transparent 0, #000 var(--fa-cue-l),
+        #000 calc(100% - var(--fa-cue-r)), transparent 100%);
+      animation: fa-scroll-cue linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+
+  /* A code block scrolls in its own box, which is what `pre` is for. Mermaid
+   * SOURCE sits in a `pre` until the renderer replaces it, and at 390 px a
+   * diagram's source line is longer than the screen. */
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Prose that has no break opportunity: a long path in inline code, or a
+   * glossary definition naming one. Breaking the string is better than
+   * widening the page it sits on. */
+  :not(pre) > code,
+  dd {
+    overflow-wrap: anywhere;
+  }
+}
+
+@property --fa-cue-l { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --fa-cue-r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+@keyframes fa-scroll-cue {
+  0%   { --fa-cue-l: 0px;    --fa-cue-r: 2.5rem; }
+  12%  { --fa-cue-l: 2.5rem; }
+  88%  { --fa-cue-r: 2.5rem; }
+  100% { --fa-cue-l: 2.5rem; --fa-cue-r: 0px; }
+}
+
+</style>
+<script type="application/json" id="fa-translation-meta">{"lang":"en","translationStatus":"","translationSource":"","supportedLocales":["ar","zh","en","fr","ru","es"],"availableLocales":[]}</script><link rel="stylesheet" href="../../../../../../../../assets/page-layout.css" data-fa-page-layout><script src="../../../../../../../../assets/page-layout.js" defer data-fa-page-layout></script><link rel="stylesheet" href="../../../../../../../../assets/ig-artifact.css"><style data-ig-version-chrome>.ig-topbar-head{flex:0 0 100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .9rem}.ig-topbar-head .ig-topbar-home{flex:none}.ig-topbar-ver{font-weight:400;font-size:.9em;opacity:.95;white-space:nowrap}.ig-topbar-flag{font-size:1.1em}.ig-version-banner{box-sizing:border-box;margin:0;padding:.5rem 1.5rem;background:#ffffa0;color:#222;border-bottom:1px solid #0a0008;font-size:.95rem;line-height:1.45}.ig-version-banner a{color:#1a4b8c;text-decoration:underline}html:not([data-fa-scheme="light"]) .ig-version-banner{background:#4a4520;color:#fff8d0;border-color:#8a7d2a}html:not([data-fa-scheme="light"]) .ig-version-banner a{color:#ffe680}.ig-metadata{border-collapse:collapse;margin:0 0 1rem;font-size:.95rem}.ig-metadata td{border:1px solid #c8c8c8;padding:.25rem .6rem;vertical-align:top}.ig-metadata code{overflow-wrap:anywhere}</style></head>
+<body data-fa-node-kind-page>
+<header class="ig-search-top fa-page-bar"><a class="ig-search-home" href="../../../../../../../../index.html">WHO SMART Trust</a><span class="ig-topbar-ver"><span class="ig-topbar-flag" role="img" aria-label="International" title="International">🌐</span> 1.7.5 - ci-build</span><form class="ig-search" role="search" data-ig-search-index="../../../../../../../../assets/ig-search.json"><label class="ig-search-label" for="search-input">Search WHO SMART Trust</label><input type="search" id="search-input" class="ig-search-input" placeholder="Search pages and artefacts" autocomplete="off" aria-controls="ig-search-results" aria-expanded="false"><ul id="ig-search-results" class="ig-search-results" hidden></ul></form><span class="ig-locale-slot" data-fa-slot="locale"></span></header><p class="ig-version-banner" role="note">This page is part of the WHO SMART Trust (v1.7.5: ci-build) based on <a href="http://hl7.org/fhir/R4/">FHIR (HL7® FHIR® Standard) v4.0.1</a>. This is the continuous integration build: it follows the source and is not a published version. For a full list of available versions, see the <a href="http://smart.who.int/trust/history.html">Directory of published versions</a>.</p><script type="application/json" id="fa-rail" data-fa-root="../../../../../../../.." data-fa-to-root="../../../../../../../..">{"data":"rail-evmqt6bfap","here":"/en/cat-harness-tools/folio-document-footnotes/v1/who-iris/library/10665-353150/footnotes/"}</script><nav class="fa-nav" aria-label="folio-assistant" data-fa-rail="pending"><a href="../../../../../../../../">folio-assistant</a></nav>
+<main>
+<h1 id="nk-title">library/10665-353150/footnotes</h1>
+<p class="m">A <a href="../../../../">folio-document-footnotes/v1</a> node held by <a href="../../../">who-iris</a>, at <code>who-iris/library/10665-353150/footnotes.json</code>.</p>
+
+<h2 id="fields">Fields</h2>
+<dl>
+<dt>$schema</dt><dd>folio-document-footnotes/v1</dd>
+<dt>entry</dt><dd>10665-353150</dd>
+<dt>status</dt><dd>determined</dd>
+<dt>body_size</dt><dd>11</dd>
+<dt>footnotes</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;fn-p028-1&quot;,
+    &quot;page&quot;: 28,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;Texte adapté de Principes pour le développement numérique : Collaborer : Principes de base (7). Guide d&#39;investissement pour la mise en œuvre numérique&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 28,
+        &quot;context&quot;: &quot;COLLABORER&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-009&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p076-1&quot;,
+    &quot;page&quot;: 76,
+    &quot;mark&quot;: &quot;8&quot;,
+    &quot;text&quot;: &quot;Texte adapté de Principes pour le développement numérique : Bâtir pour la durabilité : Principes de base (7). Guide d&#39;investissement pour la mise en œuvre numérique&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 76,
+        &quot;context&quot;: &quot;DURABILITÉ&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-030&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p140-1&quot;,
+    &quot;page&quot;: 140,
+    &quot;mark&quot;: &quot;10&quot;,
+    &quot;text&quot;: &quot;Adapté de Foote B &amp; Yoder J. Big ball of mud. Pattern Languages of Programs Conference, Monticello (IL), septembre 1997.&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 140,
+        &quot;context&quot;: &quot;prédéterminé, qui accumule la dette technique.&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-053&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p140-2&quot;,
+    &quot;page&quot;: 140,
+    &quot;mark&quot;: &quot;11&quot;,
+    &quot;text&quot;: &quot;Adapté de Digital health platform handbook: building a digital information infrastructure (infostructure) for health. Genève : Union internationale des Guide d&#39;investissement pour la mise en œuvre numérique&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 140,
+        &quot;context&quot;: &quot;domaines du programme de santé et les cas d&#39;utilisation.&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-053&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p141-1&quot;,
+    &quot;page&quot;: 141,
+    &quot;mark&quot;: &quot;12&quot;,
+    &quot;text&quot;: &quot;Adapté de National eHealth strategy toolkit. Genève : Organisation mondiale de la santé et Union internationale des télécommunications ; 2012 (https://www.itu.int/dms_pub/itu-d/opb/str/D-STR-E_HEALTH.05-2012-PDF-E.pdf, consulté le 22 janvier 2019).&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 141,
+        &quot;context&quot;: &quot;utilisant les interventions de santé numérique.&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-053&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p141-2&quot;,
+    &quot;page&quot;: 141,
+    &quot;mark&quot;: &quot;13&quot;,
+    &quot;text&quot;: &quot;Consensus definition of digital health, Digital Health and Interoperability Working Group Key terms and theory of change small working group ; [Présentation] 2019 (https://docs.google.com/presentation/d/1TnTFaunk-1WLlG4sKJQ_aSfjmfmivvcENil4mY4XxJs, consulté le 18 février 2020).&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 141,
+        &quot;context&quot;: &quot;la santé et le bien-être.&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-053&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p141-3&quot;,
+    &quot;page&quot;: 141,
+    &quot;mark&quot;: &quot;14&quot;,
+    &quot;text&quot;: &quot;Adapté de WHO evaluation practice handbook, 2013.&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 141,
+        &quot;context&quot;: &quot;et mesurer les variations du rendement au fil du temps.&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-053&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p141-4&quot;,
+    &quot;page&quot;: 141,
+    &quot;mark&quot;: &quot;15&quot;,
+    &quot;text&quot;: &quot;Adapté de Digital health platform handbook (consulté dans la presse).&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 141,
+        &quot;context&quot;: &quot;sous-jacentes.&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-053&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p141-5&quot;,
+    &quot;page&quot;: 141,
+    &quot;mark&quot;: &quot;16&quot;,
+    &quot;text&quot;: &quot;OMS. Developing health management information systems: a practical guide for developing countries&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 141,
+        &quot;context&quot;: &quot;soins.&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-053&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p141-6&quot;,
+    &quot;page&quot;: 141,
+    &quot;mark&quot;: &quot;17&quot;,
+    &quot;text&quot;: &quot;Organisation mondiale de la santé. Developing health management information systems: a practical guide for developing countries. Manille : Organisation mondiale de la santé ; 2004 (https://iris.wpro.who.int/bitstream/handle/10665.1/5498/9290611650_eng.pdf) Annexes&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 141,
+        &quot;context&quot;: &quot;santé à tous les niveaux.&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-053&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p145-1&quot;,
+    &quot;page&quot;: 145,
+    &quot;mark&quot;: &quot;18&quot;,
+    &quot;text&quot;: &quot;Pour plus d&#39;exemples de modèles de schématisation des personas, consultez Demand for health services workbook: a human-centred approach. UNICEF (http://hcd4i.org/wp-content/uploads/2018/10/unicef_digitalhealthinterventions_final2018-1.pdf). Annexes&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 145,
+        &quot;context&quot;: &quot;ilisateurs finaux. Voir Chapitre 2 pour plus d&#39;informations.&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-055&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p148-1&quot;,
+    &quot;page&quot;: 148,
+    &quot;mark&quot;: &quot;19&quot;,
+    &quot;text&quot;: &quot;Source : Planning an information systems project: a toolkit for public health managers, Annex 7. PATH ; 2013 (https://path.azureedge.net/media/ documents/TS_opt_ict_toolkit.pdf). Guide d&#39;investissement pour la mise en œuvre numérique&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 148,
+        &quot;context&quot;: &quot;la création d&#39;une proposition de rubrique de classification.&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-058&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p150-1&quot;,
+    &quot;page&quot;: 150,
+    &quot;mark&quot;: &quot;20&quot;,
+    &quot;text&quot;: &quot;Adapté de Classification des interventions en santé numérique : un langage commun pour décrire les utilisations de la technologie numérique pour la santé. Genève : OMS ; 2018 (https://www.who.int/reproductivehealth/publications/mhealth/classification-digital-health-interventions/en/). Guide d&#39;investissement pour la mise en œuvre numérique&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 150,
+        &quot;context&quot;: &quot;démographiques&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-060&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p152-1&quot;,
+    &quot;page&quot;: 152,
+    &quot;mark&quot;: &quot;21&quot;,
+    &quot;text&quot;: &quot;Voir la classification internationale des maladies. OMS (http://www.who.int/classifications/icd). Guide d&#39;investissement pour la mise en œuvre numérique&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 152,
+        &quot;context&quot;: &quot;décès, de surveillance des décès et des codes CIM,&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-060&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p153-1&quot;,
+    &quot;page&quot;: 153,
+    &quot;mark&quot;: &quot;22&quot;,
+    &quot;text&quot;: &quot;Adapté de la Classification des interventions en santé numérique, 2018. Annexes&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 153,
+        &quot;context&quot;: &quot;es niveaux d&#39;approvisionnement des produits médicaux de base&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-060&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p155-1&quot;,
+    &quot;page&quot;: 155,
+    &quot;mark&quot;: &quot;23&quot;,
+    &quot;text&quot;: &quot;Adapté de la Classification des interventions en santé numérique, 2018. Annexes&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 155,
+        &quot;context&quot;: &quot;sont à distance&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-060&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p158-1&quot;,
+    &quot;page&quot;: 158,
+    &quot;mark&quot;: &quot;24&quot;,
+    &quot;text&quot;: &quot;Adapté de la Classification des interventions en santé numérique, 2018. Guide d&#39;investissement pour la mise en œuvre numérique&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 158,
+        &quot;context&quot;: &quot;spécialiste ou un professionnel de la santé plus qualifié&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-060&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p160-1&quot;,
+    &quot;page&quot;: 160,
+    &quot;mark&quot;: &quot;25&quot;,
+    &quot;text&quot;: &quot;Adapté de la Classification des interventions en santé numérique, 2018. Guide d&#39;investissement pour la mise en œuvre numérique&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 160,
+        &quot;context&quot;: &quot;ultats de diagnostics (ou de la disponibilité des résultats)&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-060&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p163-1&quot;,
+    &quot;page&quot;: 163,
+    &quot;mark&quot;: &quot;26&quot;,
+    &quot;text&quot;: &quot;Adapté de la Classification des interventions en santé numérique, 2018. Annexes&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 163,
+        &quot;context&quot;: &quot;agnostic et à prendre des décisions concernant le traitement&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-060&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p165-1&quot;,
+    &quot;page&quot;: 165,
+    &quot;mark&quot;: &quot;27&quot;,
+    &quot;text&quot;: &quot;Adapté de la Classification des interventions en santé numérique, 2018. Annexes&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 165,
+        &quot;context&quot;: &quot;s ciblées spécifiques, y compris des populations de migrants&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-060&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p168-1&quot;,
+    &quot;page&quot;: 168,
+    &quot;mark&quot;: &quot;28&quot;,
+    &quot;text&quot;: &quot;Adapté de la Classification des interventions en santé numérique, 2018. Guide d&#39;investissement pour la mise en œuvre numérique&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 168,
+        &quot;context&quot;: &quot; besoin d&#39;être utilisée à ce stade de la prestation de soins&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-060&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p170-1&quot;,
+    &quot;page&quot;: 170,
+    &quot;mark&quot;: &quot;29&quot;,
+    &quot;text&quot;: &quot;Adapted from Ali J, Labrique AB, Gionfriddo K, Pariyo G, Gibson DG, Pratt B. et al. Ethics considerations in global mobile phone–based surveys of noncommunicable diseases: a conceptual exploration. Journal of Med Internet Research. 2017 ; 19(5),e110. doi:10.2196/jmir.7326.&quot;,
+    &quot;marks&quot;: [
+      {
+        &quot;page&quot;: 170,
+        &quot;context&quot;: &quot;. Veuillez consulter le Chapitre 5 pour plus d&#39;informations.&quot;
+      }
+    ],
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-060&quot;
+  }
+]</pre></dd>
+<dt>uncalled_notes</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;fn-p022-1&quot;,
+    &quot;page&quot;: 22,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;5\t Inventaire&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-006&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p022-2&quot;,
+    &quot;page&quot;: 22,
+    &quot;mark&quot;: &quot;1&quot;,
+    &quot;text&quot;: &quot;2\t Parties prenantes&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-006&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p022-3&quot;,
+    &quot;page&quot;: 22,
+    &quot;mark&quot;: &quot;5&quot;,
+    &quot;text&quot;: &quot;1\t Plan de mise en&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-006&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p022-4&quot;,
+    &quot;page&quot;: 22,
+    &quot;mark&quot;: &quot;5&quot;,
+    &quot;text&quot;: &quot;2\t Environnement CHAPITRE 05&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-006&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p022-5&quot;,
+    &quot;page&quot;: 22,
+    &quot;mark&quot;: &quot;1&quot;,
+    &quot;text&quot;: &quot;3\t Bénéficiaires&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-006&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p022-6&quot;,
+    &quot;page&quot;: 22,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;1\t Interventions numériques disponibilité&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-006&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p022-7&quot;,
+    &quot;page&quot;: 22,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;2\t Maturité et prioritaires favorable&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-006&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p022-8&quot;,
+    &quot;page&quot;: 22,
+    &quot;mark&quot;: &quot;1&quot;,
+    &quot;text&quot;: &quot;1\t Équipe&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-006&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p022-9&quot;,
+    &quot;page&quot;: 22,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;4\t Flux de œuvre travail futur&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-006&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-1&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;1 Gestion des&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-2&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;3 Notification&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-3&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;6 Gestion des&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-4&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;2 Codage&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-5&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;3 Cartographie de&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-6&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;1 Gestion, collecte d’évènements équipements et des ressources humaines et utilisation des des données la localisation de santé public ressources données Analyse de données non Localisation cartographique Liste des cadres du personnel Notification d&#39;évènements&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-7&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;6.1 Monitor status of&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-8&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;2.1&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-9&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;3.1 structurées pour obtenir des établissements/&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-10&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;1.1&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-11&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;3.1 de santé et informations de santé publique à partir health equipment des données structurées structures de santé&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-12&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;1.1 Collecte et gestion des d&#39;identification connexes du diagnostic Fusion, déduplication et Suivi du respect de la données inhabituelles&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-13&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;3.2 Schématisation de la localisation préservation des ensembles&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-14&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;6.2&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-15&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;2.2 Contrôle de l&#39;efficacité des réglementation et des licences des évènements de santé&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-16&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;1.2&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-17&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;4 Enregistrement de données ou des professionnels de santé de l&#39;équipement médical&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-18&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;1.2 Stockage et agrégation terminologies codés des faits d&#39;état Schématisation de la localisation&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-19&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;3.3 des données Gestion de la certification/ civil et statistiques Classification des codes de des clients et des foyers&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-20&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;2.3&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-21&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;7 Gestion des&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-22&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;1.3 démographiques enregistrement du/des maladies ou causes de mortalité Synthèse et visualisation&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-23&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;1.3&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-24&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;3.4 Localisation cartographique prestataire(s) de soins de santé établissements des données des professionnels de santé&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-25&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;4.1 Notification d&#39;une naissance Enregistrement des Analyse automatisée des&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-26&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;1.4 certificats de formation des Liste des établissements données pour générer de&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-27&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;7.1 professionnels de santé&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-28&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;4.2&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-29&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;4 Échange de données Enregistrement d&#39;une naissance de santé et informations&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-30&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;1.4 nouvelles informations connexes ou des prévisions sur des et interopérabilité&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-31&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;2 Gestion de la chaîne&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-32&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;4.3&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-33&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;7.2 Évaluation des établissements Attestation d&#39;une naissance événements futurs de santé d’approvisionnement&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-34&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;4.4 Échange de données entre Notification d&#39;un décès&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-35&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;4.1 les systèmes Gestion des stocks et&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-36&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;4.5 Enregistrement d&#39;un décès&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-37&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;2.1 distribution des produits de santé&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-38&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;4.6 Attestation d&#39;un décès Notification des niveaux de&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-39&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;2.2 stocks des produits de santé&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-40&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;5 Financement Contrôle des produits de la santé&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-41&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;2.3 sensibles de la chaîne du froid Enregistrement des Enregistrement et vérification&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-42&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;2.4&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-43&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;5.1 médicaments et des produits d&#39;une souscription d&#39;assurance de santé homologués par le client Gestion de l&#39;approvisionnement Suivi des frais d&#39;assurance et&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-44&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;2.5&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-45&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;5.2 des produits présentation des réclamations Signalisation par les clients Suivi et gestion du&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-46&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;5.3&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-47&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;2.6 des médicaments contrefaits remboursement par l&#39;assurance ou non conformes aux normes Communication du processus&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-48&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;5.4 habituel de rémunération au(x) professionnel(s) de santé Communication ou gestion&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-49&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;5.5 des incitations au(x) professionnel(s) de santé&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p059-50&quot;,
+    &quot;page&quot;: 59,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;5.6 Gestion du budget et des dépenses Source : Classification des interventions de santé numérique de l&#39;OMS, 2018 (4). Identifier les interventions de santé numérique appropriées&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-022&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p101-1&quot;,
+    &quot;page&quot;: 101,
+    &quot;mark&quot;: &quot;6&quot;,
+    &quot;text&quot;: &quot;Le registre de l&#39;établissement [de santé] (RES) fonctionne comme une autorité centrale permettant d&#39;identifier de manière unique tous&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-044&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p101-2&quot;,
+    &quot;page&quot;: 101,
+    &quot;mark&quot;: &quot;1&quot;,
+    &quot;text&quot;: &quot;Le système d&#39;information pour la gestion logistique (SIGL) stocke les lieux où les services de santé ont été administrés au sein du pays. et ajoute des données relatives à la chaîne d&#39;approvisionnement&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-044&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p101-3&quot;,
+    &quot;page&quot;: 101,
+    &quot;mark&quot;: &quot;7&quot;,
+    &quot;text&quot;: &quot;Le registre du professionnel de la santé (RPS) est l&#39;autorité habituelle et simplifie leur analyse afin d&#39;améliorer la gestion de la centrale responsable de l&#39;entretien des identités uniques des chaîne d&#39;approvisionnement. professionnels de la santé du pays.&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-044&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p101-4&quot;,
+    &quot;page&quot;: 101,
+    &quot;mark&quot;: &quot;2&quot;,
+    &quot;text&quot;: &quot;Le dossier médical partagé (DMP) est un recueil composé de la&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-044&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p101-5&quot;,
+    &quot;page&quot;: 101,
+    &quot;mark&quot;: &quot;8&quot;,
+    &quot;text&quot;: &quot;Le registre du produit (RP) est l&#39;autorité centrale responsable de la version standardisée des contenus créés au sein de la communauté définition des produits, tels que les produits de santé et médicaux après être validés par rapport à chacun des enregistrements de base et leur catégorisation. précédents. Il s&#39;agit d&#39;une collection des enregistrements axés sur les patients avec des informations en échange.&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-044&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p101-6&quot;,
+    &quot;page&quot;: 101,
+    &quot;mark&quot;: &quot;9&quot;,
+    &quot;text&quot;: &quot;Le niveau de services d&#39;interopérabilité reçoit toutes les communications des services externes au sein de la zone sanitaire&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-044&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p101-7&quot;,
+    &quot;page&quot;: 101,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;text&quot;: &quot;Le système d&#39;informations relatives à la gestion de la santé (SIGS) géographique et gère le processus d&#39;échange des données entre les stocke les données sanitaires agrégés et régulièrement collectées et systèmes externes et les composants de l&#39;OpenHIE. simplifie leur analyse dans le but d&#39;améliorer la qualité des services de santé.&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-044&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p101-8&quot;,
+    &quot;page&quot;: 101,
+    &quot;mark&quot;: &quot;10&quot;,
+    &quot;text&quot;: &quot;[Les applications de] point de service, telles que le système de dossiers médicaux électronique OpenMRS et l&#39;outil de&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-044&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p101-9&quot;,
+    &quot;page&quot;: 101,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;Le service terminologique (ST)fonctionne comme une autorité communications RapidPro, sont utilisées par les médecins et la centrale permettant d&#39;identifier de manière unique les activités communauté de professionnels de la santé pour accéder et mettre cliniques qui surviennent au cours du processus de prestation des à jour les informations sanitaires partagées axées sur le patient, soins en maintenant un ensemble terminologique aligné aux normes enregistrer les opérations de prestation de soins de santé et internationales, telles que CIM-10, LOINC, SNOMED, entre autres. communiquer de manière interactive, respectivement.&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-044&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p101-10&quot;,
+    &quot;page&quot;: 101,
+    &quot;mark&quot;: &quot;5&quot;,
+    &quot;text&quot;: &quot;Le registre du client (RC) gère l&#39;identité unique des citoyens bénéficiant des services de santé au sein du pays. Source : Schéma et légende adaptées de l&#39;architecture v2 de l&#39;OpenHIE, 2019 (93). Associer la mise en œuvre de la santé numérique à l&#39;architecture d&#39;entreprise&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-044&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-1&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Adéquation et&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-2&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Formation/orientation de soins prénatals, assistant&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-3&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Service de messagerie disponibilité des du prestataire par d&#39;accouchement compétent ressources humaines rapport au système de fonctionnel (par ex. , et soins postnataux) (RH) santé numérique messages envoyés par l&#39;utilisateur final pendant Amélioration des&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-4&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Associations avec&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-5&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Recrutement de la grossesse) des systèmes de suivi personnel pour aborder connaissances&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-6&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Rendement technique existants les lacunes de RH&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-7&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Amélioration des connaissances du service (par ex. , durée du prestataire (par ex. , les&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-8&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Encadrement prestataires cible peuvent moyenne nécessaire pour d&#39;assistance continu correctement se rappeler d&#39;au conclure la souscription de la mise en œuvre moins deux signes de danger au système de santé technologique maternel) numérique)&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-9&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Amélioration des connaissances des souscripteurs ayant accepté Technologie de recevoir des messages Approvisionnement&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-10&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Couverture du réseau&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-11&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Testage et mise à jour Approvisionnement&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-12&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Utilisation et réponse du et alimentation du système de santé « Bureau d&#39;aide »&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-13&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Utilisation des services du numérique basés sur la&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-14&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Testage et adaptation&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-15&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Satisfaction envers les bureau d&#39;aide (par ex. , les clients réponse de l&#39;utilisateur de l&#39;application services reçus au sein de de soins prénatals qui utilisent mobile&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-16&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Vérification régulière l&#39;établissement de soins les services du bureau d&#39;aide) des téléphones&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-17&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Équipement mobile de santé portables du prestataire&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-18&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Satisfaction envers les du prestataire Financement pour contrôler les services du bureau d&#39;aide&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-19&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Disposition du dispositifs cassés/&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-20&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Résultats agrégés de souscripteur à payer perdus/hors service l&#39;établissement de soins de santé Financement Financement&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-21&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Chronologie, budget et sources adéquats&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-22&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Coûts pour l&#39;ONG/le partenaire de la mise en œuvre&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-23&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Coûts pour l&#39;utilisateur final&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p116-24&quot;,
+    &quot;page&quot;: 116,
+    &quot;mark&quot;: &quot;§&quot;,
+    &quot;text&quot;: &quot;Coûts supplémentaires pour le système de santé Guide d&#39;investissement pour la mise en œuvre numérique&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-047&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p132-1&quot;,
+    &quot;page&quot;: 132,
+    &quot;mark&quot;: &quot;1&quot;,
+    &quot;text&quot;: &quot;1\t Équipe&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p132-2&quot;,
+    &quot;page&quot;: 132,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;4\t Flux de travail futur&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p134-1&quot;,
+    &quot;page&quot;: 134,
+    &quot;mark&quot;: &quot;10&quot;,
+    &quot;text&quot;: &quot;Digital health investment review tool. Programme pour risk factors [site web]. Genève : Organisation mondiale de la survie de la mère et de l&#39;enfant ; 2018 (https://www. la santé ; 2020 (https://www.who.int/ncds/prevention/ mcsprogram.org/resource/digital-health-investment- be-healthy-be-mobile/handbooks/en/, consulté le review-tool/, consulté le 17 février 2020).&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p134-2&quot;,
+    &quot;page&quot;: 134,
+    &quot;mark&quot;: &quot;17&quot;,
+    &quot;text&quot;: &quot;février 2020).&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p134-3&quot;,
+    &quot;page&quot;: 134,
+    &quot;mark&quot;: &quot;11&quot;,
+    &quot;text&quot;: &quot;HIS stages of continuous improvement toolkit. Chapel&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p134-4&quot;,
+    &quot;page&quot;: 134,
+    &quot;mark&quot;: &quot;25&quot;,
+    &quot;text&quot;: &quot;2018 global reference list of 100 core health indicators (plus Hill (NC) : MEASURE Evaluation ; 2019 (https://www. health-related SDGs). Genève : Organisation mondiale measureevaluation.org/his-strengthening-resource- de la santé ; 2018 (https://www.who.int/healthinfo/ center/his-stages-of-continuous-improvement-toolkit/, indicators/2018/en/, consulté le 17 février 2020). Licence : consulté le 17 février 2020). CC BY-NC-SA 3.0 IGO.&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p134-5&quot;,
+    &quot;page&quot;: 134,
+    &quot;mark&quot;: &quot;12&quot;,
+    &quot;text&quot;: &quot;Principles of Donor Alignment for Digital Health [site&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p134-6&quot;,
+    &quot;page&quot;: 134,
+    &quot;mark&quot;: &quot;26&quot;,
+    &quot;text&quot;: &quot;Monitoring and evaluating digital health interventions: a web] (https://digitalinvestmentprinciples.org/, consulté le practical guide to conducting research and assessment.&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p134-7&quot;,
+    &quot;page&quot;: 134,
+    &quot;mark&quot;: &quot;17&quot;,
+    &quot;text&quot;: &quot;février 2020). Genève : Organisation mondiale de la santé ; 2016 (https://www.who.int/reproductivehealth/publications/&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p134-8&quot;,
+    &quot;page&quot;: 134,
+    &quot;mark&quot;: &quot;13&quot;,
+    &quot;text&quot;: &quot;Union internationale des télécommunications, Digital mhealth/digital-health-interventions/en/, consulté le Impact Alliance. SDG digital investment framework&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p134-9&quot;,
+    &quot;page&quot;: 134,
+    &quot;mark&quot;: &quot;18&quot;,
+    &quot;text&quot;: &quot;février 2020). and call to action. Genève : Union internationale des télécommunications ; 2018 (https://digitalimpactalliance.&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p134-10&quot;,
+    &quot;page&quot;: 134,
+    &quot;mark&quot;: &quot;27&quot;,
+    &quot;text&quot;: &quot;Arenth B, Bennett A, Bernadotte C, Carnahan E, Dube M, org/research/sdg-digital-investment-framework/, consulté Thompson J et al. Defining and building a data use culture. le 17 février 2020). Seattle : PATH ; 2017 (https://www.path.org/publications/ files/DHS_Data_Use_Culture_wp.pdf, consulté le&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p134-11&quot;,
+    &quot;page&quot;: 134,
+    &quot;mark&quot;: &quot;14&quot;,
+    &quot;text&quot;: &quot;Digital health platform handbook: building a digital&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p134-12&quot;,
+    &quot;page&quot;: 134,
+    &quot;mark&quot;: &quot;18&quot;,
+    &quot;text&quot;: &quot;février 2020). information infrastructure (infostructure) for health. Genève : Union internationale des télécommunications ; consulté dans la presse. Guide d&#39;investissement pour la mise en œuvre numérique&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-051&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p135-1&quot;,
+    &quot;page&quot;: 135,
+    &quot;mark&quot;: &quot;50&quot;,
+    &quot;text&quot;: &quot;Collaborative Requirements Development Methodology Mobile-Tools-for-Malaria-Surveillance-Roadmap.pdf, (CRDM) [site web]. Decatur (GA) : Public Health Informatics consulté le 18 février 2020). Institute, The Task Force for Global Health ; 2016 (https:// www.phii.org/crdm/, consulté le 18 février 2020).&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p135-2&quot;,
+    &quot;page&quot;: 135,
+    &quot;mark&quot;: &quot;36&quot;,
+    &quot;text&quot;: &quot;Digital Health and Interoperability Working Group. Rencontre annuelle, Washington (DC), 11 décembre 2019.&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p135-3&quot;,
+    &quot;page&quot;: 135,
+    &quot;mark&quot;: &quot;51&quot;,
+    &quot;text&quot;: &quot;Business process. Sur : Business Dictionary [site web]. WebFinance Inc. ; 2020 (http://www.businessdictionary.&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p135-4&quot;,
+    &quot;page&quot;: 135,
+    &quot;mark&quot;: &quot;37&quot;,
+    &quot;text&quot;: &quot;IHE quality research and public health (QRPH) white paper: com/definition/business-process.html, consulté le extracting indicators from patient-level data. Integrating&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p135-5&quot;,
+    &quot;page&quot;: 135,
+    &quot;mark&quot;: &quot;17&quot;,
+    &quot;text&quot;: &quot;février 2020). the Healthcare Enterprise ; consulté dans la presse.&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p135-6&quot;,
+    &quot;page&quot;: 135,
+    &quot;mark&quot;: &quot;52&quot;,
+    &quot;text&quot;: &quot;The expanded programme on immunization. Genève :&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p135-7&quot;,
+    &quot;page&quot;: 135,
+    &quot;mark&quot;: &quot;38&quot;,
+    &quot;text&quot;: &quot;Vota W. Every African country&#39;s national eHealth strategy or Organisation mondiale de la santé ; 2013 (http:// digital health strategy. ICTworks. 4 décembre 2019 (https:// www.who.int/immunization/programmes_systems/ www.ictworks.org/african-national-ehealth.strategy- supply_chain/benefits_of_immunization/en/ ; consulté le policy/#.Xkqhg5NKiu5, consulté le 17 février 2020).&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p135-8&quot;,
+    &quot;page&quot;: 135,
+    &quot;mark&quot;: &quot;18&quot;,
+    &quot;text&quot;: &quot;février 2020).&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p135-9&quot;,
+    &quot;page&quot;: 135,
+    &quot;mark&quot;: &quot;39&quot;,
+    &quot;text&quot;: &quot;Directory of eHealth policies. Sur : Global Observatory for&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p135-10&quot;,
+    &quot;page&quot;: 135,
+    &quot;mark&quot;: &quot;53&quot;,
+    &quot;text&quot;: &quot;Optimizing person-centric record systems: a handbook for eHealth [site web]. Genève : Organisation mondiale de la digitalizing primary health care. Organisation mondiale de santé ; 2020 (https://www.who.int/goe/policies/countries/ la santé ; consulté dans la presse. en/, consulté le 17 février 2020).&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p135-11&quot;,
+    &quot;page&quot;: 135,
+    &quot;mark&quot;: &quot;54&quot;,
+    &quot;text&quot;: &quot;Determine the root cause: 5 whys. Sur : iSixSigma [site&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p135-12&quot;,
+    &quot;page&quot;: 135,
+    &quot;mark&quot;: &quot;40&quot;,
+    &quot;text&quot;: &quot;National Ebola recovery strategy for Sierra Leone web] (https://www.isixsigma.com/tools-templates/ 2015–2017. Gouvernement de Sierra Leone ; 2015 (https:// cause-effect/determine-root-cause-5-whys/, consulté le ebolaresponse.un.org/sites/default/files/sierra_leone_&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p135-13&quot;,
+    &quot;page&quot;: 135,
+    &quot;mark&quot;: &quot;18&quot;,
+    &quot;text&quot;: &quot;février 2020). recovery_strategy_en.pdf, consulté le 18 février 2020). Références&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p136-1&quot;,
+    &quot;page&quot;: 136,
+    &quot;mark&quot;: &quot;65&quot;,
+    &quot;text&quot;: &quot;Bangladesh eHealth inventory report. Bangladesh&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p136-2&quot;,
+    &quot;page&quot;: 136,
+    &quot;mark&quot;: &quot;80&quot;,
+    &quot;text&quot;: &quot;BID Initiative briefs: recommendations and lessons Knowledge Management Initiative ; 2014. learned: change management. Seattle : PATH ; 2017 (http://bidinitiative.org/wp-content/uploads/VAD_BID_&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p136-3&quot;,
+    &quot;page&quot;: 136,
+    &quot;mark&quot;: &quot;66&quot;,
+    &quot;text&quot;: &quot;mHealth in Malawi: landscape analysis. Ministère de la LessonsLearned_ChangeMngmt_v1_rev03.pdf, consulté le santé et de la population du Malawi ; 2018 (https://static1.&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p136-4&quot;,
+    &quot;page&quot;: 136,
+    &quot;mark&quot;: &quot;17&quot;,
+    &quot;text&quot;: &quot;février 2020). squarespace.com/static/548487dce4b08bf981fe60d5/t/5 b18fb5f6d2a73891c7a2a1f/1528363963131/FINAL_malawi_&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p136-5&quot;,
+    &quot;page&quot;: 136,
+    &quot;mark&quot;: &quot;81&quot;,
+    &quot;text&quot;: &quot;BID Initiative briefs: recommendations and lessons mhealth_landscape_analysis_May_2018.pdf, consulté le learned: rollout strategy. Seattle : PATH ; 2017 (http://&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p136-6&quot;,
+    &quot;page&quot;: 136,
+    &quot;mark&quot;: &quot;18&quot;,
+    &quot;text&quot;: &quot;février 2020). bidinitiative.org/wp-content/uploads/VAD_BID_ LessonsLearned_Rollout_v1_rev04.pdf, consulté le&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p136-7&quot;,
+    &quot;page&quot;: 136,
+    &quot;mark&quot;: &quot;67&quot;,
+    &quot;text&quot;: &quot;What are global goods. Sur : Digital Square Wiki [site web].&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p136-8&quot;,
+    &quot;page&quot;: 136,
+    &quot;mark&quot;: &quot;17&quot;,
+    &quot;text&quot;: &quot;février 2020). Washington (DC) : Digital Square ; 2018 (https://wiki. digitalsquare.io/index.php/What_are_Global_Goods,&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p136-9&quot;,
+    &quot;page&quot;: 136,
+    &quot;mark&quot;: &quot;82&quot;,
+    &quot;text&quot;: &quot;Initiative BID. Facility and district visit strategy for consulté le 18 février 2020). introducing data quality and data use interventions [document]. Seattle : PATH ; 2018 (http://bidinitiative.org/&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p136-10&quot;,
+    &quot;page&quot;: 136,
+    &quot;mark&quot;: &quot;68&quot;,
+    &quot;text&quot;: &quot;Initiative BID. Equipment support strategy [document]. wp-content/uploads/2.-TOOL_FacilityVisitStrategy_FINAL. Seattle : PATH (http://bidinitiative.org/wp-content/ docx, consulté le 17 février 2020). uploads/12.-TOOL_Equipment_Support_Strategy_FINAL. docx, consulté le 17 février 2020).&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p136-11&quot;,
+    &quot;page&quot;: 136,
+    &quot;mark&quot;: &quot;83&quot;,
+    &quot;text&quot;: &quot;Initiative BID. Spotting and addressing resistance to change [document]. Seattle : PATH (http://bidinitiative.org/wp-&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p136-12&quot;,
+    &quot;page&quot;: 136,
+    &quot;mark&quot;: &quot;69&quot;,
+    &quot;text&quot;: &quot;L&#39;index global de santé numérique. Guide des indicateurs. content/uploads/6.-TOOL_Addressing-Resistance_FINAL. Sur : Global Digital Health Index [site web] (http://gdhi- doc, consulté le 17 février 2020). showcase-lb-602552207.us-east-1.elb.amazonaws.com/ indicators_info, consulté le18 février 2020). Guide d&#39;investissement pour la mise en œuvre numérique&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p137-1&quot;,
+    &quot;page&quot;: 137,
+    &quot;mark&quot;: &quot;95&quot;,
+    &quot;text&quot;: &quot;Mvundera M, Di Giorgio L, Lymo D, Mwansa FD, Ngwegwe usaidlearninglab.org/lab-notes/what-adaptive- B, Werner L. The costs of developing, deploying and management-0, consulté le 18 février 2020). maintaining electronic immunisation registries in&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p137-2&quot;,
+    &quot;page&quot;: 137,
+    &quot;mark&quot;: &quot;108&quot;,
+    &quot;text&quot;: &quot;BID Initiative briefs: recommendations and lessons Tanzania and Zambia. BMJ Global Health 2019 ; 4:e001904. learned: sustainability. Seattle : PATH ; 2017 (http:// doi:10.1136/bmjgh-2019-001904. bidinitiative.org/wp-content/uploads/VAD_BID_&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p137-3&quot;,
+    &quot;page&quot;: 137,
+    &quot;mark&quot;: &quot;96&quot;,
+    &quot;text&quot;: &quot;Di Giorgio L, Mvundera M. What are the costs and benefits LessonsLearned_Sustainability_v1_rev03.pdf, consulté le of implementation? Sur : BID&#39;s Latest [blog]. Initiative&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p137-4&quot;,
+    &quot;page&quot;: 137,
+    &quot;mark&quot;: &quot;17&quot;,
+    &quot;text&quot;: &quot;février 2020). BID ; 2016 (http://bidinitiative.org/blog/what-are-the- costs-and-benefits-of-implementation/, consulté le&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p137-5&quot;,
+    &quot;page&quot;: 137,
+    &quot;mark&quot;: &quot;17&quot;,
+    &quot;text&quot;: &quot;février 2020).&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p137-6&quot;,
+    &quot;page&quot;: 137,
+    &quot;mark&quot;: &quot;97&quot;,
+    &quot;text&quot;: &quot;Jones T, Drury P, Zuniga P, Roth S. Digital health impact framework user manual. Manille : Banque asiatique de développement ; 2018 (ADB Sustainable Development Working Paper Series, Nº 57 ; https://www.adb.org/sites/ default/files/publication/465611/sdwp-057-digital-health- impact-framework-manual.pdf, consulté le 18 février 2020).&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p137-7&quot;,
+    &quot;page&quot;: 137,
+    &quot;mark&quot;: &quot;98&quot;,
+    &quot;text&quot;: &quot;What is RE-AIM. Sur : RE-AIM [site web] (http://www.re- aim.org/about/what-is-re-aim/, consulté le 18 février 2020). Références&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-052&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p147-1&quot;,
+    &quot;page&quot;: 147,
+    &quot;mark&quot;: &quot;5&quot;,
+    &quot;text&quot;: &quot;4 Difficulté de suivi&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-057&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p147-2&quot;,
+    &quot;page&quot;: 147,
+    &quot;mark&quot;: &quot;5&quot;,
+    &quot;text&quot;: &quot;1 Faible demande de services&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-057&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p147-3&quot;,
+    &quot;page&quot;: 147,
+    &quot;mark&quot;: &quot;5&quot;,
+    &quot;text&quot;: &quot;2 Inaccessibilité géographique&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-057&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p147-4&quot;,
+    &quot;page&quot;: 147,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;text&quot;: &quot;1 Manque&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-057&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p149-1&quot;,
+    &quot;page&quot;: 149,
+    &quot;mark&quot;: &quot;8&quot;,
+    &quot;text&quot;: &quot;CONTENUS LIÉS À LA SANTÉ Annexes&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-059&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p156-1&quot;,
+    &quot;page&quot;: 156,
+    &quot;mark&quot;: &quot;24&quot;,
+    &quot;text&quot;: &quot;heures sur 24, 7 jours sur 7 Accéder à des spécialistes en transfert dans les cas exigeant l&#39;intervention d&#39;un spécialiste et qui ne sont pas actuellement traités par le personnel clinique disponible (par ex. , dermatologie ou radiologie) Personnel destiné au suivi régulier du rendement du système, y compris le suivi des appels perdus et l&#39;utilisation du service Personnel destiné à la configuration du système et à l&#39;assistance à l&#39;utilisateur final DÉVELOPPEMENT ET CONFIGURATION&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-060&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fn-p170-2&quot;,
+    &quot;page&quot;: 170,
+    &quot;mark&quot;: &quot;30&quot;,
+    &quot;text&quot;: &quot;Adapté de UN High-Level Committee on Management. Personal data protection and privacy principles. Nations Unies ; 2018 (https://www.unsystem.org/personal-data-protection-and-privacy-principles). Guide d&#39;investissement pour la mise en œuvre numérique&quot;,
+    &quot;block&quot;: &quot;library/10665-353150/blocks/prose-sec-060&quot;
+  }
+]</pre></dd>
+<dt>unlinked_marks</dt><dd><pre>[
+  {
+    &quot;page&quot;: 15,
+    &quot;mark&quot;: &quot;1&quot;,
+    &quot;context&quot;: &quot;ce qui permet d&#39;accroître l&#39;efficacité et l&#39;impact.&quot;
+  },
+  {
+    &quot;page&quot;: 18,
+    &quot;mark&quot;: &quot;2&quot;,
+    &quot;context&quot;: &quot;tion et la mise en œuvre d&#39;une stratégie de santé numérique.&quot;
+  },
+  {
+    &quot;page&quot;: 42,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;context&quot;: &quot;L&#39;ÉCOSYSTÈME EXISTANT&quot;
+  },
+  {
+    &quot;page&quot;: 42,
+    &quot;mark&quot;: &quot;5&quot;,
+    &quot;context&quot;: &quot;L&#39;UTILISATEUR&quot;
+  },
+  {
+    &quot;page&quot;: 56,
+    &quot;mark&quot;: &quot;6&quot;,
+    &quot;context&quot;: &quot;OUVERTES&quot;
+  },
+  {
+    &quot;page&quot;: 56,
+    &quot;mark&quot;: &quot;7&quot;,
+    &quot;context&quot;: &quot;AMÉLIORER&quot;
+  },
+  {
+    &quot;page&quot;: 83,
+    &quot;mark&quot;: &quot;1&quot;,
+    &quot;context&quot;: &quot;et la sécurité. Il s&#39;agit notamment des droits des clients à&quot;
+  },
+  {
+    &quot;page&quot;: 83,
+    &quot;mark&quot;: &quot;2&quot;,
+    &quot;context&quot;: &quot;Les orientations du CDC&quot;
+  },
+  {
+    &quot;page&quot;: 83,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;context&quot;: &quot;Les orientations du CDC2 et de l&#39;ONUSIDA&quot;
+  },
+  {
+    &quot;page&quot;: 83,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;context&quot;: &quot;ntes élaborées par l&#39;ISO TC 215 sur l&#39;informatique de santé,&quot;
+  },
+  {
+    &quot;page&quot;: 94,
+    &quot;mark&quot;: &quot;1&quot;,
+    &quot;context&quot;: &quot;AMÉLIORER&quot;
+  },
+  {
+    &quot;page&quot;: 104,
+    &quot;mark&quot;: &quot;1&quot;,
+    &quot;context&quot;: &quot;L&#39;ÉCHELLE&quot;
+  },
+  {
+    &quot;page&quot;: 107,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;context&quot;: &quot;lustratifs tout au long du cycle de vie de la mise en œuvre.&quot;
+  },
+  {
+    &quot;page&quot;: 114,
+    &quot;mark&quot;: &quot;1&quot;,
+    &quot;context&quot;: &quot;LES DONNÉES&quot;
+  },
+  {
+    &quot;page&quot;: 138,
+    &quot;mark&quot;: &quot;1&quot;,
+    &quot;context&quot;: &quot;autre application.&quot;
+  },
+  {
+    &quot;page&quot;: 138,
+    &quot;mark&quot;: &quot;2&quot;,
+    &quot;context&quot;: &quot;service.&quot;
+  },
+  {
+    &quot;page&quot;: 138,
+    &quot;mark&quot;: &quot;3&quot;,
+    &quot;context&quot;: &quot;contenu de santé.&quot;
+  },
+  {
+    &quot;page&quot;: 138,
+    &quot;mark&quot;: &quot;4&quot;,
+    &quot;context&quot;: &quot;système de santé.&quot;
+  },
+  {
+    &quot;page&quot;: 139,
+    &quot;mark&quot;: &quot;5&quot;,
+    &quot;context&quot;: &quot;des caractéristiques moindres au fil du temps).&quot;
+  },
+  {
+    &quot;page&quot;: 139,
+    &quot;mark&quot;: &quot;6&quot;,
+    &quot;context&quot;: &quot;résultats sanitaires.&quot;
+  },
+  {
+    &quot;page&quot;: 139,
+    &quot;mark&quot;: &quot;7&quot;,
+    &quot;context&quot;: &quot;le succès.&quot;
+  },
+  {
+    &quot;page&quot;: 140,
+    &quot;mark&quot;: &quot;8&quot;,
+    &quot;context&quot;: &quot;associées pour une exécution réussie.&quot;
+  },
+  {
+    &quot;page&quot;: 140,
+    &quot;mark&quot;: &quot;9&quot;,
+    &quot;context&quot;: &quot;programme et leur impact anticipé.&quot;
+  }
+]</pre></dd>
+</dl>
+</main>
+<script src="../../../../../../../../assets/ig-search.js" defer></script>
+</body>
+</html>

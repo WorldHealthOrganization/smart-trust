@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Page not found</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:40rem;margin:4rem auto;padding:0 1rem;color:#1f2937;background:#fff}a{color:#1d4ed8}@media (prefers-color-scheme:dark){body{color:#e5e7eb;background:#111827}a{color:#93c5fd}}</style>
+</head>
+<body>
+<h1>Page not found</h1>
+<p id="fa-locale-fallback-note" role="status" hidden>This page is not translated into <span data-fa-locale></span> yet. Taking you to <a href="">the English version</a>…</p>
+<p>There is no page at this address. <a href="/smart-trust/">Go to the home page</a>.</p>
+<script id="fa-locale-fallback-404">
+(function () {
+  var LOCALES = ["ar","zh","en","fr","ru","es"];
+  var NAMES = {"ar":"العربية","zh":"中文","en":"English","fr":"Français","ru":"Русский","es":"Español"};
+  var fallbackCandidates = function (path, locales) {
+    var segs = path.split("/");
+    var i = -1;
+    for (var k = 1; k < segs.length; k++) if (locales.indexOf(segs[k]) !== -1) { i = k; break; }
+    if (i < 0) return [];
+    var before = segs.slice(0, i), after = segs.slice(i + 1);
+    var tries = [];
+    if (segs[i] !== "en") tries.push(before.concat(["en"], after).join("/"));
+    tries.push(before.concat(after).join("/") || "/");
+    var out = [];
+    for (var j = 0; j < tries.length; j++) if (tries[j] !== path && out.indexOf(tries[j]) === -1) out.push(tries[j]);
+    return out;
+  };
+  var path = window.location.pathname;
+  var cands = fallbackCandidates(path, LOCALES);
+  if (!cands.length || !window.fetch) return;
+  var segs = path.split("/");
+  var loc = "";
+  for (var k = 1; k < segs.length; k++) if (LOCALES.indexOf(segs[k]) !== -1) { loc = segs[k]; break; }
+  // An `en/` address on a site whose English is unprefixed is the same page,
+  // not a missing translation: it is followed at once, with no notice.
+  var source = loc === "en";
+  function tryAt(i) {
+    if (i >= cands.length) return;
+    fetch(cands[i], { method: "GET", credentials: "same-origin", cache: "no-store" }).then(function (r) {
+      if (!r.ok) return tryAt(i + 1);
+      var dest = cands[i];
+      try { sessionStorage.setItem("fa-locale-fallback", dest); } catch (_e) {}
+      var note = document.getElementById("fa-locale-fallback-note");
+      if (note && !source) {
+        note.hidden = false;
+        var name = NAMES[loc] || loc;
+        note.querySelector("[data-fa-locale]").textContent = name;
+        var a = note.querySelector("a");
+        a.setAttribute("href", dest + window.location.search + window.location.hash);
+      }
+      setTimeout(function () { window.location.replace(dest + window.location.search + window.location.hash); }, source ? 0 : 1500);
+    }, function () { tryAt(i + 1); });
+  }
+  tryAt(0);
+})();
+</script>
+</body>
+</html>

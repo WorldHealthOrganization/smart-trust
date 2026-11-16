@@ -1,0 +1,2357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script data-folio-saved-scheme>(function(){var d=document.documentElement,s=null,c="dark";try{s=localStorage.getItem("fa-color-scheme")}catch(e){}if(s!=="light"&&s!=="dark"){s="light";try{if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)s="dark"}catch(e){}}try{var n=document.getElementById("fa-site-scheme");if(n)c=JSON.parse(n.textContent).scheme==="light"?"light":"dark"}catch(e){}d.setAttribute("data-fa-scheme",s);var j=window.jtd;if(s!==c&&j&&typeof j.setTheme==="function"){try{j.setTheme(s)}catch(e){}}})();</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>library/10665-339745/tabular.csvw — folio-tabular-csvw/v1</title>
+<style>
+  :root { color-scheme: light dark; --fg:#1b1b1b; --bg:#fdfdfb; --muted:#5b5b5b; --line:#d6d6d0; --link:#0b5cad; --panel:#f3f4f2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-fa-scheme="light"]) { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; } }
+  :root[data-fa-scheme="dark"] { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; }
+  :root[data-fa-scheme="light"] { color-scheme: light; } :root[data-fa-scheme="dark"] { color-scheme: dark; }
+  body { margin:0; font:1rem/1.5 system-ui,sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width:80rem; margin:0 auto; padding:1.5rem 1.5rem 4rem; min-width:0; overflow-wrap:anywhere; }
+  h1 { font-size:1.35rem; margin:0 0 .25rem; } h2 { font-size:1.05rem; margin:1.5rem 0 .5rem; }
+  a { color:var(--link); } a:focus-visible, select:focus-visible { outline:3px solid var(--link); outline-offset:2px; }
+  .m { color:var(--muted); font-size:.9rem; }
+  .tiles { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; padding:0; list-style:none; }
+  .tiles li { border:1px solid var(--line); border-radius:.4rem; padding:.35rem .7rem; }
+  .tiles b { font-size:1.2rem; margin-right:.3rem; }
+  .clip { width:100%; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; vertical-align:top; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
+  th { background:var(--panel); white-space:nowrap; }
+  /* Only the node's path and long text may break mid-word; a status or a date
+     broken across lines ("in_pr ogres s") is unreadable. */
+  td { overflow-wrap:normal; } td.p, td.t { overflow-wrap:anywhere; } td.s { white-space:nowrap; }
+  dl { display:grid; grid-template-columns:minmax(8rem,14rem) 1fr; gap:.25rem 1rem; }
+  dt { font-weight:600; } dd { margin:0; }
+  pre { background:var(--panel); padding:.75rem; overflow-x:auto; font-size:.85rem; }
+  label { margin-right:1rem; }
+  @media (max-width:40rem) { dl { grid-template-columns:1fr; } }
+</style>
+<link rel="stylesheet" href="../../../../../../../../assets/css/navbar.css"><script src="../../../../../../../../assets/navbar/rail-zcon6vgt4x.js" defer></script><script src="../../../../../../../../assets/js/navbar.js" defer></script><style data-folio-narrow-viewport>
+/* Narrow viewports: nothing may widen the PAGE — bean `2r2n`.
+ *
+ * At 390 px, 105 of 249 built pages scrolled sideways (measured 2026-09-24).
+ * The rule here is the bean's: wide content scrolls INSIDE ITS OWN BOX with a
+ * visible cue, and the page itself never pans.
+ *
+ * ONE FILE, TWO WAYS IN. Themed pages link it from `_includes/head_custom.html`.
+ * The standalone viewer pages carry no theme stylesheet at all, so
+ * `withViewerNav` in `scripts/viewer-page.ts` inlines this same file when it
+ * adds the rail. A copy of these rules in each place would be two answers to
+ * "what does a table do at 390 px", free to drift apart.
+ *
+ * Every selector here is written to be safe on both kinds of page: no
+ * `.main-content` scope (a standalone page has none), the navbar excluded by
+ * name, and the theme's own `.table-wrapper` left alone, since it already does
+ * this job for Markdown tables. */
+
+@media (max-width: 799.98px) {
+  /* A table the theme did not wrap: raw HTML from a generator, or one built at
+   * runtime. `display: block` makes the table its own scroll box. Its cells
+   * still lay out as a table inside the anonymous table box. */
+  table:not(.table-wrapper > table):not(.fa-nav table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* THE CUE: the edge that has more content past it fades out. The fade is a
+   * MASK over the table's own pixels, driven by its own scroll position, so
+   * it needs no knowledge of the page's background. A painted cover (the
+   * usual `background-attachment: local` trick) does: the first version used
+   * `Canvas`, and on a page that is dark under a LIGHT scheme it laid a white
+   * band over the first column.
+   *
+   * A table that does not overflow has an inactive scroll timeline, so the
+   * animation has no effect and both fades stay at their initial 0: no cue
+   * where there is nothing to scroll to. A browser without scroll-driven
+   * animations shows no fade, and the table still scrolls. */
+  @supports (animation-timeline: scroll()) {
+    table:not(.table-wrapper > table):not(.fa-nav table) {
+      mask-image: linear-gradient(to right,
+        transparent 0, #000 var(--fa-cue-l),
+        #000 calc(100% - var(--fa-cue-r)), transparent 100%);
+      animation: fa-scroll-cue linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+
+  /* A code block scrolls in its own box, which is what `pre` is for. Mermaid
+   * SOURCE sits in a `pre` until the renderer replaces it, and at 390 px a
+   * diagram's source line is longer than the screen. */
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Prose that has no break opportunity: a long path in inline code, or a
+   * glossary definition naming one. Breaking the string is better than
+   * widening the page it sits on. */
+  :not(pre) > code,
+  dd {
+    overflow-wrap: anywhere;
+  }
+}
+
+@property --fa-cue-l { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --fa-cue-r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+@keyframes fa-scroll-cue {
+  0%   { --fa-cue-l: 0px;    --fa-cue-r: 2.5rem; }
+  12%  { --fa-cue-l: 2.5rem; }
+  88%  { --fa-cue-r: 2.5rem; }
+  100% { --fa-cue-l: 2.5rem; --fa-cue-r: 0px; }
+}
+
+</style>
+<script type="application/json" id="fa-translation-meta">{"lang":"en","translationStatus":"","translationSource":"","supportedLocales":["ar","zh","en","fr","ru","es"],"availableLocales":[]}</script><link rel="stylesheet" href="../../../../../../../../assets/page-layout.css" data-fa-page-layout><script src="../../../../../../../../assets/page-layout.js" defer data-fa-page-layout></script><link rel="stylesheet" href="../../../../../../../../assets/ig-artifact.css"><style data-ig-version-chrome>.ig-topbar-head{flex:0 0 100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .9rem}.ig-topbar-head .ig-topbar-home{flex:none}.ig-topbar-ver{font-weight:400;font-size:.9em;opacity:.95;white-space:nowrap}.ig-topbar-flag{font-size:1.1em}.ig-version-banner{box-sizing:border-box;margin:0;padding:.5rem 1.5rem;background:#ffffa0;color:#222;border-bottom:1px solid #0a0008;font-size:.95rem;line-height:1.45}.ig-version-banner a{color:#1a4b8c;text-decoration:underline}html:not([data-fa-scheme="light"]) .ig-version-banner{background:#4a4520;color:#fff8d0;border-color:#8a7d2a}html:not([data-fa-scheme="light"]) .ig-version-banner a{color:#ffe680}.ig-metadata{border-collapse:collapse;margin:0 0 1rem;font-size:.95rem}.ig-metadata td{border:1px solid #c8c8c8;padding:.25rem .6rem;vertical-align:top}.ig-metadata code{overflow-wrap:anywhere}</style></head>
+<body data-fa-node-kind-page>
+<header class="ig-search-top fa-page-bar"><a class="ig-search-home" href="../../../../../../../../index.html">WHO SMART Trust</a><span class="ig-topbar-ver"><span class="ig-topbar-flag" role="img" aria-label="International" title="International">🌐</span> 1.7.5 - ci-build</span><form class="ig-search" role="search" data-ig-search-index="../../../../../../../../assets/ig-search.json"><label class="ig-search-label" for="search-input">Search WHO SMART Trust</label><input type="search" id="search-input" class="ig-search-input" placeholder="Search pages and artefacts" autocomplete="off" aria-controls="ig-search-results" aria-expanded="false"><ul id="ig-search-results" class="ig-search-results" hidden></ul></form><span class="ig-locale-slot" data-fa-slot="locale"></span></header><p class="ig-version-banner" role="note">This page is part of the WHO SMART Trust (v1.7.5: ci-build) based on <a href="http://hl7.org/fhir/R4/">FHIR (HL7® FHIR® Standard) v4.0.1</a>. This is the continuous integration build: it follows the source and is not a published version. For a full list of available versions, see the <a href="http://smart.who.int/trust/history.html">Directory of published versions</a>.</p><script type="application/json" id="fa-rail" data-fa-root="../../../../../../../.." data-fa-to-root="../../../../../../../..">{"data":"rail-zcon6vgt4x","here":"/en/cat-harness-tools/folio-tabular-csvw/v1/who-iris/library/10665-339745/tabular.csvw/"}</script><nav class="fa-nav" aria-label="folio-assistant" data-fa-rail="pending"><a href="../../../../../../../../">folio-assistant</a></nav>
+<main>
+<h1 id="nk-title">library/10665-339745/tabular.csvw</h1>
+<p class="m">A <a href="../../../../">folio-tabular-csvw/v1</a> node held by <a href="../../../">who-iris</a>, at <code>who-iris/library/10665-339745/tabular.csvw.json</code>.</p>
+
+<h2 id="fields">Fields</h2>
+<dl>
+<dt>$schema</dt><dd>folio-tabular-csvw/v1</dd>
+<dt>doc_id</dt><dd>10665-339745</dd>
+<dt>tables</dt><dd><pre>[
+  {
+    &quot;url&quot;: &quot;tables/table-1.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;component&quot;,
+          &quot;titles&quot;: &quot;Component&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;purpose&quot;,
+          &quot;titles&quot;: &quot;Purpose&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;outputs&quot;,
+          &quot;titles&quot;: &quot;Outputs&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;adaptation-needed&quot;,
+          &quot;titles&quot;: &quot;Adaptation needed&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 8,
+      &quot;columns&quot;: 5,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 1&quot;,
+    &quot;fac:caption&quot;: &quot;Table 1. Components of a digital adaptation kit&quot;,
+    &quot;fac:pages&quot;: [
+      15,
+      16,
+      17
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table describes the eight components of the digital adaptation kit (DAK) for antenatal care, from health interventions and recommendations to functional and non-functional requirements. For each component it gives a description, its purpose, the outputs it produces and the adaptation needed for a local context.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يصف الجدول المكونات الثمانية لمجموعة أدوات التكييف الرقمي الخاصة بالرعاية السابقة للولادة، بدءًا من التدخلات والتوصيات الصحية وصولًا إلى المتطلبات الوظيفية وغير الوظيفية. ويعرض لكل مكون وصفه والغرض منه والمخرجات التي يقدمها والتكييف اللازم للسياق المحلي.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表介绍了产前保健数字适配工具包的八个组成部分，从卫生干预措施和建议到功能性和非功能性需求。对每个组成部分，表中给出了说明、目的、产出以及根据当地情况所需的适配。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro describe los ocho componentes del kit de adaptación digital (DAK) para la atención prenatal, desde las intervenciones y recomendaciones de salud hasta los requisitos funcionales y no funcionales. Para cada componente indica su descripción, su finalidad, los productos que genera y la adaptación necesaria al contexto local.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau décrit les huit composantes du kit d’adaptation numérique (DAK) pour les soins prénatals, des interventions et recommandations sanitaires aux exigences fonctionnelles et non fonctionnelles. Pour chaque composante, il en donne la description, l’objectif, les produits attendus et l’adaptation nécessaire au contexte local.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице описаны восемь компонентов набора средств цифровой адаптации (DAK) для дородовой помощи — от мероприятий и рекомендаций в области здравоохранения до функциональных и нефункциональных требований. Для каждого компонента приводятся описание, назначение, получаемые результаты и необходимая адаптация к местным условиям.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-2.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;occupational-title&quot;,
+          &quot;titles&quot;: &quot;Occupational title&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;different-names&quot;,
+          &quot;titles&quot;: &quot;Different Names&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;isco-code-23&quot;,
+          &quot;titles&quot;: &quot;ISCO Code (23)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 3,
+      &quot;columns&quot;: 4,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 2&quot;,
+    &quot;fac:caption&quot;: &quot;Table 2. Descriptions of key generic personas&quot;,
+    &quot;fac:pages&quot;: [
+      27
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table describes the three key generic personas targeted by the antenatal care digital adaptation kit: the auxiliary nurse midwife, the midwife and the nurse. For each it gives a description of the role and training, other names used for the occupation and the ISCO occupation code.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يصف الجدول الشخصيات النموذجية العامة الرئيسية الثلاث التي تستهدفها مجموعة أدوات التكييف الرقمي للرعاية السابقة للولادة: القابلة الممرضة المساعدة، والقابلة، والممرضة. ويقدم لكل منها وصفًا للدور والتدريب، والتسميات الأخرى المستخدمة للمهنة، ورمز التصنيف الدولي الموحد للمهن (ISCO).&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表介绍了产前保健数字适配工具包所针对的三类主要通用人物角色：助理护士助产士、助产士和护士。对每类角色，表中给出了职责和培训说明、该职业的其他名称以及国际标准职业分类（ISCO）代码。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro describe los tres perfiles genéricos clave a los que se dirige el kit de adaptación digital para la atención prenatal: la auxiliar de enfermería y partería, la partera y la enfermera. Para cada uno se ofrece una descripción de la función y la formación, otras denominaciones de la ocupación y el código CIUO (ISCO).&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau décrit les trois personas génériques clés ciblés par le kit d’adaptation numérique pour les soins prénatals : l’infirmière sage-femme auxiliaire, la sage-femme et l’infirmière. Pour chacun, il donne une description du rôle et de la formation, les autres appellations de la profession et le code CITP (ISCO).&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице описаны три основных типовых профиля пользователей, на которых ориентирован набор средств цифровой адаптации для дородовой помощи: младшая медсестра-акушерка, акушерка и медицинская сестра. Для каждого приводятся описание роли и подготовки, другие названия профессии и код МСКЗ (ISCO).&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-3.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;name&quot;,
+          &quot;titles&quot;: &quot;Name&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;different-names&quot;,
+          &quot;titles&quot;: &quot;Different Names&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;isco-code-if-relevant-23&quot;,
+          &quot;titles&quot;: &quot;ISCO Code (if relevant) (23)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 5,
+      &quot;columns&quot;: 4,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 3&quot;,
+    &quot;fac:caption&quot;: &quot;Table 3. Additional personas related to the role of the targeted nurse midwife&quot;,
+    &quot;fac:pages&quot;: [
+      29
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;N/A: not applicable.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists additional personas related to the role of the targeted nurse midwife: the pregnant woman, lay health worker, community health worker, nurse/midwife supervisor and facility manager. For each it gives a description, other names used and the ISCO code where relevant.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول شخصيات إضافية مرتبطة بدور القابلة الممرضة المستهدفة: المرأة الحامل، والعامل الصحي غير المتخصص، والعامل الصحي المجتمعي، ومشرف التمريض/القبالة، ومدير المرفق. ويقدم لكل منها وصفًا، والتسميات الأخرى المستخدمة، ورمز التصنيف الدولي الموحد للمهن عند الاقتضاء.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表列出了与目标护士助产士角色相关的其他人物角色：孕妇、非专业卫生工作者、社区卫生工作者、护士/助产士主管和卫生机构管理人员。对每类角色，表中给出了说明、其他名称以及相关的ISCO代码。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro enumera otros perfiles relacionados con la función de la enfermera partera destinataria: la embarazada, el agente de salud no profesional, el agente de salud comunitario, el supervisor de enfermería/partería y el gerente del establecimiento. Para cada uno se ofrece una descripción, otras denominaciones y, cuando procede, el código CIUO.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau présente d’autres personas liés au rôle de l’infirmière sage-femme ciblée : la femme enceinte, l’agent de santé non professionnel, l’agent de santé communautaire, le superviseur infirmier/sage-femme et le gestionnaire d’établissement. Pour chacun, il donne une description, les autres appellations et, le cas échéant, le code CITP.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены дополнительные профили, связанные с ролью целевой медсестры-акушерки: беременная женщина, непрофессиональный медицинский работник, общинный медицинский работник, руководитель медсестёр/акушерок и руководитель учреждения. Для каждого приводятся описание, другие названия и, при необходимости, код МСКЗ.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-4.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;data-elements-to-be-collected&quot;,
+          &quot;titles&quot;: &quot;Data elements to be collected&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;decision-support-logic-to-be-embedded&quot;,
+          &quot;titles&quot;: &quot;Decision-support logic to be embedded&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;functional-and-non-functional-requirements&quot;,
+          &quot;titles&quot;: &quot;Functional and non-functional requirements&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;adolescent-specific-considerations-which-should-be-triggered-if-the-client-s-entered-age-is-19-years-or-younger&quot;,
+          &quot;titles&quot;: &quot;Adolescent-specific considerations which should be “triggered” if the client’s entered age is 19 years or younger&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 1,
+      &quot;columns&quot;: 4,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 4&quot;,
+    &quot;fac:caption&quot;: &quot;Table 4. Interpretation of a user scenario&quot;,
+    &quot;fac:pages&quot;: [
+      35
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table interprets the user scenario for an adolescent antenatal care client, listing in four columns the data elements to be collected, the decision-support logic to be embedded, the functional and non-functional requirements, and the adolescent-specific considerations to be triggered when the client is 19 years or younger.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يفسر الجدول سيناريو المستخدم الخاص بمراهقة تتلقى الرعاية السابقة للولادة، ويسرد في أربعة أعمدة عناصر البيانات المطلوب جمعها، ومنطق دعم القرار المطلوب تضمينه، والمتطلبات الوظيفية وغير الوظيفية، والاعتبارات الخاصة بالمراهقين التي ينبغي تفعيلها عندما يكون عمر المراجِعة 19 عامًا أو أقل.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表对一名青少年产前保健服务对象的用户情景进行了解读，分四列列出需收集的数据元素、需嵌入的决策支持逻辑、功能性和非功能性需求，以及服务对象年龄为19岁或以下时应触发的青少年特定注意事项。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro interpreta el escenario de usuario de una adolescente que recibe atención prenatal y enumera en cuatro columnas los elementos de datos que deben recopilarse, la lógica de apoyo a la toma de decisiones que debe integrarse, los requisitos funcionales y no funcionales, y las consideraciones específicas para adolescentes que deben activarse cuando la usuaria tiene 19 años o menos.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau interprète le scénario d’utilisation d’une cliente adolescente en soins prénatals et présente en quatre colonnes les éléments de données à recueillir, la logique d’aide à la décision à intégrer, les exigences fonctionnelles et non fonctionnelles, ainsi que les considérations propres aux adolescentes à déclencher lorsque la cliente a 19 ans ou moins.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице интерпретируется пользовательский сценарий для клиентки-подростка, получающей дородовую помощь: в четырёх столбцах перечислены собираемые элементы данных, встраиваемая логика поддержки принятия решений, функциональные и нефункциональные требования, а также особые соображения для подростков, срабатывающие, если возраст клиентки составляет 19 лет или меньше.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-5.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;col-1&quot;,
+          &quot;titles&quot;: &quot;&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;title&quot;,
+          &quot;titles&quot;: &quot;Title&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Process Name&quot;
+        },
+        {
+          &quot;name&quot;: &quot;id-used-to-reference-this-process-throughout-the-dak&quot;,
+          &quot;titles&quot;: &quot;ID used to reference this process throughout the DAK&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Process ID&quot;
+        },
+        {
+          &quot;name&quot;: &quot;individuals-interacting-to-complete-the-process&quot;,
+          &quot;titles&quot;: &quot;Individuals interacting to complete the process&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Personas&quot;
+        },
+        {
+          &quot;name&quot;: &quot;a-concrete-statement-describing-what-the-process-seeks-to-achieve&quot;,
+          &quot;titles&quot;: &quot;A concrete statement describing what the process seeks to achieve&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Objectives&quot;
+        },
+        {
+          &quot;name&quot;: &quot;the-general-set-of-activities-performed-within-the-process&quot;,
+          &quot;titles&quot;: &quot;The general set of activities performed within the process&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Task set&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 5,
+      &quot;columns&quot;: 6,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 5&quot;,
+    &quot;fac:caption&quot;: &quot;Table 5. Overview of key ANC processes&quot;,
+    &quot;fac:pages&quot;: [
+      37,
+      38
+    ],
+    &quot;fac:headerRows&quot;: 2,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;a As this DAK is focused on ANC, we will refer to this individual as “woman/pregnant woman” although data elements in the registration workflow will use the term “client” for consistency across other DAKs as the registration workflow is a general process across all health service delivery. Source: Adapted from PATH (13).&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table gives an overview of five key antenatal care business processes (A–E: registration, routine ANC contact, referral, community health promotion and follow-up, and reporting on aggregate indicators). For each process it gives the process ID, the personas involved, the objective and the set of tasks performed.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يقدم الجدول لمحة عامة عن خمس عمليات تشغيلية رئيسية في الرعاية السابقة للولادة (من A إلى E: التسجيل، والزيارة الروتينية للرعاية السابقة للولادة، والإحالة، وتعزيز الصحة والمتابعة في المجتمع، والإبلاغ عن المؤشرات الإجمالية). ويعرض لكل عملية رمزها والشخصيات المعنية والهدف ومجموعة المهام المنفذة.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表概述了产前保健的五个关键业务流程（A–E：登记、常规产前保健接触、转诊、社区健康促进和随访、汇总指标报告）。对每个流程，表中给出了流程编号、参与的人物角色、目标以及所执行的任务集。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro ofrece una visión general de cinco procesos operativos clave de la atención prenatal (A–E: registro, contacto prenatal sistemático, derivación, promoción de la salud y seguimiento en la comunidad, y notificación de indicadores agregados). Para cada proceso indica su identificador, los perfiles que intervienen, el objetivo y el conjunto de tareas realizadas.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau présente une vue d’ensemble de cinq processus opérationnels clés des soins prénatals (A–E : enregistrement, contact prénatal de routine, orientation-recours, promotion de la santé et suivi communautaires, et notification des indicateurs agrégés). Pour chaque processus, il indique l’identifiant, les personas concernés, l’objectif et l’ensemble des tâches réalisées.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице представлен обзор пяти ключевых рабочих процессов дородовой помощи (A–E: регистрация, плановый дородовой контакт, направление к специалистам, укрепление здоровья и последующее наблюдение на уровне общины, а также отчётность по агрегированным показателям). Для каждого процесса указаны идентификатор, задействованные профили, цель и набор выполняемых задач.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-6.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;symbol&quot;,
+          &quot;titles&quot;: &quot;Symbol&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;symbol-name&quot;,
+          &quot;titles&quot;: &quot;Symbol name&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 13,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 6&quot;,
+    &quot;fac:caption&quot;: &quot;Table 6. Business process symbols used in workflows&quot;,
+    &quot;fac:pages&quot;: [
+      38,
+      39
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;Symbol column cells contain graphics only (pool/lane diagrams, circles, boxes, arrows, diamond, link icons); left empty in transcription.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table explains the business process modelling symbols used in the DAK workflows, such as pools, swim lanes, start and end events, activities, sequence and message flows, gateways and link connectors. For each it shows the symbol, its name and a description of how it should be used.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يشرح الجدول رموز نمذجة العمليات التشغيلية المستخدمة في مسارات العمل ضمن مجموعة الأدوات، مثل الحوض والممرات والأحداث الابتدائية والنهائية والأنشطة وتدفقات التسلسل والرسائل والبوابات وروابط الربط. ويعرض لكل منها الرمز واسمه ووصفًا لكيفية استخدامه.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表解释了数字适配工具包工作流程中使用的业务流程建模符号，例如池、泳道、开始和结束事件、活动、顺序流和消息流、网关以及链接连接符。对每个符号，表中给出了图形、名称及其使用说明。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro explica los símbolos de modelado de procesos operativos utilizados en los flujos de trabajo del kit, como grupos (pools), carriles, eventos de inicio y fin, actividades, flujos de secuencia y de mensajes, compuertas y conectores de enlace. Para cada uno muestra el símbolo, su nombre y una descripción de su uso.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau explique les symboles de modélisation des processus opérationnels utilisés dans les flux de travail du kit, tels que les bassins, couloirs, événements de début et de fin, activités, flux de séquence et de messages, passerelles et connecteurs de lien. Pour chacun, il présente le symbole, son nom et une description de son utilisation.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице разъясняются символы моделирования бизнес-процессов, используемые в рабочих процессах набора, такие как пулы, дорожки, начальные и конечные события, действия, потоки последовательности и сообщений, шлюзы и соединители-ссылки. Для каждого показаны символ, его название и описание использования.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-7.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;activity-id-activity-name&quot;,
+          &quot;titles&quot;: &quot;Activity ID. Activity name&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;data-element-id&quot;,
+          &quot;titles&quot;: &quot;Data element ID&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;data-element-name&quot;,
+          &quot;titles&quot;: &quot;Data element name&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description-and-definition&quot;,
+          &quot;titles&quot;: &quot;Description and definition&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 101,
+      &quot;columns&quot;: 4,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:merged&quot;: [
+      &quot;A2:D2&quot;,
+      &quot;B3:D3&quot;,
+      &quot;B4:D4&quot;,
+      &quot;B5:D5&quot;,
+      &quot;A6:A17&quot;,
+      &quot;B18:D18&quot;,
+      &quot;B19:D19&quot;,
+      &quot;B20:D20&quot;,
+      &quot;B21:D21&quot;,
+      &quot;B22:D22&quot;,
+      &quot;A23:D23&quot;,
+      &quot;B24:D24&quot;,
+      &quot;B25:D25&quot;,
+      &quot;B26:D26&quot;,
+      &quot;A28:A30&quot;,
+      &quot;A31:A48&quot;,
+      &quot;A49:A54&quot;,
+      &quot;A55:A74&quot;,
+      &quot;A75:A88&quot;,
+      &quot;A89:B89&quot;,
+      &quot;C89:D89&quot;,
+      &quot;A90:B90&quot;,
+      &quot;C90:D90&quot;,
+      &quot;A91:B91&quot;,
+      &quot;C91:D91&quot;,
+      &quot;A92:B92&quot;,
+      &quot;C92:D92&quot;,
+      &quot;A93:D93&quot;,
+      &quot;A95:A102&quot;
+    ],
+    &quot;fac:label&quot;: &quot;Table 7&quot;,
+    &quot;fac:caption&quot;: &quot;Table 7. Workflow core data elements for identified business processes&quot;,
+    &quot;fac:pages&quot;: [
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;N/A, not applicable.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists the core data elements recorded in each activity of the antenatal care business processes for registration (ANC.A), the ANC contact (ANC.B) and referral (ANC.C). For each activity it gives the data element IDs, the data element names and a description or definition, or states that no data are recorded.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول عناصر البيانات الأساسية المسجلة في كل نشاط من أنشطة العمليات التشغيلية للرعاية السابقة للولادة، وهي التسجيل (ANC.A) وزيارة الرعاية السابقة للولادة (ANC.B) والإحالة (ANC.C). ويعرض لكل نشاط رموز عناصر البيانات وأسماءها ووصفها أو تعريفها، أو يشير إلى عدم تسجيل أي بيانات.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表列出了产前保健各业务流程——登记（ANC.A）、产前保健接触（ANC.B）和转诊（ANC.C）——中每项活动所记录的核心数据元素。对每项活动，表中给出了数据元素编号、名称以及说明或定义，或注明不记录数据。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro enumera los elementos de datos básicos que se registran en cada actividad de los procesos operativos de atención prenatal: registro (ANC.A), contacto prenatal (ANC.B) y derivación (ANC.C). Para cada actividad indica los identificadores y nombres de los elementos de datos y su descripción o definición, o señala que no se registran datos.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau présente les éléments de données de base enregistrés à chaque activité des processus opérationnels des soins prénatals : enregistrement (ANC.A), contact prénatal (ANC.B) et orientation-recours (ANC.C). Pour chaque activité, il donne les identifiants et noms des éléments de données ainsi que leur description ou définition, ou indique qu’aucune donnée n’est enregistrée.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены основные элементы данных, регистрируемые на каждом этапе рабочих процессов дородовой помощи: регистрации (ANC.A), дородового контакта (ANC.B) и направления (ANC.C). Для каждого этапа приводятся идентификаторы и названия элементов данных и их описание или определение либо указывается, что данные не регистрируются.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-8.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;calculated-data-element-label&quot;,
+          &quot;titles&quot;: &quot;Calculated data element label&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;core-data-elements-used-for-calculation-i-e-the-variables&quot;,
+          &quot;titles&quot;: &quot;Core data elements used for calculation (i.e. the “variables”)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;calculation&quot;,
+          &quot;titles&quot;: &quot;Calculation&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 4,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 8&quot;,
+    &quot;fac:caption&quot;: &quot;Table 8. Derived data elements&quot;,
+    &quot;fac:pages&quot;: [
+      65
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists four data elements derived by calculation from core data elements: estimated due date, gestational age, body mass index and total weight gain. For each it gives the core data elements used as variables and the calculation formula.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول أربعة عناصر بيانات مشتقة بالحساب من عناصر البيانات الأساسية: تاريخ الولادة المتوقع، وعمر الحمل، ومنسب كتلة الجسم، وإجمالي زيادة الوزن. ويعرض لكل منها عناصر البيانات الأساسية المستخدمة كمتغيرات وصيغة الحساب.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表列出了由核心数据元素计算得出的四个派生数据元素：预产期、孕龄、体重指数和总增重。对每个元素，表中给出了用作变量的核心数据元素及计算公式。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro enumera cuatro elementos de datos derivados mediante cálculo a partir de elementos de datos básicos: fecha probable de parto, edad gestacional, índice de masa corporal y aumento total de peso. Para cada uno indica los elementos de datos básicos utilizados como variables y la fórmula de cálculo.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau présente quatre éléments de données dérivés par calcul à partir des éléments de données de base : date prévue d’accouchement, âge gestationnel, indice de masse corporelle et prise de poids totale. Pour chacun, il indique les éléments de données de base utilisés comme variables et la formule de calcul.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены четыре производных элемента данных, рассчитываемых на основе основных элементов данных: предполагаемая дата родов, гестационный возраст, индекс массы тела и общая прибавка массы тела. Для каждого указаны основные элементы данных, используемые в качестве переменных, и формула расчёта.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-9.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;data-element-id&quot;,
+          &quot;titles&quot;: &quot;Data element ID&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;point-of-customization-and-configuration&quot;,
+          &quot;titles&quot;: &quot;Point of customization and configuration&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 17,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:merged&quot;: [
+      &quot;A2:C2&quot;,
+      &quot;A16:C16&quot;
+    ],
+    &quot;fac:label&quot;: &quot;Table 9&quot;,
+    &quot;fac:caption&quot;: &quot;Table 9.&quot;,
+    &quot;fac:pages&quot;: [
+      65,
+      66
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;Caption on the page reads only “Table 9.” with no title text.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table, printed without a title, lists configuration data elements (ANC.Config.1–15) for adapting the data dictionary to the local context, grouped into population characteristics (such as prevalence of anaemia, HIV, malaria endemicity) and site-specific characteristics. For each it gives the point of customization and a description.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول، المنشور دون عنوان، عناصر بيانات التهيئة (ANC.Config.1–15) اللازمة لتكييف قاموس البيانات مع السياق المحلي، مقسمة إلى خصائص السكان (مثل انتشار فقر الدم وفيروس العوز المناعي البشري وتوطن الملاريا) وخصائص خاصة بالموقع. ويعرض لكل منها نقطة التخصيص ووصفًا لها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表未附标题，列出了用于根据当地情况调整数据字典的配置数据元素（ANC.Config.1–15），分为人群特征（如贫血、艾滋病毒流行率、疟疾流行情况）和机构特定特征两类。对每个元素，表中给出了定制点及说明。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro, publicado sin título, enumera los elementos de datos de configuración (ANC.Config.1–15) para adaptar el diccionario de datos al contexto local, agrupados en características de la población (como prevalencia de anemia, VIH o endemicidad del paludismo) y características específicas del establecimiento. Para cada uno indica el punto de personalización y una descripción.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau, publié sans titre, présente les éléments de données de configuration (ANC.Config.1–15) permettant d’adapter le dictionnaire de données au contexte local, regroupés en caractéristiques de la population (prévalence de l’anémie, du VIH, endémicité du paludisme, etc.) et caractéristiques propres au site. Pour chacun, il indique le point de personnalisation et une description.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице, приведённой без заголовка, перечислены конфигурационные элементы данных (ANC.Config.1–15) для адаптации словаря данных к местным условиям, сгруппированные по характеристикам населения (например, распространённость анемии, ВИЧ, эндемичность по малярии) и характеристикам конкретного учреждения. Для каждого указаны точка настройки и описание.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-10.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;task&quot;,
+          &quot;titles&quot;: &quot;Task&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;decision-support-table-id&quot;,
+          &quot;titles&quot;: &quot;Decision-support table ID&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;reference-source&quot;,
+          &quot;titles&quot;: &quot;Reference/source&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 38,
+      &quot;columns&quot;: 4,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:merged&quot;: [
+      &quot;A5:A6&quot;,
+      &quot;A8:A15&quot;,
+      &quot;A18:A25&quot;,
+      &quot;A28:A31&quot;,
+      &quot;A32:A33&quot;,
+      &quot;A34:A36&quot;,
+      &quot;A37:A38&quot;
+    ],
+    &quot;fac:label&quot;: &quot;Table 10&quot;,
+    &quot;fac:caption&quot;: &quot;Table 10. Overview of decision-support tables for ANC contact workflow (Workflow B)&quot;,
+    &quot;fac:pages&quot;: [
+      68,
+      69,
+      70
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists the 38 decision-support tables (ANC.DT.01–ANC.DT.38) for the antenatal care contact workflow, grouped by task such as danger signs, laboratory and imaging, diagnosis and treatment, counselling and immunization. For each it gives a description and the WHO guideline or guide that is its reference source.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول جداول دعم القرار الثمانية والثلاثين (ANC.DT.01–ANC.DT.38) الخاصة بمسار عمل زيارة الرعاية السابقة للولادة، مجمعة حسب المهمة مثل علامات الخطر، والفحوص المختبرية والتصوير، والتشخيص والعلاج، والمشورة، والتمنيع. ويعرض لكل منها وصفًا والمبدأ التوجيهي أو الدليل الصادر عن المنظمة الذي يمثل مرجعها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表列出了产前保健接触工作流程的38个决策支持表（ANC.DT.01–ANC.DT.38），按任务分组，如危险征象、实验室检查和影像、诊断和治疗、咨询以及免疫接种。对每个表，均给出了说明以及作为参考来源的世卫组织指南或指导手册。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro enumera las 38 tablas de apoyo a la toma de decisiones (ANC.DT.01–ANC.DT.38) del flujo de trabajo del contacto prenatal, agrupadas por tarea, como signos de peligro, pruebas de laboratorio e imagen, diagnóstico y tratamiento, asesoramiento e inmunización. Para cada una indica una descripción y la directriz o guía de la OMS que le sirve de referencia.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau présente les 38 tables d’aide à la décision (ANC.DT.01–ANC.DT.38) du flux de travail du contact prénatal, regroupées par tâche : signes de danger, examens de laboratoire et imagerie, diagnostic et traitement, conseil et vaccination, etc. Pour chacune, il donne une description et la ligne directrice ou le guide de l’OMS servant de référence.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены 38 таблиц поддержки принятия решений (ANC.DT.01–ANC.DT.38) для рабочего процесса дородового контакта, сгруппированных по задачам, таким как признаки опасности, лабораторные исследования и визуализация, диагностика и лечение, консультирование и иммунизация. Для каждой приводятся описание и руководство или руководящие принципы ВОЗ, служащие источником.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-11.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;col-1&quot;,
+          &quot;titles&quot;: &quot;&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;col-2&quot;,
+          &quot;titles&quot;: &quot;&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;col-3&quot;,
+          &quot;titles&quot;: &quot;&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;col-4&quot;,
+          &quot;titles&quot;: &quot;&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 5,
+      &quot;columns&quot;: 4,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:merged&quot;: [
+      &quot;B2:D2&quot;,
+      &quot;B3:D3&quot;,
+      &quot;B4:D4&quot;
+    ],
+    &quot;fac:label&quot;: &quot;Table 11&quot;,
+    &quot;fac:caption&quot;: &quot;Table 11. Components of the decision-support tables&quot;,
+    &quot;fac:pages&quot;: [
+      71
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;DBP: diastolic blood pressure; SBP: systolic blood pressure.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table describes the components of each decision-support table: the decision ID, business rule and trigger, followed by the inputs, output, action and annotations columns, with an explanation of what each contains and how inputs on the same or different rows combine.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يصف الجدول مكونات كل جدول من جداول دعم القرار: رمز القرار، وقاعدة العمل، والمحفز، تليها أعمدة المدخلات والمخرجات والإجراء والملاحظات، مع شرح لمحتوى كل منها وكيفية الجمع بين المدخلات الواردة في الصف نفسه أو في صفوف مختلفة.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表介绍了每个决策支持表的组成部分：决策编号、业务规则和触发条件，以及输入、输出、行动和注释各栏，并说明了各部分的内容以及同一行或不同行的输入如何组合。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro describe los componentes de cada tabla de apoyo a la toma de decisiones: el identificador de la decisión, la regla operativa y el desencadenante, seguidos de las columnas de datos de entrada, resultado, acción y anotaciones, con una explicación de su contenido y de cómo se combinan los datos de entrada de una misma fila o de filas distintas.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau décrit les composantes de chaque table d’aide à la décision : identifiant de la décision, règle opérationnelle et déclencheur, suivis des colonnes entrées, résultat, action et annotations, avec une explication de leur contenu et de la façon dont se combinent les entrées d’une même ligne ou de lignes différentes.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице описаны компоненты каждой таблицы поддержки принятия решений: идентификатор решения, бизнес-правило и триггер, а также столбцы входных данных, результата, действия и примечаний с пояснением их содержания и того, как сочетаются входные данные в одной и в разных строках.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-12.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;col-1&quot;,
+          &quot;titles&quot;: &quot;&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;col-2&quot;,
+          &quot;titles&quot;: &quot;&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;col-3&quot;,
+          &quot;titles&quot;: &quot;&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;col-4&quot;,
+          &quot;titles&quot;: &quot;&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;col-5&quot;,
+          &quot;titles&quot;: &quot;&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;col-6&quot;,
+          &quot;titles&quot;: &quot;&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;col-7&quot;,
+          &quot;titles&quot;: &quot;&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 8,
+      &quot;columns&quot;: 7,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:merged&quot;: [
+      &quot;B2:G2&quot;,
+      &quot;B3:G3&quot;,
+      &quot;B4:G4&quot;,
+      &quot;A5:D5&quot;,
+      &quot;G6:G9&quot;
+    ],
+    &quot;fac:label&quot;: &quot;Table 12&quot;,
+    &quot;fac:caption&quot;: &quot;Table 12. Example decision-logic table for hypertension counselling&quot;,
+    &quot;fac:pages&quot;: [
+      72
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;Text printed between caption and table: “Below is an excerpt from an elaborated decision-support table using an example from ANC. All the decision-support tables referenced above in the overview table (Table 10) are available in the Web Annex B.”&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table is an excerpt of a decision-support table for pre-eclampsia, severe pre-eclampsia and hypertension diagnosis (ANC.DT.16), giving its business rule and trigger. Four rows combine blood pressure readings, absence of severe pre-eclampsia symptoms and urine protein results as inputs, with the resulting output, action and an annotation for the health worker.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يعرض الجدول مقتطفًا من جدول دعم القرار الخاص بتشخيص مقدمات الارتعاج ومقدمات الارتعاج الشديدة وارتفاع ضغط الدم (ANC.DT.16)، مع قاعدة العمل والمحفز. وتجمع أربعة صفوف بين قراءات ضغط الدم وغياب أعراض مقدمات الارتعاج الشديدة ونتائج البروتين في البول كمدخلات، مع المخرجات والإجراء الناتجين وملاحظة موجهة للعامل الصحي.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表摘录了先兆子痫、重度先兆子痫和高血压诊断的决策支持表（ANC.DT.16），列出其业务规则和触发条件。四行以血压读数、无重度先兆子痫症状和尿蛋白结果作为输入组合，并给出相应的输出、行动以及给卫生工作者的注释。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro es un extracto de la tabla de apoyo a la toma de decisiones para el diagnóstico de preeclampsia, preeclampsia grave e hipertensión (ANC.DT.16), con su regla operativa y su desencadenante. Cuatro filas combinan como datos de entrada las cifras de tensión arterial, la ausencia de síntomas de preeclampsia grave y los resultados de proteínas en orina, con el resultado, la acción y una anotación para el agente de salud.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau est un extrait de la table d’aide à la décision pour le diagnostic de la pré-éclampsie, de la pré-éclampsie sévère et de l’hypertension (ANC.DT.16), avec sa règle opérationnelle et son déclencheur. Quatre lignes combinent comme entrées les mesures de tension artérielle, l’absence de symptômes de pré-éclampsie sévère et les résultats de protéinurie, avec le résultat, l’action et une annotation destinée à l’agent de santé.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Таблица представляет собой фрагмент таблицы поддержки принятия решений для диагностики преэклампсии, тяжёлой преэклампсии и гипертензии (ANC.DT.16) с указанием бизнес-правила и триггера. В четырёх строках в качестве входных данных сочетаются показатели артериального давления, отсутствие симптомов тяжёлой преэклампсии и результаты анализа мочи на белок, а также приводятся результат, действие и примечание для медицинского работника.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-13.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;scheduling-logic-id&quot;,
+          &quot;titles&quot;: &quot;Scheduling logic ID&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;scheduling-logic-name&quot;,
+          &quot;titles&quot;: &quot;Scheduling logic name&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;reference-s&quot;,
+          &quot;titles&quot;: &quot;Reference(s)&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 5,
+      &quot;columns&quot;: 4,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 13&quot;,
+    &quot;fac:caption&quot;: &quot;Table 13. Overview of scheduling logic&quot;,
+    &quot;fac:pages&quot;: [
+      74
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table gives an overview of the five scheduling logic tables in the antenatal care digital adaptation kit, covering ANC contacts, laboratory tests and imaging, counselling, immunizations and malaria prophylaxis. For each it gives the ID, name, description and the WHO references on which it is based.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يقدم الجدول لمحة عامة عن جداول منطق الجدولة الخمسة في مجموعة أدوات التكييف الرقمي للرعاية السابقة للولادة، وتشمل زيارات الرعاية السابقة للولادة، والفحوص المختبرية والتصوير، والمشورة، والتمنيع، والوقاية الكيميائية من الملاريا. ويعرض لكل منها الرمز والاسم والوصف ومراجع المنظمة التي يستند إليها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表概述了产前保健数字适配工具包中的五个排期逻辑表，涵盖产前保健接触、实验室检查和影像、咨询、免疫接种以及疟疾预防。对每个表，均给出了编号、名称、说明及其所依据的世卫组织参考文献。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro ofrece una visión general de las cinco tablas de lógica de programación del kit de adaptación digital para la atención prenatal, que abarcan los contactos prenatales, las pruebas de laboratorio e imagen, el asesoramiento, las inmunizaciones y la profilaxis del paludismo. Para cada una indica el identificador, el nombre, la descripción y las referencias de la OMS en que se basa.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau présente une vue d’ensemble des cinq tables de logique de planification du kit d’adaptation numérique pour les soins prénatals, portant sur les contacts prénatals, les examens de laboratoire et l’imagerie, le conseil, les vaccinations et la prophylaxie antipaludique. Pour chacune, il indique l’identifiant, le nom, la description et les références de l’OMS sur lesquelles elle repose.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице представлен обзор пяти таблиц логики составления графиков в наборе средств цифровой адаптации для дородовой помощи, охватывающих дородовые контакты, лабораторные исследования и визуализацию, консультирование, иммунизацию и профилактику малярии. Для каждой указаны идентификатор, название, описание и справочные материалы ВОЗ, на которых она основана.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-14.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;indicator-code&quot;,
+          &quot;titles&quot;: &quot;Indicator code&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;indicator-name&quot;,
+          &quot;titles&quot;: &quot;Indicator name&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;definition&quot;,
+          &quot;titles&quot;: &quot;Definition&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Numerator&quot;
+        },
+        {
+          &quot;name&quot;: &quot;computation&quot;,
+          &quot;titles&quot;: &quot;Computation&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Numerator&quot;
+        },
+        {
+          &quot;name&quot;: &quot;definition-5&quot;,
+          &quot;titles&quot;: &quot;Definition&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Denominator&quot;
+        },
+        {
+          &quot;name&quot;: &quot;computation-6&quot;,
+          &quot;titles&quot;: &quot;Computation&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Denominator&quot;
+        },
+        {
+          &quot;name&quot;: &quot;disaggregation&quot;,
+          &quot;titles&quot;: &quot;Disaggregation&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;reference&quot;,
+          &quot;titles&quot;: &quot;Reference&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 14,
+      &quot;columns&quot;: 8,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:merged&quot;: [
+      &quot;A12:H12&quot;
+    ],
+    &quot;fac:label&quot;: &quot;Table 14&quot;,
+    &quot;fac:caption&quot;: &quot;Table 14. Indicators and performance metrics&quot;,
+    &quot;fac:pages&quot;: [
+      75,
+      76,
+      77,
+      78,
+      79
+    ],
+    &quot;fac:headerRows&quot;: 2,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;ANC: antenatal care; GA: gestational age; RMNCAH: reproductive, maternal, newborn, child and adolescent health.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table defines 13 antenatal care indicators (ANC.IND.1–13), including 3 context-specific indicators on malaria IPTp, HIV testing and oral PrEP. For each indicator it gives the definition and computation of the numerator and denominator, the recommended disaggregation and the reference source.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يحدد الجدول 13 مؤشرًا للرعاية السابقة للولادة (ANC.IND.1–13)، منها 3 مؤشرات خاصة بالسياق تتعلق بالعلاج الوقائي المتقطع من الملاريا واختبار فيروس العوز المناعي البشري والوقاية الفموية قبل التعرض. ويعرض لكل مؤشر تعريف البسط والمقام وطريقة حسابهما، والتصنيف الموصى به، والمصدر المرجعي.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表定义了13项产前保健指标（ANC.IND.1–13），其中包括关于疟疾间歇性预防治疗、艾滋病毒检测和口服暴露前预防的3项因地制宜指标。对每项指标，均给出了分子和分母的定义与计算方法、建议的分类方式以及参考来源。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro define 13 indicadores de atención prenatal (ANC.IND.1–13), entre ellos 3 indicadores específicos del contexto sobre el tratamiento preventivo intermitente del paludismo, la prueba del VIH y la PrEP oral. Para cada indicador indica la definición y el cálculo del numerador y del denominador, el desglose recomendado y la fuente de referencia.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau définit 13 indicateurs des soins prénatals (ANC.IND.1–13), dont 3 indicateurs propres au contexte portant sur le traitement préventif intermittent du paludisme, le dépistage du VIH et la PrEP orale. Pour chaque indicateur, il donne la définition et le calcul du numérateur et du dénominateur, la ventilation recommandée et la source de référence.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице определены 13 показателей дородовой помощи (ANC.IND.1–13), включая 3 показателя, зависящих от контекста, — по интермиттирующей превентивной терапии малярии, тестированию на ВИЧ и пероральной ДКП. Для каждого показателя приводятся определение и способ расчёта числителя и знаменателя, рекомендуемая дезагрегация и источник.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-15.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;requirement-id&quot;,
+          &quot;titles&quot;: &quot;Requirement ID&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;activity-id-and-description&quot;,
+          &quot;titles&quot;: &quot;Activity ID and description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;as-a&quot;,
+          &quot;titles&quot;: &quot;As a…&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;i-want&quot;,
+          &quot;titles&quot;: &quot;I want…&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 55,
+      &quot;columns&quot;: 4,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:merged&quot;: [
+      &quot;A2:D2&quot;,
+      &quot;A22:D22&quot;
+    ],
+    &quot;fac:label&quot;: &quot;Table 15&quot;,
+    &quot;fac:caption&quot;: &quot;Table 15. Functional requirementsa&quot;,
+    &quot;fac:pages&quot;: [
+      80,
+      81,
+      82
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;a Business processes C and D are available in the full spreadsheet of “ANC functional and non-functional requirements”. b The term “client” is used for the registration workflow as this is applicable to other health domains, and “women” is used for the ANC-specific business processes. c The forthcoming self-care interventions DAK will describe the requirements for client-facing digital tools that will access health information.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists 53 functional requirements (ANC.FXNREQ.001–053) for a digital antenatal care system, grouped by business process A (registration) and B (ANC contact). Each requirement is written as a user story giving the activity, the user role (“As a…”) and what that user wants the system to do.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول 53 متطلبًا وظيفيًا (ANC.FXNREQ.001–053) لنظام رقمي للرعاية السابقة للولادة، مجمعة حسب العملية التشغيلية A (التسجيل) وB (زيارة الرعاية السابقة للولادة). وتُصاغ كل متطلب في شكل قصة مستخدم تبين النشاط ودور المستخدم («بصفتي…») وما يريد المستخدم أن يقوم به النظام.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表列出了数字化产前保健系统的53项功能性需求（ANC.FXNREQ.001–053），按业务流程A（登记）和B（产前保健接触）分组。每项需求均以用户故事形式表述，列出活动、用户角色（“作为……”）以及该用户希望系统完成的事项。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro enumera 53 requisitos funcionales (ANC.FXNREQ.001–053) de un sistema digital de atención prenatal, agrupados por proceso operativo A (registro) y B (contacto prenatal). Cada requisito se formula como una historia de usuario que indica la actividad, la función del usuario («Como…») y lo que este desea que haga el sistema.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau présente 53 exigences fonctionnelles (ANC.FXNREQ.001–053) d’un système numérique de soins prénatals, regroupées selon le processus opérationnel A (enregistrement) et B (contact prénatal). Chaque exigence est formulée comme un récit utilisateur précisant l’activité, le rôle de l’utilisateur (« En tant que… ») et ce que celui-ci attend du système.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены 53 функциональных требования (ANC.FXNREQ.001–053) к цифровой системе дородовой помощи, сгруппированные по рабочим процессам A (регистрация) и B (дородовой контакт). Каждое требование сформулировано как пользовательская история с указанием этапа, роли пользователя («Как…») и того, что пользователь ожидает от системы.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-16.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;requirement-id&quot;,
+          &quot;titles&quot;: &quot;Requirement ID&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;category&quot;,
+          &quot;titles&quot;: &quot;Category&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;non-functional-requirement&quot;,
+          &quot;titles&quot;: &quot;Non-functional requirement&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 69,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 16&quot;,
+    &quot;fac:caption&quot;: &quot;Table 16. Non-functional requirements&quot;,
+    &quot;fac:pages&quot;: [
+      83,
+      84,
+      85
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists 69 non-functional requirements (ANC.NFXNREQ.001–069) for a digital antenatal care system, each with its category, covering security (confidentiality, authentication, audit trail and logs, user management) and system requirements (general, scalability, usability, configuration, interoperability, hardware and connectivity).&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول 69 متطلبًا غير وظيفي (ANC.NFXNREQ.001–069) لنظام رقمي للرعاية السابقة للولادة، مع فئة كل منها، وتشمل الأمن (السرية، والمصادقة، وسجل التدقيق والسجلات، وإدارة المستخدمين) ومتطلبات النظام (العامة، وقابلية التوسع، وسهولة الاستخدام، والتهيئة، والتشغيل البيني، والأجهزة والاتصال).&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表列出了数字化产前保健系统的69项非功能性需求（ANC.NFXNREQ.001–069）及其类别，涵盖安全（保密性、身份验证、审计跟踪和日志、用户管理）和系统需求（一般需求、可扩展性、可用性、配置、互操作性、硬件和连接）。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro enumera 69 requisitos no funcionales (ANC.NFXNREQ.001–069) de un sistema digital de atención prenatal, cada uno con su categoría, que abarcan la seguridad (confidencialidad, autenticación, registro de auditoría, gestión de usuarios) y los requisitos del sistema (generales, escalabilidad, facilidad de uso, configuración, interoperabilidad, equipos y conectividad).&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau présente 69 exigences non fonctionnelles (ANC.NFXNREQ.001–069) d’un système numérique de soins prénatals, chacune avec sa catégorie : sécurité (confidentialité, authentification, piste d’audit et journaux, gestion des utilisateurs) et exigences du système (générales, évolutivité, convivialité, configuration, interopérabilité, matériel et connectivité).&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены 69 нефункциональных требований (ANC.NFXNREQ.001–069) к цифровой системе дородовой помощи с указанием категории каждого: безопасность (конфиденциальность, аутентификация, журналы аудита, управление пользователями) и системные требования (общие, масштабируемость, удобство использования, настройка, совместимость, оборудование и связь).&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  }
+]</pre></dd>
+<dt>source</dt><dd><pre>{
+  &quot;file&quot;: &quot;10665-339745.pdf&quot;,
+  &quot;sha256&quot;: &quot;27dcd2fc950be0212e8adfbdd1aac87ccfee541c6948f4526a99a83080d1dc6e&quot;,
+  &quot;note&quot;: &quot;tables transcribed from the PDF pages; the PDF itself is not held&quot;
+}</pre></dd>
+<dt>narrative</dt><dd><pre>{
+  &quot;text&quot;: null,
+  &quot;state&quot;: &quot;not-authored&quot;
+}</pre></dd>
+</dl>
+</main>
+<script src="../../../../../../../../assets/ig-search.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script data-folio-saved-scheme>(function(){var d=document.documentElement,s=null,c="dark";try{s=localStorage.getItem("fa-color-scheme")}catch(e){}if(s!=="light"&&s!=="dark"){s="light";try{if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)s="dark"}catch(e){}}try{var n=document.getElementById("fa-site-scheme");if(n)c=JSON.parse(n.textContent).scheme==="light"?"light":"dark"}catch(e){}d.setAttribute("data-fa-scheme",s);var j=window.jtd;if(s!==c&&j&&typeof j.setTheme==="function"){try{j.setTheme(s)}catch(e){}}})();</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Folio Assistant Core — cat-harness-declaration</title>
+<style>
+  :root { color-scheme: light dark; --fg:#1b1b1b; --bg:#fdfdfb; --muted:#5b5b5b; --line:#d6d6d0; --link:#0b5cad; --panel:#f3f4f2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-fa-scheme="light"]) { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; } }
+  :root[data-fa-scheme="dark"] { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; }
+  :root[data-fa-scheme="light"] { color-scheme: light; } :root[data-fa-scheme="dark"] { color-scheme: dark; }
+  body { margin:0; font:1rem/1.5 system-ui,sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width:80rem; margin:0 auto; padding:1.5rem 1.5rem 4rem; min-width:0; overflow-wrap:anywhere; }
+  h1 { font-size:1.35rem; margin:0 0 .25rem; } h2 { font-size:1.05rem; margin:1.5rem 0 .5rem; }
+  a { color:var(--link); } a:focus-visible, select:focus-visible { outline:3px solid var(--link); outline-offset:2px; }
+  .m { color:var(--muted); font-size:.9rem; }
+  .tiles { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; padding:0; list-style:none; }
+  .tiles li { border:1px solid var(--line); border-radius:.4rem; padding:.35rem .7rem; }
+  .tiles b { font-size:1.2rem; margin-right:.3rem; }
+  .clip { width:100%; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; vertical-align:top; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
+  th { background:var(--panel); white-space:nowrap; }
+  /* Only the node's path and long text may break mid-word; a status or a date
+     broken across lines ("in_pr ogres s") is unreadable. */
+  td { overflow-wrap:normal; } td.p, td.t { overflow-wrap:anywhere; } td.s { white-space:nowrap; }
+  dl { display:grid; grid-template-columns:minmax(8rem,14rem) 1fr; gap:.25rem 1rem; }
+  dt { font-weight:600; } dd { margin:0; }
+  pre { background:var(--panel); padding:.75rem; overflow-x:auto; font-size:.85rem; }
+  label { margin-right:1rem; }
+  @media (max-width:40rem) { dl { grid-template-columns:1fr; } }
+</style>
+<link rel="stylesheet" href="../../../../../assets/css/navbar.css"><script src="../../../../../assets/navbar/rail-26jybindyi5.js" defer></script><script src="../../../../../assets/js/navbar.js" defer></script><style data-folio-narrow-viewport>
+/* Narrow viewports: nothing may widen the PAGE — bean `2r2n`.
+ *
+ * At 390 px, 105 of 249 built pages scrolled sideways (measured 2026-09-24).
+ * The rule here is the bean's: wide content scrolls INSIDE ITS OWN BOX with a
+ * visible cue, and the page itself never pans.
+ *
+ * ONE FILE, TWO WAYS IN. Themed pages link it from `_includes/head_custom.html`.
+ * The standalone viewer pages carry no theme stylesheet at all, so
+ * `withViewerNav` in `scripts/viewer-page.ts` inlines this same file when it
+ * adds the rail. A copy of these rules in each place would be two answers to
+ * "what does a table do at 390 px", free to drift apart.
+ *
+ * Every selector here is written to be safe on both kinds of page: no
+ * `.main-content` scope (a standalone page has none), the navbar excluded by
+ * name, and the theme's own `.table-wrapper` left alone, since it already does
+ * this job for Markdown tables. */
+
+@media (max-width: 799.98px) {
+  /* A table the theme did not wrap: raw HTML from a generator, or one built at
+   * runtime. `display: block` makes the table its own scroll box. Its cells
+   * still lay out as a table inside the anonymous table box. */
+  table:not(.table-wrapper > table):not(.fa-nav table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* THE CUE: the edge that has more content past it fades out. The fade is a
+   * MASK over the table's own pixels, driven by its own scroll position, so
+   * it needs no knowledge of the page's background. A painted cover (the
+   * usual `background-attachment: local` trick) does: the first version used
+   * `Canvas`, and on a page that is dark under a LIGHT scheme it laid a white
+   * band over the first column.
+   *
+   * A table that does not overflow has an inactive scroll timeline, so the
+   * animation has no effect and both fades stay at their initial 0: no cue
+   * where there is nothing to scroll to. A browser without scroll-driven
+   * animations shows no fade, and the table still scrolls. */
+  @supports (animation-timeline: scroll()) {
+    table:not(.table-wrapper > table):not(.fa-nav table) {
+      mask-image: linear-gradient(to right,
+        transparent 0, #000 var(--fa-cue-l),
+        #000 calc(100% - var(--fa-cue-r)), transparent 100%);
+      animation: fa-scroll-cue linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+
+  /* A code block scrolls in its own box, which is what `pre` is for. Mermaid
+   * SOURCE sits in a `pre` until the renderer replaces it, and at 390 px a
+   * diagram's source line is longer than the screen. */
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Prose that has no break opportunity: a long path in inline code, or a
+   * glossary definition naming one. Breaking the string is better than
+   * widening the page it sits on. */
+  :not(pre) > code,
+  dd {
+    overflow-wrap: anywhere;
+  }
+}
+
+@property --fa-cue-l { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --fa-cue-r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+@keyframes fa-scroll-cue {
+  0%   { --fa-cue-l: 0px;    --fa-cue-r: 2.5rem; }
+  12%  { --fa-cue-l: 2.5rem; }
+  88%  { --fa-cue-r: 2.5rem; }
+  100% { --fa-cue-l: 2.5rem; --fa-cue-r: 0px; }
+}
+
+</style>
+<script type="application/json" id="fa-translation-meta">{"lang":"en","translationStatus":"","translationSource":"","supportedLocales":["ar","zh","en","fr","ru","es"],"availableLocales":[]}</script><link rel="stylesheet" href="../../../../../assets/page-layout.css" data-fa-page-layout><script src="../../../../../assets/page-layout.js" defer data-fa-page-layout></script><link rel="stylesheet" href="../../../../../assets/ig-artifact.css"><style data-ig-version-chrome>.ig-topbar-head{flex:0 0 100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .9rem}.ig-topbar-head .ig-topbar-home{flex:none}.ig-topbar-ver{font-weight:400;font-size:.9em;opacity:.95;white-space:nowrap}.ig-topbar-flag{font-size:1.1em}.ig-version-banner{box-sizing:border-box;margin:0;padding:.5rem 1.5rem;background:#ffffa0;color:#222;border-bottom:1px solid #0a0008;font-size:.95rem;line-height:1.45}.ig-version-banner a{color:#1a4b8c;text-decoration:underline}html:not([data-fa-scheme="light"]) .ig-version-banner{background:#4a4520;color:#fff8d0;border-color:#8a7d2a}html:not([data-fa-scheme="light"]) .ig-version-banner a{color:#ffe680}.ig-metadata{border-collapse:collapse;margin:0 0 1rem;font-size:.95rem}.ig-metadata td{border:1px solid #c8c8c8;padding:.25rem .6rem;vertical-align:top}.ig-metadata code{overflow-wrap:anywhere}</style></head>
+<body data-fa-node-kind-page>
+<header class="ig-search-top fa-page-bar"><a class="ig-search-home" href="../../../../../index.html">WHO SMART Trust</a><span class="ig-topbar-ver"><span class="ig-topbar-flag" role="img" aria-label="International" title="International">🌐</span> 1.7.5 - ci-build</span><form class="ig-search" role="search" data-ig-search-index="../../../../../assets/ig-search.json"><label class="ig-search-label" for="search-input">Search WHO SMART Trust</label><input type="search" id="search-input" class="ig-search-input" placeholder="Search pages and artefacts" autocomplete="off" aria-controls="ig-search-results" aria-expanded="false"><ul id="ig-search-results" class="ig-search-results" hidden></ul></form><span class="ig-locale-slot" data-fa-slot="locale"></span></header><p class="ig-version-banner" role="note">This page is part of the WHO SMART Trust (v1.7.5: ci-build) based on <a href="http://hl7.org/fhir/R4/">FHIR (HL7® FHIR® Standard) v4.0.1</a>. This is the continuous integration build: it follows the source and is not a published version. For a full list of available versions, see the <a href="http://smart.who.int/trust/history.html">Directory of published versions</a>.</p><script type="application/json" id="fa-rail" data-fa-root="../../../../.." data-fa-to-root="../../../../..">{"data":"rail-26jybindyi5","here":"/en/cat-harness/cat-harness-declaration/folio-assistant-core/folio-assistant-core/"}</script><nav class="fa-nav" aria-label="folio-assistant" data-fa-rail="pending"><a href="../../../../../">folio-assistant</a></nav>
+<main>
+<h1 id="nk-title">Folio Assistant Core</h1>
+<p class="m">A <a href="../../">cat-harness-declaration</a> node held by <a href="../">folio-assistant-core</a>, at <code>folio-assistant-core/folio-assistant-core.json</code>.</p>
+
+<h2 id="fields">Fields</h2>
+<dl>
+<dt>$schema</dt><dd>cat-harness-declaration/1.0.0</dd>
+<dt>_comment</dt><dd>folio-assist-core — THE CONTENT LAYER, in folio-assistant-core/ per the owner (2026-09-20: &quot;use folio-assistant-core/&quot;) — the DIRECTORY and the declared NAME are BOTH spelled out in full. They were briefly different -- directory `folio-assistant-core`, name `folio-assist-core` -- and this comment went on asserting the short name after the `name` field beside it had already been changed, so the file contradicted itself in adjacent lines. Corrected 2026-09-20. WHAT IS STILL SHORT, DELIBERATELY, IS THE LANDING CARD ID below: a card id is a PUBLISHED IDENTIFIER and does not move with a directory. `landing-sticky.test.ts` says so and bean `8xtj` records the cost of assuming the two are one string -- a session sweeping every spelling at once renamed the card by accident and had to put it back. Main created a folio-assistant-core/ stub the same day; the two were one layer under two paths, and instanceRoots is keyed on the declared name, so the stub and the populated one collided on one key and the stub won. Consolidated here, declared as a real layer on the owner&#39;s ruling of 2026-09-20 (&quot;Create f-a-core/ as a real instance now&quot;). It declared NO directories when it was created, deliberately, because the modules it would own were still interleaved under cat-harness/ and declaring a directory that is not there is the dh4f defect. They are NOT interleaved any more: bean frs5&#39;s branch wrote `schemas/` (dublin-core, catalogue, materialization, library-ref) and `folios/`, and they moved in here rather than staying under a SECOND directory declaring this same name. Two layers with one declared name is not a layout question: `instanceRoots` is keyed on the declared name, so the stub and the populated one were one key and the stub won. The original note read: the modules it will own are still interleaved with the harness&#39;s under cat-harness/, and declaring a directory that is not there is the dh4f defect — every consumer then scans nothing and reports a clean run over it. A layer that declares only what it has is honest; one that declares its target layout is a lie a gate cannot catch. scripts/repo-partition.ts is the machine-readable statement of what will move here.</dd>
+<dt>name</dt><dd>folio-assistant-core</dd>
+<dt>_skillPrefix_comment</dt><dd>Skills from this layer install as fa-&lt;name&gt; (bean x4mt; owner ruling 2026-10-11: harnesses have their own prefix, e.g. cat, fa).</dd>
+<dt>skillPrefix</dt><dd>fa</dd>
+<dt>_title_comment</dt><dd>The HUMAN display name for the LHS navbar&#39;s harness tabs (bean t3n8). Owner, 2026-10-05, picking the label when this layer was instantiated: &quot;Folio Assistant Core&quot;. `name` stays the machine identifier.</dd>
+<dt>title</dt><dd>Folio Assistant Core</dd>
+<dt>repository</dt><dd>litlfred/folio-assistant-core</dd>
+<dt>version</dt><dd>0.1.0</dd>
+<dt>iriBase</dt><dd>https://litlfred.github.io/folio-assistant-core/</dd>
+<dt>description</dt><dd>What a folio IS — the content-object model, the block kinds, the adapters, and the `folio` graph typology itself.</dd>
+<dt>avatar</dt><dd><pre>{
+  &quot;glyph&quot;: &quot;M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h5&quot;,
+  &quot;tone&quot;: 212,
+  &quot;reads&quot;: &quot;a leaf of paper with lines — the folio itself&quot;
+}</pre></dd>
+<dt>_avatar_comment</dt><dd>Keyed on the DECLARED NAME, which is `folio-assistant-core` — directory and name both spelled in full, per the owner&#39;s ruling of 2026-09-20 and as `folio-assistant-core/harness.json` records against itself. Moved here from cat-harness/schemas/avatars.ts, 2026-10-05 (bean sod4 #4): a layer declares its own mark.</dd>
+<dt>assets</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;agent-instructions&quot;,
+    &quot;src&quot;: &quot;AGENTS.md&quot;,
+    &quot;role&quot;: &quot;agent-instructions&quot;,
+    &quot;title&quot;: &quot;AGENTS.md — folio-assistant-core&quot;,
+    &quot;description&quot;: &quot;Cold start for work in this layer, and the one rule specific to it: core owns content vocabulary, the harness owns the harness. Declared 2026-09-20 (issue #592) — the file existed and nothing declared it, which is the `v8gh` property: an undeclared file is one no checker has a reason to look at.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;readme&quot;,
+    &quot;src&quot;: &quot;README.md&quot;,
+    &quot;role&quot;: &quot;instance-readme&quot;,
+    &quot;title&quot;: &quot;folio-assistant-core&quot;,
+    &quot;description&quot;: &quot;The layer&#39;s scope, stated as a table of what is in and out, so the boundary is checkable rather than remembered. Self-documenting on the forge: a person landing on the directory reads the thing itself.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;npm-manifest&quot;,
+    &quot;src&quot;: &quot;package.json&quot;,
+    &quot;role&quot;: &quot;package-manifest&quot;,
+    &quot;title&quot;: &quot;package.json&quot;,
+    &quot;description&quot;: &quot;The npm pre-packaging source manifest declaring package identity, exports, dependencies, scripts, and tarball whitelist.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;unkinded-baseline&quot;,
+    &quot;src&quot;: &quot;node-kinds.baseline.json&quot;,
+    &quot;role&quot;: &quot;unkinded-baseline&quot;,
+    &quot;title&quot;: &quot;Unkinded families — folio-assistant-core&quot;,
+    &quot;description&quot;: &quot;The families whose typology THIS layer declares (in its typologies/ graph) that predate node kinds and may stay unkinded; `node-kinds:check` fails on any other. Owner, 2026-10-15: split out of cat-harness&#39;s docs/_data/node-kinds.json, which spanned every layer and is now built at publish, so this layer&#39;s families are judged by its own commit. Written by `bun run cat node-kinds`, which only shrinks it; `--accept-unkinded` grows it deliberately.&quot;
+  }
+]</pre></dd>
+<dt>_stickies_comment</dt><dd>ONE card, because the owner&#39;s ruling is one card per harness: &quot;not all stickies should be cat harness they should be outputs (as if) each init harness ran ... each own intiaization sticky note to show sucess&quot;. This layer takes the knowledge-graph overview, which was cat-harness&#39;s third card — content is this layer&#39;s subject, so the card that explains the sub-graphs belongs to it rather than to the platform that operates on them.</dd>
+<dt>stickies</dt><dd><pre>[
+  {
+    &quot;_comment&quot;: &quot;THEME `grumpy-cat` since 2026-09-24, the plain grumpy cat in the sage hoodie, handed down from cat-harness when that harness took the sled art — the owner: \&quot;use this for the cat-harness theme, the current plain grump cat them it is using should be for folio-assisnt-core\&quot;. It was `library` before that; the librarian theme stays in the registry for any note an author chooses it for. SCOPE is stated in the body rather than left to the reader, per \&quot;also some guidance what is its scope\&quot;.&quot;,
+    &quot;id&quot;: &quot;folio-assist-core&quot;,
+    &quot;order&quot;: 20,
+    &quot;theme&quot;: {
+      &quot;themeId&quot;: &quot;grumpy-cat&quot;
+    },
+    &quot;summary&quot;: &quot;What a folio is&quot;,
+    &quot;body&quot;: &quot;The knowledge graph is four sub-graphs, and a layer declares which of them it holds.\n\n**Content** is what somebody authors and a reader reads — this layer&#39;s subject. **Skills** are the instructions an agent follows to do the work. **Processes** are the BPMN diagrams that say who does what, in which order, and where the gates are — they are executable, not illustrations. **Tools** are what an agent can call.\n\nGetting anything in is **acquisition**: unstructured and semi-structured sources arrive through `uploads/` or through the conversation, and are ingested into `library/`. It is a step rather than a graph typology of its own — there is no fifth directory to look for.\n\n**Scope:** the content model — what a folio IS. Not the skills and tools that operate on it, and not any particular folio&#39;s chapters.&quot;,
+    &quot;links&quot;: [
+      {
+        &quot;label&quot;: &quot;Content&quot;,
+        &quot;href&quot;: &quot;/concepts/content-types.html&quot;,
+        &quot;note&quot;: &quot;A document is structured prose; a paper adds the block kinds whose assertion is a formal claim.&quot;
+      },
+      {
+        &quot;label&quot;: &quot;Skills&quot;,
+        &quot;href&quot;: &quot;/concepts/skills.html&quot;,
+        &quot;note&quot;: &quot;Every skill and role, and how they fit together.&quot;
+      },
+      {
+        &quot;label&quot;: &quot;Processes&quot;,
+        &quot;href&quot;: &quot;/folio-assistant-core/process/publication-workflow.html&quot;,
+        &quot;note&quot;: &quot;The BPMN diagrams, which are the source of truth rather than a picture of it.&quot;
+      },
+      {
+        &quot;label&quot;: &quot;Tools&quot;,
+        &quot;href&quot;: &quot;/concepts/architecture.html&quot;,
+        &quot;note&quot;: &quot;What an agent can call, served over MCP.&quot;
+      },
+      {
+        &quot;label&quot;: &quot;Acquisition&quot;,
+        &quot;href&quot;: &quot;/folio-assistant-core/guides/document-ingestion.html&quot;,
+        &quot;note&quot;: &quot;How a source gets from uploads/ into library/.&quot;
+      },
+      {
+        &quot;label&quot;: &quot;RTFM — folio-assist-core&quot;,
+        &quot;href&quot;: &quot;https://github.com/litlfred/folio-assistant/blob/main/folio-assistant-core/README.md&quot;,
+        &quot;note&quot;: &quot;Its scope, in and out, and why it declares no directories yet.&quot;
+      }
+    ],
+    &quot;text&quot;: {
+      &quot;box&quot;: {
+        &quot;x&quot;: 0.07,
+        &quot;y&quot;: 0.06,
+        &quot;w&quot;: 0.86,
+        &quot;h&quot;: 0.88
+      },
+      &quot;scale&quot;: 0.74
+    }
+  }
+]</pre></dd>
+<dt>directories</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;folio-assistant-core-docs&quot;,
+    &quot;path&quot;: &quot;docs/&quot;,
+    &quot;instanceRoot&quot;: true,
+    &quot;description&quot;: &quot;This layer&#39;s own reader-facing pages, and the page `/folio-assistant-core/` serves. Without a docs directory the harness tile can only open this layer&#39;s section of the landing (`/#harness-folio-assistant-core`), and `harness-tiles.ts` reports that as a finding. Authored markdown, composed THROUGH just-the-docs like the FHIR IG layers&#39; pages, so it gets the sidebar, search and layout. Declared in this layer&#39;s own file, not in `cat-harness.json`: `compose-docs.docsLayers` treats every docs-kind entry there as a composition layer, so declaring it there would overlay this `index.md` onto the site&#39;s own.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;docs&quot;
+    ],
+    &quot;composed&quot;: true,
+    &quot;tile&quot;: {
+      &quot;icon&quot;: &quot;docs&quot;
+    }
+  },
+  {
+    &quot;id&quot;: &quot;folio-assistant-core-translations&quot;,
+    &quot;path&quot;: &quot;translations/&quot;,
+    &quot;description&quot;: &quot;The gettext side of folio-assistant-core&#39;s own strings, one directory per target locale: `block-kinds.pot`/`.po`, the headings of the block kinds this layer declares in block-kinds/, keyed `msgctxt \&quot;block-kind:&lt;kind&gt;\&quot;` with the node&#39;s English `heading` as msgid. Locale headings live in the translation graph, and kinds are not centrally managed, so the catalogue sits with the kinds rather than in cat-harness/translations/.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;translation-sources&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;folio-assistant-core-block-typologies&quot;,
+    &quot;path&quot;: &quot;block-kinds/&quot;,
+    &quot;description&quot;: &quot;The document profile&#39;s block kinds (prose, example, remark, algorithm, simulator, equation, diagram, table, figure, recommendation), one folio-block-kind/v1 node per file. Kinds are discoverable and not centrally managed: cat-harness/schemas/block-kinds.ts finds these by scanning every layer&#39;s declared block-kinds graph.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;block-kinds&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;folio-assistant-core-content-adapters&quot;,
+    &quot;path&quot;: &quot;content-adapters/&quot;,
+    &quot;description&quot;: &quot;The `document` block VOCABULARY&#39;s node, folio-content-adapter/v1: its name, its companion roles (md, ts) and that cat-harness&#39;s code types it. Every kind in block-kinds/ names it. Each layer declares its own adapter and a folio may mix them, so the paper profile is core&#39;s `document` kinds plus the science layer&#39;s `mathpaper` kinds.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;content-adapters&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;folio-assistant-core-validators&quot;,
+    &quot;path&quot;: &quot;validators/&quot;,
+    &quot;description&quot;: &quot;The validators folio-assistant-core&#39;s code provides, one folio-validator/v1 node each naming the graph typology and $schema family it checks.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;validators&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-code-lists&quot;,
+    &quot;path&quot;: &quot;code-lists/&quot;,
+    &quot;description&quot;: &quot;Code lists this layer owns, one `folio-code-list/v1` file per list, inherited by every dependent through the dependency overlay (`codeListDirs`) and exported as SKOS with the harness&#39;s. A `recommendation` block&#39;s `strength` names a code here, so the check is \&quot;resolves in the scheme\&quot; rather than a closed enum. Two lists: `grade-recommendation-strength` (GRADE as WHO applies it) and `rfc2119-requirement-level` (BCP 14). A folio whose issuing body grades differently declares its own list rather than editing these.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code-list&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-qa-checkers&quot;,
+    &quot;path&quot;: &quot;qa-checkers/&quot;,
+    &quot;description&quot;: &quot;The QA checkers this layer&#39;s code provides, one `folio-qa-checker/v1` node per criterion, registered for a folio through its dependency tree by `loadContributions`. Two: `recommendation-strength-resolves`, naming `RECOMMENDATION_CHECKERS` in `pipeline/qa-checkers-recommendation.ts`, and `acronym-in-glossary`, naming `ACRONYM_CHECKERS` in `pipeline/qa-checkers-acronyms.ts`. The criterion itself is declared in cat-harness-tools&#39; QA registry with `checker_contributed`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;qa-checkers&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-pipeline-plugins&quot;,
+    &quot;path&quot;: &quot;pipeline-plugins/&quot;,
+    &quot;description&quot;: &quot;The generic pipeline slots this layer fills, one `folio-pipeline-plugin/v1` node per slot, naming `PIPELINE_IMPLEMENTATIONS` in `pipeline/plugin-slots.ts`, registered for a folio through its dependency tree by `loadContributions`. Two: `tabular-csvw`, through which cat-harness-tools&#39; `ingest-document.ts` reaches this layer&#39;s CSVW extractors (`scripts/tabular-csv.ts`, `scripts/tabular-xlsx.ts`) without naming this layer, and `library-entry-arms`, through which it runs this layer&#39;s reference-list and glossary readers (`scripts/references-extract.ts`, `scripts/glossary-from-source.ts`) over each promoted library entry and records each one&#39;s step in the entry&#39;s `extraction.json`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;pipeline-plugins&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-pipeline&quot;,
+    &quot;path&quot;: &quot;pipeline/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ],
+    &quot;description&quot;: &quot;`pipeline/qa-checkers-recommendation.ts` and `pipeline/qa-checkers-acronyms.ts`, the automated checkers `qa-checkers/recommendation-strength-resolves.json` and `qa-checkers/acronym-in-glossary.json` name (`RECOMMENDATION_CHECKERS`, `ACRONYM_CHECKERS`), and `pipeline/plugin-slots.ts`, the table `pipeline-plugins/tabular-csvw.json` and `pipeline-plugins/library-entry-arms.json` name (`PIPELINE_IMPLEMENTATIONS`). Under `pipeline/` because that is where the harness&#39;s `imports` input-site looks for a contributed checker, as for every layer.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;folio-assistant-core-typologies&quot;,
+    &quot;path&quot;: &quot;typologies/&quot;,
+    &quot;description&quot;: &quot;The graph typologies folio-assistant-core owns, one folio-graph-typology/v1 node per file. There is no central registry for subgraph types; a harness declares its own in a kinds/ graph, each entry carrying its rationale.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;typologies&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-schemas&quot;,
+    &quot;path&quot;: &quot;schemas/&quot;,
+    &quot;description&quot;: &quot;The schemas of the content layer&#39;s Node Kinds.&quot;,
+    &quot;_description_comment&quot;: &quot;The content layer&#39;s own schema nodes. Three today, and they are one chain: `dublin-core` is what a source system SAYS about an item, `catalogue` is the shape of the collection that item sits in, and `materialization` is whether any of its bytes are actually here. The third is the load-bearing one — see its module doc for why bootstrap fetching a harness and the IRIS catalogue layer fetching three items out of 361.55 GB are the same process with two names.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;schemas&quot;,
+      &quot;cat-harness&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;folios&quot;,
+    &quot;path&quot;: &quot;folios/&quot;,
+    &quot;description&quot;: &quot;What an AUTHOR creates using the graph -- a note, a visualization, a paper -- referencing the KG and rendered through the harness&#39;s just-the-docs document rendering. It declares the EXISTING `folio` kind rather than a new one: `folio` is &#39;authored content, rendered to a website&#39;, registered by core because only core can render it. The contrast is with `docs` in cat-harness, whose subject is the harness itself. Example: a catalogue goes in `library/` or is referenced remotely; a note ABOUT it is a folio; the page explaining how ingestion works is docs.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;folio&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;glossary&quot;,
+    &quot;path&quot;: &quot;glossary/&quot;,
+    &quot;description&quot;: &quot;Core&#39;s glossary: folio-glossary/v1 documents, each a SKOS concept scheme of local terms linked to external SKOS concepts by exactMatch/closeMatch, plus external concepts listed as members without being copied. A whole external scheme is referenced through remoteGraphs with graphTypologies [\&quot;glossary\&quot;]. `dependents: reproduce` so every folio built on core gets its own glossary/. Rendered on the glossary/ page with the swimlane ledger (cat-harness&#39;s `swimlane-glossary`) as one more source; checked by `check:glossary`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;glossary&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-tools&quot;,
+    &quot;path&quot;: &quot;tools/&quot;,
+    &quot;description&quot;: &quot;The content layer&#39;s Tool nodes, such as `folio-changeset`, which exposes `schemas/changeset.ts`. Reached by the harness through tool auto-discovery, never by an import: the harness may not import core, and a Tool node is a declaration loaded by path.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;tools&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-adapters&quot;,
+    &quot;path&quot;: &quot;adapters/&quot;,
+    &quot;description&quot;: &quot;The content layer&#39;s own ContentAdapters: `document/`. Its imports into `cat-harness-tools/src/`, `cat-harness/schemas/` and `cat-harness-tools/pipeline/` are DOWNWARD and therefore legal (core declares `needs: [\&quot;cat-harness\&quot;]`); nothing in the harness imports it. Its consuming tests live in `scripts/tests/`. It needs `tsconfig.json`&#39;s `include` entry (without it `bun run typecheck` passes while covering fewer files) and the `BUILTIN_ADAPTERS` module path, which is resolved by variable specifier, so no static-import gate checks it. `paper/` is the science layer&#39;s, in that layer&#39;s own `adapters/paper/`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-src&quot;,
+    &quot;path&quot;: &quot;src/&quot;,
+    &quot;description&quot;: &quot;Core&#39;s own server half: the HTTP routes that act on a folio&#39;s CONTENT — `routes/feedback.ts` (its feedback items), `routes/glossary.ts` (its glossary candidates), `routes/relevance.ts` (its bibliography relevance). A content package&#39;s server half lives with its content. The server in `cat-harness-tools` declares them by their `src/routes/*` path and finds them here through `needs`, since core needs `cat-harness-tools`; they import the server&#39;s contract (`route-groups`, `types`, `core/rbac`) DOWN from it.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-scripts&quot;,
+    &quot;path&quot;: &quot;scripts/&quot;,
+    &quot;description&quot;: &quot;Core&#39;s own executable surface, with every test beside its subject: the review-comment Tool and its move helper, the glossary extractors and builder (`build-glossary.ts`, its `:refterm` codemod `codemod-refterm.ts`), the sample-import pair, the materialisation trio (`check-materialized-fixity`, `backfill-materialized-fixity`, `cache-index`), `check-voices.ts` (every voice rule&#39;s citation resolved through `schemas/library-ref.ts` into a folio&#39;s `library/`), `build-document-site.ts` (which reads `schemas/changeset.ts`), and the document, bibliography, public-comment and tabular tools. Pipeline scripts are addressed by id, and `resolvePipelineScript` searches the folio, then the platform, then here. Two scripts are invocation surfaces, named by path and so not to be moved without updating their callers: `build-document-site.ts`, which a DOCUMENT folio&#39;s generated staging workflow names (`init-folio.ts` writes `folio-assistant-core/scripts/build-document-site.ts` and `init-folio.test.ts` pins it), and `review-comments.ts`, invoked by path from `folio-staging.yml`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-templates&quot;,
+    &quot;path&quot;: &quot;templates/&quot;,
+    &quot;description&quot;: &quot;Files this layer&#39;s tools WRITE INTO a folio that opts in, kept as real files rather than strings inside a script. `public-comment/github/` holds the issue forms and the two workflows that `scripts/public-comment-changesets.ts install` copies into a folio&#39;s `.github/` (`TEMPLATE_DIR`). They live here because this layer is the only one that installs them.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-library-graph&quot;,
+    &quot;path&quot;: &quot;library/&quot;,
+    &quot;description&quot;: &quot;The library sub-graph of this layer, on the pattern of cat-harness&#39;s `library-graph`: the graphs inside it are declared FROM WITHIN, in `library/graph.json`. Its corpus (`library/corpus/`, id `library`) is OPT-IN (owner, 2026-11-10, card Q-SG-3 option A): off in every layer unless that layer lists `folio-assistant-core.library` in its own `enableSubgraphs`, core&#39;s own included, so a layer below no longer mounts core&#39;s three sources (about 29 MB). Only the nested corpus is opt-in, never a top-level `library`: a layer that does not declare its own `library` falls back to the built-in convention rather than losing it. The id is `core-library-graph`, not `library-graph`, so it does not shadow cat-harness&#39;s entry of that name.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cat-harness&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-methodologies&quot;,
+    &quot;theme&quot;: {
+      &quot;themeId&quot;: &quot;analyst&quot;
+    },
+    &quot;path&quot;: &quot;methodologies/&quot;,
+    &quot;description&quot;: &quot;The methodologies core adopts from its own corpus. A method belongs to the layer whose job it describes, so the directory lifts out with this layer and nothing else moves. Core&#39;s job is what a folio HOLDS, where it CAME FROM and how much is PRESENT — which is why a document-ingestion method is core&#39;s and not the harness&#39;s.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;methodology&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-skills&quot;,
+    &quot;path&quot;: &quot;skills/&quot;,
+    &quot;description&quot;: &quot;The skills core owns, including `skills/voices/`: a voice partitions how prose READS and is a different graph from an instruction body.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;skills&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;core-processes&quot;,
+    &quot;path&quot;: &quot;processes/&quot;,
+    &quot;description&quot;: &quot;The BPMN core owns, by area: `content/` (authoring, editing and HCI validation, draft to publication, the content lifecycle, change review, evidence retrieval, contributor feedback), `library/` (L1 document ingestion and `deep-document-research`, Doc-Researcher&#39;s iterative loop), `conduct/` (getting started) and `ui/` (board interactions), with their DMN tables in each area&#39;s `decisions/`. A TOP-LEVEL directory, as the harness&#39;s diagrams are: `check:layout-norms` refuses a package subdirectory of an already-declared graph such as `methodologies/processes/`, and `workflowDirs` resolves only from a DECLARED directory.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;processes&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;dsa&quot;,
+    &quot;path&quot;: &quot;dsa/&quot;,
+    &quot;optIn&quot;: true,
+    &quot;requires&quot;: [
+      &quot;cat-harness.sdlc&quot;
+    ],
+    &quot;description&quot;: &quot;The Data Sharing Agreement sub-graph — a NAMED SUB-GRAPH of this layer on the pattern of cat-harness&#39;s `work-plan/`, and OPT-IN: off in every layer, this one included, unless that layer lists `folio-assistant-core.dsa` in its own `enableSubgraphs` (owner, 2026-11-10, card Q-SG-1 C, wave 1). It holds the four DSA skills and the DSA document life cycle; the graphs inside it are declared FROM WITHIN, in `dsa/graph.json`. The `dsa` typology, `check:dsa-hash` and the `dsa-checksum` skill it satisfies stay outside it. It `requires` `cat-harness.sdlc` (and so the work plan): its life cycle opens and closes a bean and cuts a release (owner, 2026-11-13).&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cat-harness&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;collab&quot;,
+    &quot;path&quot;: &quot;collab/&quot;,
+    &quot;optIn&quot;: true,
+    &quot;requires&quot;: [
+      &quot;cat-harness.sdlc&quot;
+    ],
+    &quot;description&quot;: &quot;The collaborative-development sub-graph — a NAMED SUB-GRAPH of this layer on the pattern of `dsa/`, and OPT-IN: off in every layer, this one included, unless that layer lists `folio-assistant-core.collab` in its own `enableSubgraphs` (owner, 2026-11-13, check:optin-refs follow-up). It holds the content processes that run on the work plan and the delivery process — they claim and close a bean (cat-harness&#39;s `Process_BeanOpen` / `Process_BeanClose`), seed the work plan, or stage, preview and merge a change — with the processes that call them: getting started, document authoring, the content life cycle, editing and evidence retrieval, the content change review, guideline updates, public comment and L1 document ingestion, their decision tables, and the `folio-block-screenshots` Tool. It `requires` `cat-harness.sdlc`, which requires `cat-harness.work-plan`, so switching it on switches both on. The graphs inside it are declared FROM WITHIN, in `collab/graph.json`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cat-harness&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;board&quot;,
+    &quot;path&quot;: &quot;board/&quot;,
+    &quot;optIn&quot;: true,
+    &quot;description&quot;: &quot;The board sub-graph — a NAMED SUB-GRAPH of this layer, OPT-IN: off in every layer, this one included, unless that layer lists `folio-assistant-core.board` in its own `enableSubgraphs` (owner, 2026-11-10, card Q-SG-1 C, wave 3). It holds the content-folio halves of the harness&#39;s board skills (board windows, board diagram interchange). The board processes stay in `processes/ui/`, because cat-harness&#39;s always-on `board-windows` skill and site script cite them. Declared FROM WITHIN in `board/graph.json`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cat-harness&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;library-extras&quot;,
+    &quot;path&quot;: &quot;library-extras/&quot;,
+    &quot;optIn&quot;: true,
+    &quot;description&quot;: &quot;The library extras sub-graph — a NAMED SUB-GRAPH of this layer, OPT-IN: off in every layer, this one included, unless that layer lists `folio-assistant-core.library-extras` in its own `enableSubgraphs` (owner, 2026-11-10, card Q-SG-1 C, wave 3). It holds library skills a layer reaches for rarely: audio transcription, the bibliography photo-ingestion watcher and Oxigraph catalogue search. The L1 ingestion skills and processes stay in `skills/library/` and `processes/library/`, because always-on content calls them. Declared FROM WITHIN in `library-extras/graph.json`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cat-harness&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;scenarios&quot;,
+    &quot;path&quot;: &quot;scenarios/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;scenarios&quot;
+    ],
+    &quot;description&quot;: &quot;Scenarios: the roles an actor takes on, in `roles.json`, the user stories told as them, in `stories.json`, and the actors in `actors/` (deep-researcher, evidence-agent, onboarding-agent). This layer&#39;s `address-*` voices point at them, and `check:voices` reads this declaration to find the role graph.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;qa&quot;,
+    &quot;path&quot;: &quot;test/results/&quot;,
+    &quot;storage&quot;: {
+      &quot;branch&quot;: &quot;cat/cat-harness/qa-reports&quot;,
+      &quot;keyedBy&quot;: &quot;commit&quot;
+    },
+    &quot;description&quot;: &quot;What auditing THIS layer produced, kept so a consumer can tell \&quot;never audited\&quot; from \&quot;audited clean\&quot;. Stored on the `qa-reports` branch keyed by commit (`storage`), not committed: a local run writes the working copy here and `.gitignore` keeps it out of the checkout (bean 7mwa) — a printed verdict cannot, which is why every QA verdict here is a sidecar. TWO kinds live here and the files declare which they are via $schema: kg-qa/v1, one per audited subject, in a tree mirroring the subject’s own path, and ONE kg-qa-manifest/v1 recording the auditor’s identity for all of them. The manifest moved here from skills/ on 2026-09-27: kg-audit.ts writes it unconditionally, so its old home created a skills/ directory holding no skills in every layer that has none. At declaration time that is 7 files across processes (1), scenarios (1), skills (1), tools (4). No qa-results/v1 and no witnesses: this layer runs no document build and no witness-producing computation, and declaring kinds it does not hold would be an over-claim. dependents: reproduce, because a dependent audits its OWN graph — these verdicts are about this layer’s nodes, and inheriting them would attribute one layer’s findings to another. Declared WITH its files in one commit, per bean dh4f: a declared-but-absent directory makes a consumer scan nothing and report a clean run over it. Since `storage` was added, a reader resolves it from the store rather than the checkout, so its absence on disk reads as `unknown`, not clean.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;qa&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;memory&quot;,
+    &quot;path&quot;: &quot;memory/&quot;,
+    &quot;description&quot;: &quot;Agent memory about content authoring, review and publication: lessons (block kinds, the document render path, normative statements, locale directories) an agent carries between sessions, one `\&quot;$schema\&quot;: \&quot;folio-memory/v1\&quot;` node each. Read by cat-harness&#39;s `agent-memory` assembler alongside every other layer&#39;s declared `memory` directory.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;memory&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;beans&quot;,
+    &quot;path&quot;: &quot;beans/&quot;,
+    &quot;description&quot;: &quot;The work plan for folio-assistant-core.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;beans&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;folio-assistant-core-libraries&quot;,
+    &quot;coverage&quot;: {
+      &quot;exempt&quot;: {
+        &quot;visualiser&quot;: &quot;Owner, 2026-10-29 (cat-harness#691): no viewer by design. Each node is an outside package whose registry tarball and SPDX licence the node already links, so a viewer would only repeat the registry.&quot;
+      }
+    },
+    &quot;path&quot;: &quot;libraries/&quot;,
+    &quot;title&quot;: &quot;Software libraries&quot;,
+    &quot;description&quot;: &quot;The outside libraries this layer&#39;s code imports: one `software-library/1.0.0` node per dependency in `package.json`, with the version and sha512 that `bun.lock` pins, the registry tarball, the SPDX licence read from the installed package, the range, whether it is a dev dependency, the files that import it (`usedBy`) and the `types/*.d.ts` shim that types it. GENERATED, never hand-edited: `bun run cat libraries:derive` writes it and `libraries:check` fails on a stale node, an import no node names, and a shim no node names. The kind is cat-harness&#39;s (one outside-software core shared with `tool-release`); this layer keeps its own nodes because it pins its own versions.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;software-library&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;health&quot;,
+    &quot;path&quot;: &quot;test/health/results/&quot;,
+    &quot;description&quot;: &quot;Repository health reports for THIS repository: the one `health-report/v1` document `bun run cat-harness-tools/test/health/run.ts --instance &lt;this instance&gt;` writes. Each repository the separation made is its own clone, with its own size, publish branch, branches and stores, so each carries its own report (owner, 2026-10-10: \&quot;All repos need health check\&quot;). The graph typology is cat-harness&#39;s; its `health` entry says what separates a health report (about the repository) from a `qa` verdict (about an artefact).&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;health&quot;
+    ],
+    &quot;_source_comment&quot;: &quot;MOUNTED, owner 2026-10-11 (session_01UC1NuEuSy1MBNpEhnDuiGj, 05:58:12Z: \&quot;move health to state branch now\&quot;). The report is generated state, not reviewed content, so it is kept on its own per-graph branch (owner, 2026-10-03, bean laqs) and mounted at this path by `bun run cat state:mount`; main dropped it in the same commit that declared this source, because `mountTip` refuses a path the checkout still tracks.&quot;,
+    &quot;source&quot;: {
+      &quot;kind&quot;: &quot;branch&quot;,
+      &quot;branch&quot;: &quot;cat/folio-assistant-core/health&quot;,
+      &quot;keyedBy&quot;: &quot;tip&quot;
+    }
+  }
+]</pre></dd>
+<dt>_visualisers_comment</dt><dd>THE VISUALISERS THIS HARNESS DECLARES, at its own level (owner, 2026-10-09: &quot;I still want the harness to be where specific visualizers/pages are declared for the harness at the level … Need harness to declare visualizer is renderedBy&quot;). Until then the glossary directory named its page (`coverage.visualiser: cat-harness/docs/glossary/index.md`) — a page in another layer&#39;s tree at a URL nothing derived. The page is now at &lt;base&gt;/folio-assistant-core/glossary/, computed by visualiserRoute from this entry, drawn by the `glossary-page` Tool (scripts/glossary-page.ts), with &lt;base&gt;/glossary/ kept as its declared alias so no existing link breaks. It covers the glossary KIND rather than this layer&#39;s directory by id (bean folio-assistant-1nu0, owner 2026-10-15): the page already reads every layer&#39;s glossary directory, so a catalogue layer&#39;s glossary row opens it rather than reading &quot;no viewer yet&quot;. Since owner choice &quot;3a&quot; (2026-10-15) each layer&#39;s tile opens ITS OWN page, &lt;base&gt;/folio-assistant-core/glossary/instance/&lt;instance&gt;/ — `subgraphs: &quot;instance&quot;` nested under the declared `subgraphUnder` path `instance/`, so a sub-graph page cannot collide with the per-asset-type pages (glossary/skills/, glossary/tools/, …); the shared page stays the index.</dd>
+<dt>visualisers</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;glossary&quot;,
+    &quot;renderedBy&quot;: &quot;glossary-page&quot;,
+    &quot;coversKinds&quot;: [
+      &quot;glossary&quot;
+    ],
+    &quot;subgraphs&quot;: &quot;instance&quot;,
+    &quot;subgraphUnder&quot;: {
+      &quot;glossary&quot;: &quot;instance&quot;
+    },
+    &quot;builtOnHostSite&quot;: {
+      &quot;translated&quot;: true
+    },
+    &quot;title&quot;: &quot;Glossary&quot;,
+    &quot;alias&quot;: &quot;glossary&quot;
+  },
+  {
+    &quot;id&quot;: &quot;bibliography&quot;,
+    &quot;renderedBy&quot;: &quot;bibliography-page&quot;,
+    &quot;coversKinds&quot;: [
+      &quot;references&quot;,
+      &quot;catalogue&quot;
+    ],
+    &quot;subgraphs&quot;: &quot;directory&quot;,
+    &quot;title&quot;: &quot;Bibliography&quot;,
+    &quot;builtOnHostSite&quot;: {}
+  }
+]</pre></dd>
+<dt>_needs_comment</dt><dd>The layer this one sits on. Owner, 2026-09-20: &quot;So bootsteap, cat harness, fa-core, f-a, from bottom to top.&quot; Declared rather than hardcoded in the navbar, so the ordering is a fact of the repository and not of whichever consumer needed it first. `cat-harness-tools` added 2026-10-01 on owner ruling C1 (epic 7x5n, bean rmi6): the tool implementation layer sits BELOW this one, so core may use it and it may never use core.</dd>
+<dt>needs</dt><dd><pre>[
+  &quot;cat-harness&quot;,
+  &quot;cat-harness-tools&quot;
+]</pre></dd>
+<dt>_jsonldPrefixes_comment</dt><dd>The external vocabularies this layer&#39;s JSON-LD speaks (cat-harness schemas/jsonld-prefixes.ts; bean folio-assistant-63q4, owner 2026-10-14). BIBO and FaBiO type and describe reference nodes (schemas/reference.ts, referenceToJsonLd); dcterms comes from cat-harness, which this layer needs, so it is not repeated here.</dd>
+<dt>jsonldPrefixes</dt><dd><pre>{
+  &quot;bibo&quot;: &quot;http://purl.org/ontology/bibo/&quot;,
+  &quot;fabio&quot;: &quot;http://purl.org/spar/fabio/&quot;
+}</pre></dd>
+<dt>_builtAtPublish_comment</dt><dd>Owner, 2026-10-14 (B1; schemas/built-at-publish.ts in cat-harness). This layer&#39;s JSON-LD @context is generated by `jsonld:contexts` (cat-harness-tools scripts/gen-instance-contexts.ts) from the prefixes its documents use, flattened with the prefix tables of every layer it needs. Those tables are read at the CHECKOUT&#39;s pins, not at pins this layer&#39;s commit names, so no commit of it can hold the file current: it is built at publish and never committed (bean folio-assistant-63q4).</dd>
+<dt>builtAtPublish</dt><dd><pre>[
+  {
+    &quot;path&quot;: &quot;ns/context/v1.jsonld&quot;,
+    &quot;writer&quot;: [
+      &quot;jsonld:contexts&quot;
+    ],
+    &quot;because&quot;: &quot;checkout&quot;,
+    &quot;reason&quot;: &quot;the prefixes its documents use, flattened with the jsonldPrefixes of cat-harness and the layers below it at the checkout&#39;s pins&quot;
+  }
+]</pre></dd>
+<dt>_contentAdapters_comment</dt><dd>Declared HERE, by the layer that ships the adapter, so cat-harness&#39;s composition root (`src/builtin-adapters.ts`) finds it by reading declarations instead of holding a `../folio-assistant-core/adapters/document/index.ts` path into the layer above it. That path was the last upward import out of cat-harness, and a variable one no static gate could see (bean p11x, `check:import-direction`).</dd>
+<dt>_lsiUnitProviders_comment</dt><dd>Declared HERE, by the layer that ships the provider, so `lsi:near` in cat-harness-tools finds it by reading declarations instead of importing a layer above it (bean ec2a step 3, owner decision A: one list per graph).</dd>
+<dt>lsiUnitProviders</dt><dd><pre>[
+  {
+    &quot;graphKind&quot;: &quot;blocks&quot;,
+    &quot;module&quot;: &quot;scripts/lsi-blocks.ts&quot;,
+    &quot;export&quot;: &quot;lsiNearUnits&quot;
+  }
+]</pre></dd>
+<dt>contentAdapters</dt><dd><pre>[
+  {
+    &quot;contentType&quot;: &quot;document&quot;,
+    &quot;module&quot;: &quot;adapters/document/index.ts&quot;,
+    &quot;className&quot;: &quot;DocumentContentAdapter&quot;
+  }
+]</pre></dd>
+<dt>taskIo</dt><dd><pre>{
+  &quot;check:glossary&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;45 s — `glossary-page.ts --check` exits before its write loop — measured 2026-10-01 (bean xpcu); moved from cat-harness-tools/scripts/task-io.ts to its owning layer 2026-10-06 (bean 0r7u)&quot;
+  },
+  &quot;glossary:pot:check&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;39 s — exits before writing; compares without the POT timestamp — measured 2026-10-01 (bean xpcu); moved from cat-harness-tools/scripts/task-io.ts to its owning layer 2026-10-06 (bean 0r7u)&quot;
+  },
+  &quot;check:catalogue&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;measured 2026-10-01 (bean xpcu); moved from cat-harness-tools/scripts/task-io.ts to its owning layer 2026-10-06 (bean 0r7u)&quot;
+  },
+  &quot;check:materialized-fixity&quot;: {
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;measured 2026-10-01 (bean xpcu); moved from cat-harness-tools/scripts/task-io.ts to its owning layer 2026-10-06 (bean 0r7u)&quot;
+  },
+  &quot;check:voices&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;measured 2026-10-01 (bean xpcu); moved from cat-harness-tools/scripts/task-io.ts to its owning layer 2026-10-06 (bean 0r7u)&quot;
+  },
+  &quot;dc:render:check&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;returns before `writeFileSync` — measured 2026-10-01 (bean xpcu); moved from cat-harness-tools/scripts/task-io.ts to its owning layer 2026-10-06 (bean 0r7u)&quot;
+  },
+  &quot;kg:materialize:check&quot;: {
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;`checkMaterializations` is offline and reads — measured 2026-10-01 (bean xpcu); moved from cat-harness-tools/scripts/task-io.ts to its owning layer 2026-10-06 (bean 0r7u)&quot;
+  },
+  &quot;check:dsa-hash&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;verifies DSA legal text SHA-256 against DCAT 3 spdx:checksum and ODRL 2.2 dcterms:source (bean folio-assistant-2z1t)&quot;
+  },
+  &quot;check:core-security-gate&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;verifies workflow injection, secret leaks, lockfile pinning, bun version pinning, materialized fixity, and action SHA pinning over core (bean folio-core-0dy3)&quot;
+  }
+}</pre></dd>
+<dt>contentTranslations</dt><dd><pre>[
+  {
+    &quot;contentType&quot;: &quot;document&quot;,
+    &quot;name&quot;: &quot;Document (generic prose)&quot;,
+    &quot;formats&quot;: [
+      {
+        &quot;id&quot;: &quot;markdown&quot;,
+        &quot;name&quot;: &quot;Markdown&quot;,
+        &quot;extensions&quot;: [
+          &quot;.md&quot;
+        ],
+        &quot;smartBaseScript&quot;: &quot;extract_translations.py&quot;,
+        &quot;smartBaseExtractRef&quot;: &quot;L633–856 (extract_markdown)&quot;,
+        &quot;smartBaseInjectRef&quot;: &quot;inject_translations.py L56–818&quot;,
+        &quot;extractModule&quot;: &quot;pipeline/pot-extract.ts&quot;,
+        &quot;injectModule&quot;: &quot;pipeline/po-inject.ts&quot;
+      }
+    ],
+    &quot;rtlSupported&quot;: true,
+    &quot;notes&quot;: &quot;Base content type. All other types inherit Markdown translation.&quot;
+  }
+]</pre></dd>
+<dt>_gateExemptions_comment</dt><dd>Files of this layer that a gate below it admits, each with its reason, so the gate reads them here instead of naming this layer&#39;s files (owner, 2026-10-16, item 6b of the folio-assistant#2598 wrong-direction triage). `check:structure-accessor` (bean rkqp) refuses the quoted token &quot;structure.json&quot; outside the accessor in `cat-harness/schemas/document-structure.ts`; these two only test whether a library entry was ingested and never parse the file.</dd>
+<dt>gateExemptions</dt><dd><pre>{
+  &quot;files&quot;: [
+    {
+      &quot;gate&quot;: &quot;check:structure-accessor&quot;,
+      &quot;file&quot;: &quot;schemas/library-ref.ts&quot;,
+      &quot;reason&quot;: &quot;EXISTENCE only — whether an entry was ingested at all — and it never parses the file&quot;
+    },
+    {
+      &quot;gate&quot;: &quot;check:structure-accessor&quot;,
+      &quot;file&quot;: &quot;scripts/check-catalogue.ts&quot;,
+      &quot;reason&quot;: &quot;EXISTENCE only — whether a catalogue item&#39;s libraryId was ingested — and it never parses the file&quot;
+    }
+  ]
+}</pre></dd>
+<dt>enableSubgraphs</dt><dd><pre>[
+  &quot;folio-assistant-core.library&quot;,
+  &quot;folio-assistant-core.dsa&quot;,
+  &quot;folio-assistant-core.board&quot;,
+  &quot;folio-assistant-core.library-extras&quot;,
+  &quot;folio-assistant-core.collab&quot;
+]</pre></dd>
+</dl>
+</main>
+<script src="../../../../../assets/ig-search.js" defer></script>
+</body>
+</html>

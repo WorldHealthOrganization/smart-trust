@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script data-folio-saved-scheme>(function(){var d=document.documentElement,s=null,c="dark";try{s=localStorage.getItem("fa-color-scheme")}catch(e){}if(s!=="light"&&s!=="dark"){s="light";try{if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)s="dark"}catch(e){}}try{var n=document.getElementById("fa-site-scheme");if(n)c=JSON.parse(n.textContent).scheme==="light"?"light":"dark"}catch(e){}d.setAttribute("data-fa-scheme",s);var j=window.jtd;if(s!==c&&j&&typeof j.setTheme==="function"){try{j.setTheme(s)}catch(e){}}})();</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>test/attestations/adversarial-review/sdlc/skills/sdlc-core/merge-conflict-patterns.attestations — qa-attestations</title>
+<style>
+  :root { color-scheme: light dark; --fg:#1b1b1b; --bg:#fdfdfb; --muted:#5b5b5b; --line:#d6d6d0; --link:#0b5cad; --panel:#f3f4f2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-fa-scheme="light"]) { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; } }
+  :root[data-fa-scheme="dark"] { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; }
+  :root[data-fa-scheme="light"] { color-scheme: light; } :root[data-fa-scheme="dark"] { color-scheme: dark; }
+  body { margin:0; font:1rem/1.5 system-ui,sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width:80rem; margin:0 auto; padding:1.5rem 1.5rem 4rem; min-width:0; overflow-wrap:anywhere; }
+  h1 { font-size:1.35rem; margin:0 0 .25rem; } h2 { font-size:1.05rem; margin:1.5rem 0 .5rem; }
+  a { color:var(--link); } a:focus-visible, select:focus-visible { outline:3px solid var(--link); outline-offset:2px; }
+  .m { color:var(--muted); font-size:.9rem; }
+  .tiles { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; padding:0; list-style:none; }
+  .tiles li { border:1px solid var(--line); border-radius:.4rem; padding:.35rem .7rem; }
+  .tiles b { font-size:1.2rem; margin-right:.3rem; }
+  .clip { width:100%; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; vertical-align:top; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
+  th { background:var(--panel); white-space:nowrap; }
+  /* Only the node's path and long text may break mid-word; a status or a date
+     broken across lines ("in_pr ogres s") is unreadable. */
+  td { overflow-wrap:normal; } td.p, td.t { overflow-wrap:anywhere; } td.s { white-space:nowrap; }
+  dl { display:grid; grid-template-columns:minmax(8rem,14rem) 1fr; gap:.25rem 1rem; }
+  dt { font-weight:600; } dd { margin:0; }
+  pre { background:var(--panel); padding:.75rem; overflow-x:auto; font-size:.85rem; }
+  label { margin-right:1rem; }
+  @media (max-width:40rem) { dl { grid-template-columns:1fr; } }
+</style>
+<link rel="stylesheet" href="../../../../../../../../../../../assets/css/navbar.css"><script src="../../../../../../../../../../../assets/navbar/rail-2ga2f5yr54g.js" defer></script><script src="../../../../../../../../../../../assets/js/navbar.js" defer></script><style data-folio-narrow-viewport>
+/* Narrow viewports: nothing may widen the PAGE — bean `2r2n`.
+ *
+ * At 390 px, 105 of 249 built pages scrolled sideways (measured 2026-09-24).
+ * The rule here is the bean's: wide content scrolls INSIDE ITS OWN BOX with a
+ * visible cue, and the page itself never pans.
+ *
+ * ONE FILE, TWO WAYS IN. Themed pages link it from `_includes/head_custom.html`.
+ * The standalone viewer pages carry no theme stylesheet at all, so
+ * `withViewerNav` in `scripts/viewer-page.ts` inlines this same file when it
+ * adds the rail. A copy of these rules in each place would be two answers to
+ * "what does a table do at 390 px", free to drift apart.
+ *
+ * Every selector here is written to be safe on both kinds of page: no
+ * `.main-content` scope (a standalone page has none), the navbar excluded by
+ * name, and the theme's own `.table-wrapper` left alone, since it already does
+ * this job for Markdown tables. */
+
+@media (max-width: 799.98px) {
+  /* A table the theme did not wrap: raw HTML from a generator, or one built at
+   * runtime. `display: block` makes the table its own scroll box. Its cells
+   * still lay out as a table inside the anonymous table box. */
+  table:not(.table-wrapper > table):not(.fa-nav table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* THE CUE: the edge that has more content past it fades out. The fade is a
+   * MASK over the table's own pixels, driven by its own scroll position, so
+   * it needs no knowledge of the page's background. A painted cover (the
+   * usual `background-attachment: local` trick) does: the first version used
+   * `Canvas`, and on a page that is dark under a LIGHT scheme it laid a white
+   * band over the first column.
+   *
+   * A table that does not overflow has an inactive scroll timeline, so the
+   * animation has no effect and both fades stay at their initial 0: no cue
+   * where there is nothing to scroll to. A browser without scroll-driven
+   * animations shows no fade, and the table still scrolls. */
+  @supports (animation-timeline: scroll()) {
+    table:not(.table-wrapper > table):not(.fa-nav table) {
+      mask-image: linear-gradient(to right,
+        transparent 0, #000 var(--fa-cue-l),
+        #000 calc(100% - var(--fa-cue-r)), transparent 100%);
+      animation: fa-scroll-cue linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+
+  /* A code block scrolls in its own box, which is what `pre` is for. Mermaid
+   * SOURCE sits in a `pre` until the renderer replaces it, and at 390 px a
+   * diagram's source line is longer than the screen. */
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Prose that has no break opportunity: a long path in inline code, or a
+   * glossary definition naming one. Breaking the string is better than
+   * widening the page it sits on. */
+  :not(pre) > code,
+  dd {
+    overflow-wrap: anywhere;
+  }
+}
+
+@property --fa-cue-l { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --fa-cue-r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+@keyframes fa-scroll-cue {
+  0%   { --fa-cue-l: 0px;    --fa-cue-r: 2.5rem; }
+  12%  { --fa-cue-l: 2.5rem; }
+  88%  { --fa-cue-r: 2.5rem; }
+  100% { --fa-cue-l: 2.5rem; --fa-cue-r: 0px; }
+}
+
+</style>
+<script type="application/json" id="fa-translation-meta">{"lang":"en","translationStatus":"","translationSource":"","supportedLocales":["ar","zh","en","fr","ru","es"],"availableLocales":[]}</script><link rel="stylesheet" href="../../../../../../../../../../../assets/page-layout.css" data-fa-page-layout><script src="../../../../../../../../../../../assets/page-layout.js" defer data-fa-page-layout></script><link rel="stylesheet" href="../../../../../../../../../../../assets/ig-artifact.css"><style data-ig-version-chrome>.ig-topbar-head{flex:0 0 100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .9rem}.ig-topbar-head .ig-topbar-home{flex:none}.ig-topbar-ver{font-weight:400;font-size:.9em;opacity:.95;white-space:nowrap}.ig-topbar-flag{font-size:1.1em}.ig-version-banner{box-sizing:border-box;margin:0;padding:.5rem 1.5rem;background:#ffffa0;color:#222;border-bottom:1px solid #0a0008;font-size:.95rem;line-height:1.45}.ig-version-banner a{color:#1a4b8c;text-decoration:underline}html:not([data-fa-scheme="light"]) .ig-version-banner{background:#4a4520;color:#fff8d0;border-color:#8a7d2a}html:not([data-fa-scheme="light"]) .ig-version-banner a{color:#ffe680}.ig-metadata{border-collapse:collapse;margin:0 0 1rem;font-size:.95rem}.ig-metadata td{border:1px solid #c8c8c8;padding:.25rem .6rem;vertical-align:top}.ig-metadata code{overflow-wrap:anywhere}</style></head>
+<body data-fa-node-kind-page>
+<header class="ig-search-top fa-page-bar"><a class="ig-search-home" href="../../../../../../../../../../../index.html">WHO SMART Trust</a><span class="ig-topbar-ver"><span class="ig-topbar-flag" role="img" aria-label="International" title="International">🌐</span> 1.7.5 - ci-build</span><form class="ig-search" role="search" data-ig-search-index="../../../../../../../../../../../assets/ig-search.json"><label class="ig-search-label" for="search-input">Search WHO SMART Trust</label><input type="search" id="search-input" class="ig-search-input" placeholder="Search pages and artefacts" autocomplete="off" aria-controls="ig-search-results" aria-expanded="false"><ul id="ig-search-results" class="ig-search-results" hidden></ul></form><span class="ig-locale-slot" data-fa-slot="locale"></span></header><p class="ig-version-banner" role="note">This page is part of the WHO SMART Trust (v1.7.5: ci-build) based on <a href="http://hl7.org/fhir/R4/">FHIR (HL7® FHIR® Standard) v4.0.1</a>. This is the continuous integration build: it follows the source and is not a published version. For a full list of available versions, see the <a href="http://smart.who.int/trust/history.html">Directory of published versions</a>.</p><script type="application/json" id="fa-rail" data-fa-root="../../../../../../../../../../.." data-fa-to-root="../../../../../../../../../../..">{"data":"rail-2ga2f5yr54g","here":"/en/cat-harness-tools/qa-attestations/cat-harness/test/attestations/adversarial-review/sdlc/skills/sdlc-core/merge-conflict-patterns.attestations/"}</script><nav class="fa-nav" aria-label="folio-assistant" data-fa-rail="pending"><a href="../../../../../../../../../../../">folio-assistant</a></nav>
+<main>
+<h1 id="nk-title">test/attestations/adversarial-review/sdlc/skills/sdlc-core/merge-conflict-patterns.attestations</h1>
+<p class="m">A <a href="../../../../../../../../">qa-attestations</a> node held by <a href="../../../../../../../">cat-harness</a>, at <code>cat-harness/test/attestations/adversarial-review/sdlc/skills/sdlc-core/merge-conflict-patterns.attestations.json</code>.</p>
+
+<h2 id="fields">Fields</h2>
+<dl>
+<dt>$schema</dt><dd>qa-attestations/v1</dd>
+<dt>family</dt><dd>adversarial-review</dd>
+<dt>subject</dt><dd><pre>{
+  &quot;kind&quot;: &quot;skill&quot;,
+  &quot;id&quot;: &quot;merge-conflict-patterns&quot;,
+  &quot;path&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md&quot;
+}</pre></dd>
+<dt>adversarial_reviews</dt><dd><pre>[
+  {
+    &quot;reviewer&quot;: {
+      &quot;by&quot;: &quot;agent&quot;,
+      &quot;session&quot;: &quot;session_backfill_lvlv&quot;,
+      &quot;model&quot;: &quot;not-disclosed&quot;
+    },
+    &quot;author_sessions&quot;: [],
+    &quot;skill_hash&quot;: &quot;hash:adversarial-checklist:v1&quot;,
+    &quot;at&quot;: &quot;2026-10-09T16:54:43.277Z&quot;,
+    &quot;coverage&quot;: {
+      &quot;files_total&quot;: 1,
+      &quot;files_reviewed&quot;: 1,
+      &quot;skipped&quot;: []
+    },
+    &quot;result&quot;: &quot;pass&quot;,
+    &quot;flags&quot;: [],
+    &quot;findings&quot;: []
+  },
+  {
+    &quot;reviewer&quot;: {
+      &quot;by&quot;: &quot;agent&quot;,
+      &quot;session&quot;: &quot;session_01VQDpPffYARDQ8juksAZScf&quot;,
+      &quot;model&quot;: &quot;not-disclosed&quot;
+    },
+    &quot;author_sessions&quot;: [],
+    &quot;skill_hash&quot;: &quot;hash:adversarial-checklist:v1&quot;,
+    &quot;at&quot;: &quot;2026-11-05T17:14:24.396Z&quot;,
+    &quot;coverage&quot;: {
+      &quot;files_total&quot;: 1,
+      &quot;files_reviewed&quot;: 1,
+      &quot;skipped&quot;: []
+    },
+    &quot;result&quot;: &quot;fail&quot;,
+    &quot;flags&quot;: [
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-hand-merge-theirs&quot;,
+        &quot;category&quot;: &quot;data-loss&quot;,
+        &quot;severity&quot;: &quot;major&quot;,
+        &quot;weight&quot;: &quot;blocking&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:133-137 (§\&quot;Four things a round needs to know\&quot;, first bullet)&quot;,
+        &quot;evidence&quot;: &quot;The hand recipe says: take each declared path with `git checkout --theirs &lt;path&gt;` and stage it with `git add -f`. For a `readme-generated-regions` path that replaces the whole README with main&#39;s stage-3 blob, discarding the branch&#39;s authored hunks in that README, including ones git had merged cleanly; regen rewrites only the generated regions, and no listed check (the deletion audit is scoped to */test/results/*) sees lost prose. merge-base.ts resolves that pattern hunk by hunk (resolveGeneratedRegions) and refuses a hunk outside a region. The same file says --theirs has nothing to take in a modify/delete (§\&quot;When one side deleted the file\&quot;, l.200-204) and writes marked bytes in a rename/rename payload (l.480-481), and the hand path runs neither droppedInMerge checkpoint (merge-queue: &#39;A hand `git merge` gets no such check&#39;).&quot;,
+        &quot;detail&quot;: &quot;Fix: in the hand recipe, resolve each path by its pattern&#39;s strategy (take-base incl. `git rm` for a base deletion; owned-tree from the parents&#39; commits; region-by-region for READMEs), and run the deletion audit over every path, not only test/results.&quot;,
+        &quot;status&quot;: &quot;open&quot;
+      }
+    ],
+    &quot;findings&quot;: [
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-hand-merge-theirs&quot;,
+        &quot;category&quot;: &quot;data-loss&quot;,
+        &quot;severity&quot;: &quot;major&quot;,
+        &quot;weight&quot;: &quot;blocking&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:133-137 (§\&quot;Four things a round needs to know\&quot;, first bullet)&quot;,
+        &quot;evidence&quot;: &quot;The hand recipe says: take each declared path with `git checkout --theirs &lt;path&gt;` and stage it with `git add -f`. For a `readme-generated-regions` path that replaces the whole README with main&#39;s stage-3 blob, discarding the branch&#39;s authored hunks in that README, including ones git had merged cleanly; regen rewrites only the generated regions, and no listed check (the deletion audit is scoped to */test/results/*) sees lost prose. merge-base.ts resolves that pattern hunk by hunk (resolveGeneratedRegions) and refuses a hunk outside a region. The same file says --theirs has nothing to take in a modify/delete (§\&quot;When one side deleted the file\&quot;, l.200-204) and writes marked bytes in a rename/rename payload (l.480-481), and the hand path runs neither droppedInMerge checkpoint (merge-queue: &#39;A hand `git merge` gets no such check&#39;).&quot;,
+        &quot;detail&quot;: &quot;Fix: in the hand recipe, resolve each path by its pattern&#39;s strategy (take-base incl. `git rm` for a base deletion; owned-tree from the parents&#39; commits; region-by-region for READMEs), and run the deletion audit over every path, not only test/results.&quot;,
+        &quot;status&quot;: &quot;open&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-rule3-never-under-report&quot;,
+        &quot;category&quot;: &quot;correctness&quot;,
+        &quot;severity&quot;: &quot;major&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:52-59 (§\&quot;Applying rule 3\&quot;)&quot;,
+        &quot;evidence&quot;: &quot;&#39;A stale tree can only ever over-report authored conflicts, never under-report, because a pattern is added and an authored path is the fallback.&#39; That holds only if declarations are append-only. Nothing makes them so: first match wins (l.614-615), docs-pages enumerates slugs (l.411-417) so a page that becomes authored loses its slug, and the registry&#39;s history rewrites and retires entries (cat-harness-tools 3d7d8832 retired the kg-qa-sidecar strategy). After a narrowing, a stale branch&#39;s `merge:main` (merge-base.ts imports PATTERNS from the running checkout) takes base on a path main now refuses: the silent-discard direction. The remedy offered (`git show origin/&lt;base&gt;:…merge-conflict-patterns.ts`) cannot be given to merge:main; the mechanism CI uses, main&#39;s merge-base.ts run with `--root` on the branch (folio-assistant merge-main.yml, step &#39;merge main in, with main&#39;s merge-base.ts&#39;), is not named.&quot;,
+        &quot;status&quot;: &quot;open&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-ci-section-stale&quot;,
+        &quot;category&quot;: &quot;provenance&quot;,
+        &quot;severity&quot;: &quot;major&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:620-656 (§\&quot;In CI — opt in with the merge-main label\&quot;)&quot;,
+        &quot;evidence&quot;: &quot;Against folio-assistant .github/workflows/merge-main.yml at 575b57e: (a) &#39;runs merge:main on every open, same-repository PR labelled merge-main that is behind main&#39; — a sweep now merges only a CONFLICTED PR (a clean one only when the label is added or a dispatch names it) and never a draft, per the owner ruling of 2026-11-05 that branch-freshness quotes; (b) &#39;one live run per PR (a newer run cancels an older one)&#39; — concurrency is per PR and per event, push-triggered runs queue and are never cancelled in progress, and two runs for one PR can run at once; (c) &#39;pushed with MERGE_MAIN_TOKEN&#39; — the workflow uses the PUSH_BRANCH_TRIGGERING_CI capability (harness App, or a secret of that name); (d) `.github/workflows/merge-main.yml` lives in the folio-assistant index, not in cat-harness, where this skill is read.&quot;,
+        &quot;status&quot;: &quot;open&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-train-resolves-conflicts&quot;,
+        &quot;category&quot;: &quot;correctness&quot;,
+        &quot;severity&quot;: &quot;major&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:660-664 (§\&quot;When a merge-train member is refused\&quot;)&quot;,
+        &quot;evidence&quot;: &quot;A train is described as `merge-base.ts --no-regen` per member, refusing a member &#39;when its merge hits an authored or undeclared conflict&#39;, so declared conflicts are resolved inside the train. merge-queue §&#39;A train admits only members that STACK cleanly (STRICT)&#39; requires &#39;no conflict at all, generated paths included&#39;, checked with merge-tree before admission: &#39;Conflict resolution belongs on the member&#39;s branch, never in the train&#39;; merge-manager-watcher: &#39;It is never fixed inside the train.&#39; One of the two skills is wrong; this one does not mention stacking.&quot;,
+        &quot;status&quot;: &quot;open&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-dispatch-cannot-sign&quot;,
+        &quot;category&quot;: &quot;correctness&quot;,
+        &quot;severity&quot;: &quot;major&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:712-716, 757-775 (§1 Done when; §3 dispatch one agent)&quot;,
+        &quot;evidence&quot;: &quot;§3 fires when the owning session is &#39;gone&#39;, and the dispatched agent&#39;s budget is &#39;one fix, one push, one report&#39;. The work item&#39;s Done-when needs &#39;a new `ready: &lt;sha&gt;`&#39;, and merge:guard accepts a ready marker only from the session the PR body names (merge-queue §&#39;Stalled for days&#39; step 3; an unblocker &#39;never posts a `ready:` marker&#39;). With the owner gone and no takeover of the body&#39;s session line, which §3 does not provide, Done-when cannot be met and the item becomes the &#39;stale hold&#39; §5 warns of.&quot;,
+        &quot;status&quot;: &quot;open&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-fail-thresholds&quot;,
+        &quot;category&quot;: &quot;correctness&quot;,
+        &quot;severity&quot;: &quot;minor&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:735-741 (§2 Fails if)&quot;,
+        &quot;evidence&quot;: &quot;&#39;no started line within 4 hours; or no push within 24 hours&#39; is given with no ruling or source. merge-manager-watcher routes &#39;a PR whose owner has not pushed or answered for 2+ hours&#39; to stalled-agent-triage, &#39;tell the owner and take it over&#39;; merge-queue&#39;s `stale` row is 24 h without push or human comment. Three thresholds for one situation.&quot;,
+        &quot;status&quot;: &quot;open&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-steward-edits&quot;,
+        &quot;category&quot;: &quot;correctness&quot;,
+        &quot;severity&quot;: &quot;minor&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:743-746 vs 686-688&quot;,
+        &quot;evidence&quot;: &quot;§2: &#39;After that, the steward does not edit the work item: anything it learns goes to the PR.&#39; §1: a second refusal of the same PR is added to the open work item under `## Attempts` with `--body-append`, by the steward, while the owning session holds it. (§3&#39;s dispatch record and §5&#39;s close follow a takeover or settle the fate, so they are arguably outside §2&#39;s window; §1&#39;s case is not.)&quot;,
+        &quot;status&quot;: &quot;open&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-read-only-name&quot;,
+        &quot;category&quot;: &quot;provenance&quot;,
+        &quot;severity&quot;: &quot;minor&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:589&quot;,
+        &quot;evidence&quot;: &quot;&#39;task-io.ts classifies check:artefact-verification as READ_ONLY&#39;. task-io.ts:136 has `\&quot;check:artefact-verification\&quot;: TREE_READER` ({ inputs: [TRACKED], outputs: [] }); READ_ONLY is a different constant. The substance (no outputs, so no writer and take-base would discard) holds; the identifier does not.&quot;,
+        &quot;status&quot;: &quot;open&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-regen-every-check&quot;,
+        &quot;category&quot;: &quot;provenance&quot;,
+        &quot;severity&quot;: &quot;minor&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:35-39, 70&quot;,
+        &quot;evidence&quot;: &quot;Rule 2: regen &#39;asks every check the CI workflow runs&#39;; the round table: a standalone regen after merge:main adds &#39;nothing — same tree, same gate set&#39;. merge:main runs regen with `--changed &lt;fork point&gt;` (merge-base.ts regenArgs, bean 94zs), i.e. only pairs whose inputs changed since the fork; a standalone `regen` asks the full set and can find a pair already stale at both parents. The practical cost is small (CI reports it), but both sentences are false as written.&quot;,
+        &quot;status&quot;: &quot;open&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-unsourced-measurements&quot;,
+        &quot;category&quot;: &quot;provenance&quot;,
+        &quot;severity&quot;: &quot;minor&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:66-72, 88-89, 138-140&quot;,
+        &quot;evidence&quot;: &quot;The round table (238-309 s, 601-639 s, 1429 s, ~21.8k tests, 3-4 cores), &#39;Cold, it needs ≥1200 s&#39;, and &#39;the two reds a generated-only merge actually hit in CI&#39; are stated as standing facts with no date, run or re-measure command (cat-harness-tools has scripts/measure-merge-round.ts). They are in tension with each other (5-10 min vs ≥1200 s cold) and with merge-main.yml&#39;s measured 19-46 min round (#1754, 2026-10-01). skill-no-prose-counts.&quot;,
+        &quot;status&quot;: &quot;open&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-touched-code-undefined&quot;,
+        &quot;category&quot;: &quot;correctness&quot;,
+        &quot;severity&quot;: &quot;minor&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:79-81, 122-123&quot;,
+        &quot;evidence&quot;: &quot;The choice between the trimmed and the full local round turns on &#39;the merge touched code (yours or main&#39;s reconciled against yours)&#39;, which is not defined. Almost every merge of main brings code in; read broadly, the trimmed round never applies, read narrowly (textual conflict only) it admits the semantic conflict l.126-129 says the targeted list cannot see.&quot;,
+        &quot;status&quot;: &quot;open&quot;
+      }
+    ]
+  },
+  {
+    &quot;reviewer&quot;: {
+      &quot;by&quot;: &quot;agent&quot;,
+      &quot;session&quot;: &quot;session_01VQDpPffYARDQ8juksAZScf&quot;,
+      &quot;model&quot;: &quot;not-disclosed&quot;
+    },
+    &quot;author_sessions&quot;: [],
+    &quot;skill_hash&quot;: &quot;hash:adversarial-checklist:v1&quot;,
+    &quot;at&quot;: &quot;2026-11-05T17:29:09.280Z&quot;,
+    &quot;coverage&quot;: {
+      &quot;files_total&quot;: 1,
+      &quot;files_reviewed&quot;: 1,
+      &quot;skipped&quot;: []
+    },
+    &quot;result&quot;: &quot;pass&quot;,
+    &quot;flags&quot;: [],
+    &quot;findings&quot;: [
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-r2-boundary-hunk&quot;,
+        &quot;category&quot;: &quot;correctness&quot;,
+        &quot;severity&quot;: &quot;minor&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:hand recipe, readme bullet&quot;,
+        &quot;evidence&quot;: &quot;The per-hunk rule named only hunks inside or outside a region; a hunk that moves a region boundary is neither, and the pattern section refuses it. Now named as authored.&quot;,
+        &quot;detail&quot;: &quot;Raised against the fixed text and corrected in the same commit before this review was recorded; the recorded text answers it.&quot;,
+        &quot;status&quot;: &quot;resolved&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-r2-dispatch-events&quot;,
+        &quot;category&quot;: &quot;correctness&quot;,
+        &quot;severity&quot;: &quot;minor&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:In CI, third bullet&quot;,
+        &quot;evidence&quot;: &quot;The concurrency bullet omitted workflow_dispatch runs, which merge-main.yml cancels per event (cancel-in-progress is true for every event but push), and said &#39;one of each kind&#39; for three event kinds. Now: any non-push event cancels an earlier run of the same event.&quot;,
+        &quot;detail&quot;: &quot;Raised against the fixed text and corrected in the same commit before this review was recorded; the recorded text answers it.&quot;,
+        &quot;status&quot;: &quot;resolved&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-r2-unmerged-workflow&quot;,
+        &quot;category&quot;: &quot;correctness&quot;,
+        &quot;severity&quot;: &quot;minor&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:train paragraph&quot;,
+        &quot;evidence&quot;: &quot;Said the automated train is &#39;run by merge-train.yml in folio-assistant&#39; and the ruling&#39;s section was &#39;added by cat-harness#1053&#39;; neither is on main (folio-assistant#2960 and cat-harness#1053 are open). Now &#39;proposed in&#39;.&quot;,
+        &quot;detail&quot;: &quot;Raised against the fixed text and corrected in the same commit before this review was recorded; the recorded text answers it.&quot;,
+        &quot;status&quot;: &quot;resolved&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-r2-takeover-owner&quot;,
+        &quot;category&quot;: &quot;correctness&quot;,
+        &quot;severity&quot;: &quot;minor&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:§3 signing bullet&quot;,
+        &quot;evidence&quot;: &quot;merge-queue §&#39;Stalled for days&#39; has the owner start the takeover agent; the new bullet let a steward-dispatched agent rewrite the PR body&#39;s session line with no owner involvement. Now &#39;with the owner&#39;s go-ahead as there&#39;.&quot;,
+        &quot;detail&quot;: &quot;Raised against the fixed text and corrected in the same commit before this review was recorded; the recorded text answers it.&quot;,
+        &quot;status&quot;: &quot;resolved&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-r2-container-claim&quot;,
+        &quot;category&quot;: &quot;correctness&quot;,
+        &quot;severity&quot;: &quot;minor&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:timings note&quot;,
+        &quot;evidence&quot;: &quot;&#39;recorded ... in one container&#39; was not shown by any source. Removed; only the date bound (cat-harness seed 6e8a3f85, 2026-10-08) and the re-measure command remain.&quot;,
+        &quot;detail&quot;: &quot;Raised against the fixed text and corrected in the same commit before this review was recorded; the recorded text answers it.&quot;,
+        &quot;status&quot;: &quot;resolved&quot;
+      },
+      {
+        &quot;id&quot;: &quot;adv-merge-conflict-patterns-r2-base-tools&quot;,
+        &quot;category&quot;: &quot;correctness&quot;,
+        &quot;severity&quot;: &quot;minor&quot;,
+        &quot;weight&quot;: &quot;suggestion&quot;,
+        &quot;where&quot;: &quot;sdlc/skills/sdlc-core/merge-conflict-patterns.md:Applying rule 3&quot;,
+        &quot;evidence&quot;: &quot;&#39;classify with the BASE&#39;s own merge-base.ts&#39; did not say where that file comes from. Now: a worktree of the tools at the base.&quot;,
+        &quot;detail&quot;: &quot;Raised against the fixed text and corrected in the same commit before this review was recorded; the recorded text answers it.&quot;,
+        &quot;status&quot;: &quot;resolved&quot;
+      }
+    ]
+  }
+]</pre></dd>
+<dt>source_hash</dt><dd>4a2cf04c8d91</dd>
+</dl>
+</main>
+<script src="../../../../../../../../../../../assets/ig-search.js" defer></script>
+</body>
+</html>

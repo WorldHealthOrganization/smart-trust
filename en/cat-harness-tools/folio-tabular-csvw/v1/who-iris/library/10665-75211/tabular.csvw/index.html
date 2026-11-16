@@ -1,0 +1,3453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script data-folio-saved-scheme>(function(){var d=document.documentElement,s=null,c="dark";try{s=localStorage.getItem("fa-color-scheme")}catch(e){}if(s!=="light"&&s!=="dark"){s="light";try{if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)s="dark"}catch(e){}}try{var n=document.getElementById("fa-site-scheme");if(n)c=JSON.parse(n.textContent).scheme==="light"?"light":"dark"}catch(e){}d.setAttribute("data-fa-scheme",s);var j=window.jtd;if(s!==c&&j&&typeof j.setTheme==="function"){try{j.setTheme(s)}catch(e){}}})();</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>library/10665-75211/tabular.csvw — folio-tabular-csvw/v1</title>
+<style>
+  :root { color-scheme: light dark; --fg:#1b1b1b; --bg:#fdfdfb; --muted:#5b5b5b; --line:#d6d6d0; --link:#0b5cad; --panel:#f3f4f2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-fa-scheme="light"]) { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; } }
+  :root[data-fa-scheme="dark"] { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; }
+  :root[data-fa-scheme="light"] { color-scheme: light; } :root[data-fa-scheme="dark"] { color-scheme: dark; }
+  body { margin:0; font:1rem/1.5 system-ui,sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width:80rem; margin:0 auto; padding:1.5rem 1.5rem 4rem; min-width:0; overflow-wrap:anywhere; }
+  h1 { font-size:1.35rem; margin:0 0 .25rem; } h2 { font-size:1.05rem; margin:1.5rem 0 .5rem; }
+  a { color:var(--link); } a:focus-visible, select:focus-visible { outline:3px solid var(--link); outline-offset:2px; }
+  .m { color:var(--muted); font-size:.9rem; }
+  .tiles { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; padding:0; list-style:none; }
+  .tiles li { border:1px solid var(--line); border-radius:.4rem; padding:.35rem .7rem; }
+  .tiles b { font-size:1.2rem; margin-right:.3rem; }
+  .clip { width:100%; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; vertical-align:top; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
+  th { background:var(--panel); white-space:nowrap; }
+  /* Only the node's path and long text may break mid-word; a status or a date
+     broken across lines ("in_pr ogres s") is unreadable. */
+  td { overflow-wrap:normal; } td.p, td.t { overflow-wrap:anywhere; } td.s { white-space:nowrap; }
+  dl { display:grid; grid-template-columns:minmax(8rem,14rem) 1fr; gap:.25rem 1rem; }
+  dt { font-weight:600; } dd { margin:0; }
+  pre { background:var(--panel); padding:.75rem; overflow-x:auto; font-size:.85rem; }
+  label { margin-right:1rem; }
+  @media (max-width:40rem) { dl { grid-template-columns:1fr; } }
+</style>
+<link rel="stylesheet" href="../../../../../../../../assets/css/navbar.css"><script src="../../../../../../../../assets/navbar/rail-zcon6vgt4x.js" defer></script><script src="../../../../../../../../assets/js/navbar.js" defer></script><style data-folio-narrow-viewport>
+/* Narrow viewports: nothing may widen the PAGE — bean `2r2n`.
+ *
+ * At 390 px, 105 of 249 built pages scrolled sideways (measured 2026-09-24).
+ * The rule here is the bean's: wide content scrolls INSIDE ITS OWN BOX with a
+ * visible cue, and the page itself never pans.
+ *
+ * ONE FILE, TWO WAYS IN. Themed pages link it from `_includes/head_custom.html`.
+ * The standalone viewer pages carry no theme stylesheet at all, so
+ * `withViewerNav` in `scripts/viewer-page.ts` inlines this same file when it
+ * adds the rail. A copy of these rules in each place would be two answers to
+ * "what does a table do at 390 px", free to drift apart.
+ *
+ * Every selector here is written to be safe on both kinds of page: no
+ * `.main-content` scope (a standalone page has none), the navbar excluded by
+ * name, and the theme's own `.table-wrapper` left alone, since it already does
+ * this job for Markdown tables. */
+
+@media (max-width: 799.98px) {
+  /* A table the theme did not wrap: raw HTML from a generator, or one built at
+   * runtime. `display: block` makes the table its own scroll box. Its cells
+   * still lay out as a table inside the anonymous table box. */
+  table:not(.table-wrapper > table):not(.fa-nav table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* THE CUE: the edge that has more content past it fades out. The fade is a
+   * MASK over the table's own pixels, driven by its own scroll position, so
+   * it needs no knowledge of the page's background. A painted cover (the
+   * usual `background-attachment: local` trick) does: the first version used
+   * `Canvas`, and on a page that is dark under a LIGHT scheme it laid a white
+   * band over the first column.
+   *
+   * A table that does not overflow has an inactive scroll timeline, so the
+   * animation has no effect and both fades stay at their initial 0: no cue
+   * where there is nothing to scroll to. A browser without scroll-driven
+   * animations shows no fade, and the table still scrolls. */
+  @supports (animation-timeline: scroll()) {
+    table:not(.table-wrapper > table):not(.fa-nav table) {
+      mask-image: linear-gradient(to right,
+        transparent 0, #000 var(--fa-cue-l),
+        #000 calc(100% - var(--fa-cue-r)), transparent 100%);
+      animation: fa-scroll-cue linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+
+  /* A code block scrolls in its own box, which is what `pre` is for. Mermaid
+   * SOURCE sits in a `pre` until the renderer replaces it, and at 390 px a
+   * diagram's source line is longer than the screen. */
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Prose that has no break opportunity: a long path in inline code, or a
+   * glossary definition naming one. Breaking the string is better than
+   * widening the page it sits on. */
+  :not(pre) > code,
+  dd {
+    overflow-wrap: anywhere;
+  }
+}
+
+@property --fa-cue-l { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --fa-cue-r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+@keyframes fa-scroll-cue {
+  0%   { --fa-cue-l: 0px;    --fa-cue-r: 2.5rem; }
+  12%  { --fa-cue-l: 2.5rem; }
+  88%  { --fa-cue-r: 2.5rem; }
+  100% { --fa-cue-l: 2.5rem; --fa-cue-r: 0px; }
+}
+
+</style>
+<script type="application/json" id="fa-translation-meta">{"lang":"en","translationStatus":"","translationSource":"","supportedLocales":["ar","zh","en","fr","ru","es"],"availableLocales":[]}</script><link rel="stylesheet" href="../../../../../../../../assets/page-layout.css" data-fa-page-layout><script src="../../../../../../../../assets/page-layout.js" defer data-fa-page-layout></script><link rel="stylesheet" href="../../../../../../../../assets/ig-artifact.css"><style data-ig-version-chrome>.ig-topbar-head{flex:0 0 100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .9rem}.ig-topbar-head .ig-topbar-home{flex:none}.ig-topbar-ver{font-weight:400;font-size:.9em;opacity:.95;white-space:nowrap}.ig-topbar-flag{font-size:1.1em}.ig-version-banner{box-sizing:border-box;margin:0;padding:.5rem 1.5rem;background:#ffffa0;color:#222;border-bottom:1px solid #0a0008;font-size:.95rem;line-height:1.45}.ig-version-banner a{color:#1a4b8c;text-decoration:underline}html:not([data-fa-scheme="light"]) .ig-version-banner{background:#4a4520;color:#fff8d0;border-color:#8a7d2a}html:not([data-fa-scheme="light"]) .ig-version-banner a{color:#ffe680}.ig-metadata{border-collapse:collapse;margin:0 0 1rem;font-size:.95rem}.ig-metadata td{border:1px solid #c8c8c8;padding:.25rem .6rem;vertical-align:top}.ig-metadata code{overflow-wrap:anywhere}</style></head>
+<body data-fa-node-kind-page>
+<header class="ig-search-top fa-page-bar"><a class="ig-search-home" href="../../../../../../../../index.html">WHO SMART Trust</a><span class="ig-topbar-ver"><span class="ig-topbar-flag" role="img" aria-label="International" title="International">🌐</span> 1.7.5 - ci-build</span><form class="ig-search" role="search" data-ig-search-index="../../../../../../../../assets/ig-search.json"><label class="ig-search-label" for="search-input">Search WHO SMART Trust</label><input type="search" id="search-input" class="ig-search-input" placeholder="Search pages and artefacts" autocomplete="off" aria-controls="ig-search-results" aria-expanded="false"><ul id="ig-search-results" class="ig-search-results" hidden></ul></form><span class="ig-locale-slot" data-fa-slot="locale"></span></header><p class="ig-version-banner" role="note">This page is part of the WHO SMART Trust (v1.7.5: ci-build) based on <a href="http://hl7.org/fhir/R4/">FHIR (HL7® FHIR® Standard) v4.0.1</a>. This is the continuous integration build: it follows the source and is not a published version. For a full list of available versions, see the <a href="http://smart.who.int/trust/history.html">Directory of published versions</a>.</p><script type="application/json" id="fa-rail" data-fa-root="../../../../../../../.." data-fa-to-root="../../../../../../../..">{"data":"rail-zcon6vgt4x","here":"/en/cat-harness-tools/folio-tabular-csvw/v1/who-iris/library/10665-75211/tabular.csvw/"}</script><nav class="fa-nav" aria-label="folio-assistant" data-fa-rail="pending"><a href="../../../../../../../../">folio-assistant</a></nav>
+<main>
+<h1 id="nk-title">library/10665-75211/tabular.csvw</h1>
+<p class="m">A <a href="../../../../">folio-tabular-csvw/v1</a> node held by <a href="../../../">who-iris</a>, at <code>who-iris/library/10665-75211/tabular.csvw.json</code>.</p>
+
+<h2 id="fields">Fields</h2>
+<dl>
+<dt>$schema</dt><dd>folio-tabular-csvw/v1</dd>
+<dt>doc_id</dt><dd>10665-75211</dd>
+<dt>tables</dt><dd><pre>[
+  {
+    &quot;url&quot;: &quot;tables/table-1.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;stakeholders&quot;,
+          &quot;titles&quot;: &quot;Stakeholders&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;impact-of-ehealth&quot;,
+          &quot;titles&quot;: &quot;Impact of eHealth&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 5,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 1&quot;,
+    &quot;fac:caption&quot;: &quot;Table 1. Examples of the impact of eHealth5&quot;,
+    &quot;fac:pages&quot;: [
+      19
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;5 Dzenowagis J. Connecting for health: global vision, local insight. Geneva, World Health Organization, 2005.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists five stakeholder groups (citizens; professionals in research and practice; hospitals, academia and public health; health-related businesses; governments) and, for each, examples of the impact of eHealth.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول خمس فئات من أصحاب المصلحة (المواطنون؛ المهنيون في البحث والممارسة؛ المستشفيات والأوساط الأكاديمية والصحة العمومية؛ الأعمال التجارية المتصلة بالصحة؛ الحكومات)، ويعرض لكل منها أمثلة على أثر الصحة الإلكترونية.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出五类利益攸关方（公民；研究和实践领域的专业人员；医院、学术界和公共卫生；卫生相关企业；政府），并列举电子卫生对每一类的影响实例。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera cinco grupos de partes interesadas (ciudadanos; profesionales de la investigación y la práctica; hospitales, instituciones académicas y salud pública; empresas relacionadas con la salud; gobiernos) y, para cada uno, ejemplos del impacto de la cibersalud.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère cinq groupes de parties prenantes (citoyens ; professionnels de la recherche et de la pratique ; hôpitaux, milieux universitaires et santé publique ; entreprises liées à la santé ; gouvernements) et donne pour chacun des exemples de l’impact de la cybersanté.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены пять групп заинтересованных сторон (граждане; специалисты в области исследований и практики; больницы, академические круги и общественное здравоохранение; предприятия, связанные со здравоохранением; правительства) и для каждой приведены примеры воздействия электронного здравоохранения.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-2.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;context&quot;,
+          &quot;titles&quot;: &quot;Context&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;characteristics&quot;,
+          &quot;titles&quot;: &quot;Characteristics&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 3,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 2&quot;,
+    &quot;fac:caption&quot;: &quot;Table 2. National context for eHealth development: summary&quot;,
+    &quot;fac:pages&quot;: [
+      23
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table summarizes the characteristics of three national contexts for eHealth development: I. experimentation and early adoption, II. developing and building up, and III. scale up and mainstreaming.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يلخّص الجدول خصائص ثلاثة سياقات وطنية لتطوير الصحة الإلكترونية: أولاً التجريب والاعتماد المبكر، ثانياً التطوير والبناء، ثالثاً التوسع والتعميم.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表概述了电子卫生发展的三种国家背景的特征：I. 试验和早期采用；II. 发展和建设；III. 扩大规模和主流化。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla resume las características de tres contextos nacionales de desarrollo de la cibersalud: I. experimentación y adopción temprana, II. desarrollo y consolidación, y III. ampliación e integración generalizada.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau résume les caractéristiques de trois contextes nationaux de développement de la cybersanté : I. expérimentation et adoption précoce, II. développement et renforcement, III. passage à l’échelle et généralisation.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице кратко описаны характеристики трех национальных контекстов развития электронного здравоохранения: I. экспериментирование и раннее внедрение, II. развитие и наращивание, III. расширение масштабов и повсеместное внедрение.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-3.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;context&quot;,
+          &quot;titles&quot;: &quot;Context&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;example-focus&quot;,
+          &quot;titles&quot;: &quot;Example focus&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;example-actions&quot;,
+          &quot;titles&quot;: &quot;Example actions&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 3,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 3&quot;,
+    &quot;fac:caption&quot;: &quot;Table 3. Context and focus of eHealth strategy&quot;,
+    &quot;fac:pages&quot;: [
+      24
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;For each of the three national contexts (experimentation and early adoption; developing and building up; scale up and mainstreaming), the table gives an example focus for the eHealth strategy and example actions.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يقدّم الجدول، لكل من السياقات الوطنية الثلاثة (التجريب والاعتماد المبكر؛ التطوير والبناء؛ التوسع والتعميم)، مثالاً على محور تركيز استراتيجية الصحة الإلكترونية وأمثلة على الإجراءات.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表针对三种国家背景（试验和早期采用；发展和建设；扩大规模和主流化）分别给出电子卫生战略的重点示例和行动示例。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Para cada uno de los tres contextos nacionales (experimentación y adopción temprana; desarrollo y consolidación; ampliación e integración generalizada), la tabla presenta un ejemplo de enfoque de la estrategia de cibersalud y ejemplos de medidas.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Pour chacun des trois contextes nationaux (expérimentation et adoption précoce ; développement et renforcement ; passage à l’échelle et généralisation), le tableau donne un exemple d’orientation de la stratégie de cybersanté et des exemples d’actions.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Для каждого из трех национальных контекстов (экспериментирование и раннее внедрение; развитие и наращивание; расширение масштабов и повсеместное внедрение) в таблице приведены пример направленности стратегии электронного здравоохранения и примеры действий.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-4.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;component&quot;,
+          &quot;titles&quot;: &quot;Component&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;role&quot;,
+          &quot;titles&quot;: &quot;Role&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 4&quot;,
+    &quot;fac:caption&quot;: &quot;Table 4. Role of eHealth components&quot;,
+    &quot;fac:pages&quot;: [
+      25
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists the seven eHealth components, classifies each as part of the enabling environment or the ICT environment, and describes its role.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول المكونات السبعة للصحة الإلكترونية، ويصنّف كلاً منها ضمن البيئة التمكينية أو بيئة تكنولوجيا المعلومات والاتصالات، ويصف دوره.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出电子卫生的七个组成部分，将每一部分归入有利环境或信息通信技术环境，并说明其作用。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera los siete componentes de la cibersalud, clasifica cada uno como parte del entorno propicio o del entorno de las TIC y describe su función.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère les sept composantes de la cybersanté, classe chacune dans l’environnement favorable ou l’environnement des TIC et décrit son rôle.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены семь компонентов электронного здравоохранения, каждый из которых отнесен к благоприятной среде или к среде ИКТ, и описана их роль.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-5.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;group&quot;,
+          &quot;titles&quot;: &quot;Group&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;responsibilities&quot;,
+          &quot;titles&quot;: &quot;Responsibilities&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;composition&quot;,
+          &quot;titles&quot;: &quot;Composition&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 5,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 5&quot;,
+    &quot;fac:caption&quot;: &quot;Table 5. Examples of governance functions, responsibilities and composition&quot;,
+    &quot;fac:pages&quot;: [
+      33
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table describes five groups involved in governing the development of a national eHealth vision (from health sector leadership and the steering committee to the broader stakeholder environment), with the responsibilities and composition of each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يصف الجدول خمس مجموعات تشارك في حوكمة إعداد رؤية وطنية للصحة الإلكترونية (من قيادة القطاع الصحي واللجنة التوجيهية إلى البيئة الأوسع لأصحاب المصلحة)، مع مسؤوليات كل منها وتكوينها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表描述了参与治理国家电子卫生愿景制定工作的五个小组（从卫生部门领导层和指导委员会到更广泛的利益攸关方环境），以及每个小组的职责和组成。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla describe cinco grupos que participan en la gobernanza de la elaboración de una visión nacional de cibersalud (desde el liderazgo del sector de la salud y el comité directivo hasta el entorno más amplio de partes interesadas), con las responsabilidades y la composición de cada uno.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau décrit cinq groupes participant à la gouvernance de l’élaboration d’une vision nationale de la cybersanté (de la direction du secteur de la santé et du comité directeur à l’environnement plus large des parties prenantes), avec les responsabilités et la composition de chacun.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице описаны пять групп, участвующих в управлении разработкой национального видения электронного здравоохранения (от руководства сектора здравоохранения и руководящего комитета до более широкого круга заинтересованных сторон), а также обязанности и состав каждой из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-6.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;market&quot;,
+          &quot;titles&quot;: &quot;Market&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;implications-for-planning&quot;,
+          &quot;titles&quot;: &quot;Implications for planning&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 3,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 6&quot;,
+    &quot;fac:caption&quot;: &quot;Table 6. Government’s role and implications for strategy and planning&quot;,
+    &quot;fac:pages&quot;: [
+      37
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table describes three market models for eHealth (fully regulated, guided market and free market), the role of government in each, and the implications for planning the national eHealth vision.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يصف الجدول ثلاثة نماذج سوقية للصحة الإلكترونية (سوق منظمة بالكامل، وسوق موجَّهة، وسوق حرة)، ودور الحكومة في كل منها، والآثار المترتبة على تخطيط الرؤية الوطنية للصحة الإلكترونية.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表描述了电子卫生的三种市场模式（完全监管、引导型市场和自由市场）、政府在每种模式中的作用，以及对规划国家电子卫生愿景的影响。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla describe tres modelos de mercado para la cibersalud (totalmente regulado, mercado orientado y mercado libre), la función del gobierno en cada uno y sus implicaciones para la planificación de la visión nacional de cibersalud.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau décrit trois modèles de marché pour la cybersanté (entièrement réglementé, marché orienté et marché libre), le rôle du gouvernement dans chacun et les incidences sur la planification de la vision nationale de la cybersanté.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице описаны три рыночные модели электронного здравоохранения (полностью регулируемый рынок, направляемый рынок и свободный рынок), роль правительства в каждой из них и последствия для планирования национального видения электронного здравоохранения.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-7.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;role&quot;,
+          &quot;titles&quot;: &quot;Role&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;examples&quot;,
+          &quot;titles&quot;: &quot;Examples&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 4,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 7&quot;,
+    &quot;fac:caption&quot;: &quot;Table 7. Stakeholder roles in a national vision&quot;,
+    &quot;fac:pages&quot;: [
+      39
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table describes four stakeholder roles in developing a national eHealth vision (decision-makers, key influencers, engaged stakeholders, and broader stakeholders and general public), with examples of each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يصف الجدول أربعة أدوار لأصحاب المصلحة في إعداد رؤية وطنية للصحة الإلكترونية (صانعو القرار، والمؤثرون الرئيسيون، وأصحاب المصلحة المنخرطون، وأصحاب المصلحة الأوسع وعامة الجمهور)، مع أمثلة على كل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表描述了利益攸关方在制定国家电子卫生愿景中的四种角色（决策者、关键影响者、参与的利益攸关方，以及更广泛的利益攸关方和公众），并举例说明。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla describe cuatro funciones de las partes interesadas en la elaboración de una visión nacional de cibersalud (responsables de la toma de decisiones, personas influyentes clave, partes interesadas comprometidas, y partes interesadas en general y público en general), con ejemplos de cada una.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau décrit quatre rôles des parties prenantes dans l’élaboration d’une vision nationale de la cybersanté (décideurs, influenceurs clés, parties prenantes engagées, ainsi que parties prenantes élargies et grand public), avec des exemples pour chacun.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице описаны четыре роли заинтересованных сторон в разработке национального видения электронного здравоохранения (лица, принимающие решения; ключевые влиятельные лица; вовлеченные заинтересованные стороны; более широкий круг заинтересованных сторон и широкая общественность) с примерами для каждой.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-8.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;role&quot;,
+          &quot;titles&quot;: &quot;Role&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;approach-to-engagement&quot;,
+          &quot;titles&quot;: &quot;Approach to engagement&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 4,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 8&quot;,
+    &quot;fac:caption&quot;: &quot;Table 8. Sample stakeholder engagement approach&quot;,
+    &quot;fac:pages&quot;: [
+      40
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table sets out a sample approach to engagement for each of the four stakeholder roles: decision-makers, key influencers, engaged stakeholders, and broader stakeholders and general public.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يعرض الجدول نهجاً نموذجياً للتواصل مع كل دور من أدوار أصحاب المصلحة الأربعة: صانعو القرار، والمؤثرون الرئيسيون، وأصحاب المصلحة المنخرطون، وأصحاب المصلحة الأوسع وعامة الجمهور.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表针对四种利益攸关方角色（决策者、关键影响者、参与的利益攸关方，以及更广泛的利益攸关方和公众）分别列出了示例性的参与方式。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla presenta un enfoque de participación de ejemplo para cada una de las cuatro funciones de las partes interesadas: responsables de la toma de decisiones, personas influyentes clave, partes interesadas comprometidas, y partes interesadas en general y público en general.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau présente un exemple d’approche de mobilisation pour chacun des quatre rôles de parties prenantes : décideurs, influenceurs clés, parties prenantes engagées, ainsi que parties prenantes élargies et grand public.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице представлен примерный подход к взаимодействию для каждой из четырех ролей заинтересованных сторон: лиц, принимающих решения; ключевых влиятельных лиц; вовлеченных заинтересованных сторон; более широкого круга заинтересованных сторон и широкой общественности.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-9.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;stage&quot;,
+          &quot;titles&quot;: &quot;Stage&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;decision-makers&quot;,
+          &quot;titles&quot;: &quot;Decision-makers&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;key-influencers&quot;,
+          &quot;titles&quot;: &quot;Key influencers&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;broader-stakeholders&quot;,
+          &quot;titles&quot;: &quot;Broader stakeholders&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;general-public&quot;,
+          &quot;titles&quot;: &quot;General public&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 5,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 9&quot;,
+    &quot;fac:caption&quot;: &quot;Table 9. Sample stakeholder consultation plan&quot;,
+    &quot;fac:pages&quot;: [
+      41
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;The table is printed rotated on page 41 (the job pointed to page 40, where Table 9 is only referenced in the text).&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table is a sample consultation plan: for each of the seven stages of developing the national eHealth vision (rows), it describes how decision-makers, key influencers, broader stakeholders and the general public (columns) would be consulted or involved.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يمثّل الجدول خطة تشاور نموذجية: فلكل مرحلة من المراحل السبع لإعداد الرؤية الوطنية للصحة الإلكترونية (الصفوف)، يصف كيفية التشاور مع صانعي القرار والمؤثرين الرئيسيين وأصحاب المصلحة الأوسع وعامة الجمهور (الأعمدة) أو إشراكهم.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表为示例性磋商计划：针对制定国家电子卫生愿景的七个阶段（行），说明如何与决策者、关键影响者、更广泛的利益攸关方和公众（列）进行磋商或让其参与。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla es un plan de consulta de ejemplo: para cada una de las siete etapas de la elaboración de la visión nacional de cibersalud (filas), describe cómo se consultaría o implicaría a los responsables de la toma de decisiones, las personas influyentes clave, las partes interesadas en general y el público en general (columnas).&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau est un exemple de plan de consultation : pour chacune des sept étapes de l’élaboration de la vision nationale de la cybersanté (lignes), il décrit comment les décideurs, les influenceurs clés, les parties prenantes élargies et le grand public (colonnes) seraient consultés ou associés.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Таблица представляет собой примерный план консультаций: для каждого из семи этапов разработки национального видения электронного здравоохранения (строки) описано, как будут проводиться консультации с лицами, принимающими решения, ключевыми влиятельными лицами, более широким кругом заинтересованных сторон и широкой общественностью (столбцы) или как они будут вовлекаться.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-10.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;round&quot;,
+          &quot;titles&quot;: &quot;Round&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;focus-of-engagement-and-consultation&quot;,
+          &quot;titles&quot;: &quot;Focus of engagement and consultation&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;proposed-mechanism&quot;,
+          &quot;titles&quot;: &quot;Proposed mechanism&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 3,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 10&quot;,
+    &quot;fac:caption&quot;: &quot;Table 10. Sample approach to stakeholder consultations&quot;,
+    &quot;fac:pages&quot;: [
+      42
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table outlines three rounds of stakeholder consultation, giving for each the focus of engagement and consultation and the proposed mechanism (interviews, group forums, workshops, etc.).&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يعرض الجدول ثلاث جولات من التشاور مع أصحاب المصلحة، مع بيان محور التواصل والتشاور والآلية المقترحة لكل جولة (مقابلات، منتديات جماعية، حلقات عمل، إلخ).&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表概述了三轮利益攸关方磋商，分别列出每一轮的参与和磋商重点及拟议机制（访谈、小组论坛、研讨会等）。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla describe tres rondas de consulta con las partes interesadas e indica para cada una el enfoque de la participación y la consulta y el mecanismo propuesto (entrevistas, foros de grupo, talleres, etc.).&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau décrit trois cycles de consultation des parties prenantes, en précisant pour chacun l’objet de la mobilisation et de la consultation et le mécanisme proposé (entretiens, forums de groupe, ateliers, etc.).&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице описаны три раунда консультаций с заинтересованными сторонами с указанием для каждого из них направленности взаимодействия и консультаций и предлагаемого механизма (интервью, групповые форумы, семинары и т. д.).&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-11.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;dimension&quot;,
+          &quot;titles&quot;: &quot;Dimension&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;sample-questions&quot;,
+          &quot;titles&quot;: &quot;Sample questions&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 4,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 11&quot;,
+    &quot;fac:caption&quot;: &quot;Table 11. Population health and demographics&quot;,
+    &quot;fac:pages&quot;: [
+      44
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists four dimensions of population health and demographics to research (size and demographics, current health outcomes, and the implications of demographic and health outcome trends), with sample questions for each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول أربعة أبعاد لصحة السكان والتركيبة السكانية ينبغي بحثها (الحجم والتركيبة السكانية، والحصائل الصحية الحالية، وآثار الاتجاهات الديمغرافية واتجاهات الحصائل الصحية)، مع أسئلة نموذجية لكل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出需要研究的人群健康和人口统计的四个维度（规模和人口构成、当前健康结果、人口趋势的影响以及健康结果趋势的影响），并为每个维度提供示例问题。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera cuatro dimensiones de la salud y la demografía de la población que deben investigarse (tamaño y demografía, resultados sanitarios actuales, e implicaciones de las tendencias demográficas y de los resultados sanitarios), con preguntas de ejemplo para cada una.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère quatre dimensions de la santé et de la démographie de la population à étudier (taille et démographie, résultats sanitaires actuels, incidences des tendances démographiques et des tendances des résultats sanitaires), avec des exemples de questions pour chacune.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены четыре аспекта здоровья и демографии населения, подлежащие изучению (численность и демографический состав, текущие показатели здоровья, последствия демографических тенденций и тенденций в показателях здоровья), с примерами вопросов по каждому из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-12.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;dimension&quot;,
+          &quot;titles&quot;: &quot;Dimension&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;sample-questions&quot;,
+          &quot;titles&quot;: &quot;Sample questions&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 12&quot;,
+    &quot;fac:caption&quot;: &quot;Table 12. Examples of health system dimensions to be explored&quot;,
+    &quot;fac:pages&quot;: [
+      45
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;Notes:\n1 Examples of health-care services include primary care, allied health, specialist services, pharmacy, community health, diagnostic and laboratory, acute care, and health services for the aged.\n2 Examples may include public health departments, agencies, organizations and providers, private health-care organizations, networks and providers, and nongovernmental organizations (NGOs).\n3 Countries may not have this information available. This should not be viewed as a barrier to creating a national eHealth vision. But it may increase the complexity of constructing an economic case for investment in eHealth.\n4 Funding models may include taxation, social health insurance, private health insurance, out-of-pocket payments, donor funding.\n5 This includes consideration of planning and funding processes for major donors.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists seven health system dimensions to be explored (services, structure and roles, workforce, funding, governance, policy and regulation, effectiveness and efficiency, accessibility), with sample questions for each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول سبعة أبعاد للنظام الصحي ينبغي استكشافها (الخدمات، والهيكل والأدوار، والقوى العاملة، والتمويل، والحوكمة والسياسات والتنظيم، والفعالية والكفاءة، وإمكانية الوصول)، مع أسئلة نموذجية لكل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出需要探讨的七个卫生系统维度（服务、结构和角色、卫生人力、筹资、治理、政策和监管、有效性和效率、可及性），并为每个维度提供示例问题。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera siete dimensiones del sistema de salud que deben examinarse (servicios, estructura y funciones, personal, financiación, gobernanza, políticas y regulación, eficacia y eficiencia, accesibilidad), con preguntas de ejemplo para cada una.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère sept dimensions du système de santé à examiner (services, structure et rôles, personnels, financement, gouvernance, politiques et réglementation, efficacité et efficience, accessibilité), avec des exemples de questions pour chacune.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены семь аспектов системы здравоохранения, подлежащих изучению (услуги, структура и функции, кадры, финансирование, руководство, политика и регулирование, эффективность и результативность, доступность), с примерами вопросов по каждому из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-13.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;dimension&quot;,
+          &quot;titles&quot;: &quot;Dimension&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;sample-questions&quot;,
+          &quot;titles&quot;: &quot;Sample questions&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 13&quot;,
+    &quot;fac:caption&quot;: &quot;Table 13. Examples of health strategy, goals and priorities&quot;,
+    &quot;fac:pages&quot;: [
+      46
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;Notes:\n1 Such as the Millennium Development Goals (MDGs), which UN member states have committed to achieving by 2015.\n2 Such as the International Health Regulations (IHR), and the Partnership for Maternal, Newborn and Child Health (PMNCH).&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists dimensions of national health strategy, goals and priorities (challenges, priorities, strategy, goals and targets, timeframes, initiatives, funding), with sample questions for each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول أبعاد الاستراتيجية الصحية الوطنية وأهدافها وأولوياتها (التحديات، والأولويات، والاستراتيجية، والأهداف والغايات، والأطر الزمنية، والمبادرات، والتمويل)، مع أسئلة نموذجية لكل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出国家卫生战略、目标和重点事项的各个维度（挑战、重点事项、战略、目标和指标、时间框架、举措、筹资），并为每个维度提供示例问题。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera las dimensiones de la estrategia, las metas y las prioridades nacionales de salud (retos, prioridades, estrategia, metas y objetivos, plazos, iniciativas, financiación), con preguntas de ejemplo para cada una.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère les dimensions de la stratégie, des buts et des priorités sanitaires nationaux (défis, priorités, stratégie, buts et cibles, calendriers, initiatives, financement), avec des exemples de questions pour chacune.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены аспекты национальной стратегии, целей и приоритетов в области здравоохранения (проблемы, приоритеты, стратегия, цели и целевые показатели, сроки, инициативы, финансирование) с примерами вопросов по каждому из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-14.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;area&quot;,
+          &quot;titles&quot;: &quot;Area&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;sample-questions&quot;,
+          &quot;titles&quot;: &quot;Sample questions&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 14&quot;,
+    &quot;fac:caption&quot;: &quot;Table 14. Strategic goals and challenges: common areas&quot;,
+    &quot;fac:pages&quot;: [
+      49
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists seven common areas of strategic health goals and challenges (from population health and equity of access to the health workforce, health system structure, effectiveness, advanced treatments and funding), with sample questions for each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول سبعة مجالات شائعة للأهداف والتحديات الصحية الاستراتيجية (من صحة السكان والإنصاف في الوصول إلى القوى العاملة الصحية وهيكل النظام الصحي والفعالية والعلاجات المتقدمة والتمويل)، مع أسئلة نموذجية لكل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出战略性卫生目标和挑战的七个常见领域（从人群健康和公平可及，到卫生人力、卫生系统结构、有效性、先进治疗方案和筹资），并为每个领域提供示例问题。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera siete áreas comunes de metas y retos estratégicos de salud (desde la salud de la población y la equidad en el acceso hasta el personal de salud, la estructura del sistema de salud, la eficacia, los tratamientos avanzados y la financiación), con preguntas de ejemplo para cada una.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère sept domaines communs de buts et de défis sanitaires stratégiques (de la santé de la population et de l’équité d’accès aux personnels de santé, à la structure du système de santé, à l’efficacité, aux traitements avancés et au financement), avec des exemples de questions pour chacun.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены семь общих областей стратегических целей и проблем здравоохранения (от здоровья населения и справедливого доступа до кадров здравоохранения, структуры системы здравоохранения, эффективности, передовых методов лечения и финансирования) с примерами вопросов по каждой из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-15.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;sample-question&quot;,
+          &quot;titles&quot;: &quot;Sample question&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;areas-where-changes-may-be-needed&quot;,
+          &quot;titles&quot;: &quot;Areas where changes may be needed&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 2,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 15&quot;,
+    &quot;fac:caption&quot;: &quot;Table 15. Sample questions for defining eHealth outcomes&quot;,
+    &quot;fac:pages&quot;: [
+      56
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table pairs sample questions for defining eHealth outcomes (changes needed in the health system and services, and changes to health information flows) with the areas where changes may be needed.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يقرن الجدول أسئلة نموذجية لتحديد حصائل الصحة الإلكترونية (التغييرات اللازمة في النظام الصحي والخدمات، والتغييرات في تدفقات المعلومات الصحية) بالمجالات التي قد تحتاج إلى تغيير.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表将界定电子卫生成果的示例问题（卫生系统和服务所需的变革，以及卫生信息流的变革）与可能需要变革的领域对应列出。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla vincula preguntas de ejemplo para definir los resultados de la cibersalud (cambios necesarios en el sistema y los servicios de salud, y cambios en los flujos de información sanitaria) con las áreas en las que pueden ser necesarios cambios.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau associe des exemples de questions pour définir les résultats de la cybersanté (changements nécessaires dans le système et les services de santé, et changements dans les flux d’information sanitaire) aux domaines dans lesquels des changements peuvent être nécessaires.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице примерные вопросы для определения результатов электронного здравоохранения (необходимые изменения в системе и услугах здравоохранения и в потоках медицинской информации) сопоставлены с областями, в которых могут потребоваться изменения.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-16.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;example-questions&quot;,
+          &quot;titles&quot;: &quot;Example questions&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;potential-considerations&quot;,
+          &quot;titles&quot;: &quot;Potential considerations&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 3,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 16&quot;,
+    &quot;fac:caption&quot;: &quot;Table 16. Sample questions for describing the vision for important stakeholders&quot;,
+    &quot;fac:pages&quot;: [
+      59
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table gives three example questions for describing the eHealth vision for important stakeholder groups (who they are, their current experience of the health system, and how eHealth will improve it), with potential considerations for each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يقدّم الجدول ثلاثة أسئلة نموذجية لوصف رؤية الصحة الإلكترونية لفئات أصحاب المصلحة المهمة (من هم، وتجربتهم الحالية مع النظام الصحي، وكيف ستحسّنها الصحة الإلكترونية)، مع اعتبارات محتملة لكل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表给出三个示例问题，用于为重要的利益攸关方群体描述电子卫生愿景（他们是谁、他们目前与卫生系统打交道的体验，以及电子卫生将如何改善这种体验），并列出每个问题的潜在考虑因素。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla presenta tres preguntas de ejemplo para describir la visión de cibersalud para los grupos de partes interesadas importantes (quiénes son, su experiencia actual con el sistema de salud y cómo la mejorará la cibersalud), con posibles consideraciones para cada una.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau propose trois exemples de questions pour décrire la vision de la cybersanté pour les groupes de parties prenantes importants (qui ils sont, leur expérience actuelle du système de santé et la manière dont la cybersanté l’améliorera), avec des éléments à prendre en compte pour chacune.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице приведены три примерных вопроса для описания видения электронного здравоохранения для важных групп заинтересованных сторон (кто они, каков их нынешний опыт взаимодействия с системой здравоохранения и как электронное здравоохранение его улучшит), а также возможные соображения по каждому из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-17.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;component&quot;,
+          &quot;titles&quot;: &quot;Component&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;examples&quot;,
+          &quot;titles&quot;: &quot;Examples&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 17&quot;,
+    &quot;fac:caption&quot;: &quot;Table 17. Examples of common eHealth leadership and governance components&quot;,
+    &quot;fac:pages&quot;: [
+      64
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists common eHealth leadership and governance components, with a description and examples of each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول المكونات الشائعة للصحة الإلكترونية في مجال القيادة والحوكمة، مع وصف وأمثلة لكل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出常见的电子卫生领导和治理组成部分，并对每一部分进行说明和举例。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera los componentes comunes de cibersalud relativos a liderazgo y gobernanza, con una descripción y ejemplos de cada uno.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère les composantes courantes de la cybersanté relatives à la direction et la gouvernance, avec une description et des exemples pour chacune.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены общие компоненты электронного здравоохранения в области «руководство и управление» с описанием и примерами каждого из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-18.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;component&quot;,
+          &quot;titles&quot;: &quot;Component&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;examples&quot;,
+          &quot;titles&quot;: &quot;Examples&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 3,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 18&quot;,
+    &quot;fac:caption&quot;: &quot;Table 18. Examples of common eHealth strategy and investment components&quot;,
+    &quot;fac:pages&quot;: [
+      65
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists common eHealth strategy and investment components, with a description and examples of each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول المكونات الشائعة للصحة الإلكترونية في مجال الاستراتيجية والاستثمار، مع وصف وأمثلة لكل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出常见的电子卫生战略和投资组成部分，并对每一部分进行说明和举例。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera los componentes comunes de cibersalud relativos a estrategia e inversión, con una descripción y ejemplos de cada uno.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère les composantes courantes de la cybersanté relatives à la stratégie et l’investissement, avec une description et des exemples pour chacune.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены общие компоненты электронного здравоохранения в области «стратегия и инвестиции» с описанием и примерами каждого из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-19.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;component&quot;,
+          &quot;titles&quot;: &quot;Component&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;examples&quot;,
+          &quot;titles&quot;: &quot;Examples&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 5,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 19&quot;,
+    &quot;fac:caption&quot;: &quot;Table 19. Examples of common eHealth service and application components&quot;,
+    &quot;fac:pages&quot;: [
+      66
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists common eHealth service and application components, with a description and examples of each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول المكونات الشائعة للصحة الإلكترونية في مجال الخدمات والتطبيقات، مع وصف وأمثلة لكل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出常见的电子卫生服务和应用组成部分，并对每一部分进行说明和举例。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera los componentes comunes de cibersalud relativos a servicios y aplicaciones, con una descripción y ejemplos de cada uno.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère les composantes courantes de la cybersanté relatives à les services et applications, avec une description et des exemples pour chacune.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены общие компоненты электронного здравоохранения в области «услуги и приложения» с описанием и примерами каждого из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-20.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;component&quot;,
+          &quot;titles&quot;: &quot;Component&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;examples&quot;,
+          &quot;titles&quot;: &quot;Examples&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 7,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 20&quot;,
+    &quot;fac:caption&quot;: &quot;Table 20. Examples of common eHealth infrastructure components&quot;,
+    &quot;fac:pages&quot;: [
+      68
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists common eHealth infrastructure components, with a description and examples of each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول المكونات الشائعة للصحة الإلكترونية في مجال البنية التحتية، مع وصف وأمثلة لكل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出常见的电子卫生基础设施组成部分，并对每一部分进行说明和举例。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera los componentes comunes de cibersalud relativos a infraestructura, con una descripción y ejemplos de cada uno.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère les composantes courantes de la cybersanté relatives à l’infrastructure, avec une description et des exemples pour chacune.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены общие компоненты электронного здравоохранения в области «инфраструктура» с описанием и примерами каждого из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-21.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;component&quot;,
+          &quot;titles&quot;: &quot;Component&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;examples&quot;,
+          &quot;titles&quot;: &quot;Examples&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 5,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 21&quot;,
+    &quot;fac:caption&quot;: &quot;Table 21. Examples of common eHealth standards and interoperability components&quot;,
+    &quot;fac:pages&quot;: [
+      69,
+      70
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists common eHealth standards and interoperability components, with a description and examples of each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول المكونات الشائعة للصحة الإلكترونية في مجال المعايير والتشغيل البيني، مع وصف وأمثلة لكل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出常见的电子卫生标准和互操作性组成部分，并对每一部分进行说明和举例。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera los componentes comunes de cibersalud relativos a normas e interoperabilidad, con una descripción y ejemplos de cada uno.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère les composantes courantes de la cybersanté relatives à les normes et l’interopérabilité, avec une description et des exemples pour chacune.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены общие компоненты электронного здравоохранения в области «стандарты и функциональная совместимость» с описанием и примерами каждого из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-22.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;component&quot;,
+          &quot;titles&quot;: &quot;Component&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;examples&quot;,
+          &quot;titles&quot;: &quot;Examples&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 4,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 22&quot;,
+    &quot;fac:caption&quot;: &quot;Table 22. Examples of common eHealth legislation, policy and compliance components&quot;,
+    &quot;fac:pages&quot;: [
+      71
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists common eHealth legislation, policy and compliance components, with a description and examples of each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول المكونات الشائعة للصحة الإلكترونية في مجال التشريعات والسياسات والامتثال، مع وصف وأمثلة لكل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出常见的电子卫生立法、政策和合规组成部分，并对每一部分进行说明和举例。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera los componentes comunes de cibersalud relativos a legislación, políticas y cumplimiento, con una descripción y ejemplos de cada uno.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère les composantes courantes de la cybersanté relatives à la législation, les politiques et la conformité, avec une description et des exemples pour chacune.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены общие компоненты электронного здравоохранения в области «законодательство, политика и соблюдение требований» с описанием и примерами каждого из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-23.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;component&quot;,
+          &quot;titles&quot;: &quot;Component&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;examples&quot;,
+          &quot;titles&quot;: &quot;Examples&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 2,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 23&quot;,
+    &quot;fac:caption&quot;: &quot;Table 23. Examples of common eHealth workforce components&quot;,
+    &quot;fac:pages&quot;: [
+      72
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists common eHealth workforce components, with a description and examples of each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول المكونات الشائعة للصحة الإلكترونية في مجال القوى العاملة، مع وصف وأمثلة لكل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出常见的电子卫生人力组成部分，并对每一部分进行说明和举例。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera los componentes comunes de cibersalud relativos a personal, con una descripción y ejemplos de cada uno.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère les composantes courantes de la cybersanté relatives à les personnels, avec une description et des exemples pour chacune.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены общие компоненты электронного здравоохранения в области «кадровые ресурсы» с описанием и примерами каждого из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-24.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;type&quot;,
+          &quot;titles&quot;: &quot;Type&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;description&quot;,
+          &quot;titles&quot;: &quot;Description&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;examples&quot;,
+          &quot;titles&quot;: &quot;Examples&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 2,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 24&quot;,
+    &quot;fac:caption&quot;: &quot;Table 24. Internal and external factors in eHealth prioritization&quot;,
+    &quot;fac:pages&quot;: [
+      88
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table describes the internal and external factors that influence the prioritization of eHealth components, with examples of each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يصف الجدول العوامل الداخلية والخارجية التي تؤثر في تحديد أولويات مكونات الصحة الإلكترونية، مع أمثلة على كل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表描述了影响电子卫生组成部分优先排序的内部和外部因素，并分别举例说明。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla describe los factores internos y externos que influyen en la priorización de los componentes de la cibersalud, con ejemplos de cada uno.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau décrit les facteurs internes et externes qui influent sur la hiérarchisation des composantes de la cybersanté, avec des exemples pour chacun.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице описаны внутренние и внешние факторы, влияющие на определение приоритетности компонентов электронного здравоохранения, с примерами каждого из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-25.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;step&quot;,
+          &quot;titles&quot;: &quot;Step&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;inputs&quot;,
+          &quot;titles&quot;: &quot;Inputs&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;sample-questions&quot;,
+          &quot;titles&quot;: &quot;Sample questions&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;possible-outcomes&quot;,
+          &quot;titles&quot;: &quot;Possible outcomes&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 3,
+      &quot;columns&quot;: 4,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 25&quot;,
+    &quot;fac:caption&quot;: &quot;Table 25. Steps for refining the eHealth vision&quot;,
+    &quot;fac:pages&quot;: [
+      89
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table sets out three iterative steps for refining the eHealth vision, giving for each step its inputs, sample questions and possible outcomes.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يعرض الجدول ثلاث خطوات تكرارية لتنقيح رؤية الصحة الإلكترونية، مع بيان المدخلات والأسئلة النموذجية والحصائل الممكنة لكل خطوة.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出完善电子卫生愿景的三个迭代步骤，并给出每一步的投入、示例问题和可能的成果。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla presenta tres pasos iterativos para perfeccionar la visión de cibersalud, con los insumos, las preguntas de ejemplo y los posibles resultados de cada paso.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau présente trois étapes itératives pour affiner la vision de la cybersanté, en indiquant pour chacune les intrants, des exemples de questions et les résultats possibles.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице изложены три итеративных шага по уточнению видения электронного здравоохранения с указанием для каждого шага исходных данных, примерных вопросов и возможных результатов.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-26.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;benefit-area&quot;,
+          &quot;titles&quot;: &quot;Benefit area&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;examples&quot;,
+          &quot;titles&quot;: &quot;Examples&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 8,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 26&quot;,
+    &quot;fac:caption&quot;: &quot;Table 26. Examples of eHealth benefits 13,14,15&quot;,
+    &quot;fac:pages&quot;: [
+      97
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;13 Eysenbach G. What is e-health? Journal of Medical Internet Research, 2001, 3:e20.\n14 National E-Health and Information Principal Committee. National E-Health Strategy, 30th September 2008. Adelaide, Deloitte Touche Tohmatsu, 2008.\n15 Booz &amp; Co. Optimising e-Health value – using an investment model to build a foundation for program success. 2010.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists eight areas in which eHealth can bring benefits (from access to services and efficiency of service delivery to empowering individuals and innovation and growth), with examples for each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول ثمانية مجالات يمكن أن تحقق فيها الصحة الإلكترونية فوائد (من الوصول إلى الخدمات وكفاءة تقديمها إلى تمكين الأفراد والابتكار والنمو)، مع أمثلة لكل منها.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表列出电子卫生可带来效益的八个领域（从服务可及性和服务提供效率，到增强个人能力以及创新和增长），并为每个领域举例。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla enumera ocho áreas en las que la cibersalud puede aportar beneficios (desde el acceso a los servicios y la eficiencia en su prestación hasta el empoderamiento de las personas y la innovación y el crecimiento), con ejemplos de cada una.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau énumère huit domaines dans lesquels la cybersanté peut apporter des avantages (de l’accès aux services et de l’efficience de leur prestation à l’autonomisation des personnes, à l’innovation et à la croissance), avec des exemples pour chacun.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены восемь областей, в которых электронное здравоохранение может принести пользу (от доступа к услугам и эффективности их предоставления до расширения возможностей людей, инноваций и роста), с примерами по каждой из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-27.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;stage&quot;,
+          &quot;titles&quot;: &quot;Stage&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;activities&quot;,
+          &quot;titles&quot;: &quot;Activities&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;outputs&quot;,
+          &quot;titles&quot;: &quot;Outputs&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 9,
+      &quot;columns&quot;: 3,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 27&quot;,
+    &quot;fac:caption&quot;: &quot;Table 27. Method summary&quot;,
+    &quot;fac:pages&quot;: [
+      99,
+      100
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;Rows are given in the order printed; the stages on page 99 and page 100 are not in chronological order and three stages appear twice (with small wording differences).&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table summarizes the method described in the Toolkit: for each stage of developing a national eHealth vision it lists the activities and the expected outputs.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يلخّص الجدول المنهجية الموصوفة في مجموعة الأدوات: فلكل مرحلة من مراحل إعداد رؤية وطنية للصحة الإلكترونية يسرد الأنشطة والنواتج المتوقعة.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;该表概述了工具包中所述的方法：针对制定国家电子卫生愿景的每个阶段，列出相关活动和预期产出。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;La tabla resume el método descrito en el conjunto de herramientas: para cada etapa de la elaboración de una visión nacional de cibersalud enumera las actividades y los productos previstos.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau résume la méthode décrite dans la boîte à outils : pour chaque étape de l’élaboration d’une vision nationale de la cybersanté, il énumère les activités et les résultats attendus.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице кратко изложен метод, описанный в пакете инструментов: для каждого этапа разработки национального видения электронного здравоохранения перечислены мероприятия и ожидаемые результаты.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  }
+]</pre></dd>
+<dt>source</dt><dd><pre>{
+  &quot;file&quot;: &quot;10665-75211.pdf&quot;,
+  &quot;sha256&quot;: &quot;87120f0b3c3bb63839c339e43e0a316a2665f41f019c73bbc26fa0cd9f9483fb&quot;,
+  &quot;note&quot;: &quot;tables transcribed from the PDF pages; the PDF itself is not held&quot;
+}</pre></dd>
+<dt>narrative</dt><dd><pre>{
+  &quot;text&quot;: null,
+  &quot;state&quot;: &quot;not-authored&quot;
+}</pre></dd>
+</dl>
+</main>
+<script src="../../../../../../../../assets/ig-search.js" defer></script>
+</body>
+</html>

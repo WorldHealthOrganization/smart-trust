@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script data-folio-saved-scheme>(function(){var d=document.documentElement,s=null,c="dark";try{s=localStorage.getItem("fa-color-scheme")}catch(e){}if(s!=="light"&&s!=="dark"){s="light";try{if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)s="dark"}catch(e){}}try{var n=document.getElementById("fa-site-scheme");if(n)c=JSON.parse(n.textContent).scheme==="light"?"light":"dark"}catch(e){}d.setAttribute("data-fa-scheme",s);var j=window.jtd;if(s!==c&&j&&typeof j.setTheme==="function"){try{j.setTheme(s)}catch(e){}}})();</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>library/10665-261545/tabular.csvw — folio-tabular-csvw/v1</title>
+<style>
+  :root { color-scheme: light dark; --fg:#1b1b1b; --bg:#fdfdfb; --muted:#5b5b5b; --line:#d6d6d0; --link:#0b5cad; --panel:#f3f4f2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-fa-scheme="light"]) { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; } }
+  :root[data-fa-scheme="dark"] { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; }
+  :root[data-fa-scheme="light"] { color-scheme: light; } :root[data-fa-scheme="dark"] { color-scheme: dark; }
+  body { margin:0; font:1rem/1.5 system-ui,sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width:80rem; margin:0 auto; padding:1.5rem 1.5rem 4rem; min-width:0; overflow-wrap:anywhere; }
+  h1 { font-size:1.35rem; margin:0 0 .25rem; } h2 { font-size:1.05rem; margin:1.5rem 0 .5rem; }
+  a { color:var(--link); } a:focus-visible, select:focus-visible { outline:3px solid var(--link); outline-offset:2px; }
+  .m { color:var(--muted); font-size:.9rem; }
+  .tiles { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; padding:0; list-style:none; }
+  .tiles li { border:1px solid var(--line); border-radius:.4rem; padding:.35rem .7rem; }
+  .tiles b { font-size:1.2rem; margin-right:.3rem; }
+  .clip { width:100%; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; vertical-align:top; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
+  th { background:var(--panel); white-space:nowrap; }
+  /* Only the node's path and long text may break mid-word; a status or a date
+     broken across lines ("in_pr ogres s") is unreadable. */
+  td { overflow-wrap:normal; } td.p, td.t { overflow-wrap:anywhere; } td.s { white-space:nowrap; }
+  dl { display:grid; grid-template-columns:minmax(8rem,14rem) 1fr; gap:.25rem 1rem; }
+  dt { font-weight:600; } dd { margin:0; }
+  pre { background:var(--panel); padding:.75rem; overflow-x:auto; font-size:.85rem; }
+  label { margin-right:1rem; }
+  @media (max-width:40rem) { dl { grid-template-columns:1fr; } }
+</style>
+<link rel="stylesheet" href="../../../../../../../../assets/css/navbar.css"><script src="../../../../../../../../assets/navbar/rail-zcon6vgt4x.js" defer></script><script src="../../../../../../../../assets/js/navbar.js" defer></script><style data-folio-narrow-viewport>
+/* Narrow viewports: nothing may widen the PAGE — bean `2r2n`.
+ *
+ * At 390 px, 105 of 249 built pages scrolled sideways (measured 2026-09-24).
+ * The rule here is the bean's: wide content scrolls INSIDE ITS OWN BOX with a
+ * visible cue, and the page itself never pans.
+ *
+ * ONE FILE, TWO WAYS IN. Themed pages link it from `_includes/head_custom.html`.
+ * The standalone viewer pages carry no theme stylesheet at all, so
+ * `withViewerNav` in `scripts/viewer-page.ts` inlines this same file when it
+ * adds the rail. A copy of these rules in each place would be two answers to
+ * "what does a table do at 390 px", free to drift apart.
+ *
+ * Every selector here is written to be safe on both kinds of page: no
+ * `.main-content` scope (a standalone page has none), the navbar excluded by
+ * name, and the theme's own `.table-wrapper` left alone, since it already does
+ * this job for Markdown tables. */
+
+@media (max-width: 799.98px) {
+  /* A table the theme did not wrap: raw HTML from a generator, or one built at
+   * runtime. `display: block` makes the table its own scroll box. Its cells
+   * still lay out as a table inside the anonymous table box. */
+  table:not(.table-wrapper > table):not(.fa-nav table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* THE CUE: the edge that has more content past it fades out. The fade is a
+   * MASK over the table's own pixels, driven by its own scroll position, so
+   * it needs no knowledge of the page's background. A painted cover (the
+   * usual `background-attachment: local` trick) does: the first version used
+   * `Canvas`, and on a page that is dark under a LIGHT scheme it laid a white
+   * band over the first column.
+   *
+   * A table that does not overflow has an inactive scroll timeline, so the
+   * animation has no effect and both fades stay at their initial 0: no cue
+   * where there is nothing to scroll to. A browser without scroll-driven
+   * animations shows no fade, and the table still scrolls. */
+  @supports (animation-timeline: scroll()) {
+    table:not(.table-wrapper > table):not(.fa-nav table) {
+      mask-image: linear-gradient(to right,
+        transparent 0, #000 var(--fa-cue-l),
+        #000 calc(100% - var(--fa-cue-r)), transparent 100%);
+      animation: fa-scroll-cue linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+
+  /* A code block scrolls in its own box, which is what `pre` is for. Mermaid
+   * SOURCE sits in a `pre` until the renderer replaces it, and at 390 px a
+   * diagram's source line is longer than the screen. */
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Prose that has no break opportunity: a long path in inline code, or a
+   * glossary definition naming one. Breaking the string is better than
+   * widening the page it sits on. */
+  :not(pre) > code,
+  dd {
+    overflow-wrap: anywhere;
+  }
+}
+
+@property --fa-cue-l { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --fa-cue-r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+@keyframes fa-scroll-cue {
+  0%   { --fa-cue-l: 0px;    --fa-cue-r: 2.5rem; }
+  12%  { --fa-cue-l: 2.5rem; }
+  88%  { --fa-cue-r: 2.5rem; }
+  100% { --fa-cue-l: 2.5rem; --fa-cue-r: 0px; }
+}
+
+</style>
+<script type="application/json" id="fa-translation-meta">{"lang":"en","translationStatus":"","translationSource":"","supportedLocales":["ar","zh","en","fr","ru","es"],"availableLocales":[]}</script><link rel="stylesheet" href="../../../../../../../../assets/page-layout.css" data-fa-page-layout><script src="../../../../../../../../assets/page-layout.js" defer data-fa-page-layout></script><link rel="stylesheet" href="../../../../../../../../assets/ig-artifact.css"><style data-ig-version-chrome>.ig-topbar-head{flex:0 0 100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .9rem}.ig-topbar-head .ig-topbar-home{flex:none}.ig-topbar-ver{font-weight:400;font-size:.9em;opacity:.95;white-space:nowrap}.ig-topbar-flag{font-size:1.1em}.ig-version-banner{box-sizing:border-box;margin:0;padding:.5rem 1.5rem;background:#ffffa0;color:#222;border-bottom:1px solid #0a0008;font-size:.95rem;line-height:1.45}.ig-version-banner a{color:#1a4b8c;text-decoration:underline}html:not([data-fa-scheme="light"]) .ig-version-banner{background:#4a4520;color:#fff8d0;border-color:#8a7d2a}html:not([data-fa-scheme="light"]) .ig-version-banner a{color:#ffe680}.ig-metadata{border-collapse:collapse;margin:0 0 1rem;font-size:.95rem}.ig-metadata td{border:1px solid #c8c8c8;padding:.25rem .6rem;vertical-align:top}.ig-metadata code{overflow-wrap:anywhere}</style></head>
+<body data-fa-node-kind-page>
+<header class="ig-search-top fa-page-bar"><a class="ig-search-home" href="../../../../../../../../index.html">WHO SMART Trust</a><span class="ig-topbar-ver"><span class="ig-topbar-flag" role="img" aria-label="International" title="International">🌐</span> 1.7.5 - ci-build</span><form class="ig-search" role="search" data-ig-search-index="../../../../../../../../assets/ig-search.json"><label class="ig-search-label" for="search-input">Search WHO SMART Trust</label><input type="search" id="search-input" class="ig-search-input" placeholder="Search pages and artefacts" autocomplete="off" aria-controls="ig-search-results" aria-expanded="false"><ul id="ig-search-results" class="ig-search-results" hidden></ul></form><span class="ig-locale-slot" data-fa-slot="locale"></span></header><p class="ig-version-banner" role="note">This page is part of the WHO SMART Trust (v1.7.5: ci-build) based on <a href="http://hl7.org/fhir/R4/">FHIR (HL7® FHIR® Standard) v4.0.1</a>. This is the continuous integration build: it follows the source and is not a published version. For a full list of available versions, see the <a href="http://smart.who.int/trust/history.html">Directory of published versions</a>.</p><script type="application/json" id="fa-rail" data-fa-root="../../../../../../../.." data-fa-to-root="../../../../../../../..">{"data":"rail-zcon6vgt4x","here":"/en/cat-harness-tools/folio-tabular-csvw/v1/who-iris/library/10665-261545/tabular.csvw/"}</script><nav class="fa-nav" aria-label="folio-assistant" data-fa-rail="pending"><a href="../../../../../../../../">folio-assistant</a></nav>
+<main>
+<h1 id="nk-title">library/10665-261545/tabular.csvw</h1>
+<p class="m">A <a href="../../../../">folio-tabular-csvw/v1</a> node held by <a href="../../../">who-iris</a>, at <code>who-iris/library/10665-261545/tabular.csvw.json</code>.</p>
+
+<h2 id="fields">Fields</h2>
+<dl>
+<dt>$schema</dt><dd>folio-tabular-csvw/v1</dd>
+<dt>doc_id</dt><dd>10665-261545</dd>
+<dt>tables</dt><dd><pre>[
+  {
+    &quot;url&quot;: &quot;tables/table-2.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;assaya&quot;,
+          &quot;titles&quot;: &quot;Assaya&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;no-of-laboratories&quot;,
+          &quot;titles&quot;: &quot;No. of laboratories&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 42,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 2&quot;,
+    &quot;fac:caption&quot;: &quot;Table 2: List of the assays used by the participating laboratories&quot;,
+    &quot;fac:pages&quot;: [
+      4
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;a In some cases, the participants did not precisely identify or state the manufacturer of the assays used. Where this information was not given, assays are identified only by the name used by participating laboratories, even if incomplete.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table lists the HIV antibody assays (by manufacturer and product name) used by the laboratories participating in the WHO quality assessment exercise, with the number of laboratories using each.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول اختبارات الأضداد لفيروس العوز المناعي البشري (حسب الجهة المصنعة واسم المنتج) التي استخدمتها المختبرات المشاركة في تمرين تقييم الجودة التابع للمنظمة، مع عدد المختبرات التي استخدمت كل اختبار.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表列出了参加世卫组织质量评估活动的实验室所使用的艾滋病毒抗体检测试剂（按生产商和产品名称），以及使用每种试剂的实验室数量。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro enumera los ensayos de anticuerpos contra el VIH (por fabricante y nombre del producto) utilizados por los laboratorios participantes en el ejercicio de evaluación de la calidad de la OMS, con el número de laboratorios que utilizaron cada uno.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau présente les tests de détection des anticorps anti-VIH (par fabricant et nom de produit) utilisés par les laboratoires participant à l’exercice d’évaluation de la qualité de l’OMS, avec le nombre de laboratoires utilisant chacun d’eux.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице перечислены тест-системы для выявления антител к ВИЧ (по производителю и названию продукта), использовавшиеся лабораториями — участницами оценки качества ВОЗ, с указанием числа лабораторий, применявших каждую из них.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-3.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;criteria&quot;,
+          &quot;titles&quot;: &quot;Criteria&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;no-of-laboratoriesa&quot;,
+          &quot;titles&quot;: &quot;No. of laboratoriesa&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 12,
+      &quot;columns&quot;: 2,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:label&quot;: &quot;Table 3&quot;,
+    &quot;fac:caption&quot;: &quot;Table 3: Distribution of the criteria used by the participating laboratories for the interpretation of the Western blot results&quot;,
+    &quot;fac:pages&quot;: [
+      4
+    ],
+    &quot;fac:headerRows&quot;: 1,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;a Ten laboratories did not use Western blot. b Centers for Disease Control. c Federal Centre for AIDS.&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;The table shows how many participating laboratories used each set of criteria (manufacturer’s, CDC, WHO, combinations and others) to interpret Western blot results.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يبين الجدول عدد المختبرات المشاركة التي استخدمت كل مجموعة من المعايير (معايير الجهة المصنعة، أو مراكز مكافحة الأمراض، أو المنظمة، أو تركيبات منها وغيرها) لتفسير نتائج اختبار لطخة ويسترن.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;本表显示了参与实验室中采用各套标准（生产商标准、美国疾病控制中心标准、世卫组织标准、其组合及其他标准）解读免疫印迹结果的实验室数量。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;El cuadro muestra cuántos laboratorios participantes utilizaron cada conjunto de criterios (del fabricante, de los CDC, de la OMS, combinaciones y otros) para interpretar los resultados de la inmunotransferencia (Western blot).&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Le tableau indique combien de laboratoires participants ont utilisé chaque ensemble de critères (du fabricant, des CDC, de l’OMS, combinaisons et autres) pour interpréter les résultats du Western blot.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;В таблице показано, сколько лабораторий-участниц использовали каждый набор критериев (производителя, CDC, ВОЗ, их сочетания и другие) для интерпретации результатов вестерн-блота.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-5.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;specimen-no&quot;,
+          &quot;titles&quot;: &quot;Specimen No.&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        },
+        {
+          &quot;name&quot;: &quot;positive&quot;,
+          &quot;titles&quot;: &quot;Positive&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;No. of laboratories reporting HIV antibody status as:&quot;
+        },
+        {
+          &quot;name&quot;: &quot;negative&quot;,
+          &quot;titles&quot;: &quot;Negative&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;No. of laboratories reporting HIV antibody status as:&quot;
+        },
+        {
+          &quot;name&quot;: &quot;indeterminate&quot;,
+          &quot;titles&quot;: &quot;Indeterminate&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;No. of laboratories reporting HIV antibody status as:&quot;
+        },
+        {
+          &quot;name&quot;: &quot;not-reported&quot;,
+          &quot;titles&quot;: &quot;Not reported&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 22,
+      &quot;columns&quot;: 5,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:merged&quot;: [
+      &quot;A2:E2&quot;,
+      &quot;A13:E13&quot;
+    ],
+    &quot;fac:label&quot;: &quot;Table 5&quot;,
+    &quot;fac:caption&quot;: &quot;Table 5: Summary of participating laboratories&#39; interpretations of the HIV antibody status of the specimens&quot;,
+    &quot;fac:pages&quot;: [
+      5
+    ],
+    &quot;fac:headerRows&quot;: 2,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;For each of the 20 quality-assessment specimens, grouped by expected result (positive or negative), the table gives the number of laboratories that reported the HIV antibody status as positive, negative or indeterminate, and the number that did not report.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يعرض الجدول، لكل عينة من عينات تقييم الجودة العشرين مجمعة حسب النتيجة المتوقعة (إيجابية أو سلبية)، عدد المختبرات التي أبلغت عن حالة الأضداد لفيروس العوز المناعي البشري بأنها إيجابية أو سلبية أو غير محددة، وعدد المختبرات التي لم تبلغ.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;对于20份质量评估样本中的每一份（按预期结果阳性或阴性分组），本表列出报告艾滋病毒抗体状态为阳性、阴性或不确定的实验室数量，以及未报告的实验室数量。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Para cada una de las 20 muestras de evaluación de la calidad, agrupadas según el resultado esperado (positivo o negativo), el cuadro indica el número de laboratorios que notificaron la presencia de anticuerpos contra el VIH como positiva, negativa o indeterminada, y el número que no notificó.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Pour chacun des 20 échantillons d’évaluation de la qualité, regroupés selon le résultat attendu (positif ou négatif), le tableau indique le nombre de laboratoires ayant déclaré le statut en anticorps anti-VIH positif, négatif ou indéterminé, ainsi que le nombre de laboratoires n’ayant rien déclaré.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Для каждого из 20 образцов для оценки качества, сгруппированных по ожидаемому результату (положительный или отрицательный), в таблице указано число лабораторий, сообщивших о положительном, отрицательном или неопределённом статусе антител к ВИЧ, а также число не представивших результат.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  },
+  {
+    &quot;url&quot;: &quot;tables/table-6.csv&quot;,
+    &quot;tableSchema&quot;: {
+      &quot;columns&quot;: [
+        {
+          &quot;name&quot;: &quot;p17&quot;,
+          &quot;titles&quot;: &quot;p17&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Pattern found:&quot;
+        },
+        {
+          &quot;name&quot;: &quot;p24&quot;,
+          &quot;titles&quot;: &quot;p24&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Pattern found:&quot;
+        },
+        {
+          &quot;name&quot;: &quot;p31&quot;,
+          &quot;titles&quot;: &quot;p31&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Pattern found:&quot;
+        },
+        {
+          &quot;name&quot;: &quot;gp41&quot;,
+          &quot;titles&quot;: &quot;gp41&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Pattern found:&quot;
+        },
+        {
+          &quot;name&quot;: &quot;p51-55&quot;,
+          &quot;titles&quot;: &quot;p51/55&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Pattern found:&quot;
+        },
+        {
+          &quot;name&quot;: &quot;p66&quot;,
+          &quot;titles&quot;: &quot;p66&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Pattern found:&quot;
+        },
+        {
+          &quot;name&quot;: &quot;gp120&quot;,
+          &quot;titles&quot;: &quot;gp120&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Pattern found:&quot;
+        },
+        {
+          &quot;name&quot;: &quot;gp160&quot;,
+          &quot;titles&quot;: &quot;gp160&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;,
+          &quot;fac:group&quot;: &quot;Pattern found:&quot;
+        },
+        {
+          &quot;name&quot;: &quot;no-of-laboratories&quot;,
+          &quot;titles&quot;: &quot;No. of laboratories&quot;,
+          &quot;datatype&quot;: &quot;any&quot;,
+          &quot;datatypeSource&quot;: &quot;undetermined&quot;
+        }
+      ]
+    },
+    &quot;fac:anchor&quot;: null,
+    &quot;fac:headerRow&quot;: 1,
+    &quot;fac:extent&quot;: {
+      &quot;rows&quot;: 64,
+      &quot;columns&quot;: 9,
+      &quot;source&quot;: &quot;measured&quot;
+    },
+    &quot;fac:merged&quot;: [
+      &quot;A2:I2&quot;,
+      &quot;A9:I9&quot;,
+      &quot;A12:I12&quot;,
+      &quot;A16:I16&quot;,
+      &quot;A29:I29&quot;,
+      &quot;A34:I34&quot;,
+      &quot;A43:I43&quot;,
+      &quot;A49:I49&quot;,
+      &quot;A55:I55&quot;,
+      &quot;A60:I60&quot;
+    ],
+    &quot;fac:label&quot;: &quot;Table 6&quot;,
+    &quot;fac:caption&quot;: &quot;Table 6: Western blot patterns reported for negative specimens with commercial kits used by more than one laboratorya&quot;,
+    &quot;fac:pages&quot;: [
+      6
+    ],
+    &quot;fac:headerRows&quot;: 2,
+    &quot;fac:lang&quot;: &quot;en&quot;,
+    &quot;fac:notes&quot;: &quot;a The participants&#39; results recorded as +, ±, and (±) are all shown here as +. Transcribed from a scanned page (zoomed crops); the dash cells print as “–” (band absent).&quot;,
+    &quot;fac:transcribed&quot;: {
+      &quot;method&quot;: &quot;inspection&quot;,
+      &quot;by&quot;: {
+        &quot;kind&quot;: &quot;agent&quot;,
+        &quot;id&quot;: &quot;claude-code&quot;,
+        &quot;model&quot;: &quot;not-disclosed&quot;,
+        &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+      },
+      &quot;at&quot;: &quot;2026-11-11&quot;,
+      &quot;from&quot;: &quot;the rendered PDF page, checked against its text layer&quot;
+    },
+    &quot;fac:narrative&quot;: [
+      {
+        &quot;text&quot;: &quot;For each of the 10 HIV-antibody-negative specimens, the table lists the Western blot band patterns (presence or absence of bands p17 to gp160) reported by laboratories using commercial kits used by more than one laboratory, with the number of laboratories reporting each pattern.&quot;,
+        &quot;lang&quot;: &quot;en&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;يسرد الجدول، لكل عينة من العينات العشر السلبية لأضداد فيروس العوز المناعي البشري، أنماط شرائط لطخة ويسترن (وجود أو غياب الشرائط من p17 إلى gp160) التي أبلغت عنها المختبرات التي استخدمت مجموعات تجارية يستخدمها أكثر من مختبر واحد، مع عدد المختبرات التي أبلغت عن كل نمط.&quot;,
+        &quot;lang&quot;: &quot;ar&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;对于10份艾滋病毒抗体阴性样本中的每一份，本表列出了使用多于一个实验室所用商业试剂盒的实验室报告的免疫印迹条带模式（p17至gp160各条带的有无），以及报告每种模式的实验室数量。&quot;,
+        &quot;lang&quot;: &quot;zh&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Para cada una de las 10 muestras negativas para anticuerpos contra el VIH, el cuadro enumera los patrones de bandas de inmunotransferencia (presencia o ausencia de las bandas p17 a gp160) notificados por los laboratorios que usaron estuches comerciales empleados por más de un laboratorio, con el número de laboratorios que notificaron cada patrón.&quot;,
+        &quot;lang&quot;: &quot;es&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Pour chacun des 10 échantillons négatifs pour les anticorps anti-VIH, le tableau présente les profils de bandes du Western blot (présence ou absence des bandes p17 à gp160) déclarés par les laboratoires utilisant des trousses commerciales employées par plus d’un laboratoire, avec le nombre de laboratoires ayant déclaré chaque profil.&quot;,
+        &quot;lang&quot;: &quot;fr&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      },
+      {
+        &quot;text&quot;: &quot;Для каждого из 10 образцов, отрицательных по антителам к ВИЧ, в таблице перечислены профили полос вестерн-блота (наличие или отсутствие полос от p17 до gp160), сообщённые лабораториями, использовавшими коммерческие наборы, применяемые более чем одной лабораторией, и число лабораторий, сообщивших о каждом профиле.&quot;,
+        &quot;lang&quot;: &quot;ru&quot;,
+        &quot;state&quot;: &quot;draft&quot;,
+        &quot;drafted_by&quot;: {
+          &quot;kind&quot;: &quot;agent&quot;,
+          &quot;id&quot;: &quot;claude-code&quot;,
+          &quot;model&quot;: &quot;not-disclosed&quot;,
+          &quot;session&quot;: &quot;https://claude.ai/code/session_01Qmmkt7LJVddPRBy6F6BnEb&quot;
+        },
+        &quot;drafted_at&quot;: &quot;2026-11-11&quot;
+      }
+    ]
+  }
+]</pre></dd>
+<dt>source</dt><dd><pre>{
+  &quot;file&quot;: &quot;10665-261545.pdf&quot;,
+  &quot;sha256&quot;: &quot;18f84913f88248605e6bccbee867d747cd9e6f152e544cbcca0152e94d709671&quot;,
+  &quot;note&quot;: &quot;tables transcribed from the PDF pages; the PDF itself is not held&quot;
+}</pre></dd>
+<dt>narrative</dt><dd><pre>{
+  &quot;text&quot;: null,
+  &quot;state&quot;: &quot;not-authored&quot;
+}</pre></dd>
+</dl>
+</main>
+<script src="../../../../../../../../assets/ig-search.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script data-folio-saved-scheme>(function(){var d=document.documentElement,s=null,c="dark";try{s=localStorage.getItem("fa-color-scheme")}catch(e){}if(s!=="light"&&s!=="dark"){s="light";try{if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)s="dark"}catch(e){}}try{var n=document.getElementById("fa-site-scheme");if(n)c=JSON.parse(n.textContent).scheme==="light"?"light":"dark"}catch(e){}d.setAttribute("data-fa-scheme",s);var j=window.jtd;if(s!==c&&j&&typeof j.setTheme==="function"){try{j.setTheme(s)}catch(e){}}})();</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHO IRIS — cat-harness-declaration</title>
+<style>
+  :root { color-scheme: light dark; --fg:#1b1b1b; --bg:#fdfdfb; --muted:#5b5b5b; --line:#d6d6d0; --link:#0b5cad; --panel:#f3f4f2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-fa-scheme="light"]) { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; } }
+  :root[data-fa-scheme="dark"] { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; }
+  :root[data-fa-scheme="light"] { color-scheme: light; } :root[data-fa-scheme="dark"] { color-scheme: dark; }
+  body { margin:0; font:1rem/1.5 system-ui,sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width:80rem; margin:0 auto; padding:1.5rem 1.5rem 4rem; min-width:0; overflow-wrap:anywhere; }
+  h1 { font-size:1.35rem; margin:0 0 .25rem; } h2 { font-size:1.05rem; margin:1.5rem 0 .5rem; }
+  a { color:var(--link); } a:focus-visible, select:focus-visible { outline:3px solid var(--link); outline-offset:2px; }
+  .m { color:var(--muted); font-size:.9rem; }
+  .tiles { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; padding:0; list-style:none; }
+  .tiles li { border:1px solid var(--line); border-radius:.4rem; padding:.35rem .7rem; }
+  .tiles b { font-size:1.2rem; margin-right:.3rem; }
+  .clip { width:100%; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; vertical-align:top; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
+  th { background:var(--panel); white-space:nowrap; }
+  /* Only the node's path and long text may break mid-word; a status or a date
+     broken across lines ("in_pr ogres s") is unreadable. */
+  td { overflow-wrap:normal; } td.p, td.t { overflow-wrap:anywhere; } td.s { white-space:nowrap; }
+  dl { display:grid; grid-template-columns:minmax(8rem,14rem) 1fr; gap:.25rem 1rem; }
+  dt { font-weight:600; } dd { margin:0; }
+  pre { background:var(--panel); padding:.75rem; overflow-x:auto; font-size:.85rem; }
+  label { margin-right:1rem; }
+  @media (max-width:40rem) { dl { grid-template-columns:1fr; } }
+</style>
+<link rel="stylesheet" href="../../../../../assets/css/navbar.css"><script src="../../../../../assets/navbar/rail-ho45kivtcc.js" defer></script><script src="../../../../../assets/js/navbar.js" defer></script><style data-folio-narrow-viewport>
+/* Narrow viewports: nothing may widen the PAGE — bean `2r2n`.
+ *
+ * At 390 px, 105 of 249 built pages scrolled sideways (measured 2026-09-24).
+ * The rule here is the bean's: wide content scrolls INSIDE ITS OWN BOX with a
+ * visible cue, and the page itself never pans.
+ *
+ * ONE FILE, TWO WAYS IN. Themed pages link it from `_includes/head_custom.html`.
+ * The standalone viewer pages carry no theme stylesheet at all, so
+ * `withViewerNav` in `scripts/viewer-page.ts` inlines this same file when it
+ * adds the rail. A copy of these rules in each place would be two answers to
+ * "what does a table do at 390 px", free to drift apart.
+ *
+ * Every selector here is written to be safe on both kinds of page: no
+ * `.main-content` scope (a standalone page has none), the navbar excluded by
+ * name, and the theme's own `.table-wrapper` left alone, since it already does
+ * this job for Markdown tables. */
+
+@media (max-width: 799.98px) {
+  /* A table the theme did not wrap: raw HTML from a generator, or one built at
+   * runtime. `display: block` makes the table its own scroll box. Its cells
+   * still lay out as a table inside the anonymous table box. */
+  table:not(.table-wrapper > table):not(.fa-nav table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* THE CUE: the edge that has more content past it fades out. The fade is a
+   * MASK over the table's own pixels, driven by its own scroll position, so
+   * it needs no knowledge of the page's background. A painted cover (the
+   * usual `background-attachment: local` trick) does: the first version used
+   * `Canvas`, and on a page that is dark under a LIGHT scheme it laid a white
+   * band over the first column.
+   *
+   * A table that does not overflow has an inactive scroll timeline, so the
+   * animation has no effect and both fades stay at their initial 0: no cue
+   * where there is nothing to scroll to. A browser without scroll-driven
+   * animations shows no fade, and the table still scrolls. */
+  @supports (animation-timeline: scroll()) {
+    table:not(.table-wrapper > table):not(.fa-nav table) {
+      mask-image: linear-gradient(to right,
+        transparent 0, #000 var(--fa-cue-l),
+        #000 calc(100% - var(--fa-cue-r)), transparent 100%);
+      animation: fa-scroll-cue linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+
+  /* A code block scrolls in its own box, which is what `pre` is for. Mermaid
+   * SOURCE sits in a `pre` until the renderer replaces it, and at 390 px a
+   * diagram's source line is longer than the screen. */
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Prose that has no break opportunity: a long path in inline code, or a
+   * glossary definition naming one. Breaking the string is better than
+   * widening the page it sits on. */
+  :not(pre) > code,
+  dd {
+    overflow-wrap: anywhere;
+  }
+}
+
+@property --fa-cue-l { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --fa-cue-r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+@keyframes fa-scroll-cue {
+  0%   { --fa-cue-l: 0px;    --fa-cue-r: 2.5rem; }
+  12%  { --fa-cue-l: 2.5rem; }
+  88%  { --fa-cue-r: 2.5rem; }
+  100% { --fa-cue-l: 2.5rem; --fa-cue-r: 0px; }
+}
+
+</style>
+<script type="application/json" id="fa-translation-meta">{"lang":"en","translationStatus":"","translationSource":"","supportedLocales":["ar","zh","en","fr","ru","es"],"availableLocales":[]}</script><link rel="stylesheet" href="../../../../../assets/page-layout.css" data-fa-page-layout><script src="../../../../../assets/page-layout.js" defer data-fa-page-layout></script><link rel="stylesheet" href="../../../../../assets/ig-artifact.css"><style data-ig-version-chrome>.ig-topbar-head{flex:0 0 100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .9rem}.ig-topbar-head .ig-topbar-home{flex:none}.ig-topbar-ver{font-weight:400;font-size:.9em;opacity:.95;white-space:nowrap}.ig-topbar-flag{font-size:1.1em}.ig-version-banner{box-sizing:border-box;margin:0;padding:.5rem 1.5rem;background:#ffffa0;color:#222;border-bottom:1px solid #0a0008;font-size:.95rem;line-height:1.45}.ig-version-banner a{color:#1a4b8c;text-decoration:underline}html:not([data-fa-scheme="light"]) .ig-version-banner{background:#4a4520;color:#fff8d0;border-color:#8a7d2a}html:not([data-fa-scheme="light"]) .ig-version-banner a{color:#ffe680}.ig-metadata{border-collapse:collapse;margin:0 0 1rem;font-size:.95rem}.ig-metadata td{border:1px solid #c8c8c8;padding:.25rem .6rem;vertical-align:top}.ig-metadata code{overflow-wrap:anywhere}</style></head>
+<body data-fa-node-kind-page>
+<header class="ig-search-top fa-page-bar"><a class="ig-search-home" href="../../../../../index.html">WHO SMART Trust</a><span class="ig-topbar-ver"><span class="ig-topbar-flag" role="img" aria-label="International" title="International">🌐</span> 1.7.5 - ci-build</span><form class="ig-search" role="search" data-ig-search-index="../../../../../assets/ig-search.json"><label class="ig-search-label" for="search-input">Search WHO SMART Trust</label><input type="search" id="search-input" class="ig-search-input" placeholder="Search pages and artefacts" autocomplete="off" aria-controls="ig-search-results" aria-expanded="false"><ul id="ig-search-results" class="ig-search-results" hidden></ul></form><span class="ig-locale-slot" data-fa-slot="locale"></span></header><p class="ig-version-banner" role="note">This page is part of the WHO SMART Trust (v1.7.5: ci-build) based on <a href="http://hl7.org/fhir/R4/">FHIR (HL7® FHIR® Standard) v4.0.1</a>. This is the continuous integration build: it follows the source and is not a published version. For a full list of available versions, see the <a href="http://smart.who.int/trust/history.html">Directory of published versions</a>.</p><script type="application/json" id="fa-rail" data-fa-root="../../../../.." data-fa-to-root="../../../../..">{"data":"rail-ho45kivtcc","here":"/en/cat-harness/cat-harness-declaration/who-iris/who-iris/"}</script><nav class="fa-nav" aria-label="folio-assistant" data-fa-rail="pending"><a href="../../../../../">folio-assistant</a></nav>
+<main>
+<h1 id="nk-title">WHO IRIS</h1>
+<p class="m">A <a href="../../">cat-harness-declaration</a> node held by <a href="../">who-iris</a>, at <code>who-iris/who-iris.json</code>.</p>
+
+<h2 id="fields">Fields</h2>
+<dl>
+<dt>$schema</dt><dd>cat-harness-declaration/1.0.0</dd>
+<dt>_comment</dt><dd>The WHO IRIS catalogue instance, staged as a top-level directory ahead of becoming its own repository. Owner, 2026-09-20: &#39;there needs to be a new repo (staged here as a new top-level dir -&gt; repo later) which is an instance of fa-core, and is for the who-iris cataloge and this is an example artefact (the style guide is part of the library itself)&#39;, and later &#39;in future who-iris iwll be own repo. will have specialized tools/themes.&#39; The `library` entry landed with the git mv (bean frs5), in the same change, exactly as the previous version of this comment said it would: until then its ABSENCE was load-bearing, because `resolveLibraryRef` reported `no-library-graph` for a citation naming this instance -- a different and more useful answer than &#39;that section is missing&#39;. Both of those are now real answers rather than one standing in for the other. THE STYLE GUIDE IS NOW A SUBGRAPH OF THIS INSTANCE, not an instance of its own: owner, 2026-09-30, &#39;who voices style guide is derivative KG content from who-iris, merge content into subgraph. including docs.&#39; The three house voices moved to `skills/voices/`, the WHO glossary to `glossary/`, and the style guide&#39;s README to `docs/style-guide.md`, all by git mv (bean qsx4). The cross-instance citation bean z7ev built for them is no longer needed by them: a voice and the publication it is read from are in one instance, so every citation is the bare, same-instance form.</dd>
+<dt>name</dt><dd>who-iris</dd>
+<dt>repository</dt><dd>litlfred/who-iris</dd>
+<dt>_separation_comment</dt><dd>CONTENT, per the owner&#39;s 2026-09-20 plan (&#39;a new repo ... which is an instance of fa-core, and is for the who-iris cataloge&#39;) and kg-separation: a content repository holds no code (bootstrap FR-7). No who-iris-tools is authorised, so the IRIS-specific code that remains here is TOLERATED rather than settled -- owner, 2026-09-30: &#39;iris specific tools for now ok in who-iris/ but make sure fails QA finding&#39;, and 2026-10-01: &#39;QA warning. not failure.. ok b/c small # tools&#39;. kg:audit&#39;s content-instance-holds-code reads this field and records a minor WARNING naming each file until that code has a home. Bean eayu. (Dropped by a &#39;take main&#39; merge on the #1728 branch, 473805a37; restored by S0, bean hx65.) SETTLED by the owner, 2026-10-09: &#39;iris specific tools need to be in litlfred/who-iris. general catalogue tools live in f-a-core&#39; -- so `scripts/` here holds the IRIS-specific generators (`gen-iris-pages.ts`, the oxigraph build and search), and the general catalogue checker, cover generator and Dublin Core renderer stay in folio-assistant-core.</dd>
+<dt>separation</dt><dd>content</dd>
+<dt>version</dt><dd>0.1.0</dd>
+<dt>iriBase</dt><dd>https://worldhealthorganization.github.io/who-iris/</dd>
+<dt>needs</dt><dd><pre>[
+  &quot;folio-assistant-core&quot;
+]</pre></dd>
+<dt>_title_comment</dt><dd>The HUMAN display name, for the LHS navbar&#39;s harness tabs. Owner, 2026-09-21: &quot;harnesses should list the names (they should be named in schmeas, e.g. cat-boostrap should be named &#39;Boostrap&#39;, f-a =&gt; Folio Assistant, cat-harness =&gt; C@T Harness)&quot;. `name` stays the machine identifier that filenames, `needs` edges and `declaredBy` resolve against; `title` is what a reader sees and nothing resolves against. Bean t3n8. WHO IRIS was not one of the three the owner spelled out; it is titled here because it is instantiated in the same window, and an instance that gains a tab needs a label.</dd>
+<dt>title</dt><dd>WHO IRIS</dd>
+<dt>description</dt><dd>The WHO Institutional Repository for Information Sharing, catalogued by reference — 1,057,223 files known, a handful materialized as the pre-CDN preview.</dd>
+<dt>avatar</dt><dd><pre>{
+  &quot;glyph&quot;: &quot;M4 6h6a2 2 0 012 2v10a2 2 0 00-2-2H4zM20 6h-6a2 2 0 00-2 2v10a2 2 0 012-2h6zM4 6v10M20 6v10&quot;,
+  &quot;tone&quot;: 199,
+  &quot;reads&quot;: &quot;an open book — a repository of published documents, in WHO blue&quot;
+}</pre></dd>
+<dt>_avatar_comment</dt><dd>WHO BLUE, AND NO EMBLEM. Owner, 2026-09-23: *&quot;no logo on who-iris icon (for now). just WHO blue&quot;* — reversing their own choice of 2026-09-22, which had the WHO emblem-and-wordmark cropped to the emblem. The image stays declared in `who-iris.json`; only the `icon` pointer to it is gone, so restoring it is one field rather than a re-ingest. 199 is MEASURED from #0093D5, the organisation&#39;s blue as `who-iris.json` already records it: rgb(0,147,213), max channel blue, so the hue is 4 + (0-147)/213 sixths of a turn = 198.6°, rounded. Written as an angle rather than as the hex because that is what this table holds and what the stylesheet builds both schemes from — a literal colour here would be legible in one mode and not the other, which is the `y8cm` failure. Without this entry `avatarFor(&quot;who-iris&quot;)` falls to GENERIC, so the tile would have taken the generic hue and reported a finding — &quot;no avatar declared&quot; is true of an instance nobody has decided about, and this one has been decided about twice. An open book with a band across it — a repository of published documents, which is what IRIS is. The FALLBACK mark since 2026-10-04: the owner restored the WHO emblem as who-iris&#39;s declared `icon` (bean `2vpn`), which `harness-tiles.ts` prefers; this glyph draws only where the emblem cannot. It was the mark itself from 2026-09-23, when the owner asked for the colour without the logo. Moved here from cat-harness/schemas/avatars.ts, 2026-10-05 (bean sod4 #4): an instance declares its own mark.</dd>
+<dt>assets</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;agent-instructions&quot;,
+    &quot;src&quot;: &quot;AGENTS.md&quot;,
+    &quot;role&quot;: &quot;agent-instructions&quot;,
+    &quot;title&quot;: &quot;AGENTS.md — who-iris&quot;,
+    &quot;description&quot;: &quot;Cold start for work in this layer. The gap between the nodes modelled here and the million-odd files upstream is the point, not a backlog; every node declares its state with no default, because \&quot;the author did not say\&quot; and \&quot;the author said they could not tell\&quot; are different facts.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;readme&quot;,
+    &quot;src&quot;: &quot;README.md&quot;,
+    &quot;role&quot;: &quot;instance-readme&quot;,
+    &quot;title&quot;: &quot;who-iris&quot;,
+    &quot;description&quot;: &quot;What is here, what is only referenced, and how to tell.&quot;
+  }
+]</pre></dd>
+<dt>_folioMount_comment</dt><dd>F8/F9, bean jpjt. The reader&#39;s folio comes from cat-harness and must be the same folio in every library they browse — board-windows: &quot;the test is not &#39;is this folio good&#39; but &#39;is this the same folio&#39;&quot;. These are the roots whose pages carry it; `check:folio-mount` fails the build for one that does not. uploads/ is EXEMPT with its reason, because it holds the captured IRIS source the replica is generated FROM, and rewriting a capture destroys the artefact ingestion exists to preserve.</dd>
+<dt>folioMount</dt><dd><pre>{
+  &quot;roots&quot;: [
+    &quot;site/&quot;,
+    &quot;docs/&quot;
+  ],
+  &quot;exempt&quot;: [
+    {
+      &quot;path&quot;: &quot;uploads/&quot;,
+      &quot;reason&quot;: &quot;captured IRIS source — the artefact ingestion exists to preserve, not a page this repository authors&quot;
+    },
+    {
+      &quot;path&quot;: &quot;docs/wireframes/&quot;,
+      &quot;reason&quot;: &quot;mid-fidelity wireframe mock-ups of this instance&#39;s pages, rendered by wireframe:check at fixed web and mobile viewports — drawings of a page, not pages a reader browses, so they carry no folio&quot;
+    }
+  ]
+}</pre></dd>
+<dt>directories</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;who-iris-translations&quot;,
+    &quot;path&quot;: &quot;translations/&quot;,
+    &quot;description&quot;: &quot;The gettext side of who-iris&#39;s own strings, one directory per target locale: the `glossary/who-iris--who-terms` catalogues that translate this instance&#39;s WHO terms. Moved here from cat-harness/translations/ on the owner&#39;s ruling of 2026-10-04, \&quot;move things to semantically appropriate place\&quot; (bean riit): a scheme&#39;s translations sit with the instance whose terms they translate.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;translation-sources&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;library&quot;,
+    &quot;path&quot;: &quot;library/&quot;,
+    &quot;description&quot;: &quot;The IRIS items this instance holds rather than merely names. The three worked examples are `wpr-rdo-2020-003-eng` (the WPRO publication style guide, and the worked example whose full DSpace item record drives the `iris-dspace` skill), `who-pub-tps-931` and `9789241548960-eng`. On 2026-10-30 (who-iris#107, the owner&#39;s \&quot;pre-CDN preview\&quot;) every IRIS library the harness layers had ingested moved in beside them: twelve from the DAK layer (https://github.com/litlfred/smart-base; digital health guidance such as DIIG, the two classifications of digital interventions and the digital transformation handbooks) and three from the immunizations IG (the IMMZ DAK, 9789240016514 and DDCC:VS). Those layers now cite them as `{instance: \&quot;who-iris\&quot;}`. They are the `materialized` end of the catalogue -- every other node under `catalogue/nodes/` is `referenced`, and the entries here are what a materialization actually looks like. `milnorlink` is NOT here and never was an IRIS item; it went to folio-assistant-sci (bean r1lz). The id is `library`, the CONVENTIONAL one, so this entry OVERRIDES the default rather than joining it: overrides match on id and never on path, so a distinct id at the same path yields two entries for one directory and every fan-out consumer scans it twice. Measured while doing exactly that.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;library&quot;
+    ],
+    &quot;_comment_corpusOnly&quot;: &quot;CORPUS ONLY since 2026-09-30 (bean 2b5s, the owner&#39;s &#39;site/ + publish covers&#39;). This entry carried `instanceRoot: true` while the replica pages lived here, and a mount copies the whole directory whose index.html it finds -- so the 1,367 ingestion sidecars were published at /who-iris/ AND /library/who-iris/ as if they were pages. The replica moved to `site/`, which is now the instance root; this directory has no index.html and is mounted nowhere. The covers the replica shows stay here, where the catalogue&#39;s localPath names them (bean yl5w), and the mount publishes exactly the ones a page embeds.&quot;,
+    &quot;kindRouteRedirect&quot;: true,
+    &quot;_comment_kindRouteRedirect&quot;: &quot;/library/who-iris/ stayed a live URL while it was a verbatim mount, so it keeps answering: `mount-instance-docs.ts` writes it as a one-file redirect to this directory&#39;s library viewer, /cat-harness/library/who-iris/, rather than letting an old link 404.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;who-iris-site&quot;,
+    &quot;path&quot;: &quot;site/&quot;,
+    &quot;description&quot;: &quot;THE IRIS REPLICA&#39;S HOME PAGE AND SEARCH PAGE, and nothing else of the replica. The search page (search.html, issue #196, owner 2026-11-08) mimics iris.who.int/search: its facet categories are IRIS&#39;s, and their values and counts are computed in the browser from the items the query matches. Owner, 2026-10-30: the replica&#39;s item pages duplicated the library entry pages without a locale in the URL (\&quot;i want consitent bevarioior for things nuders librayr/\&quot;), so the item, collection and community-list pages are gone and their addresses 404. The IRIS-style home stays (follow-up, option A), in every language it is built in: its held items link to their library entry pages and its communities and collections to the catalogue page. `scripts/gen-iris-pages.ts` writes it (gated by `bun run cat iris:pages:check`). On the platform&#39;s site it is what `/who-iris/` serves; on who-iris&#39;s own site the `site:home` build step also writes it at the site root, and the docs home moved to `/docs/`. History: Moved out of `library/` on 2026-09-30 (bean 2b5s) so that the corpus and its rendering are separate directories: before, the mount copied the corpus along with the pages. A page shows an item&#39;s cover by referencing `../library/&lt;slug&gt;-cover.png`; the build publishes exactly the files a page embeds, beside the replica, and not the directory they sit in.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;docs&quot;
+    ],
+    &quot;_graphTypologies_comment&quot;: &quot;`docs`, the one renderable kind the harness owns, because the mount publishes only renderable directories&#39; pages and the replica is a finished HTML rendering of this instance&#39;s catalogue -- `folio` is authored block content with viewers, LaTeX and QA badges, which this is not. It shares the kind with `docs/`, and `withRoutes` settles which answers where: this directory is the instance root and serves /who-iris/, and the kind route /docs/who-iris/ stays with the sibling that is not the root, so the replica is published once rather than twice.&quot;,
+    &quot;instanceRoot&quot;: true,
+    &quot;_comment_instanceRoot&quot;: &quot;Since 2026-10-30 /who-iris/ serves the replica&#39;s IRIS-style home page only; its item pages are gone. Before, the themed replica was what /who-iris/ served — the owner&#39;s ruling, &#39;who-iris themed at /who-iris/&#39;. Moved here from the `library` entry with the pages (bean 2b5s).&quot;
+  },
+  {
+    &quot;id&quot;: &quot;who-iris-catalogue&quot;,
+    &quot;readOnly&quot;: true,
+    &quot;readOnlyBasis&quot;: &quot;Records of content materialized from IRIS. Editing one in place would change what this repository claims IRIS holds, with nothing saying so -- which is the case bean `10s1` exists for. To work on one, copy it out.&quot;,
+    &quot;_coverage_comment&quot;: &quot;The visualiser is declared in this instance&#39;s `visualisers` (`catalogue`, renderedBy `iris-pages`), at &lt;base&gt;/who-iris/catalogue/ -- owner, 2026-10-09. It was a `coverage.visualiser` ref into cat-harness&#39;s handler route (`cat-harness/docs/cat-harness/catalogue/who-iris/index.html`) until then. The KG view, NOT the replica. `library/community-list.html` and its collection/item pages answer \&quot;what does IRIS look like\&quot;; this answers \&quot;what does this catalogue know, and what does it record that it does not know\&quot;. The difference is load-bearing here: who-iris/AGENTS.md says the gap between the modelled nodes and the million upstream files IS THE POINT rather than a backlog, and nothing rendered that until 2026-09-22 -- the one fact the instance is built around was the one fact no reader could see. It also surfaces the gate verdicts, where `copyright` and `restrictions` are `unknown` on every held bitstream: a question nobody has answered, which a page showing only \&quot;3 materialized\&quot; would have read as a clearance. HTML rather than markdown because who-iris declares no `composed` directory -- its docs are MOUNTED after Jekyll, so a .md here would be copied verbatim and never rendered.&quot;,
+    &quot;path&quot;: &quot;catalogue/&quot;,
+    &quot;description&quot;: &quot;The catalogue itself: `catalogue.json` declares the corpus and its measured size; `nodes/` holds one `folio-catalogue-node/v1` per community, collection or item; `records/` holds the `folio-dublin-core/v1` metadata an item node points at through `metadataRef`. No count is written here: `check:catalogue` prints the census, and a count in prose goes stale (AGENTS.md). Most nodes are `referenced`, against 1,057,223 files upstream, and that gap IS the point. Since 2026-10-30 this is the one home for every IRIS item the harness layers know of (who-iris#107): smart-base, smart-immunizations, smart-hiv and folio-assistant moved their IRIS libraries, intakes and PDFs here and cite them as `who-iris`. `bun run cat check:catalogue` verifies every node validates and every metadataRef, libraryId and parent path resolves; a Zod schema can require the reference and structurally cannot check the file is there.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;catalogue&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;who-iris-skills&quot;,
+    &quot;path&quot;: &quot;skills/&quot;,
+    &quot;description&quot;: &quot;The IRIS skills: `iris-dspace` (how IRIS uses DSpace and qualified Dublin Core, stated as checkable requirements R1–R22), `iris-rest-feed`, `iris-cdn-exporter`, `iris-cdn-signing` and `iris-oxigraph`; and, under `voices/`, the WHO style guide&#39;s three house voices, declared from within by `skills.json`. Kept thin: the Dublin Core type lives in folio-assistant-core, enumeration and subsetting in large-datasets, and OCR is a cat-harness platform tool.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;skills&quot;
+    ],
+    &quot;tile&quot;: {
+      &quot;icon&quot;: &quot;skills&quot;
+    },
+    &quot;_tile_comment&quot;: &quot;Carried over from cat-harness&#39;s mirror of this directory, which placement PR0 (bean ejye) removed: the tile title is the owner&#39;s to state.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;glossary&quot;,
+    &quot;path&quot;: &quot;glossary/&quot;,
+    &quot;_comment&quot;: &quot;MOVED HERE from who-style-guide/glossary/ with the rest of the style guide (bean qsx4, owner 2026-09-30: &#39;who voices style guide is derivative KG content from who-iris, merge content into subgraph&#39;). The id stays the CONVENTIONAL `glossary`, so this entry overrides the inherited default rather than adding a second entry at the same path. Bean ftu0 had put the glossary with the voices because it is a HOUSE rule about wording; the voices are now here, so it followed them, and the reason ftu0 gave still holds.&quot;,
+    &quot;description&quot;: &quot;The WHO glossary: folio-glossary/v1 schemes of terms the WHO publications use under more than one name -- a HOUSE rule about wording, like the style-guide voices under skills/voices/ (bean ftu0). An alternative label is recorded only where a publication STATES the equivalence, and each term cites that sentence in this instance&#39;s own library; a count or a latent-semantic cosine is never the evidence. The scheme&#39;s source is the who-guideline-development voice, so its terms are minted in this instance&#39;s namespace. Rendered on the glossary/ page and checked by check:glossary, both of which read every instance&#39;s declared glossary directory.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;glossary&quot;
+    ]
+  },
+  {
+    &quot;_comment&quot;: &quot;Themes this instance DERIVED from sources it holds, bean j66n. `iris-web` is read off the compiled stylesheet DSpace served with the captured item page; `who-wpro-publication` is read off the style guide&#39;s own pages 6, 7, 12, 14 and 18. Declared rather than left implicit because an undeclared directory is the dh4f defect -- every declaration-driven consumer scans nothing and reports a clean run over it, which is exactly what `docs/` did with 241 files until 2026-09-20. These are NOT the platform&#39;s twelve themes: those are cat-harness&#39;s own furniture, and a palette read off a WHO style guide is subject matter, which the root AGENTS.md keeps out of the platform.&quot;,
+    &quot;id&quot;: &quot;who-iris-themes&quot;,
+    &quot;path&quot;: &quot;themes/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;themes&quot;
+    ],
+    &quot;_inheritance_comment&quot;: &quot;Not reproduced in a dependent folio, and no field here says so: `themes` is not a `perInstance` graph typology (graph-typology-registry.ts), so a downstream folio gets a themes/ directory only where it already has one and never an empty one. That is right for this entry -- it says where THIS instance&#39;s themes live, not a workspace every downstream folio needs. `uploads/` and `library/` differ because their kinds ARE `perInstance`: a dependent folio ingests its OWN sources into its own copies. Before 2026-09-30 this was the per-entry `dependents: skip`, retired by the owner (option A) because the same kind was declared both ways in different declarations.&quot;
+  },
+  {
+    &quot;_comment&quot;: &quot;The RENDERABLE surface of this instance -- the ingested-IRIS replica pages, generated from catalogue/ by scripts/gen-iris-pages.ts and gated by `bun run cat iris:pages:check`. Declared because the owner&#39;s URL contract (2026-09-20) makes it addressable: `&lt;baseURL&gt;/&lt;instantiated-harness&gt;/&lt;path_to_rendered_content&gt;`, so these land at `&lt;baseurl&gt;/who-iris/community-list`. Undeclared, it would be the dh4f defect on the one directory a READER actually reaches -- exactly what cat-harness/docs/ was until 2026-09-20 with 241 files. These are pages THIS instance publishes about its own catalogue. `docs` is a `perInstance` graph typology (graph-typology-registry.ts), so a dependent folio has its OWN docs/ for its own pages; it never inherits these files, which stay this instance&#39;s.&quot;,
+    &quot;id&quot;: &quot;who-iris-docs&quot;,
+    &quot;path&quot;: &quot;docs/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;docs&quot;
+    ],
+    &quot;description&quot;: &quot;This instance&#39;s docs, with a viewer built by cat-harness. Declared in this instance&#39;s own file rather than in `cat-harness.json`, because `compose-docs.docsLayers` treats every docs-kind entry there as a composition layer and would overlay this instance&#39;s `index.md` onto the site&#39;s own. The directory is also mounted verbatim at `/docs/who-iris/`: the mount is a copy of the directory, the viewer an index of it, and the rail links to the viewer (`visualiserHref`).&quot;,
+    &quot;tile&quot;: {
+      &quot;icon&quot;: &quot;docs&quot;
+    }
+  },
+  {
+    &quot;id&quot;: &quot;who-iris-processes&quot;,
+    &quot;path&quot;: &quot;processes/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;processes&quot;
+    ],
+    &quot;description&quot;: &quot;The IRIS CDN Exporter&#39;s BPMN processes: initial load, nightly change ingest over DSpace REST, weekly reconciliation, and sign-and-publish. Cloudflare git (Artifacts) and Cloudflare R2 + CDN are lanes: exports live on Cloudflare, and GitHub Pages only previews. Each activity names the skill that carries it out; the platform&#39;s nquads-distribution process is called, not copied. Rendered drawings: docs/assets/img/processes/.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;who-iris-scenarios&quot;,
+    &quot;path&quot;: &quot;scenarios/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;scenarios&quot;
+    ],
+    &quot;description&quot;: &quot;`scenarios/roles.json`: the roles the IRIS CDN export processes&#39; lanes bind (owner, exporter agent, Cloudflare R2 and CDN, Cloudflare git, release signer, verifier). Each mechanical role inherits the harness role it specialises. Declared so the lanes resolve and the checkout&#39;s role graph sees them (folio-assistant#2781).&quot;
+  },
+  {
+    &quot;id&quot;: &quot;who-iris-scripts&quot;,
+    &quot;path&quot;: &quot;scripts/&quot;,
+    &quot;description&quot;: &quot;The catalogue checker, the cover generator and `gen-iris-pages.ts` -- the instance-local generator `wjfu` cites as the precedent for every other one here (*\&quot;instance-local generator, static HTML, committed, gated\&quot;*). Cited as a model by another instance&#39;s bean while being undeclared itself, which is the sharpest form of the `ylj7` defect: a directory can be the corpus&#39;s own worked example and still be invisible to every consumer that walks declarations.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;who-iris-references&quot;,
+    &quot;path&quot;: &quot;references/&quot;,
+    &quot;description&quot;: &quot;The reference lists of the held IRIS documents, one `folio-reference/v1` node per cited work. Owner, 2026-11-11: \&quot;i want all who-iris docs that have references put into their own biblio\&quot;. Written by the Tool `references-extract` (step `Task_References` of folio-assistant-core&#39;s `ingest-build-l1-kg.bpmn`) from each library entry&#39;s L1 sections: keyed `&lt;doc-id&gt;.&lt;section&gt;.&lt;n&gt;`, `provenance: extracted`, `derivedFrom` the section file, `printed` the entry verbatim. The bibliography page lists them under the document they came from (`bibliography/library/&lt;doc-id&gt;/`). Regenerated, not hand-edited: re-run the tool after a section is re-derived.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;references&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;who-iris-sources&quot;,
+    &quot;path&quot;: &quot;sources/&quot;,
+    &quot;description&quot;: &quot;Source descriptors (`folio-source-descriptor/v1`): how to ENUMERATE WHO IRIS and ask it for a SUBSET, so an agent asked for part of it is not told the API by a human every time. Moved here from large-datasets&#39; `sources/` on 2026-10-01 (owner ruling: large-datasets dissolves into cat-harness; bean `j7ql`), because a descriptor is ABOUT one corpus and the instance that holds or catalogues that corpus owns it — the schema stays in cat-harness. Its far-apart sibling, Lean mathlib, is in folio-assistant-sci: IRIS items stand alone (`subsetIsSelfContained: true`), three identifier systems, paged REST.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;schemas&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;id-lookup&quot;,
+    &quot;path&quot;: &quot;id-lookup/&quot;,
+    &quot;description&quot;: &quot;The GENERATED prefix-sharded identifier lookup over this catalogue&#39;s REFERENCED nodes: `manifest.json` plus JSON shards keyed by id prefix, each under 64 KiB. Written by `cat-harness-tools/scripts/gen-id-lookup.ts` (`bun run cat id-lookup`, gated by `id-lookup:check`), which finds this directory by its id `id-lookup` and never by this instance&#39;s name; read by `cat-harness-tools/id-lookup/lookup.js`. Here rather than beside the generator because an instance hosts its own generated outputs (D3, bean `j7ql`, 2026-10-01). Edit the catalogue, never the shards: the generator replaces this directory whole.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ],
+    &quot;coverage&quot;: {
+      &quot;skill&quot;: &quot;where-does-this-go&quot;
+    }
+  },
+  {
+    &quot;id&quot;: &quot;qa&quot;,
+    &quot;path&quot;: &quot;test/results/&quot;,
+    &quot;storage&quot;: {
+      &quot;branch&quot;: &quot;cat/cat-harness/qa-reports&quot;,
+      &quot;keyedBy&quot;: &quot;commit&quot;
+    },
+    &quot;description&quot;: &quot;What auditing THIS instance produced, committed so a consumer can tell \&quot;never audited\&quot; from \&quot;audited clean\&quot; — a printed verdict cannot, which is why every QA verdict here is a sidecar. TWO kinds live here and the files declare which they are via $schema: kg-qa/v1, one per audited subject, in a tree mirroring the subject’s own path, and ONE kg-qa-manifest/v1 recording the auditor’s identity for all of them. The manifest moved here from skills/ on 2026-09-27: kg-audit.ts writes it unconditionally, so its old home created a skills/ directory holding no skills in every instance that has none. At declaration time that is 2 files across scenarios (1), skills (1). No qa-results/v1 and no witnesses: this instance runs no document build and no witness-producing computation, and declaring kinds it does not hold would be an over-claim. `qa` is a `perInstance` graph typology (graph-typology-registry.ts), because a dependent audits its OWN graph — these verdicts are about this instance’s nodes, and inheriting them would attribute one instance’s findings to another. Declared WITH its files in one commit, per bean dh4f: a declared-but-absent directory makes a consumer scan nothing and report a clean run over it.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;qa&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;attestations&quot;,
+    &quot;path&quot;: &quot;test/attestations/&quot;,
+    &quot;_source_comment&quot;: &quot;MOUNTED, owner 2026-11-03 (\&quot;1. Convert to attestations\&quot;, bean folio-assistant-7mwa). The attestations kind holds state, so its content is kept on its own per-graph branch (check:state-on-main) and mounted at this path by `bun run cat state:mount`; main never tracks it, because `mountTip` refuses a path the checkout still tracks.&quot;,
+    &quot;source&quot;: {
+      &quot;kind&quot;: &quot;branch&quot;,
+      &quot;branch&quot;: &quot;cat/who-iris/attestations&quot;,
+      &quot;keyedBy&quot;: &quot;tip&quot;
+    },
+    &quot;description&quot;: &quot;The JUDGEMENT half of this instance&#39;s QA, on main (the qa-reports skill: derived verdicts go to the qa-reports branch, judgements stay here). Today: the untainted round-trip translation rulings of who-iris&#39;s own catalogues, one qa-attestations/v1 file per catalogue and locale under translation-qa/ (criterion translation-semantic-roundtrip), each string&#39;s ruling pinned by the hashes of the msgid and msgstr it judged. Converted losslessly on 2026-11-03 from the agents&#39; TSVs that sat under test/results/ (owner: \&quot;1. Convert to attestations\&quot;; bean folio-assistant-7mwa), so that untracking the derived results could not lose them. scripts/translation-roundtrip-report.ts derives its qa-results/v1 report from them.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;attestations&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;folio&quot;,
+    &quot;path&quot;: &quot;folio/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;folio&quot;
+    ],
+    &quot;description&quot;: &quot;Authored content of this instance itself, rendered to a website. Holds the landing sticky — the instance&#39;s own description and its onboarding links, as a page-global note rather than text composited into the backdrop.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;who-iris-tools&quot;,
+    &quot;path&quot;: &quot;tools/&quot;,
+    &quot;description&quot;: &quot;who-iris&#39;s Tool nodes: `iris-pages`, the generator that renders the catalogue visualiser (its `renderedBy`), and `translation-qa-prune`, which drops the round-trip rulings of removed strings. Discovered by graph typology, never imported by name.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;tools&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;who-iris-libraries&quot;,
+    &quot;coverage&quot;: {
+      &quot;exempt&quot;: {
+        &quot;visualiser&quot;: &quot;Owner, 2026-10-29 (cat-harness#691): no viewer by design. Each node is an outside package whose registry tarball and SPDX licence the node already links, so a viewer would only repeat the registry.&quot;
+      }
+    },
+    &quot;path&quot;: &quot;libraries/&quot;,
+    &quot;title&quot;: &quot;Software libraries&quot;,
+    &quot;description&quot;: &quot;The outside libraries this layer&#39;s code imports: one `software-library/1.0.0` node per dependency in `package.json`, with the version and sha512 that `bun.lock` pins, the registry tarball, the SPDX licence read from the installed package, the range, whether it is a dev dependency, the files that import it (`usedBy`) and the `types/*.d.ts` shim that types it. GENERATED, never hand-edited: `bun run cat libraries:derive` writes it and `libraries:check` fails on a stale node, an import no node names, and a shim no node names. The kind is cat-harness&#39;s (bean `jbvi`, option D: one outside-software core shared with `tool-release`); this layer keeps its own nodes because it pins its own versions.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;software-library&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;health&quot;,
+    &quot;path&quot;: &quot;test/health/results/&quot;,
+    &quot;description&quot;: &quot;Repository health reports for THIS repository: the one `health-report/v1` document `bun run cat-harness-tools/test/health/run.ts --instance &lt;this instance&gt;` writes. Each repository the separation made is its own clone, with its own size, publish branch, branches and stores, so each carries its own report (owner, 2026-10-10: \&quot;All repos need health check\&quot;). The graph typology is cat-harness&#39;s; its `health` entry says what separates a health report (about the repository) from a `qa` verdict (about an artefact).&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;health&quot;
+    ],
+    &quot;_source_comment&quot;: &quot;MOUNTED, owner 2026-10-11 (session_01UC1NuEuSy1MBNpEhnDuiGj, 05:58:12Z: \&quot;move health to state branch now\&quot;). The report is generated state, not reviewed content, so it is kept on its own per-graph branch (owner, 2026-10-03, bean laqs) and mounted at this path by `bun run cat state:mount`; main dropped it in the same commit that declared this source, because `mountTip` refuses a path the checkout still tracks.&quot;,
+    &quot;source&quot;: {
+      &quot;kind&quot;: &quot;branch&quot;,
+      &quot;branch&quot;: &quot;cat/who-iris/health&quot;,
+      &quot;keyedBy&quot;: &quot;tip&quot;
+    }
+  }
+]</pre></dd>
+<dt>_visualisers_comment</dt><dd>THE VISUALISERS THIS HARNESS DECLARES, at its own level (owner, 2026-10-09: &quot;I still want the harness to be where specific visualizers/pages are declared for the harness at the level&quot;). Each is published at &lt;base&gt;/who-iris/&lt;id&gt;/, computed by visualiserRoute from this entry and nothing else.</dd>
+<dt>visualisers</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;catalogue&quot;,
+    &quot;renderedBy&quot;: &quot;iris-pages&quot;,
+    &quot;covers&quot;: [
+      &quot;who-iris-catalogue&quot;
+    ],
+    &quot;title&quot;: &quot;Catalogue&quot;
+  }
+]</pre></dd>
+<dt>stickies</dt><dd><pre>[
+  {
+    &quot;_comment&quot;: &quot;WHO-IRIS&#39;S OWN CARD, bean v8n5. The owner ruled that each initiated harness contributes its own initialization card, and a theme is reached THROUGH a sticky -- so this card is also what gives the who-iris board tile and navbar entry their theme. It cites `iris-sticky` BY REFERENCE, owner first (`themeByRef`): a sticky-kind theme declared in this instance&#39;s own `themes/`, DERIVED from `iris-web` (inherits its palette), which was measured from the captured DSpace stylesheet. The platform holds no WHO colour; `gen-themes-css.ts` finds the theme by this instance&#39;s declaration and emits its CSS at build time. `bodyFrom: description` so the words are read from this declaration&#39;s own `description` and cannot drift from it.&quot;,
+    &quot;id&quot;: &quot;who-iris&quot;,
+    &quot;order&quot;: 40,
+    &quot;theme&quot;: {
+      &quot;instance&quot;: &quot;litlfred/who-iris&quot;,
+      &quot;themeId&quot;: &quot;iris-sticky&quot;
+    },
+    &quot;summary&quot;: &quot;A catalogue by reference&quot;,
+    &quot;bodyFrom&quot;: &quot;summary&quot;,
+    &quot;links&quot;: [
+      {
+        &quot;label&quot;: &quot;WHO IRIS&quot;,
+        &quot;href&quot;: &quot;/who-iris/&quot;,
+        &quot;note&quot;: &quot;The three materialized items, on IRIS&#39;s own theme.&quot;
+      }
+    ]
+  }
+]</pre></dd>
+<dt>_icon_comment</dt><dd>THE INSTANCE&#39;S MARK, copied OUT of uploads/ rather than referenced there. `10s1`: a materialised copy of somebody else&#39;s artefact is read-only and the copy-out is step one — so `docs/assets/img/who-emblem.svg` is this instance&#39;s own asset, and the capture under `uploads/wpr-rdo-2020-003-eng/iris-capture/` stays untouched as the record of what was ingested. OWNER&#39;S CHOICE, 2026-09-22, made against a stated alternative: this is the WHO emblem and wordmark, NOT the blue `iris.` wordmark the IRIS repository uses as its own brand. Swapping it is one `src` and one re-measured `avatarRegion`.</dd>
+<dt>images</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;who-emblem&quot;,
+    &quot;src&quot;: &quot;docs/assets/img/who-emblem.svg&quot;,
+    &quot;title&quot;: &quot;WHO emblem&quot;,
+    &quot;description&quot;: &quot;The World Health Organization emblem — the rod of Asclepius over a globe in an olive-branch wreath — beside the words World Health Organization, in the organisation&#39;s blue (#0093D5). 580.8x178 as authored; declared 581x178 because the schema takes integers and the 0.2px is below anything the squareness check resolves.&quot;,
+    &quot;width&quot;: 581,
+    &quot;height&quot;: 178,
+    &quot;avatarRegion&quot;: {
+      &quot;x&quot;: 0,
+      &quot;y&quot;: 0,
+      &quot;w&quot;: 0.3064,
+      &quot;h&quot;: 1
+    }
+  }
+]</pre></dd>
+<dt>_icon_removed_comment</dt><dd>REMOVED AGAIN 2026-10-30. Owner: *&quot;who eblmen should not be displayed on litlfred/. (when it is displayed on published WHO repo it looks bad)&quot;* and *&quot;(looks bad in dark mode)&quot;*. So `icon` no longer points at the emblem and the navbar and tiles draw the open-book glyph in WHO blue from `_avatar`. The image stays declared under `images`, so restoring it is one field. WHO&#39;s own copy of this repository is not changed from here.</dd>
+<dt>_icon_restored_comment</dt><dd>RESTORED 2026-10-04 (bean `2vpn`). Owner, 2026-09-23: *&quot;no logo on who-iris icon (for now). just WHO blue&quot;* removed this pointer; on 2026-10-04, asked what who-iris&#39;s top navbar mark should be after it showed the letter &quot;W&quot; on every page, the owner chose BOTH the one-resolver fix and *&quot;restore WHO emblem&quot;*. So `icon` points at the emblem again, cropped by its declared `avatarRegion`, and the `who-iris` entry in `schemas/avatars.ts` (the open book in WHO blue, hue 199) stays as the mark&#39;s FALLBACK — `harness-tiles.ts` resolves a theme card avatar first (who-iris has none: IRIS imagery is somebody else&#39;s artefact), then this icon, then that glyph.</dd>
+<dt>taskIo</dt><dd><pre>{
+  &quot;iris:covers:check&quot;: {
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;measured 2026-10-01 (bean xpcu); moved from cat-harness/scripts/task-io.ts to its owning instance 2026-10-06 (bean 0r7u)&quot;
+  },
+  &quot;iris:pages:check&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;measured 2026-10-01 (bean xpcu); moved from cat-harness/scripts/task-io.ts to its owning instance 2026-10-06 (bean 0r7u)&quot;
+  }
+}</pre></dd>
+<dt>_gateExemptions_comment</dt><dd>Checks this instance declares and runs in its OWN CI, not in an index&#39;s workflows. Read by cat-harness-tools/scripts/gates.ts (bean 0r7u), so an index checkout does not report them as unrun.</dd>
+<dt>gateExemptions</dt><dd><pre>{
+  &quot;scripts&quot;: [
+    {
+      &quot;script&quot;: &quot;check:catalogue&quot;,
+      &quot;kind&quot;: &quot;covered-by&quot;,
+      &quot;reason&quot;: &quot;who-iris&#39;s own CI runs it: `.github/workflows/checks.yml` runs `bun run check:catalogue` from this repository&#39;s root on every pull request and every push. The script moved into who-iris&#39;s own `scripts` (7eda8c3; owner, 2026-10-11: \&quot;who-iris CI\&quot;; bean kpci), so folio-assistant&#39;s gates no longer run it, and an index mounts who-iris at a pin that has passed it.&quot;
+    },
+    {
+      &quot;script&quot;: &quot;iris:pages:check&quot;,
+      &quot;kind&quot;: &quot;covered-by&quot;,
+      &quot;reason&quot;: &quot;who-iris&#39;s own CI runs it: `.github/workflows/checks.yml` runs `bun run iris:pages:check` from this repository&#39;s root on every pull request and every push. The script moved into who-iris&#39;s own `scripts` (7eda8c3; owner, 2026-10-11: \&quot;who-iris CI\&quot;; bean kpci), so folio-assistant&#39;s gates no longer run it, and an index mounts who-iris at a pin that has passed it.&quot;
+    },
+    {
+      &quot;script&quot;: &quot;iris:covers:check&quot;,
+      &quot;kind&quot;: &quot;covered-by&quot;,
+      &quot;reason&quot;: &quot;who-iris&#39;s own CI runs it: `.github/workflows/checks.yml` runs `bun run iris:covers:check` from this repository&#39;s root on every pull request and every push. The script moved into who-iris&#39;s own `scripts` (7eda8c3; owner, 2026-10-11: \&quot;who-iris CI\&quot;; bean kpci), so folio-assistant&#39;s gates no longer run it, and an index mounts who-iris at a pin that has passed it.&quot;
+    },
+    {
+      &quot;script&quot;: &quot;dc:render:check&quot;,
+      &quot;kind&quot;: &quot;covered-by&quot;,
+      &quot;reason&quot;: &quot;who-iris&#39;s own CI runs it: `.github/workflows/checks.yml` runs `bun run dc:render:check` from this repository&#39;s root on every pull request and every push. The script moved into who-iris&#39;s own `scripts` (7eda8c3; owner, 2026-10-11: \&quot;who-iris CI\&quot;; bean kpci), so folio-assistant&#39;s gates no longer run it, and an index mounts who-iris at a pin that has passed it.&quot;
+    }
+  ]
+}</pre></dd>
+<dt>_builtAtPublish_comment</dt><dd>Owner, 2026-10-14 (B1; schemas/built-at-publish.ts in cat-harness). This instance&#39;s JSON-LD @context is generated by `jsonld:contexts` (cat-harness-tools scripts/gen-instance-contexts.ts) from the prefixes and content-context terms its documents use, flattened with the prefix tables of every instance it needs. Those tables are read at the CHECKOUT&#39;s pins, not at pins this instance&#39;s commit names, so no commit of it can hold the file current: it is built at publish and never committed (bean folio-assistant-63q4).</dd>
+<dt>builtAtPublish</dt><dd><pre>[
+  {
+    &quot;path&quot;: &quot;ns/context/v1.jsonld&quot;,
+    &quot;writer&quot;: [
+      &quot;jsonld:contexts&quot;
+    ],
+    &quot;because&quot;: &quot;checkout&quot;,
+    &quot;reason&quot;: &quot;the prefixes and content-context terms its documents use, flattened with the jsonldPrefixes of the layers it needs at the checkout&#39;s pins&quot;
+  }
+]</pre></dd>
+<dt>enableSubgraphs</dt><dd><pre>[
+  &quot;folio-assistant-core.collab&quot;
+]</pre></dd>
+</dl>
+</main>
+<script src="../../../../../assets/ig-search.js" defer></script>
+</body>
+</html>

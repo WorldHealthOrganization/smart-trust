@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script data-folio-saved-scheme>(function(){var d=document.documentElement,s=null,c="dark";try{s=localStorage.getItem("fa-color-scheme")}catch(e){}if(s!=="light"&&s!=="dark"){s="light";try{if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)s="dark"}catch(e){}}try{var n=document.getElementById("fa-site-scheme");if(n)c=JSON.parse(n.textContent).scheme==="light"?"light":"dark"}catch(e){}d.setAttribute("data-fa-scheme",s);var j=window.jtd;if(s!==c&&j&&typeof j.setTheme==="function"){try{j.setTheme(s)}catch(e){}}})();</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FHIR IG Harness — cat-harness-declaration</title>
+<style>
+  :root { color-scheme: light dark; --fg:#1b1b1b; --bg:#fdfdfb; --muted:#5b5b5b; --line:#d6d6d0; --link:#0b5cad; --panel:#f3f4f2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-fa-scheme="light"]) { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; } }
+  :root[data-fa-scheme="dark"] { --fg:#e8e8e6; --bg:#161616; --muted:#a8a8a4; --line:#3a3a38; --link:#7db4ff; --panel:#1f2124; }
+  :root[data-fa-scheme="light"] { color-scheme: light; } :root[data-fa-scheme="dark"] { color-scheme: dark; }
+  body { margin:0; font:1rem/1.5 system-ui,sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width:80rem; margin:0 auto; padding:1.5rem 1.5rem 4rem; min-width:0; overflow-wrap:anywhere; }
+  h1 { font-size:1.35rem; margin:0 0 .25rem; } h2 { font-size:1.05rem; margin:1.5rem 0 .5rem; }
+  a { color:var(--link); } a:focus-visible, select:focus-visible { outline:3px solid var(--link); outline-offset:2px; }
+  .m { color:var(--muted); font-size:.9rem; }
+  .tiles { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; padding:0; list-style:none; }
+  .tiles li { border:1px solid var(--line); border-radius:.4rem; padding:.35rem .7rem; }
+  .tiles b { font-size:1.2rem; margin-right:.3rem; }
+  .clip { width:100%; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; vertical-align:top; padding:.35rem .5rem; border-bottom:1px solid var(--line); }
+  th { background:var(--panel); white-space:nowrap; }
+  /* Only the node's path and long text may break mid-word; a status or a date
+     broken across lines ("in_pr ogres s") is unreadable. */
+  td { overflow-wrap:normal; } td.p, td.t { overflow-wrap:anywhere; } td.s { white-space:nowrap; }
+  dl { display:grid; grid-template-columns:minmax(8rem,14rem) 1fr; gap:.25rem 1rem; }
+  dt { font-weight:600; } dd { margin:0; }
+  pre { background:var(--panel); padding:.75rem; overflow-x:auto; font-size:.85rem; }
+  label { margin-right:1rem; }
+  @media (max-width:40rem) { dl { grid-template-columns:1fr; } }
+</style>
+<link rel="stylesheet" href="../../../../../assets/css/navbar.css"><script src="../../../../../assets/navbar/rail-21oy6yt41lm.js" defer></script><script src="../../../../../assets/js/navbar.js" defer></script><style data-folio-narrow-viewport>
+/* Narrow viewports: nothing may widen the PAGE — bean `2r2n`.
+ *
+ * At 390 px, 105 of 249 built pages scrolled sideways (measured 2026-09-24).
+ * The rule here is the bean's: wide content scrolls INSIDE ITS OWN BOX with a
+ * visible cue, and the page itself never pans.
+ *
+ * ONE FILE, TWO WAYS IN. Themed pages link it from `_includes/head_custom.html`.
+ * The standalone viewer pages carry no theme stylesheet at all, so
+ * `withViewerNav` in `scripts/viewer-page.ts` inlines this same file when it
+ * adds the rail. A copy of these rules in each place would be two answers to
+ * "what does a table do at 390 px", free to drift apart.
+ *
+ * Every selector here is written to be safe on both kinds of page: no
+ * `.main-content` scope (a standalone page has none), the navbar excluded by
+ * name, and the theme's own `.table-wrapper` left alone, since it already does
+ * this job for Markdown tables. */
+
+@media (max-width: 799.98px) {
+  /* A table the theme did not wrap: raw HTML from a generator, or one built at
+   * runtime. `display: block` makes the table its own scroll box. Its cells
+   * still lay out as a table inside the anonymous table box. */
+  table:not(.table-wrapper > table):not(.fa-nav table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* THE CUE: the edge that has more content past it fades out. The fade is a
+   * MASK over the table's own pixels, driven by its own scroll position, so
+   * it needs no knowledge of the page's background. A painted cover (the
+   * usual `background-attachment: local` trick) does: the first version used
+   * `Canvas`, and on a page that is dark under a LIGHT scheme it laid a white
+   * band over the first column.
+   *
+   * A table that does not overflow has an inactive scroll timeline, so the
+   * animation has no effect and both fades stay at their initial 0: no cue
+   * where there is nothing to scroll to. A browser without scroll-driven
+   * animations shows no fade, and the table still scrolls. */
+  @supports (animation-timeline: scroll()) {
+    table:not(.table-wrapper > table):not(.fa-nav table) {
+      mask-image: linear-gradient(to right,
+        transparent 0, #000 var(--fa-cue-l),
+        #000 calc(100% - var(--fa-cue-r)), transparent 100%);
+      animation: fa-scroll-cue linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+
+  /* A code block scrolls in its own box, which is what `pre` is for. Mermaid
+   * SOURCE sits in a `pre` until the renderer replaces it, and at 390 px a
+   * diagram's source line is longer than the screen. */
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Prose that has no break opportunity: a long path in inline code, or a
+   * glossary definition naming one. Breaking the string is better than
+   * widening the page it sits on. */
+  :not(pre) > code,
+  dd {
+    overflow-wrap: anywhere;
+  }
+}
+
+@property --fa-cue-l { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --fa-cue-r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+@keyframes fa-scroll-cue {
+  0%   { --fa-cue-l: 0px;    --fa-cue-r: 2.5rem; }
+  12%  { --fa-cue-l: 2.5rem; }
+  88%  { --fa-cue-r: 2.5rem; }
+  100% { --fa-cue-l: 2.5rem; --fa-cue-r: 0px; }
+}
+
+</style>
+<script type="application/json" id="fa-translation-meta">{"lang":"en","translationStatus":"","translationSource":"","supportedLocales":["ar","zh","en","fr","ru","es"],"availableLocales":[]}</script><link rel="stylesheet" href="../../../../../assets/page-layout.css" data-fa-page-layout><script src="../../../../../assets/page-layout.js" defer data-fa-page-layout></script><link rel="stylesheet" href="../../../../../assets/ig-artifact.css"><style data-ig-version-chrome>.ig-topbar-head{flex:0 0 100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .9rem}.ig-topbar-head .ig-topbar-home{flex:none}.ig-topbar-ver{font-weight:400;font-size:.9em;opacity:.95;white-space:nowrap}.ig-topbar-flag{font-size:1.1em}.ig-version-banner{box-sizing:border-box;margin:0;padding:.5rem 1.5rem;background:#ffffa0;color:#222;border-bottom:1px solid #0a0008;font-size:.95rem;line-height:1.45}.ig-version-banner a{color:#1a4b8c;text-decoration:underline}html:not([data-fa-scheme="light"]) .ig-version-banner{background:#4a4520;color:#fff8d0;border-color:#8a7d2a}html:not([data-fa-scheme="light"]) .ig-version-banner a{color:#ffe680}.ig-metadata{border-collapse:collapse;margin:0 0 1rem;font-size:.95rem}.ig-metadata td{border:1px solid #c8c8c8;padding:.25rem .6rem;vertical-align:top}.ig-metadata code{overflow-wrap:anywhere}</style></head>
+<body data-fa-node-kind-page>
+<header class="ig-search-top fa-page-bar"><a class="ig-search-home" href="../../../../../index.html">WHO SMART Trust</a><span class="ig-topbar-ver"><span class="ig-topbar-flag" role="img" aria-label="International" title="International">🌐</span> 1.7.5 - ci-build</span><form class="ig-search" role="search" data-ig-search-index="../../../../../assets/ig-search.json"><label class="ig-search-label" for="search-input">Search WHO SMART Trust</label><input type="search" id="search-input" class="ig-search-input" placeholder="Search pages and artefacts" autocomplete="off" aria-controls="ig-search-results" aria-expanded="false"><ul id="ig-search-results" class="ig-search-results" hidden></ul></form><span class="ig-locale-slot" data-fa-slot="locale"></span></header><p class="ig-version-banner" role="note">This page is part of the WHO SMART Trust (v1.7.5: ci-build) based on <a href="http://hl7.org/fhir/R4/">FHIR (HL7® FHIR® Standard) v4.0.1</a>. This is the continuous integration build: it follows the source and is not a published version. For a full list of available versions, see the <a href="http://smart.who.int/trust/history.html">Directory of published versions</a>.</p><script type="application/json" id="fa-rail" data-fa-root="../../../../.." data-fa-to-root="../../../../..">{"data":"rail-21oy6yt41lm","here":"/en/cat-harness/cat-harness-declaration/fhir-harness/fhir-harness/"}</script><nav class="fa-nav" aria-label="folio-assistant" data-fa-rail="pending"><a href="../../../../../">folio-assistant</a></nav>
+<main>
+<h1 id="nk-title">FHIR IG Harness</h1>
+<p class="m">A <a href="../../">cat-harness-declaration</a> node held by <a href="../">fhir-harness</a>, at <code>fhir-harness/fhir-harness.json</code>.</p>
+
+<h2 id="fields">Fields</h2>
+<dl>
+<dt>$schema</dt><dd>cat-harness-declaration/1.0.0</dd>
+<dt>_comment</dt><dd>THE BARE FHIR IG LAYER, staged as a top-level directory on the path who-iris, the WHO SMART Trust IG, the WHO SMART Immunizations IG and the WHO SMART Base IG are already on. Created 2026-09-22 on the owner&#39;s stack ruling: `core-&gt;fhir-harness-&gt; smart-base-&gt;siblings{smart-l1, smart-dak, smart-ig}`, no smart-guidelines. It is bean `nsbb`&#39;s &#39;base&#39;, now named: run the FHIR IG Publisher with NO pre-processing and NO post-processing and publish the result, which is how SMART Guidelines were built BEFORE the DAK phases were added -- a shape that demonstrably worked rather than one being invented. IT MUST STAY WHO-FREE. The package here may be referenced BY `authoring-who-smart-guidelines` and may never reference it; a violation fails nothing, the layer simply stops being usable by the non-WHO IG it exists for, which is why `ig-build-pipeline` states the refusal as a checkable list rather than as an intention. DECLARES ONLY `skills/`, because that is all that exists: a declared-but-absent directory is the `dh4f` defect, where every consumer scans nothing and reports a clean run over it.</dd>
+<dt>name</dt><dd>fhir-harness</dd>
+<dt>repository</dt><dd>litlfred/fhir-harness</dd>
+<dt>version</dt><dd>0.1.0</dd>
+<dt>iriBase</dt><dd>https://litlfred.github.io/fhir-harness/</dd>
+<dt>_title_comment</dt><dd>The HUMAN display name, for the LHS navbar&#39;s harness tabs (bean `t3n8`). `name` stays the machine identifier that filenames and `needs` edges resolve against.</dd>
+<dt>title</dt><dd>FHIR IG Harness</dd>
+<dt>description</dt><dd>The bare FHIR IG pipeline — SUSHI, the IG Publisher, Jekyll assembly and publication — with no WHO, DAK or SMART assumption. What a non-WHO implementation guide instantiates.</dd>
+<dt>avatar</dt><dd><pre>{
+  &quot;glyph&quot;: &quot;M12 3c1 4 5 6 5 11a5 5 0 01-10 0c0-3 2-4 2-7 1 1 2 2 3 4 0-3 0-5 0-8z&quot;,
+  &quot;tone&quot;: 10,
+  &quot;reads&quot;: &quot;a flame — the FHIR implementation-guide harness&quot;
+}</pre></dd>
+<dt>_avatar_comment</dt><dd>A flame, for FHIR&#39;s own pun on its name. Moved here from cat-harness/schemas/avatars.ts, 2026-10-05 (bean sod4 #4): a layer declares its own mark.</dd>
+<dt>directories</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;fhir-harness-translations&quot;,
+    &quot;path&quot;: &quot;translations/&quot;,
+    &quot;description&quot;: &quot;The gettext side of fhir-harness&#39;s own strings, one directory per target locale: the `processes/` templates of the BPMN diagrams this instance draws. A diagram&#39;s templates sit with the instance that draws it.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;translation-sources&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;fhir-harness-validators&quot;,
+    &quot;path&quot;: &quot;validators/&quot;,
+    &quot;description&quot;: &quot;The validators fhir-harness&#39;s code provides, one folio-validator/v1 node each naming the graph typology and $schema family it checks. Validators are KG nodes, and the validator names the family. The registry joins each onto its kind.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;validators&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;fhir-harness-typologies&quot;,
+    &quot;path&quot;: &quot;typologies/&quot;,
+    &quot;description&quot;: &quot;The graph typologies fhir-harness owns, one folio-graph-typology/v1 node per file. There is no central registry of subgraph types: a harness declares its own in a typologies graph. The registry loads these on first use, across every instance, and refuses a kind two files declare.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;typologies&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;library&quot;,
+    &quot;path&quot;: &quot;library/&quot;,
+    &quot;description&quot;: &quot;L1 source content for the TEST side of a FHIR implementation guide -- FHIR test plans, the Gherkin test-language dialect, configuration for the Interoperability Test Bed -- with no WHO, DAK or SMART assumption: the R5 TestPlan resource&#39;s source (`hl7-2023-fhir-r5-testplan`, CC0), the Cucumber Gherkin reference (`cucumber-2024-gherkin-reference`, MIT) and the EC Interoperability Test Bed&#39;s README (`isaitb-2026-interoperability-test-bed-readme`, EUPL-1.2). They are here because nothing about them is WHO&#39;s, and no platform methodology cites them. The id is the conventional `library`, so this entry OVERRIDES the default rather than joining it.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;library&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;fhir-ig-skills&quot;,
+    &quot;path&quot;: &quot;skills/&quot;,
+    &quot;description&quot;: &quot;Three packages. `content/fhir-ig-authoring` is authoring FHIR content: L3 artefacts from an L2 DAK, validation, terminology, publication, PCF consent and Questionnaire wireframes. `fhir-client` is SMART on FHIR app launch (`smart-launch`) and FHIR resource operations (`fhir-client-operations`) through the SMARTerFHIR library, authored here against a pinned upstream commit because that repository ships no skill files. `fhir-ig-base` is the IG pipeline. `ig-build-pipeline` states what the layer runs and the list of things it refuses to know about, including the deploy phase&#39;s assignment. `ig-render-jekyll` states the three render contracts -- JSON only, navigation derived from `sushi-config.yaml`&#39;s own ordered `pages:` and `menu:` maps rather than authored, and the LHS rail with the IG theme captured. `ig-site-links` and `ig-site-theme` cover the rendered site&#39;s links and colour scheme, `ig-binary-artefacts` where the Publisher&#39;s binary outputs go, and `fhir-ig-create` starting a new IG. `ig-publisher-reduction` is the five-phase transition to an AST-only Publisher, each phase with a measured exit criterion. `ig-publisher-fork` is the brief for the AST work: a library ON TOP of the Publisher (`ast-export/` on `litlfred/fhir-ig-publisher@claude/ast-export`), with the Library/PlanDefinition/Measure edges supplied beside the publisher&#39;s own `DependencyAnalyser`, where upstream leaves them empty. Only page-fragment provenance needs `org.hl7.fhir.core`. `ig-ast-delta` is the consumer half: list, check (`compiledValidity` on the AST&#39;s inputs), diff and render deltas between ASTs, every page carrying the provisional mark P3 requires.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;skills&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;fhir-ig-tools&quot;,
+    &quot;path&quot;: &quot;tools/&quot;,
+    &quot;description&quot;: &quot;The Tool nodes of the FHIR IG pipeline, one directory per Tool, each naming the script it invokes: the FSH dependency cone and the FHIR package cache and mirror; the IG AST (export, list, validity, plan, incremental build, diff, render, refresh, JSON-LD, pages); the IG sites and their data, pages, menu, releases and terminology index; the JSON Schema and JSON-LD surfaces; Questionnaire checks; the binary audit; and the two `Library` strippers. None is DAK-shaped: the strippers, for example, serve any IG depending on `hl7.fhir.uv.cql`, which produces oversized `Library` resources.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;tools&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;fhir-ig-scripts&quot;,
+    &quot;path&quot;: &quot;scripts/&quot;,
+    &quot;description&quot;: &quot;The IG site pipeline&#39;s code and the Liquid templates it renders with: `stage-ig-sites.ts` stages each instance&#39;s IG as its own just-the-docs site, `build-ig-site.ts` turns an IG&#39;s `input/` and `sushi-config.yaml` into that site (navigation, colour scheme, the lifted `site.data.fhir` artefact variables, and the Publisher-generated pages `toc` and `artifacts`), `ig-site-data.ts` lifts the IG&#39;s `_data`, and `ig-ast.ts` lists, checks, diffs and renders IG ASTs. Templates sit under `templates/`, beside the writer that reads them (`liquid-templates`). The Tool nodes in `tools/` invoke these files.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;fhir-harness-pipeline-plugins&quot;,
+    &quot;path&quot;: &quot;pipeline-plugins/&quot;,
+    &quot;description&quot;: &quot;The generic pipeline slots this instance fills, one folio-pipeline-plugin/v1 node per slot, naming PIPELINE_IMPLEMENTATIONS in pipeline/plugin-slots.ts. Today one: `site-publisher-ig`, the FHIR-IG site publisher that cat-harness-tools&#39; stage-local.ts finds among the dependencies of the repository it publishes.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;pipeline-plugins&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;fhir-harness-plugin-slots&quot;,
+    &quot;path&quot;: &quot;pipeline/&quot;,
+    &quot;description&quot;: &quot;The one typed table of this instance&#39;s pipeline-slot implementations (`plugin-slots.ts`), which the nodes in pipeline-plugins/ name and the loader requires. It lies under harness-config&#39;s declared `*/pipeline/plugin-slots.ts` import glob, as folio-assistant-sci&#39;s table does.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;code&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;fhir-harness-processes&quot;,
+    &quot;path&quot;: &quot;processes/&quot;,
+    &quot;dependents&quot;: &quot;skip&quot;,
+    &quot;description&quot;: &quot;The BPMN this layer OWNS, grouped by concern as the harness groups its own (`processes/&lt;group&gt;/`): in `content/`, the IG AST cache (`ig-ast-cache.bpmn`), the IG release, its owner&#39;s tag and its catch-up (`ig-release.bpmn`) and the Questionnaire wireframe review (`questionnaire-wireframe-review.bpmn`), beside the IG skills they bind. The FHIR IG pipeline, its incremental build and the IG AST delta review keep the work plan, so they are in the opt-in `collab/` (owner, 2026-11-13).&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;processes&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;collab&quot;,
+    &quot;path&quot;: &quot;collab/&quot;,
+    &quot;optIn&quot;: true,
+    &quot;requires&quot;: [
+      &quot;cat-harness.sdlc&quot;
+    ],
+    &quot;description&quot;: &quot;The collaborative-development sub-graph — a NAMED SUB-GRAPH of this layer, OPT-IN: off in every layer, this one included, unless that layer lists `fhir-harness.collab` in its own `enableSubgraphs` (owner, 2026-11-13, check:optin-refs follow-up). It holds the FHIR IG processes that keep the work plan — the L3 pipeline (`l3-fhir-pipeline.bpmn`), the incremental build (`ig-incremental-build.bpmn`) and the IG AST delta review (`ig-ast-delta-review.bpmn`), each of which names `todo-manager`. It `requires` `cat-harness.sdlc`, which requires `cat-harness.work-plan`, so switching it on switches both on. The graph inside it is declared FROM WITHIN, in `collab/graph.json`.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cat-harness&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;fhir-harness-caches&quot;,
+    &quot;path&quot;: &quot;caches/&quot;,
+    &quot;title&quot;: &quot;CI caches&quot;,
+    &quot;description&quot;: &quot;The caches this layer declares (cache-first CI, rule 6): one `cache/1.0.0` node per cache this layer&#39;s workflows and scripts hold. `fhir-ast.cache.json` is the IG AST branch store, whose component process is `processes/content/ig-ast-cache.bpmn`; `fhir-ig-tooling` and `fhir-cat-mount` are the Actions caches of the AST refresh. Staleness is computed by cat-harness-tools&#39; `caches:viz`, never stated here.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;cache&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;scenarios&quot;,
+    &quot;path&quot;: &quot;scenarios/&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;scenarios&quot;
+    ],
+    &quot;description&quot;: &quot;Scenarios: the roles an actor takes on, in `roles.json`, the user stories told as them, in `stories.json`, the actors in `actors/`, and the capabilities in `capabilities/`: the FHIR modeller, IG Publisher service, publication manager and QC reviewer, and the SUSHI, IG Publisher and FHIR validator capability probes, beside the FHIR IG processes and skills they bind.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;fhir-harness-docs&quot;,
+    &quot;path&quot;: &quot;docs/&quot;,
+    &quot;dependents&quot;: &quot;skip&quot;,
+    &quot;description&quot;: &quot;This layer&#39;s own documentation, composed THROUGH just-the-docs like the content core&#39;s docs directory, so its pages land in the platform&#39;s site under `/fhir-harness/` with the sidebar, search and layout. It holds the landing page (`index.md`), the FHIR pages (`fhir/`: the IG Publisher and FHIR content), their source (`source/`, declared as a `docs-source` by `docs.json` and rendered by the platform&#39;s one docs-page run), and `wireframes/`: the wireframe of each visualiser this layer declares (`ig-ast`), with its intent, checks and an `index.json` of the route keys it covers, which `check:wireframes` reads from every declared `docs` directory.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;docs&quot;
+    ],
+    &quot;instanceRoot&quot;: true,
+    &quot;composed&quot;: true,
+    &quot;tile&quot;: {
+      &quot;icon&quot;: &quot;docs&quot;
+    }
+  },
+  {
+    &quot;id&quot;: &quot;qa&quot;,
+    &quot;path&quot;: &quot;test/results/&quot;,
+    &quot;storage&quot;: {
+      &quot;branch&quot;: &quot;cat/cat-harness/qa-reports&quot;,
+      &quot;keyedBy&quot;: &quot;commit&quot;
+    },
+    &quot;description&quot;: &quot;What auditing THIS instance produced, committed so a consumer can tell \&quot;never audited\&quot; from \&quot;audited clean\&quot; — a printed verdict cannot, which is why every QA verdict here is a sidecar. TWO kinds live here and the files declare which they are via $schema: kg-qa/v1, one per audited subject, in a tree mirroring the subject’s own path, and ONE kg-qa-manifest/v1 recording the auditor’s identity for all of them. The manifest moved here from skills/ on 2026-09-27: kg-audit.ts writes it unconditionally, so its old home created a skills/ directory holding no skills in every instance that has none. At declaration time that is 9 files across scenarios (1), skills (6), tools (2). No qa-results/v1 and no witnesses: this instance runs no document build and no witness-producing computation, and declaring kinds it does not hold would be an over-claim. dependents: reproduce, because a dependent audits its OWN graph — these verdicts are about this instance’s nodes, and inheriting them would attribute one instance’s findings to another. Declared WITH its files in one commit, per bean dh4f: a declared-but-absent directory makes a consumer scan nothing and report a clean run over it.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;qa&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;fhir-harness-libraries&quot;,
+    &quot;coverage&quot;: {
+      &quot;exempt&quot;: {
+        &quot;visualiser&quot;: &quot;No viewer by design. Each node is an outside package whose registry tarball and SPDX licence the node already links, so a viewer would only repeat the registry.&quot;
+      }
+    },
+    &quot;path&quot;: &quot;libraries/&quot;,
+    &quot;title&quot;: &quot;Software libraries&quot;,
+    &quot;description&quot;: &quot;The outside libraries this layer&#39;s code imports or keeps vendored, one `software-library` node each. A dependency in `package.json` is a `software-library/1.0.0` node: the version and sha512 `bun.lock` pins, the registry tarball, the SPDX licence read from the installed package, the range, whether it is a dev dependency, and the files that import it (`usedBy`). A bundle kept under `scripts/assets/vendor/&lt;name&gt;/&lt;version&gt;/` (LHC-Forms, the NLM Form Builder, jQuery, ucum-lhc) is a `software-library/1.1.0` node marked `vendored`: name, version, tarball and sha512 from its `vendored.json`, and its licence from its own licence file (an NLM notice the SPDX list does not carry is a `LicenseRef-`). The imports inside a bundle are not this layer&#39;s, so they name no node. GENERATED, never hand-edited: `bun run cat libraries:derive` writes it and `libraries:check` fails on a stale node, an import no node names, a shim no node names, and a vendored file whose bytes are not the ones its `vendored.json` records. The kind is cat-harness&#39;s; this layer keeps its own nodes because it pins its own versions.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;software-library&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;fhir-core-definitions&quot;,
+    &quot;coverage&quot;: {
+      &quot;exempt&quot;: {
+        &quot;visualiser&quot;: &quot;No viewer of its own: HL7 publishes a page for every definition this graph lists (https://hl7.org/fhir/R4/patient.html and its kin for R4B and R5), and HL7&#39;s publication is the authority for these definitions (owner, 2026-11-15, fhir-harness#436). A viewer here would repeat HL7&#39;s. The typology is not renderable for the same reason: the schema viewer reads the bodies as classes.&quot;
+      }
+    },
+    &quot;path&quot;: &quot;fhir-core/&quot;,
+    &quot;title&quot;: &quot;FHIR core definitions&quot;,
+    &quot;description&quot;: &quot;The FHIR core specification&#39;s definitions for each STABLE release, with HL7&#39;s publication as the authority (owner, 2026-11-15): one graph per release keyed by canonical URL (http://hl7.org/fhir/StructureDefinition/&lt;id&gt;). `pins.json` pins HL7&#39;s own package for each release at the URL HL7 publishes it (https://hl7.org/fhir/R4/hl7.fhir.r4.core.tgz, R4B, R5) by sha1 and sha512; a registry mirror is pinned by its own hashes and only ever fills the cache. `&lt;release&gt;/manifest.json` lists every resource, complex and primitive type and root type with HL7&#39;s published JSON for it (https://hl7.org/fhir/R4/patient.profile.json), its kind, base and the sha256 of its bytes in HL7&#39;s package; constraint profiles, extension definitions and logical models are left out and counted. `&lt;release&gt;/class-model.json` is the UML class model derived from HL7&#39;s package (`fhir-core.ts uml`), which HL7 publishes only as pictures: a class per type and backbone element, with generalization and attributes, each citing its definition and element. Local copies of the bodies are a labelled cache (`&lt;release&gt;/cache/`, `fhir-core.ts materialise`), never committed. `fhir-core.ts check` holds all of it to the pins, `resolve` answers with HL7&#39;s URL, and `diagram` prints a type&#39;s class diagram. A release whose package could not be read is `unread` with the reason, never an empty graph.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;fhir-core-definitions&quot;
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;glossary&quot;,
+    &quot;path&quot;: &quot;glossary/&quot;,
+    &quot;description&quot;: &quot;FHIR Harness&#39;s generated glossary (`glossary/generated/fhir-harness/`): candidate `folio-glossary/v1` schemes extracted from this layer&#39;s tools, skills, BPMN activities and schema fields by core&#39;s `glossary:page`. A scheme is keyed by (instance, scheme), and each layer holds its own glossary.&quot;,
+    &quot;graphTypologies&quot;: [
+      &quot;glossary&quot;
+    ]
+  }
+]</pre></dd>
+<dt>assets</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;agent-instructions&quot;,
+    &quot;src&quot;: &quot;AGENTS.md&quot;,
+    &quot;role&quot;: &quot;agent-instructions&quot;,
+    &quot;title&quot;: &quot;AGENTS.md — fhir-harness&quot;,
+    &quot;description&quot;: &quot;Cold start for work in this layer, and its one rule: nothing here may know about WHO.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;instance-readme&quot;,
+    &quot;src&quot;: &quot;README.md&quot;,
+    &quot;role&quot;: &quot;instance-readme&quot;,
+    &quot;title&quot;: &quot;fhir-harness&quot;,
+    &quot;description&quot;: &quot;What the layer is, what it deliberately excludes, and which generic steps it takes from the WHO build.&quot;
+  },
+  {
+    &quot;id&quot;: &quot;unkinded-baseline&quot;,
+    &quot;src&quot;: &quot;node-kinds.baseline.json&quot;,
+    &quot;role&quot;: &quot;unkinded-baseline&quot;,
+    &quot;title&quot;: &quot;Unkinded families — fhir-harness&quot;,
+    &quot;description&quot;: &quot;The families whose typology THIS instance declares (in its typologies/ graph) that predate node kinds and may stay unkinded; `node-kinds:check` fails on any other. This layer&#39;s families are judged by its own commit. Written by `bun run cat node-kinds`, which only shrinks it; `--accept-unkinded` grows it deliberately.&quot;
+  }
+]</pre></dd>
+<dt>_needs_comment</dt><dd>It sits directly on core. NOT on cat-harness: the harness layer is inherited through core rather than declared twice, in the same shape folio-assistant-core uses. Owner&#39;s ordering, 2026-09-20: bootstrap, cat-harness, f-a-core, then the layers above.</dd>
+<dt>needs</dt><dd><pre>[
+  &quot;folio-assistant-core&quot;
+]</pre></dd>
+<dt>enableSubgraphs</dt><dd><pre>[
+  &quot;fhir-harness.collab&quot;
+]</pre></dd>
+<dt>liquid</dt><dd><pre>{
+  &quot;prefix&quot;: &quot;site.data&quot;,
+  &quot;passThrough&quot;: true
+}</pre></dd>
+<dt>_canonicalUrl_comment</dt><dd>A placeholder base under this repository&#39;s own publication root, NOT a FHIR canonical: this layer publishes no FHIR artefacts, it publishes a Tool graph. It exists because a Tool node&#39;s I/O type IRIs are minted against it at load and Zod refuses a relative one. Stated rather than left blank so nobody reads it as a claim that fhir-harness is an IG.</dd>
+<dt>canonicalUrl</dt><dd>https://litlfred.github.io/folio-assistant/fhir-harness</dd>
+<dt>_name_comment</dt><dd>THE NAME IS NOT AN INSTANTIATION CLAIM. `fhir-harness` is DECLARED here and is not instantiated: instantiation is a `&lt;name&gt;.config.json` at the REPOSITORY root (`harness-tiles`, bean `6n23`), and there is no `fhir-harness.config.json`. It also declares no `coverage.visualiser` on either directory, so by the tile rule it owes no tile and gets none — making it, measured 2026-09-23, the least harness-like thing in this repository that carries the word in its name. That is not a defect: this repository stages future layers as siblings, and `description` above says so (&quot;What a non-WHO implementation guide instantiates&quot;) — a downstream IG instantiates it, this checkout does not. Written down because the name says otherwise to anyone who has not read the declaration, and `check:harness-claims` reports the pairing rather than leaving the next reader to re-derive it.</dd>
+<dt>taskIo</dt><dd><pre>{
+  &quot;check:artifact-index&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;measured 2026-10-01 (bean xpcu); moved from cat-harness/scripts/task-io.ts to its owning layer 2026-10-06 (bean 0r7u)&quot;
+  },
+  &quot;check:ig-annex-links&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;reads each declared ig-annex directory&#39;s markdown annexes and the IG&#39;s input/pagecontent pages they are appended to; writes nothing (https://github.com/litlfred/smart-immunizations/issues/81)&quot;
+  },
+  &quot;ig-ast:schema:check&quot;: {
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;measured 2026-10-01 (bean xpcu); moved from cat-harness/scripts/task-io.ts to its owning layer 2026-10-06 (bean 0r7u)&quot;
+  },
+  &quot;p2:refusals:check&quot;: {
+    &quot;inputs&quot;: [
+      &quot;{tracked}&quot;
+    ],
+    &quot;outputs&quot;: [],
+    &quot;because&quot;: &quot;measured 2026-10-01 (bean xpcu); moved from cat-harness/scripts/task-io.ts to its owning layer 2026-10-06 (bean 0r7u)&quot;
+  }
+}</pre></dd>
+<dt>gateExemptions</dt><dd><pre>{
+  &quot;steps&quot;: [
+    {
+      &quot;match&quot;: &quot;fhir-harness/scripts/stage-ast-sites.ts&quot;,
+      &quot;kind&quot;: &quot;ci-only&quot;,
+      &quot;reason&quot;: &quot;a BUILD step, not a check: it lists the IGs whose repositories carry an AST cache by asking each repository over the network; best effort (continue-on-error), its output only feeds the preview (bean `wnhh`)&quot;
+    },
+    {
+      &quot;match&quot;: &quot;fhir-harness/scripts/stage-ig-sites.ts&quot;,
+      &quot;kind&quot;: &quot;ci-only&quot;,
+      &quot;reason&quot;: &quot;a BUILD step, not a check: it clones each IG&#39;s recorded source and stages a Jekyll source; its logic is covered by stage-ig-sites.test.ts and build-ig-site.test.ts in `bun test` (bean `bamf`)&quot;
+    },
+    {
+      &quot;match&quot;: &quot;fhir-harness/scripts/build-ig-site.ts --dedupe-ids&quot;,
+      &quot;kind&quot;: &quot;ci-only&quot;,
+      &quot;reason&quot;: &quot;a DEPLOY step: it rewrites ids in ./_site, which only the staging job produces; dedupeIds is covered by build-ig-site.test.ts, and check:duplicate-ids judges the result (bean `bamf`)&quot;
+    }
+  ],
+  &quot;scripts&quot;: [
+    {
+      &quot;script&quot;: &quot;ingest:ig-chrome:check&quot;,
+      &quot;kind&quot;: &quot;report&quot;,
+      &quot;reason&quot;: &quot;CI CANNOT OBTAIN ITS INPUT, and here it needs THREE checkouts rather than one. It compares the committed `chrome.json` against the `fhir.template` chain the IG&#39;s `ig.ini` names — `fhir.base.template` and `who.template.root`, which are separate repositories (`HL7/ig-template-base`, `WorldHealthOrganization/smart-ig-template`) that this checkout does not contain and a runner cannot fetch. The wall the retired `ingest:ig-menu:check` met, one layer worse: an IG&#39;s appearance is declared in no file the IG owns. Built so a skip CANNOT be mistaken for a pass — with no `--ig`/`--layer` it exits **2**, printing `could not determine`, rather than the 0 a silent skip would give. What IS gated, on every run and without the network, is the committed chrome&#39;s EFFECT: `smart-trust:pages:check` regenerates all 681 pages from it and compares them byte for byte, and `check:kind-validators` parses the file against `folio-ig-chrome/v1`. Run this one by hand after cloning the IG and its templates, or from `/prepare-merge`. Bean `ajx9`&quot;
+    },
+    {
+      &quot;script&quot;: &quot;check:ig-content-qa&quot;,
+      &quot;kind&quot;: &quot;covered-by&quot;,
+      &quot;reason&quot;: &quot;RUNS AT EVERY IG SITE PUBLISH, not as a step of its own: `ig-site:compose` (`ig-repo-site.ts` `contentQaGate`) calls the same `runGate` before anything is staged, so a pattern hit, an open finding, or a missing or stale review refuses the publish, previews included (fhir-harness#330, card Q-INJ-1). It judges ONE IG checkout and its AST cache; at a checkout that is not an IG (a document folio, a platform or index root: no `contentTypes.ig`, no `sushi-config.yaml`) it exits 78 (NOT APPLICABLE, not counted, never a pass); at an IG checkout whose run built no AST (no `output-ast/manifest.json`, `--ast` not given: a PR gate that does not build the IG, smart-ra#244) it pattern-scans the pages and trusted SVGs, fails on a hit, and otherwise exits 78 too, since the review&#39;s digest names the AST&#39;s texts; `ig-site:compose` still refuses a missing AST, and a missing `--ast` still fails. Kept as a script to run the gate by hand on an IG checkout (skill `ig-content-qa`)&quot;
+    }
+  ]
+}</pre></dd>
+<dt>contentTranslations</dt><dd><pre>[
+  {
+    &quot;contentType&quot;: &quot;ig&quot;,
+    &quot;name&quot;: &quot;FHIR Implementation Guide (L3)&quot;,
+    &quot;formats&quot;: [
+      {
+        &quot;id&quot;: &quot;markdown&quot;,
+        &quot;name&quot;: &quot;Markdown (narrative)&quot;,
+        &quot;extensions&quot;: [
+          &quot;.md&quot;
+        ],
+        &quot;extractModule&quot;: &quot;pipeline/pot-extract.ts&quot;,
+        &quot;injectModule&quot;: &quot;pipeline/po-inject.ts&quot;
+      },
+      {
+        &quot;id&quot;: &quot;fsh&quot;,
+        &quot;name&quot;: &quot;FSH (FHIR Shorthand)&quot;,
+        &quot;extensions&quot;: [
+          &quot;.fsh&quot;
+        ],
+        &quot;notes&quot;: &quot;FSH translation targets Description, Title, and designation fields. Uses FHIR translation extension.&quot;
+      },
+      {
+        &quot;id&quot;: &quot;fhir-json&quot;,
+        &quot;name&quot;: &quot;FHIR JSON resources&quot;,
+        &quot;extensions&quot;: [
+          &quot;.json&quot;
+        ],
+        &quot;notes&quot;: &quot;Translations land as FHIR translation extensions on Coding.display, CodeableConcept.text, etc. No injector is declared at this layer, which must stay WHO-free; a layer above it that has one says so in its own profile.&quot;
+      }
+    ],
+    &quot;rtlSupported&quot;: true,
+    &quot;notes&quot;: &quot;IG Publisher handles some translation via its own PO mechanism. This pipeline handles narrative and FSH.&quot;
+  }
+]</pre></dd>
+<dt>_visualisers_comment</dt><dd>THE VISUALISERS THIS LAYER DECLARES, for the kinds it owns (owner, 2026-10-16: &quot;ig-ast is fhir-harness&quot;). `ig-ast` covers every `ig-ast` directory in the checkout, one page per declaring layer at &lt;locale&gt;/fhir-harness/ig-ast/&lt;instance&gt;/ and a hub at the route, drawn by the `ig-ast-pages` Tool. A directory kept on a branch family and not restored is shown as unknown, never as zero.</dd>
+<dt>visualisers</dt><dd><pre>[
+  {
+    &quot;id&quot;: &quot;ig-ast&quot;,
+    &quot;renderedBy&quot;: &quot;ig-ast-pages&quot;,
+    &quot;coversKinds&quot;: [
+      &quot;ig-ast&quot;
+    ],
+    &quot;subgraphs&quot;: &quot;instance&quot;,
+    &quot;title&quot;: &quot;IG ASTs&quot;,
+    &quot;writer&quot;: [
+      &quot;scripts/gen-ig-ast-pages.ts&quot;
+    ]
+  }
+]</pre></dd>
+<dt>_builtAtPublish_comment</dt><dd>Owner, 2026-10-14 (B1; schemas/built-at-publish.ts in cat-harness). This layer&#39;s JSON-LD @context is generated by `jsonld:contexts` (cat-harness-tools scripts/gen-instance-contexts.ts) from the prefixes and content-context terms its documents use, flattened with the prefix tables of every layer it needs. Those tables are read at the CHECKOUT&#39;s pins, not at pins this layer&#39;s commit names, so no commit of it can hold the file current: it is built at publish and never committed (bean folio-assistant-63q4).</dd>
+<dt>builtAtPublish</dt><dd><pre>[
+  {
+    &quot;path&quot;: &quot;ns/context/v1.jsonld&quot;,
+    &quot;writer&quot;: [
+      &quot;jsonld:contexts&quot;
+    ],
+    &quot;because&quot;: &quot;checkout&quot;,
+    &quot;reason&quot;: &quot;the prefixes and content-context terms its documents use, flattened with the jsonldPrefixes of the layers it needs at the checkout&#39;s pins&quot;
+  }
+]</pre></dd>
+</dl>
+</main>
+<script src="../../../../../assets/ig-search.js" defer></script>
+</body>
+</html>
