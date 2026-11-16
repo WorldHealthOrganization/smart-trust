@@ -1,0 +1,174 @@
+---
+doc_id: 10665-75211
+doc_title: "National eHealth Strategy Toolkit"
+section_id: sec-019-9-sample-stakeholder-consultation-plan
+section_title: "Sample stakeholder consultation plan"
+section_number: 9
+pages: 41-42
+source_pdf: 10665-75211.pdf
+source_sha256: 87120f0b3c3bb638
+toc_source: inferred
+---
+Stage
+Decision-makers
+Key influencers
+Broader stakeholders
+General public
+Establish the strategic 
+context for a national 
+eHealth vision
+∞
+∞Consulted to gather input required to develop 
+the strategic context for national eHealth. 
+∞
+∞Review and endorse strategic health system 
+goals and challenges. 
+∞
+∞Consulted to gather input required to develop 
+the strategic context for national eHealth.
+∞
+∞May be consulted to gather input 
+to understanding the challenges 
+facing the national health system 
+and population health.
+∞
+∞May be consulted to gather general 
+public views on the health system 
+challenges that eHealth should be 
+used to resolve.
+Identify relevant eHealth 
+trends and best practice
+∞
+∞Consulted to identify international jurisdictions 
+and projects that should be considered or 
+explored as part of research activities.
+∞
+∞Consulted to identify international jurisdictions 
+and projects that should be considered as 
+explored as part of research activities.
+∞
+∞May be consulted as part of 
+identifying compelling uses of 
+eHealth in similar nations and 
+geographical regions.
+N/A
+Construct an initial vision 
+for national eHealth
+∞
+∞Review and endorse timeframe for the national 
+eHealth vision.
+∞
+∞Consulted to provide input into initial national 
+eHealth vision.
+∞
+∞Review and endorse initial national eHealth 
+vision.
+∞
+∞Consulted to provide input into initial national 
+eHealth vision.
+∞
+∞Consulted to provide input into and shape 
+scenarios that put the eHealth vision into 
+practice.
+∞
+∞May be consulted as part of 
+refining scenarios that put the 
+eHealth vision in practice.
+∞
+∞May be provided with an overview 
+of the initial eHealth vision to 
+which they can provide feedback 
+and comments.
+N/A
+Identify the required 
+eHealth components
+∞
+∞Consulted to provide input into required eHealth 
+components, in particular: leadership and 
+governance; strategy and investment; legislation 
+and policy.
+∞
+∞Review and endorse required eHealth 
+components.
+∞
+∞Consulted to provide input into and review 
+required eHealth components, in particular: 
+leadership and governance; strategy and 
+investment; legislation and policy; services and 
+applications; infrastructure.
+N/A, not applicable
+N/A
+Gather information about 
+the current eHealth 
+environment
+∞
+∞Consulted as part of identifying existing or 
+planned eHealth components within the nation’s 
+current eHealth environment.
+∞
+∞Consulted as part of identifying existing or 
+planned eHealth components within the nation’s 
+current eHealth environment.
+∞
+∞May be consulted to identify 
+existing or planned eHealth 
+components.
+N/A
+Assess the current state of 
+eHealth for opportunities, 
+gaps and barriers
+∞
+∞Consulted as part of assessment of existing or 
+planned eHealth components within the nation’s 
+current eHealth environment.
+∞
+∞Review and endorse assessment outcomes (i.e. 
+re-use and sharing opportunities, gaps, risks and 
+barriers).
+∞
+∞Consulted as part of assessment of existing or 
+planned eHealth components within the nation’s 
+current eHealth environment.
+∞
+∞May be consulted as part of the 
+assessment of existing or planned 
+eHealth components. 
+N/A
+Refine vision and 
+develop strategic 
+recommendations
+∞
+∞Provide input and guidance to the prioritization 
+of eHealth components that will be delivered 
+over the vision’s timeframe. 
+∞
+∞Provide input and guidance to the development 
+of strategic recommendations.
+∞
+∞Review and endorse refined national eHealth 
+vision and strategic recommendations.
+∞
+∞May be consulted to provide additional input 
+and guidance to the prioritization of eHealth 
+components. 
+∞
+∞Provide input and guidance to the development 
+of strategic recommendations.
+∞
+∞Endorsed national eHealth vision and strategic 
+recommendations presented to key influencers 
+not involved in its refinement.
+∞
+∞Broader stakeholders would 
+receive a summary of the refined 
+national eHealth vision as part of 
+the broader socialization process.
+∞
+∞May be provided with an overview 
+of the endorsed eHealth vision as 
+part of broader public awareness 
+and education.
+The final plan should take into account the availability of stakeholders, and in particular seek 
+to reduce the number of consultations, interviews and discussions that need to be held with the 
+same stakeholder. This may be accomplished over a number of rounds, rotating the stakeholders 
+involved in each round (Table 10).

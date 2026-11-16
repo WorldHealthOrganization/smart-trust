@@ -1,0 +1,669 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  smart-base — a WHO SMART Guidelines use case, end to end: L1 knowledge
+  graph, L2 DAK, L3 FHIR IG, L4 consuming application, new or adapted.
+
+  Source of truth: this file. The picture beside it (smart-guideline-end-to-end.svg) is drawn by
+  `bun run cat render:bpmn`;
+  never hand-edit it.
+
+  The <bootstrap.processes:skill> extension on an activity names the skill
+  that implements it.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_SgEndToEnd"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+
+  <bpmn:collaboration id="Collaboration_SgEndToEnd">
+    <bpmn:participant id="Participant_SgEndToEnd" name="WHO SMART Guidelines — end to end, authoring or adaptation" processRef="Process_SgEndToEnd" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_SgEndToEnd" name="SMART Guideline end to end" isExecutable="false">
+    <bpmn:documentation>From a use case to a consuming application: identify the L1 guidelines, ingest them into an L1 knowledge graph, choose the L2 DAKs to build on, create or adapt the L2 assets, choose the L3 IGs to build on, produce the L3 assets, then build the L4 consuming application the requester describes. Adjudication follows every stage as QA, not as a gate, but the order is strict: no L3 asset before the L1 extraction and L2 assets it derives from exist with their review requested (Gateway_L3Ready). Each stage forks into the next stage and its adjudication, and each adjudication has its own end event, so the instance completes only when all are recorded. Each stage runs the skill named on its activity, with its own input and output contract (l2-dak-authoring.bpmn for stage 4, dak-l3-ig.bpmn for stage 6), and its output is the next stage's input. The smart-guideline-end-to-end skill orchestrates the stages and says who adjudicates each.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_SgEndToEnd_LaneSet">
+      <bpmn:lane id="Lane_User" name="Requester (country team / implementer)">
+        <bpmn:documentation>The person who wants the guideline and the application. Describes the use case (stage 0) and the consuming application (stage 7). The agent asks; it never invents either.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="user"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>StartEvent_Need</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DescribeUseCase</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DescribeApp</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Authoring agent">
+        <bpmn:documentation>Runs every authoring stage with the skill named on each activity, and goes straight on once a stage's output exists and its review is requested. Adjudication runs beside it as QA; the order of stages is not optional.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="authoring-agent"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_IdentifyL1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Fork_L1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_InKg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_IngestKg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Fork_Kg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_KgMerge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DepsL2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Fork_DepsL2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_L2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Fork_L2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DepsL3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Fork_DepsL3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_L3Ready</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_L3Ready</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_L3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Fork_L3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_WireframeApp</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BuildApp</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Fork_App</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_AppBuilt</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Adjudicators" name="Human adjudicators">
+        <bpmn:documentation>Clinical SME, l1-extraction-reviewer, programme manager, business analyst, FHIR modeller, terminologist; the smart-guideline-end-to-end skill says which signs each stage. Each adjudication calls cat-harness's generic review (Process_Review) on the staged preview (feature-staging, staging-review) and records a qa-review/v1 Decision (approve, request-changes, reject) with the adjudicator's role id. A rejection files a bean against the stage and marks every asset derived from the rejected item rejected-upstream; it does not stop the agent.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="reviewer"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_AdjL1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AdjKg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AdjDepsL2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AdjL2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AdjDepsL3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AdjL3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AdjApp</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_AdjL1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_AdjKg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_AdjDepsL2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_AdjL2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_AdjDepsL3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_AdjL3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_AdjApp</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Need" name="Use case to support">
+      <bpmn:documentation>Someone needs a SMART Guideline, new or adapted, for a use case.</bpmn:documentation>
+      <bpmn:outgoing>E01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_DescribeUseCase" name="0 · Describe the use case">
+      <bpmn:documentation>Population, setting, jurisdiction, interventions in scope. The user's own words; the agent asks a numbered question if the request did not say.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="guideline-use-case" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E01</bpmn:incoming>
+      <bpmn:outgoing>E02</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:task id="Task_IdentifyL1" name="1 · Identify L1 guidelines and recommendations">
+      <bpmn:documentation>Component 1 sources of any DAK already in scope first, then WHO IRIS and the jurisdiction's own guidelines. Each candidate marked in-library / in-KG / not yet.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="dak-l1-library" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E02</bpmn:incoming>
+      <bpmn:outgoing>E03</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Fork_L1">
+      <bpmn:incoming>E03</bpmn:incoming>
+      <bpmn:outgoing>E04</bpmn:outgoing>
+      <bpmn:outgoing>E05</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:callActivity id="Task_AdjL1" name="Adjudicate the L1 source list" calledElement="Process_Review">
+      <bpmn:documentation>Clinical SME: each source with why it was included or left out.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E04</bpmn:incoming>
+      <bpmn:outgoing>E29</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="Gateway_InKg" name="All sources in an L1 KG?">
+      <bpmn:incoming>E05</bpmn:incoming>
+      <bpmn:outgoing>E06</bpmn:outgoing>
+      <bpmn:outgoing>E07</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_IngestKg" name="2 · Ingest into the L1 KG">
+      <bpmn:documentation>Per source not yet extracted: cat ingest into library/, the generic-document layer (l1-library), then the L1 layer (recommendations, remarks, practices, scenario candidates) into library/&lt;bib&gt;/l1-extraction/.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="recommendation-extraction" />
+        <bootstrap.processes:skill ref="dak-l1-library" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E06</bpmn:incoming>
+      <bpmn:outgoing>E08</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Fork_Kg">
+      <bpmn:incoming>E08</bpmn:incoming>
+      <bpmn:outgoing>E09</bpmn:outgoing>
+      <bpmn:outgoing>E10</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:callActivity id="Task_AdjKg" name="Adjudicate the L1 KG" calledElement="Process_Review">
+      <bpmn:documentation>l1-extraction-reviewer signs exclusions and coverage; Clinical SME reviews recommendations beside the printed page.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+        <bootstrap.processes:skill ref="recommendation-extraction" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E09</bpmn:incoming>
+      <bpmn:outgoing>E30</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="Gateway_KgMerge">
+      <bpmn:incoming>E07</bpmn:incoming>
+      <bpmn:incoming>E10</bpmn:incoming>
+      <bpmn:outgoing>E11</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_DepsL2" name="3 · Choose L2 dependencies&#10;(WHO / jurisdiction DAKs)">
+      <bpmn:documentation>From the L1 KG: which existing DAKs to reuse, adapt, extend or reject, each with evidence and reason. Reuse first; prefer the jurisdiction's adaptation, recording the WHO original as its upstream. For each component kept, record how the candidate produces it (the tools graph, the candidate repository's source spreadsheets and converters, WHO's DAK toolchain); stage 4 uses that toolchain.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l2-dependency-choice" />
+        <bootstrap.processes:skill ref="smart-base-tools" />
+        <bootstrap.processes:skill ref="decision-comparison" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E11</bpmn:incoming>
+      <bpmn:outgoing>E12</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Fork_DepsL2">
+      <bpmn:incoming>E12</bpmn:incoming>
+      <bpmn:outgoing>E13</bpmn:outgoing>
+      <bpmn:outgoing>E14</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:callActivity id="Task_AdjDepsL2" name="Adjudicate L2 dependencies" calledElement="Process_Review">
+      <bpmn:documentation>Programme manager and business analyst: one row per candidate DAK, rejected ones included.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+        <bootstrap.processes:skill ref="decision-audit" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E13</bpmn:incoming>
+      <bpmn:outgoing>E31</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:task id="Task_L2" name="4 · Create / adapt L2 DAK assets">
+      <bpmn:documentation>The authoring steps of l2-dak-authoring.bpmn (personas and scenarios, BPMN, DMN, data dictionary, indicators and requirements, terminology), plus the design of each data-entry form as wireframe candidates (wireframe-design-review, design use) from the persona, the user scenario and the core data elements. Its clinical validation is this stage's adjudication and does not hold up stage 5. The IG is built through fhir-harness's AST cache lifecycle (ig-ast-refresh.yml), with the DAK pre-processing as smart-base's pre-export overlay (dak-preprocessing, dak-pre-export.sh) and the DAK sidecars made from the AST (dak-postprocessing).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l2-dak-authoring" />
+        <bootstrap.processes:skill ref="smart-base-tools" />
+        <bootstrap.processes:skill ref="dak-preprocessing" />
+        <bootstrap.processes:skill ref="dak-postprocessing" />
+        <bootstrap.processes:skill ref="wireframe-design-review" />
+        <bootstrap.processes:skill ref="feature-staging" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E14</bpmn:incoming>
+      <bpmn:incoming>E37</bpmn:incoming>
+      <bpmn:outgoing>E15</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Fork_L2">
+      <bpmn:incoming>E15</bpmn:incoming>
+      <bpmn:outgoing>E16</bpmn:outgoing>
+      <bpmn:outgoing>E17</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:callActivity id="Task_AdjL2" name="Review each L2 asset&#10;(before / after if adapted)" calledElement="Process_Review">
+      <bpmn:documentation>One review item per created or changed asset, shown as its reviewer reads it (diagram, table, data-dictionary rows); an adapted asset as a diff against its pinned upstream. Each form's wireframe candidates are reviewed blind and one is chosen (Process_Adjudication, Process_OptionsAnalysis). For each L2 component this is the review that forks inside its edit-and-review subprocess (l2-component-edit-review.bpmn), with the renderer, checker and reviewing role that skill tables.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+        <bootstrap.processes:skill ref="staging-review" />
+        <bootstrap.processes:skill ref="visual-diff" />
+        <bootstrap.processes:skill ref="wireframe-design-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E16</bpmn:incoming>
+      <bpmn:outgoing>E32</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:task id="Task_DepsL3" name="5 · Choose L3 dependencies&#10;(WHO / jurisdiction IGs)">
+      <bpmn:documentation>Index each candidate IG, then match the L1 KG and the L2 assets against it: reuse, adapt, extend or reject per IG, and record per artefact type the candidate's toolchain (CQL refresh, test-case format, example generator), which stage 6 then uses.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-dependency-choice" />
+        <bootstrap.processes:skill ref="ig-artifact-ingestion" />
+        <bootstrap.processes:skill ref="smart-base-tools" />
+        <bootstrap.processes:skill ref="decision-comparison" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E17</bpmn:incoming>
+      <bpmn:outgoing>E18</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Fork_DepsL3">
+      <bpmn:incoming>E18</bpmn:incoming>
+      <bpmn:outgoing>E19</bpmn:outgoing>
+      <bpmn:outgoing>E20</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:callActivity id="Task_AdjDepsL3" name="Adjudicate L3 dependencies" calledElement="Process_Review">
+      <bpmn:documentation>FHIR modeller and terminologist: one row per candidate IG, rejected ones included.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+        <bootstrap.processes:skill ref="decision-audit" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E19</bpmn:incoming>
+      <bpmn:outgoing>E33</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:task id="Task_L3Ready" name="Check L3 readiness">
+      <bpmn:documentation>The order rule as a check with its own contract (skill l3-readiness). Every source has its L1 extraction, every L2 asset names an L1 node, every L3 artefact about to be written names its L2 asset, and the review of each extraction and L2 asset has been requested. Returns ready and the findings, each with the stage that fixes it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-readiness" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E20</bpmn:incoming>
+      <bpmn:outgoing>E38</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_L3Ready" name="L1 extraction and L2 assets exist,&#10;review requested?">
+      <bpmn:documentation>Decided on Task_L3Ready's ready: yes only when every L3 asset about to be written has an L2 asset upstream, every L2 asset an L1 node, and each review has been requested (opened and staged, verdict not awaited). No goes back to stage 4; a missing L1 extraction is stage 4's input gap, filled from stage 2.</bpmn:documentation>
+      <bpmn:incoming>E38</bpmn:incoming>
+      <bpmn:outgoing>E36</bpmn:outgoing>
+      <bpmn:outgoing>E37</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_L3" name="6 · Produce L3 assets">
+      <bpmn:documentation>The mapping and pipeline of dak-l3-ig.bpmn, up to a clean IG build. Every L3 asset names the L2 asset it implements in wasDerivedFrom, with that edge's adjudication state. Each Questionnaire is derived from the chosen L2 wireframe of its form. Publication continues in that process and is not on the path to stage 8.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+        <bootstrap.processes:skill ref="l2-dak-authoring" />
+        <bootstrap.processes:skill ref="smart-base-tools" />
+        <bootstrap.processes:skill ref="feature-staging" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E36</bpmn:incoming>
+      <bpmn:outgoing>E21</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Fork_L3">
+      <bpmn:incoming>E21</bpmn:incoming>
+      <bpmn:outgoing>E22</bpmn:outgoing>
+      <bpmn:outgoing>E23</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:callActivity id="Task_AdjL3" name="Review each L3 asset&#10;(before / after if adapted)" calledElement="Process_Review">
+      <bpmn:documentation>One review item per created or changed resource: differential, each Questionnaire against the L2 wireframe it was derived from (field to item: fhir-harness fhir-questionnaire-wireframe, whose check is check-wireframe-questionnaire), CQL beside its DMN rule with test results, terminology expansions.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+        <bootstrap.processes:skill ref="staging-review" />
+        <bootstrap.processes:skill ref="ig-ast-delta" />
+        <bootstrap.processes:skill ref="wireframe-design-review" />
+        <bootstrap.processes:skill ref="fhir-questionnaire-wireframe" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E22</bpmn:incoming>
+      <bpmn:outgoing>E34</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:userTask id="Task_DescribeApp" name="7 · L4: describe the consuming application">
+      <bpmn:documentation>Who uses it, on what device, which L2 processes and L3 resources it covers, connectivity, the systems it talks to. The agent offers options drawn from the L2 personas and processes. This is the written intent wireframe-design-review starts from.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l4-application-brief" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E23</bpmn:incoming>
+      <bpmn:outgoing>E24</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:task id="Task_WireframeApp" name="8a · L4: wireframe the application">
+      <bpmn:documentation>To-be mode, from the stage-7 intent: two or more candidates, web and mobile, with real content from the L2 personas and scenarios. The agent goes on with its recommended candidate; the requester may choose another during adjudication.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="wireframe-design-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E24</bpmn:incoming>
+      <bpmn:outgoing>E25</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_BuildApp" name="8b · L4: build the consuming application">
+      <bpmn:documentation>Against the stage-6 IG build, with conformance tests from the IG's examples and test cases.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l4-application-build" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E25</bpmn:incoming>
+      <bpmn:outgoing>E26</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Fork_App">
+      <bpmn:incoming>E26</bpmn:incoming>
+      <bpmn:outgoing>E27</bpmn:outgoing>
+      <bpmn:outgoing>E28</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:callActivity id="Task_AdjApp" name="Adjudicate the L4 wireframes and application" calledElement="Process_Review">
+      <bpmn:documentation>Business analyst and clinical SME walk it through each L2 user scenario; FHIR modeller checks L3 conformance.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+        <bootstrap.processes:skill ref="staging-review" />
+        <bootstrap.processes:skill ref="wireframe-design-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>E27</bpmn:incoming>
+      <bpmn:outgoing>E35</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="EndEvent_AppBuilt" name="L4 application built">
+      <bpmn:incoming>E28</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_AdjL1" name="Adjudicated">
+      <bpmn:incoming>E29</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_AdjKg" name="Adjudicated">
+      <bpmn:incoming>E30</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_AdjDepsL2" name="Adjudicated">
+      <bpmn:incoming>E31</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_AdjL2" name="Adjudicated">
+      <bpmn:incoming>E32</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_AdjDepsL3" name="Adjudicated">
+      <bpmn:incoming>E33</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_AdjL3" name="Adjudicated">
+      <bpmn:incoming>E34</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_AdjApp" name="Adjudicated">
+      <bpmn:incoming>E35</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="E01" sourceRef="StartEvent_Need" targetRef="Task_DescribeUseCase" />
+    <bpmn:sequenceFlow id="E02" sourceRef="Task_DescribeUseCase" targetRef="Task_IdentifyL1" />
+    <bpmn:sequenceFlow id="E03" sourceRef="Task_IdentifyL1" targetRef="Fork_L1" />
+    <bpmn:sequenceFlow id="E04" sourceRef="Fork_L1" targetRef="Task_AdjL1" />
+    <bpmn:sequenceFlow id="E05" sourceRef="Fork_L1" targetRef="Gateway_InKg" />
+    <bpmn:sequenceFlow id="E06" name="no" sourceRef="Gateway_InKg" targetRef="Task_IngestKg" />
+    <bpmn:sequenceFlow id="E07" name="yes" sourceRef="Gateway_InKg" targetRef="Gateway_KgMerge" />
+    <bpmn:sequenceFlow id="E08" sourceRef="Task_IngestKg" targetRef="Fork_Kg" />
+    <bpmn:sequenceFlow id="E09" sourceRef="Fork_Kg" targetRef="Task_AdjKg" />
+    <bpmn:sequenceFlow id="E10" sourceRef="Fork_Kg" targetRef="Gateway_KgMerge" />
+    <bpmn:sequenceFlow id="E11" sourceRef="Gateway_KgMerge" targetRef="Task_DepsL2" />
+    <bpmn:sequenceFlow id="E12" sourceRef="Task_DepsL2" targetRef="Fork_DepsL2" />
+    <bpmn:sequenceFlow id="E13" sourceRef="Fork_DepsL2" targetRef="Task_AdjDepsL2" />
+    <bpmn:sequenceFlow id="E14" sourceRef="Fork_DepsL2" targetRef="Task_L2" />
+    <bpmn:sequenceFlow id="E15" sourceRef="Task_L2" targetRef="Fork_L2" />
+    <bpmn:sequenceFlow id="E16" sourceRef="Fork_L2" targetRef="Task_AdjL2" />
+    <bpmn:sequenceFlow id="E17" sourceRef="Fork_L2" targetRef="Task_DepsL3" />
+    <bpmn:sequenceFlow id="E18" sourceRef="Task_DepsL3" targetRef="Fork_DepsL3" />
+    <bpmn:sequenceFlow id="E19" sourceRef="Fork_DepsL3" targetRef="Task_AdjDepsL3" />
+    <bpmn:sequenceFlow id="E20" sourceRef="Fork_DepsL3" targetRef="Task_L3Ready" />
+    <bpmn:sequenceFlow id="E38" sourceRef="Task_L3Ready" targetRef="Gateway_L3Ready" />
+    <bpmn:sequenceFlow id="E36" name="yes" sourceRef="Gateway_L3Ready" targetRef="Task_L3" />
+    <bpmn:sequenceFlow id="E37" name="no" sourceRef="Gateway_L3Ready" targetRef="Task_L2" />
+    <bpmn:sequenceFlow id="E21" sourceRef="Task_L3" targetRef="Fork_L3" />
+    <bpmn:sequenceFlow id="E22" sourceRef="Fork_L3" targetRef="Task_AdjL3" />
+    <bpmn:sequenceFlow id="E23" sourceRef="Fork_L3" targetRef="Task_DescribeApp" />
+    <bpmn:sequenceFlow id="E24" sourceRef="Task_DescribeApp" targetRef="Task_WireframeApp" />
+    <bpmn:sequenceFlow id="E25" sourceRef="Task_WireframeApp" targetRef="Task_BuildApp" />
+    <bpmn:sequenceFlow id="E26" sourceRef="Task_BuildApp" targetRef="Fork_App" />
+    <bpmn:sequenceFlow id="E27" sourceRef="Fork_App" targetRef="Task_AdjApp" />
+    <bpmn:sequenceFlow id="E28" sourceRef="Fork_App" targetRef="EndEvent_AppBuilt" />
+    <bpmn:sequenceFlow id="E29" sourceRef="Task_AdjL1" targetRef="End_AdjL1" />
+    <bpmn:sequenceFlow id="E30" sourceRef="Task_AdjKg" targetRef="End_AdjKg" />
+    <bpmn:sequenceFlow id="E31" sourceRef="Task_AdjDepsL2" targetRef="End_AdjDepsL2" />
+    <bpmn:sequenceFlow id="E32" sourceRef="Task_AdjL2" targetRef="End_AdjL2" />
+    <bpmn:sequenceFlow id="E33" sourceRef="Task_AdjDepsL3" targetRef="End_AdjDepsL3" />
+    <bpmn:sequenceFlow id="E34" sourceRef="Task_AdjL3" targetRef="End_AdjL3" />
+    <bpmn:sequenceFlow id="E35" sourceRef="Task_AdjApp" targetRef="End_AdjApp" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_SgEndToEnd">
+    <bpmndi:BPMNPlane id="BPMNPlane_SgEndToEnd" bpmnElement="Collaboration_SgEndToEnd">
+      <bpmndi:BPMNShape id="Participant_SgEndToEnd_di" bpmnElement="Participant_SgEndToEnd" isHorizontal="true">
+        <dc:Bounds x="130" y="80" width="3810" height="550" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_User_di" bpmnElement="Lane_User" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="3780" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Agent_di" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="160" y="220" width="3780" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Adjudicators_di" bpmnElement="Lane_Adjudicators" isHorizontal="true">
+        <dc:Bounds x="160" y="390" width="3780" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Need_di" bpmnElement="StartEvent_Need">
+        <dc:Bounds x="232" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DescribeUseCase_di" bpmnElement="Task_DescribeUseCase">
+        <dc:Bounds x="345" y="105" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_IdentifyL1_di" bpmnElement="Task_IdentifyL1">
+        <dc:Bounds x="510" y="260" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Fork_L1_di" bpmnElement="Fork_L1">
+        <dc:Bounds x="720" y="280" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AdjL1_di" bpmnElement="Task_AdjL1">
+        <dc:Bounds x="675" y="420" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_InKg_di" bpmnElement="Gateway_InKg" isMarkerVisible="true">
+        <dc:Bounds x="885" y="280" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="855" y="246" width="110" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_IngestKg_di" bpmnElement="Task_IngestKg">
+        <dc:Bounds x="1005" y="260" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Fork_Kg_di" bpmnElement="Fork_Kg">
+        <dc:Bounds x="1215" y="280" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AdjKg_di" bpmnElement="Task_AdjKg">
+        <dc:Bounds x="1170" y="420" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_KgMerge_di" bpmnElement="Gateway_KgMerge" isMarkerVisible="true">
+        <dc:Bounds x="1380" y="280" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DepsL2_di" bpmnElement="Task_DepsL2">
+        <dc:Bounds x="1500" y="260" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Fork_DepsL2_di" bpmnElement="Fork_DepsL2">
+        <dc:Bounds x="1710" y="280" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AdjDepsL2_di" bpmnElement="Task_AdjDepsL2">
+        <dc:Bounds x="1665" y="420" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_L2_di" bpmnElement="Task_L2">
+        <dc:Bounds x="1830" y="260" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Fork_L2_di" bpmnElement="Fork_L2">
+        <dc:Bounds x="2040" y="280" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AdjL2_di" bpmnElement="Task_AdjL2">
+        <dc:Bounds x="1995" y="420" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DepsL3_di" bpmnElement="Task_DepsL3">
+        <dc:Bounds x="2160" y="260" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Fork_DepsL3_di" bpmnElement="Fork_DepsL3">
+        <dc:Bounds x="2370" y="280" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AdjDepsL3_di" bpmnElement="Task_AdjDepsL3">
+        <dc:Bounds x="2325" y="420" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_L3_di" bpmnElement="Task_L3">
+        <dc:Bounds x="2780" y="260" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Fork_L3_di" bpmnElement="Fork_L3">
+        <dc:Bounds x="2990" y="280" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AdjL3_di" bpmnElement="Task_AdjL3">
+        <dc:Bounds x="2945" y="420" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DescribeApp_di" bpmnElement="Task_DescribeApp">
+        <dc:Bounds x="3110" y="105" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_WireframeApp_di" bpmnElement="Task_WireframeApp">
+        <dc:Bounds x="3275" y="260" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_BuildApp_di" bpmnElement="Task_BuildApp">
+        <dc:Bounds x="3440" y="260" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Fork_App_di" bpmnElement="Fork_App">
+        <dc:Bounds x="3650" y="280" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AdjApp_di" bpmnElement="Task_AdjApp">
+        <dc:Bounds x="3605" y="420" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_AppBuilt_di" bpmnElement="EndEvent_AppBuilt">
+        <dc:Bounds x="3822" y="287" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_AdjL1_di" bpmnElement="End_AdjL1">
+        <dc:Bounds x="727" y="562" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_AdjKg_di" bpmnElement="End_AdjKg">
+        <dc:Bounds x="1222" y="562" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_AdjDepsL2_di" bpmnElement="End_AdjDepsL2">
+        <dc:Bounds x="1717" y="562" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_AdjL2_di" bpmnElement="End_AdjL2">
+        <dc:Bounds x="2047" y="562" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_AdjDepsL3_di" bpmnElement="End_AdjDepsL3">
+        <dc:Bounds x="2377" y="562" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_AdjL3_di" bpmnElement="End_AdjL3">
+        <dc:Bounds x="2997" y="562" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_AdjApp_di" bpmnElement="End_AdjApp">
+        <dc:Bounds x="3657" y="562" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="E01_di" bpmnElement="E01">
+        <di:waypoint x="268" y="150" />
+        <di:waypoint x="345" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E02_di" bpmnElement="E02">
+        <di:waypoint x="485" y="150" />
+        <di:waypoint x="580" y="150" />
+        <di:waypoint x="580" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E03_di" bpmnElement="E03">
+        <di:waypoint x="650" y="305" />
+        <di:waypoint x="720" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E04_di" bpmnElement="E04">
+        <di:waypoint x="745" y="330" />
+        <di:waypoint x="745" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E05_di" bpmnElement="E05">
+        <di:waypoint x="770" y="305" />
+        <di:waypoint x="885" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E06_di" bpmnElement="E06">
+        <di:waypoint x="935" y="305" />
+        <di:waypoint x="1005" y="305" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="941" y="283" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E07_di" bpmnElement="E07">
+        <di:waypoint x="910" y="330" />
+        <di:waypoint x="910" y="375" />
+        <di:waypoint x="1405" y="375" />
+        <di:waypoint x="1405" y="330" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="940" y="357" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E08_di" bpmnElement="E08">
+        <di:waypoint x="1145" y="305" />
+        <di:waypoint x="1215" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E09_di" bpmnElement="E09">
+        <di:waypoint x="1240" y="330" />
+        <di:waypoint x="1240" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E10_di" bpmnElement="E10">
+        <di:waypoint x="1265" y="305" />
+        <di:waypoint x="1380" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E11_di" bpmnElement="E11">
+        <di:waypoint x="1430" y="305" />
+        <di:waypoint x="1500" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E12_di" bpmnElement="E12">
+        <di:waypoint x="1640" y="305" />
+        <di:waypoint x="1710" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E13_di" bpmnElement="E13">
+        <di:waypoint x="1735" y="330" />
+        <di:waypoint x="1735" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E14_di" bpmnElement="E14">
+        <di:waypoint x="1760" y="305" />
+        <di:waypoint x="1830" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E15_di" bpmnElement="E15">
+        <di:waypoint x="1970" y="305" />
+        <di:waypoint x="2040" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E16_di" bpmnElement="E16">
+        <di:waypoint x="2065" y="330" />
+        <di:waypoint x="2065" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E17_di" bpmnElement="E17">
+        <di:waypoint x="2090" y="305" />
+        <di:waypoint x="2160" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E18_di" bpmnElement="E18">
+        <di:waypoint x="2300" y="305" />
+        <di:waypoint x="2370" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E19_di" bpmnElement="E19">
+        <di:waypoint x="2395" y="330" />
+        <di:waypoint x="2395" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Task_L3Ready_di" bpmnElement="Task_L3Ready">
+        <dc:Bounds x="2450" y="260" width="140" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="E38_di" bpmnElement="E38">
+        <di:waypoint x="2590" y="305" />
+        <di:waypoint x="2660" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Gateway_L3Ready_di" bpmnElement="Gateway_L3Ready" isMarkerVisible="true">
+        <dc:Bounds x="2660" y="280" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="E36_di" bpmnElement="E36">
+        <di:waypoint x="2710" y="305" />
+        <di:waypoint x="2780" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E37_di" bpmnElement="E37">
+        <di:waypoint x="2685" y="280" />
+        <di:waypoint x="2685" y="240" />
+        <di:waypoint x="1900" y="240" />
+        <di:waypoint x="1900" y="260" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2692" y="248" width="16" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E20_di" bpmnElement="E20">
+        <di:waypoint x="2420" y="305" />
+        <di:waypoint x="2450" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E21_di" bpmnElement="E21">
+        <di:waypoint x="2920" y="305" />
+        <di:waypoint x="2990" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E22_di" bpmnElement="E22">
+        <di:waypoint x="3015" y="330" />
+        <di:waypoint x="3015" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E23_di" bpmnElement="E23">
+        <di:waypoint x="3040" y="305" />
+        <di:waypoint x="3180" y="305" />
+        <di:waypoint x="3180" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E24_di" bpmnElement="E24">
+        <di:waypoint x="3250" y="150" />
+        <di:waypoint x="3345" y="150" />
+        <di:waypoint x="3345" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E25_di" bpmnElement="E25">
+        <di:waypoint x="3415" y="305" />
+        <di:waypoint x="3440" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E26_di" bpmnElement="E26">
+        <di:waypoint x="3580" y="305" />
+        <di:waypoint x="3650" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E27_di" bpmnElement="E27">
+        <di:waypoint x="3675" y="330" />
+        <di:waypoint x="3675" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E28_di" bpmnElement="E28">
+        <di:waypoint x="3700" y="305" />
+        <di:waypoint x="3822" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E29_di" bpmnElement="E29">
+        <di:waypoint x="745" y="510" />
+        <di:waypoint x="745" y="562" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E30_di" bpmnElement="E30">
+        <di:waypoint x="1240" y="510" />
+        <di:waypoint x="1240" y="562" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E31_di" bpmnElement="E31">
+        <di:waypoint x="1735" y="510" />
+        <di:waypoint x="1735" y="562" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E32_di" bpmnElement="E32">
+        <di:waypoint x="2065" y="510" />
+        <di:waypoint x="2065" y="562" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E33_di" bpmnElement="E33">
+        <di:waypoint x="2395" y="510" />
+        <di:waypoint x="2395" y="562" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E34_di" bpmnElement="E34">
+        <di:waypoint x="3015" y="510" />
+        <di:waypoint x="3015" y="562" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E35_di" bpmnElement="E35">
+        <di:waypoint x="3675" y="510" />
+        <di:waypoint x="3675" y="562" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,64 @@
+# folio-assistant-core's checks on every pull request (owner, 2026-10-14: every
+# harnessed layer is judged by ONE reusable workflow the harness owns, and
+# "there shouldnt be copying of code"). Everything is decided there.
+name: PR checks
+on:
+  pull_request:
+    # Draft PRs run only the fast tier (bean dft1, cat-harness-tools#616);
+    # ready_for_review re-runs the full tier the moment a PR is marked ready.
+    # `labeled` lets adding `release` (full tier) or `preview` (the change's
+    # cone of tests, shown on top of the preview's QA pages;
+    # cat-harness-tools#2150) start a run; any other label is skipped below.
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+  # main's own run keeps main's answer, the gate seconds and the cone records
+  # in caches every PR can read (cat-harness-tools#406, #411); a run on a PR
+  # can only read caches saved from its own PR or from main.
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks:
+    # Any label but `release` or `preview` is a no-op: skip the job, so it
+    # judges nothing and never displaces the PR's real run.
+    if: github.event.action != 'labeled' || github.event.label.name == 'release' || github.event.label.name == 'preview'
+    # actions: read lets a PR marked ready for review find an earlier run that
+    # already passed on the same inputs and reuse its verdict
+    # (cat-harness-tools#1621). Without it the lookup is refused and every
+    # job runs.
+    permissions:
+      contents: read
+      actions: read
+    uses: litlfred/cat-harness-tools/.github/workflows/layer-pr-checks.yml@418672b09492c6c742a4f9bd09038288a29edfab # index.lock.json
+    with:
+      # On a draft PR: prepare and typecheck only; the full tier runs on ready_for_review.
+      draft-fast-tier: true
+      # Five gate shards a side, not the default four (2026-11-01). The gates
+      # are split by each shard's expected wall time (cat-harness-tools#1213),
+      # so two shards hold the two ~500 s gates and three share the rest. The
+      # 8-shard trial (run 41287467368) gave the same ~510 s slowest shard, but
+      # its 16 jobs waited up to 17 min for runners.
+      gate-shards: 5
+      # A PR that touches only the review-sheet tool runs only its tests,
+      # about 2 minutes instead of ~30 (owner 2026-10-31, Q-CI1 A).
+      quick-paths: >-
+        tools/review-sheet-sync/
+        skills/content/folio-document-adapter/review-sheet-script.md
+      quick-test: tools/review-sheet-sync
+  # Post-merge QA of main (owner, 2026-10-30, "Both"): the push run above
+  # judged main's whole gate set; this keeps one `main-red` issue open while
+  # main is red and closes it when main is green. See
+  # https://github.com/litlfred/cat-harness-tools/blob/main/.github/workflows/layer-main-qa.yml
+  main-qa:
+    needs: checks
+    if: ${{ !cancelled() && github.event_name == 'push' }}
+    permissions:
+      contents: read
+      issues: write
+      actions: read
+    uses: litlfred/cat-harness-tools/.github/workflows/layer-main-qa.yml@418672b09492c6c742a4f9bd09038288a29edfab # index.lock.json
+    with:
+      verdict: ${{ needs.checks.outputs.main-verdict }}
+      failures: ${{ needs.checks.outputs.main-failures }}
+      checks-result: ${{ needs.checks.result }}

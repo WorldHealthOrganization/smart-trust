@@ -1,0 +1,808 @@
+@prefix sgkg: <http://smart.who.int/kg/> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<http://smart.who.int/kg/l1> a owl:Ontology ;
+  rdfs:label "WHO SMART Guidelines L1 ontology" ;
+  rdfs:comment "Authored, not generated. L1 holds what WHO says and where it is printed: layout (publication, section, element), content (recommendation, remark, key question, outcome, evidence, catalogued intervention, indicator) and the references a DAK uses to point at them (citation, reference entry, terminology code). Nothing in L1 points out of L1. Every class and edge is grounded in an artefact that exists today; groundedIn says which. Pairwise licensing is carried as sub-properties, because a relationship is licensed between specific class pairs while an OWL object property has one global domain and range." .
+
+### Node kinds
+
+sgkg:Concept a owl:Class ; rdfs:label "Concept" ; rdfs:comment "A thing the guidance is about." .
+sgkg:Reference a owl:Class ; rdfs:label "Reference" ; rdfs:comment "A pointer out of this graph. Carries identity only; asserts nothing about the target." .
+sgkg:Source a owl:Class ; rdfs:label "Source" ; rdfs:comment "A published document, or a part of one, that guidance is stated in." .
+
+### Classes
+
+sgkg:Publication a owl:Class ;
+  rdfs:subClassOf sgkg:Source ;
+  rdfs:label "Publication" ;
+  skos:notation "publication" ;
+  rdfs:comment "A WHO publication: a guideline of any of the handbook's types, a position paper, a summary table, a classification, implementation guidance, or a supplement. Metadata follows Dublin Core." .
+
+sgkg:PublicationSection a owl:Class ;
+  rdfs:subClassOf sgkg:Source ;
+  rdfs:label "Publication section" ;
+  skos:notation "publication-section" ;
+  rdfs:comment "A chapter, annex or numbered section, at any depth." .
+
+sgkg:PublicationElement a owl:Class ;
+  rdfs:subClassOf sgkg:Source ;
+  rdfs:label "Publication element" ;
+  skos:notation "publication-element" ;
+  rdfs:comment "One printed block: a table, a table row, a footnote, a figure, a chart, an image, a flowchart, a box or a list. It records where something is printed and exactly what is printed that no content node holds. It carries no meaning of its own; meaning lives in content nodes, joined by presentedIn." .
+
+sgkg:Recommendation a owl:Class ;
+  rdfs:subClassOf sgkg:Concept ;
+  rdfs:label "Recommendation" ;
+  skos:notation "recommendation" ;
+  rdfs:comment "A normative statement from a WHO guideline. Kinds other than a graded recommendation (context-specific, research-only, good practice statement, no-recommendation) are the same node with a different kind." .
+
+sgkg:Remark a owl:Class ;
+  rdfs:subClassOf sgkg:Concept ;
+  rdfs:label "Remark" ;
+  skos:notation "remark" ;
+  rdfs:comment "A remark attached to a recommendation (handbook §10.6). May also be printed as a table footnote." .
+
+sgkg:KeyQuestion a owl:Class ;
+  rdfs:subClassOf sgkg:Concept ;
+  rdfs:label "Key question" ;
+  skos:notation "key-question" ;
+  rdfs:comment "A question in PICO format, framed before the evidence search (handbook §7.1–7.4). P and C are verbatim text with codes through crossReferences; I is also joined to a catalogued intervention; O is the outcome node." .
+
+sgkg:Outcome a owl:Class ;
+  rdfs:subClassOf sgkg:Concept ;
+  rdfs:label "Outcome" ;
+  skos:notation "outcome" ;
+  rdfs:comment "An outcome a guideline group chose to judge a key question by, with its importance in this guideline (handbook §7.6). A node because evidence attaches to it and one list is shared by several questions (ANC Web annex 1). Flat: one node per specific outcome." .
+
+sgkg:Evidence a owl:Class ;
+  rdfs:subClassOf sgkg:Concept ;
+  rdfs:label "Evidence" ;
+  skos:notation "evidence" ;
+  rdfs:comment "One row of an evidence profile: the evidence for one outcome of one key question, with its certainty (handbook §9.2)." .
+
+sgkg:HealthIntervention a owl:Class ;
+  rdfs:subClassOf sgkg:Concept ;
+  rdfs:label "Health intervention" ;
+  skos:notation "health-intervention" ;
+  rdfs:comment "An intervention identified in a WHO catalogue or classification (UHC Compendium, ICHI, CDHI), digital interventions included. A peer of recommendation, not a recommendation. A DAK may draw on both." .
+
+sgkg:Indicator a owl:Class ;
+  rdfs:subClassOf sgkg:Concept ;
+  rdfs:label "Indicator" ;
+  skos:notation "indicator" ;
+  rdfs:comment "A WHO indicator, identified by its published reference number. Printed in several places (HIV SI 2022: summary list, Table 2.3, reference sheet) and stored once." .
+
+sgkg:Citation a owl:Class ;
+  rdfs:subClassOf sgkg:Reference ;
+  rdfs:label "Citation" ;
+  skos:notation "citation" ;
+  rdfs:comment "One citation string exactly as written in a DAK artefact. A cell holding several citations yields several nodes. Content-addressed in the DAK's namespace, so one string is one node across artefacts." .
+
+sgkg:ReferenceEntry a owl:Class ;
+  rdfs:subClassOf sgkg:Reference ;
+  rdfs:label "Reference entry" ;
+  skos:notation "reference-entry" ;
+  rdfs:comment "One row of a DAK artefact's own reference list: '(1)' and the full bibliographic text and URL it stands for. Resolved once; every citation numbered to it shares the result." .
+
+sgkg:TerminologyCode a owl:Class ;
+  rdfs:subClassOf sgkg:Reference ;
+  rdfs:label "Terminology code" ;
+  skos:notation "terminology-code" ;
+  rdfs:comment "A code in an external terminology — ICD-10, ICD-11, SNOMED CT, ATC, or a WHO classification such as CDHI. CROSS-REFERENCE ONLY. It records system, code and display, and asserts NOTHING about the terminology: no hierarchy, no subsumption, no synonyms, no post-coordination. The terminology has its own authority, its own release cycle and its own tooling, and a partial copy here would be wrong within one release. Resolve meaning against the terminology server, not against this graph." .
+
+### Value sets
+# Closed code lists bound to class properties. validate.ts rejects any other value.
+
+<http://smart.who.int/kg/valueset/publication-type> a skos:ConceptScheme ;
+  skos:notation "publication-type" ;
+  skos:note "source: WHO handbook for guideline development (2014), Table 1.2 and §1.7–1.9; the BCG decision table's citation for summary-table; CDHIv2.fsh for classification" ;
+  skos:note "bound to: publication.publicationType" ;
+  rdfs:comment "What kind of publication this is. The distinction that matters most for provenance is guideline versus not: a summary table or position paper restates recommendations made elsewhere, and a §1.9 product makes none of its own. Conflating them makes a citation resolve to the wrong authority." .
+<http://smart.who.int/kg/valueset/publication-type#standard-guideline> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "standard-guideline" ; skos:definition "Recommendations on a specific topic or condition, usually new. Most WHO guidelines. Handbook §1.7.1." .
+<http://smart.who.int/kg/valueset/publication-type#consolidated-guideline> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "consolidated-guideline" ; skos:definition "Aggregates existing recommendations on a disease or condition, evaluated as up to date; may add new ones. Existing recommendations must be explicitly cross-referenced. Handbook §1.7.2." .
+<http://smart.who.int/kg/valueset/publication-type#interim-guideline> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "interim-guideline" ; skos:definition "Guidance when data are incomplete and more are expected; short shelf-life, states when an update is anticipated. Handbook §1.7.3." .
+<http://smart.who.int/kg/valueset/publication-type#rapid-advice-guideline> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "rapid-advice-guideline" ; skos:definition "Produced in one to three months in a public health emergency, with a review-by date. Handbook §1.7.4, chapter 11." .
+<http://smart.who.int/kg/valueset/publication-type#emergency-guideline> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "emergency-guideline" ; skos:definition "Rapid response guidance within hours to days; may rest on expert opinion only. Handbook §1.7.4." .
+<http://smart.who.int/kg/valueset/publication-type#collaborative-guideline> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "collaborative-guideline" ; skos:definition "Developed with one or more external organizations sharing the remit. Handbook §1.8.1." .
+<http://smart.who.int/kg/valueset/publication-type#external-guideline> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "external-guideline" ; skos:definition "Developed by an external organization and adopted by WHO. Handbook §1.8.2." .
+<http://smart.who.int/kg/valueset/publication-type#adapted-guideline> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "adapted-guideline" ; skos:definition "An existing WHO guideline adapted to a local context by a Member State. Handbook §1.8.3, §13.1." .
+<http://smart.who.int/kg/valueset/publication-type#position-paper> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "position-paper" ; skos:definition "A WHO position paper — for vaccines, the SAGE-reviewed statement of WHO's position published in the Weekly Epidemiological Record. States recommendations; the immunization summary tables are drawn from these." .
+<http://smart.who.int/kg/valueset/publication-type#summary-table> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "summary-table" ; skos:definition "A tabular restatement of recommendations made in other publications — e.g. \"WHO recommendations for routine immunization – summary tables\". Cite-worthy, but not the originating authority: a citation resolving here should normally be followed on to the recommendation it restates." .
+<http://smart.who.int/kg/valueset/publication-type#classification> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "classification" ; skos:definition "A WHO classification, such as the Classification of Digital Health Interventions (CDHI). Its codes are cross-referenced through terminology-code, never modelled here." .
+<http://smart.who.int/kg/valueset/publication-type#implementation-guidance> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "implementation-guidance" ; skos:definition "An operational manual, implementation guide or tool based on approved guidelines — a \"how to\" document. Makes no recommendations of its own. Handbook §1.9. A DAK is one of these." .
+<http://smart.who.int/kg/valueset/publication-type#methodology> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "methodology" ; skos:definition "A document describing how guidance is produced — the guideline development handbook itself. Handbook §1.9 (standard operating procedures)." .
+<http://smart.who.int/kg/valueset/publication-type#supplement> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-type> ; skos:notation "supplement" ; skos:definition "A web annex or supplementary document of another publication, typically holding systematic reviews, GRADE evidence profiles and evidence-to-decision tables. Handbook §12.1. Reached by hasSupplement." .
+
+<http://smart.who.int/kg/valueset/identifier-type> a skos:ConceptScheme ;
+  skos:notation "identifier-type" ;
+  skos:note "source: WHO IRIS practice; CDHIv2.fsh carries an ISBN" ;
+  rdfs:comment "Which kind of identifier a publication carries. The first available, in this order, builds the publication IRI. url comes last: a web address is the least stable identifier and is used only for sources that have no other." .
+<http://smart.who.int/kg/valueset/identifier-type#isbn> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/identifier-type> ; skos:notation "isbn" ; skos:definition "ISBN-13, electronic version preferred." .
+<http://smart.who.int/kg/valueset/identifier-type#iris-handle> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/identifier-type> ; skos:notation "iris-handle" ; skos:definition "WHO IRIS handle, e.g. 10665/250796." .
+<http://smart.who.int/kg/valueset/identifier-type#doi> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/identifier-type> ; skos:notation "doi" ; skos:definition "Digital Object Identifier." .
+<http://smart.who.int/kg/valueset/identifier-type#issn> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/identifier-type> ; skos:notation "issn" ; skos:definition "ISSN, for serials such as the Weekly Epidemiological Record." .
+<http://smart.who.int/kg/valueset/identifier-type#url> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/identifier-type> ; skos:notation "url" ; skos:definition "The canonical web address of a WHO source published only on the web, such as the routine immunization summary tables or the UHC Compendium. Used for the IRI only when no isbn, iris-handle, doi or issn exists; scheme, query and trailing slash are dropped. A moved page is a new publication, linked to the old one by supersedes." .
+<http://smart.who.int/kg/valueset/identifier-type#other> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/identifier-type> ; skos:notation "other" ; skos:definition "Any other identifier; never used to build an IRI." .
+
+<http://smart.who.int/kg/valueset/grc-status> a skos:ConceptScheme ;
+  skos:notation "grc-status" ;
+  skos:note "source: WHO handbook for guideline development (2014), §1.7.2, §1.10.1" ;
+  skos:note "bound to: publication.grcStatus" ;
+  rdfs:comment "Whether the Guideline Review Committee approved the publication. All WHO publications containing recommendations must be approved (handbook §1.10.1); a consolidated guideline whose recommendations were all previously approved and unchanged does not require review (§1.7.2). Absent means not recorded — not the same as not reviewed." .
+<http://smart.who.int/kg/valueset/grc-status#approved> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/grc-status> ; skos:notation "approved" ; skos:definition "Approved by the GRC." .
+<http://smart.who.int/kg/valueset/grc-status#not-required> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/grc-status> ; skos:notation "not-required" ; skos:definition "GRC review was not required — a §1.9 product, or a consolidation of previously approved, unchanged recommendations." .
+<http://smart.who.int/kg/valueset/grc-status#not-reviewed> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/grc-status> ; skos:notation "not-reviewed" ; skos:definition "Contains recommendations and was not reviewed by the GRC — including those published before the GRC was established in 2007, which the handbook says should be updated (§12.5.2)." .
+
+<http://smart.who.int/kg/valueset/recommendation-kind> a skos:ConceptScheme ;
+  skos:notation "recommendation-kind" ;
+  skos:note "source: WHO handbook §10.4, §10.7; ANC guideline (2016) Table 1, verified; Guyatt et al. 2016 on good practice statements" ;
+  skos:note "bound to: recommendation.kind" ;
+  rdfs:comment "What sort of normative statement this is. Grading is optional: ANC 2016 prints a direction ('Recommended', 'Not recommended') and no GRADE strength. A strength always needs a direction. A good practice statement and a no-recommendation carry no strength or certainty, and a no-recommendation carries no direction." .
+<http://smart.who.int/kg/valueset/recommendation-kind#recommendation> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/recommendation-kind> ; skos:notation "recommendation" ; skos:definition "A graded recommendation, with a direction and a strength. Handbook §10.4." .
+<http://smart.who.int/kg/valueset/recommendation-kind#context-specific> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/recommendation-kind> ; skos:notation "context-specific" ; skos:definition "Recommended only in specified contexts or settings, stated in the recommendation. ANC guideline (2016) Table 1, verified." .
+<http://smart.who.int/kg/valueset/recommendation-kind#research-context> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/recommendation-kind> ; skos:notation "research-context" ; skos:definition "Recommended only in the context of rigorous research. ANC guideline (2016) Table 1, verified." .
+<http://smart.who.int/kg/valueset/recommendation-kind#good-practice-statement> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/recommendation-kind> ; skos:notation "good-practice-statement" ; skos:definition "An ungraded statement whose benefit is so clear that grading the evidence is not a useful exercise. Carries no strength or certainty. Guyatt et al. 2016." .
+<http://smart.who.int/kg/valueset/recommendation-kind#no-recommendation> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/recommendation-kind> ; skos:notation "no-recommendation" ; skos:definition "\"No recommendation can be made because…\" — the guideline development group decided the evidence could not support one. Handbook §10.7. Distinct from very-low certainty: absent evidence and weak evidence are different findings." .
+
+<http://smart.who.int/kg/valueset/recommendation-direction> a skos:ConceptScheme ;
+  skos:notation "recommendation-direction" ;
+  skos:note "source: WHO handbook for guideline development (2014) §10.1, §10.6" ;
+  skos:note "bound to: recommendation.direction" ;
+  rdfs:comment "For or against. The handbook prefers \"we recommend against X\" to \"X is not recommended\", which is ambiguous between against and no recommendation (§10.6)." .
+<http://smart.who.int/kg/valueset/recommendation-direction#for> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/recommendation-direction> ; skos:notation "for" ; skos:definition "The recommendation is in favour of the intervention." .
+<http://smart.who.int/kg/valueset/recommendation-direction#against> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/recommendation-direction> ; skos:notation "against" ; skos:definition "The recommendation is against the intervention." .
+
+<http://smart.who.int/kg/valueset/recommendation-strength> a skos:ConceptScheme ;
+  skos:notation "recommendation-strength" ;
+  skos:note "source: WHO handbook for guideline development (2014) §10.4" ;
+  skos:note "bound to: recommendation.strength" ;
+  rdfs:comment "GRADE strength. Strength is not certainty: a strong recommendation can rest on low-certainty evidence and a conditional one on high. Record \"weak\" as conditional; the handbook treats them as synonyms (§10.4)." .
+<http://smart.who.int/kg/valueset/recommendation-strength#strong> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/recommendation-strength> ; skos:notation "strong" ; skos:definition "The desirable effects of adherence clearly outweigh the undesirable. Handbook §10.4.1." .
+<http://smart.who.int/kg/valueset/recommendation-strength#conditional> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/recommendation-strength> ; skos:notation "conditional" ; skos:definition "Less certain about the balance of benefits and harms; generally states the conditions under which to implement. Also called weak. Handbook §10.4.2." .
+
+<http://smart.who.int/kg/valueset/certainty> a skos:ConceptScheme ;
+  skos:notation "certainty" ;
+  skos:note "source: WHO handbook for guideline development (2014) §9.1, §9.5–9.6" ;
+  skos:note "bound to: recommendation.overallCertainty, evidence.certainty" ;
+  rdfs:comment "GRADE certainty of evidence. The 2014 handbook calls it quality of evidence and names certainty as a synonym (§9.1). Rated per outcome on evidence; the overall certainty on a recommendation is the lowest across its critical outcomes (§9.6)." .
+<http://smart.who.int/kg/valueset/certainty#high> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/certainty> ; skos:notation "high" ; skos:definition "Very confident the true effect lies close to the estimate." .
+<http://smart.who.int/kg/valueset/certainty#moderate> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/certainty> ; skos:notation "moderate" ; skos:definition "Moderately confident; the true effect is likely close to the estimate but may be substantially different." .
+<http://smart.who.int/kg/valueset/certainty#low> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/certainty> ; skos:notation "low" ; skos:definition "Limited confidence; the true effect may be substantially different." .
+<http://smart.who.int/kg/valueset/certainty#very-low> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/certainty> ; skos:notation "very-low" ; skos:definition "Very little confidence; the true effect is likely substantially different. Not the same as no evidence — that is kind no-recommendation." .
+
+<http://smart.who.int/kg/valueset/outcome-importance> a skos:ConceptScheme ;
+  skos:notation "outcome-importance" ;
+  skos:note "source: WHO handbook for guideline development (2014) §7.6, Fig. 7.1" ;
+  skos:note "bound to: outcome.importance" ;
+  rdfs:comment "How the guideline development group rated an outcome on the 1–9 scale: 7–9 critical, 4–6 important. Unimportant outcomes are not carried into evidence profiles, so they have no code here." .
+<http://smart.who.int/kg/valueset/outcome-importance#critical> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/outcome-importance> ; skos:notation "critical" ; skos:definition "Rated 7–9: critical for decision-making. Only critical outcomes determine overall certainty." .
+<http://smart.who.int/kg/valueset/outcome-importance#important> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/outcome-importance> ; skos:notation "important" ; skos:definition "Rated 4–6: important but not critical for decision-making." .
+
+<http://smart.who.int/kg/valueset/recommendation-status> a skos:ConceptScheme ;
+  skos:notation "recommendation-status" ;
+  skos:note "source: WHO handbook for guideline development (2014) §1.7.2, §12.5" ;
+  skos:note "bound to: recommendation.status" ;
+  rdfs:comment "Whether a recommendation is still in force. Recommendations in one guideline go out of date at different times (§1.7.2), and a department that doubts a recommendation's validity should say so before the update is done (§12.5.4). This is what impact analysis filters on." .
+<http://smart.who.int/kg/valueset/recommendation-status#current> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/recommendation-status> ; skos:notation "current" ; skos:definition "In force." .
+<http://smart.who.int/kg/valueset/recommendation-status#under-review> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/recommendation-status> ; skos:notation "under-review" ; skos:definition "Flagged as possibly out of date, with an update planned. Handbook §12.5.4." .
+<http://smart.who.int/kg/valueset/recommendation-status#superseded> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/recommendation-status> ; skos:notation "superseded" ; skos:definition "Replaced by another recommendation, reached by supersedes." .
+<http://smart.who.int/kg/valueset/recommendation-status#withdrawn> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/recommendation-status> ; skos:notation "withdrawn" ; skos:definition "Withdrawn without replacement." .
+
+<http://smart.who.int/kg/valueset/change-status> a skos:ConceptScheme ;
+  skos:notation "change-status" ;
+  skos:note "source: Consolidated guidelines on person-centred HIV strategic information (2022), summary recommendations; handbook §1.7.2" ;
+  skos:note "bound to: recommendation.changeStatus, indicator.changeStatus" ;
+  rdfs:comment "Whether this edition of a consolidated guideline introduces, updates or carries a recommendation or indicator unchanged. Printed as NEW / UPDATE tags." .
+<http://smart.who.int/kg/valueset/change-status#new> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/change-status> ; skos:notation "new" ; skos:definition "Introduced in this edition." .
+<http://smart.who.int/kg/valueset/change-status#updated> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/change-status> ; skos:notation "updated" ; skos:definition "Changed in this edition." .
+<http://smart.who.int/kg/valueset/change-status#unchanged> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/change-status> ; skos:notation "unchanged" ; skos:definition "Carried from an earlier edition without change." .
+
+<http://smart.who.int/kg/valueset/intervention-type> a skos:ConceptScheme ;
+  skos:notation "intervention-type" ;
+  skos:note "source: WHO handbook §1.7.1 (clinical, health system, public health, diagnostic, surveillance); digital interventions per CDHI" ;
+  skos:note "bound to: recommendation.interventionType, health-intervention.interventionType" ;
+  rdfs:comment "DRAFT. What kind of intervention a recommendation or catalogued intervention concerns. To be aligned with the UHC Compendium's categories once checked." .
+<http://smart.who.int/kg/valueset/intervention-type#medicine> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/intervention-type> ; skos:notation "medicine" ; skos:definition "A medicine or supplement." .
+<http://smart.who.int/kg/valueset/intervention-type#vaccine> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/intervention-type> ; skos:notation "vaccine" ; skos:definition "A vaccine." .
+<http://smart.who.int/kg/valueset/intervention-type#diagnostic> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/intervention-type> ; skos:notation "diagnostic" ; skos:definition "A test or screening." .
+<http://smart.who.int/kg/valueset/intervention-type#procedure> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/intervention-type> ; skos:notation "procedure" ; skos:definition "A clinical procedure." .
+<http://smart.who.int/kg/valueset/intervention-type#device-product> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/intervention-type> ; skos:notation "device-product" ; skos:definition "A device or commodity." .
+<http://smart.who.int/kg/valueset/intervention-type#behavioural> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/intervention-type> ; skos:notation "behavioural" ; skos:definition "Counselling, education or behaviour change." .
+<http://smart.who.int/kg/valueset/intervention-type#public-health> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/intervention-type> ; skos:notation "public-health" ; skos:definition "A population-level public health measure." .
+<http://smart.who.int/kg/valueset/intervention-type#health-system> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/intervention-type> ; skos:notation "health-system" ; skos:definition "Service delivery, workforce or financing." .
+<http://smart.who.int/kg/valueset/intervention-type#health-information> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/intervention-type> ; skos:notation "health-information" ; skos:definition "Data collection, monitoring or surveillance." .
+<http://smart.who.int/kg/valueset/intervention-type#digital> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/intervention-type> ; skos:notation "digital" ; skos:definition "A digital health intervention, classified by CDHI." .
+
+<http://smart.who.int/kg/valueset/remark-type> a skos:ConceptScheme ;
+  skos:notation "remark-type" ;
+  skos:note "source: ANC guideline (2016) p. 15; handbook §10.6, §10.8" ;
+  skos:note "bound to: remark.remarkType" ;
+  rdfs:comment "What a remark is for. Grounded in the six remarks attached to ANC recommendation A.1.1." .
+<http://smart.who.int/kg/valueset/remark-type#definition> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/remark-type> ; skos:notation "definition" ; skos:definition "Defines a term used in the recommendation." .
+<http://smart.who.int/kg/valueset/remark-type#implementation> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/remark-type> ; skos:notation "implementation" ; skos:definition "How to put the recommendation into practice." .
+<http://smart.who.int/kg/valueset/remark-type#precaution> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/remark-type> ; skos:notation "precaution" ; skos:definition "A caution to observe when applying it." .
+<http://smart.who.int/kg/valueset/remark-type#contraindication> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/remark-type> ; skos:notation "contraindication" ; skos:definition "When the intervention must not be given." .
+<http://smart.who.int/kg/valueset/remark-type#subgroup> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/remark-type> ; skos:notation "subgroup" ; skos:definition "Guidance specific to a subgroup." .
+<http://smart.who.int/kg/valueset/remark-type#research-gap> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/remark-type> ; skos:notation "research-gap" ; skos:definition "Evidence the guideline group says is still needed (handbook §10.8)." .
+<http://smart.who.int/kg/valueset/remark-type#training> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/remark-type> ; skos:notation "training" ; skos:definition "A training or capacity need." .
+
+<http://smart.who.int/kg/valueset/evidence-type> a skos:ConceptScheme ;
+  skos:notation "evidence-type" ;
+  skos:note "source: ANC guideline (2016) methods (GRADE and GRADE-CERQual)" ;
+  skos:note "bound to: evidence.evidenceType" ;
+  rdfs:comment "Which kind of evidence a row is, and so which scale its certainty is on: GRADE for effects, GRADE-CERQual for qualitative findings." .
+<http://smart.who.int/kg/valueset/evidence-type#effect> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/evidence-type> ; skos:notation "effect" ; skos:definition "Quantitative effect estimate; certainty is GRADE." .
+<http://smart.who.int/kg/valueset/evidence-type#qualitative> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/evidence-type> ; skos:notation "qualitative" ; skos:definition "Qualitative finding; certainty is GRADE-CERQual confidence." .
+<http://smart.who.int/kg/valueset/evidence-type#resource-use> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/evidence-type> ; skos:notation "resource-use" ; skos:definition "Costs or resource requirements." .
+<http://smart.who.int/kg/valueset/evidence-type#other> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/evidence-type> ; skos:notation "other" ; skos:definition "Any other kind." .
+
+<http://smart.who.int/kg/valueset/element-type> a skos:ConceptScheme ;
+  skos:notation "element-type" ;
+  skos:note "source: Observed in the ANC and HIV SI guidelines and the immunization summary tables" ;
+  skos:note "bound to: publication-element.elementType" ;
+  rdfs:comment "What kind of printed block a publication element is." .
+<http://smart.who.int/kg/valueset/element-type#table> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/element-type> ; skos:notation "table" ; skos:definition "A table, with columns and rows." .
+<http://smart.who.int/kg/valueset/element-type#table-row> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/element-type> ; skos:notation "table-row" ; skos:definition "One row of a table." .
+<http://smart.who.int/kg/valueset/element-type#footnote> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/element-type> ; skos:notation "footnote" ; skos:definition "A footnote attached to a row or a block." .
+<http://smart.who.int/kg/valueset/element-type#figure> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/element-type> ; skos:notation "figure" ; skos:definition "A figure." .
+<http://smart.who.int/kg/valueset/element-type#chart> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/element-type> ; skos:notation "chart" ; skos:definition "A chart; its data stays with its source." .
+<http://smart.who.int/kg/valueset/element-type#image> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/element-type> ; skos:notation "image" ; skos:definition "An image." .
+<http://smart.who.int/kg/valueset/element-type#flowchart> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/element-type> ; skos:notation "flowchart" ; skos:definition "A flowchart or algorithm; its steps are modelled at L2, not here." .
+<http://smart.who.int/kg/valueset/element-type#box> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/element-type> ; skos:notation "box" ; skos:definition "A boxed panel." .
+<http://smart.who.int/kg/valueset/element-type#list> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/element-type> ; skos:notation "list" ; skos:definition "A list set apart on the page." .
+
+<http://smart.who.int/kg/valueset/row-type> a skos:ConceptScheme ;
+  skos:notation "row-type" ;
+  skos:note "source: HIV SI guideline Table 2.3; ANC Table 1" ;
+  skos:note "bound to: publication-element.rowType" ;
+  rdfs:comment "The role of a row within a table." .
+<http://smart.who.int/kg/valueset/row-type#header> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/row-type> ; skos:notation "header" ; skos:definition "A header row, including repeated headers on later pages." .
+<http://smart.who.int/kg/valueset/row-type#group> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/row-type> ; skos:notation "group" ; skos:definition "A group heading row such as 'A. Nutritional interventions'." .
+<http://smart.who.int/kg/valueset/row-type#data> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/row-type> ; skos:notation "data" ; skos:definition "A row carrying content." .
+<http://smart.who.int/kg/valueset/row-type#note> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/row-type> ; skos:notation "note" ; skos:definition "A note row inside the table." .
+
+<http://smart.who.int/kg/valueset/citation-kind> a skos:ConceptScheme ;
+  skos:notation "citation-kind" ;
+  skos:note "source: IMMZ DAK indicators workbook: '[Add appropriate reference]'" ;
+  skos:note "bound to: citation.citationKind" ;
+  rdfs:comment "Whether a citation string names a source, or stands in for one that is missing." .
+<http://smart.who.int/kg/valueset/citation-kind#reference> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/citation-kind> ; skos:notation "reference" ; skos:definition "Names a source." .
+<http://smart.who.int/kg/valueset/citation-kind#placeholder> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/citation-kind> ; skos:notation "placeholder" ; skos:definition "The author's marker that a source is still to be added. Never resolves; counted as a coverage gap." .
+
+<http://smart.who.int/kg/valueset/terminology-system> a skos:ConceptScheme ;
+  skos:notation "terminology-system" ;
+  skos:note "source: smart-base input/fsh/profiles/SGLogicalModel.fsh and Aliases.fsh; UHC Compendium; CDHIv2.fsh" ;
+  skos:note "bound to: terminology-code.system" ;
+  rdfs:comment "Code systems a DAK is expected to use. An unknown system is a warning, because a misspelt system silently breaks joins across guidelines." .
+<http://smart.who.int/kg/valueset/terminology-system#SMART> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/terminology-system> ; skos:notation "SMART" ; skos:definition "SMART Guidelines codes." .
+<http://smart.who.int/kg/valueset/terminology-system#ICD-11> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/terminology-system> ; skos:notation "ICD-11" ; skos:definition "ICD-11." .
+<http://smart.who.int/kg/valueset/terminology-system#ICF> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/terminology-system> ; skos:notation "ICF" ; skos:definition "ICF." .
+<http://smart.who.int/kg/valueset/terminology-system#ICHI> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/terminology-system> ; skos:notation "ICHI" ; skos:definition "International Classification of Health Interventions." .
+<http://smart.who.int/kg/valueset/terminology-system#SNOMED-GPS> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/terminology-system> ; skos:notation "SNOMED-GPS" ; skos:definition "SNOMED CT Global Patient Set." .
+<http://smart.who.int/kg/valueset/terminology-system#ATC> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/terminology-system> ; skos:notation "ATC" ; skos:definition "Anatomical Therapeutic Chemical classification." .
+<http://smart.who.int/kg/valueset/terminology-system#UHC> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/terminology-system> ; skos:notation "UHC" ; skos:definition "UHC Compendium of health interventions." .
+<http://smart.who.int/kg/valueset/terminology-system#CDHI> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/terminology-system> ; skos:notation "CDHI" ; skos:definition "Classification of Digital Health Interventions." .
+
+<http://smart.who.int/kg/valueset/resolution-status> a skos:ConceptScheme ;
+  skos:notation "resolution-status" ;
+  skos:note "source: docs/SCOPE.md" ;
+  skos:note "bound to: citation.resolutionStatus, reference-entry.resolutionStatus" ;
+  rdfs:comment "Whether a citation string has been matched to what it cites. `ambiguous` is a legitimate terminal state — two publications with similar titles is a question for a person — and must not be collapsed to resolved." .
+<http://smart.who.int/kg/valueset/resolution-status#unresolved> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/resolution-status> ; skos:notation "unresolved" ; skos:definition "Not yet matched." .
+<http://smart.who.int/kg/valueset/resolution-status#resolved> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/resolution-status> ; skos:notation "resolved" ; skos:definition "Matched; a resolvesTo edge says to what." .
+<http://smart.who.int/kg/valueset/resolution-status#ambiguous> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/resolution-status> ; skos:notation "ambiguous" ; skos:definition "More than one candidate, and choosing is a judgement for a person." .
+
+### Object properties
+
+sgkg:contains a owl:ObjectProperty ;
+  rdfs:label "contains" ;
+  rdfs:comment "Layout containment only: publication, sections, elements. It never points at content." .
+
+sgkg:hasSupplement a owl:ObjectProperty ;
+  rdfs:label "hasSupplement" ;
+  rdfs:comment "A guideline to its web annex or supplementary document (handbook §12.1)." .
+
+sgkg:supersedes a owl:ObjectProperty ;
+  rdfs:label "supersedes" ;
+  rdfs:comment "This replaces that, between publications and between individual recommendations (handbook §1.7.2, §12.5; ANC Table 1 footnotes)." .
+
+sgkg:refines a owl:ObjectProperty ;
+  rdfs:label "refines" ;
+  rdfs:comment "A recommendation narrows or conditions another." .
+
+sgkg:partOf a owl:ObjectProperty ;
+  rdfs:label "partOf" ;
+  rdfs:comment "A sub-recommendation a), b) to its parent. Each part carries its own change status (HIV SI 2022)." .
+
+sgkg:definedIn a owl:ObjectProperty ;
+  rdfs:label "definedIn" ;
+  rdfs:comment "The one publication that issued this content: its authority." .
+
+sgkg:presentedIn a owl:ObjectProperty ;
+  rdfs:label "presentedIn" ;
+  rdfs:comment "A place this content is printed, in any publication. Many per node. Restatement is presentedIn into a publication other than definedIn. The edge carries renderedText only when the printed wording differs from the stored text." .
+
+sgkg:answers a owl:ObjectProperty ;
+  rdfs:label "answers" ;
+  rdfs:comment "A recommendation answers a key question. Many-to-many (handbook §7.4)." .
+
+sgkg:addresses a owl:ObjectProperty ;
+  rdfs:label "addresses" ;
+  rdfs:comment "A row of an evidence profile addresses a key question." .
+
+sgkg:hasOutcome a owl:ObjectProperty ;
+  rdfs:label "hasOutcome" ;
+  rdfs:comment "A key question names an outcome. A list shared by several questions is one set of outcome nodes." .
+
+sgkg:forOutcome a owl:ObjectProperty ;
+  rdfs:label "forOutcome" ;
+  rdfs:comment "An evidence row grades one outcome. Optional: qualitative evidence may concern a criterion such as values." .
+
+sgkg:aboutIntervention a owl:ObjectProperty ;
+  rdfs:label "aboutIntervention" ;
+  rdfs:comment "The I of a key question, joined to a catalogued intervention." .
+
+sgkg:supportedBy a owl:ObjectProperty ;
+  rdfs:label "supportedBy" ;
+  rdfs:comment "A recommendation to the evidence it rests on." .
+
+sgkg:hasRemark a owl:ObjectProperty ;
+  rdfs:label "hasRemark" ;
+  rdfs:comment "A recommendation to a remark: definition, implementation, precaution, contraindication, subgroup, research gap or training." .
+
+sgkg:recommends a owl:ObjectProperty ;
+  rdfs:label "recommends" ;
+  rdfs:comment "A recommendation concerns a catalogued intervention. Optional: only when the mapping is known." .
+
+sgkg:measures a owl:ObjectProperty ;
+  rdfs:label "measures" ;
+  rdfs:comment "What an indicator counts: a catalogued intervention, or adherence to a recommendation (handbook Table 10.2)." .
+
+sgkg:justifiedBy a owl:ObjectProperty ;
+  rdfs:label "justifiedBy" ;
+  rdfs:comment "Why an indicator exists: the recommendation its rationale cites (HIV SI 2022, PRV.3)." .
+
+sgkg:crossReferences a owl:ObjectProperty ;
+  rdfs:label "crossReferences" ;
+  rdfs:comment "Names an external code. Records that a code was cited, never what it means. Terminology is a leaf." .
+
+sgkg:classifiedAs a owl:ObjectProperty ;
+  rdfs:label "classifiedAs" ;
+  rdfs:comment "Placement of a catalogued intervention in UHC, ICHI or CDHI." .
+
+sgkg:numberedAs a owl:ObjectProperty ;
+  rdfs:label "numberedAs" ;
+  rdfs:comment "A citation's '(n)' to row n of the same artefact's reference list. Mechanical." .
+
+sgkg:resolvesTo a owl:ObjectProperty ;
+  rdfs:label "resolvesTo" ;
+  rdfs:comment "What a citation or reference entry refers to, as precisely as the string allows. Matching is a judgement: inferred, or decided when a person chose between candidates." .
+
+### Licensed edges, as qualified sub-properties
+# One per (source class, predicate, target class) triple the layer licenses.
+# Domain and range on the sub-property is what preserves pairwise licensing: a single global
+# domain/range on the predicate would be a union of everything and would permit pairs the
+# model does not.
+
+sgkg:contains_Publication_PublicationSection a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:contains ;
+  rdfs:domain sgkg:Publication ;
+  rdfs:range sgkg:PublicationSection ;
+  rdfs:label "Publication contains Publication section" .
+
+sgkg:contains_PublicationSection_PublicationSection a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:contains ;
+  rdfs:domain sgkg:PublicationSection ;
+  rdfs:range sgkg:PublicationSection ;
+  skos:note "qualifier: subsection" ;
+  rdfs:label "Publication section subsection Publication section" .
+
+sgkg:contains_PublicationSection_PublicationElement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:contains ;
+  rdfs:domain sgkg:PublicationSection ;
+  rdfs:range sgkg:PublicationElement ;
+  rdfs:label "Publication section contains Publication element" .
+
+sgkg:contains_Publication_PublicationElement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:contains ;
+  rdfs:domain sgkg:Publication ;
+  rdfs:range sgkg:PublicationElement ;
+  skos:note "qualifier: unsectioned" ;
+  rdfs:label "Publication unsectioned Publication element" .
+
+sgkg:contains_PublicationElement_PublicationElement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:contains ;
+  rdfs:domain sgkg:PublicationElement ;
+  rdfs:range sgkg:PublicationElement ;
+  skos:note "qualifier: part" ;
+  rdfs:label "Publication element part Publication element" .
+
+sgkg:hasSupplement_Publication_Publication a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasSupplement ;
+  rdfs:domain sgkg:Publication ;
+  rdfs:range sgkg:Publication ;
+  rdfs:label "Publication hasSupplement Publication" .
+
+sgkg:supersedes_Publication_Publication a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:supersedes ;
+  rdfs:domain sgkg:Publication ;
+  rdfs:range sgkg:Publication ;
+  rdfs:label "Publication supersedes Publication" .
+
+sgkg:supersedes_Recommendation_Recommendation a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:supersedes ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:Recommendation ;
+  rdfs:label "Recommendation supersedes Recommendation" .
+
+sgkg:refines_Recommendation_Recommendation a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:refines ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:Recommendation ;
+  rdfs:label "Recommendation refines Recommendation" .
+
+sgkg:partOf_Recommendation_Recommendation a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:partOf ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:Recommendation ;
+  rdfs:label "Recommendation partOf Recommendation" .
+
+sgkg:definedIn_Recommendation_Publication a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:definedIn ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:Publication ;
+  rdfs:label "Recommendation definedIn Publication" .
+
+sgkg:definedIn_Indicator_Publication a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:definedIn ;
+  rdfs:domain sgkg:Indicator ;
+  rdfs:range sgkg:Publication ;
+  rdfs:label "Indicator definedIn Publication" .
+
+sgkg:definedIn_HealthIntervention_Publication a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:definedIn ;
+  rdfs:domain sgkg:HealthIntervention ;
+  rdfs:range sgkg:Publication ;
+  rdfs:label "Health intervention definedIn Publication" .
+
+sgkg:definedIn_KeyQuestion_Publication a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:definedIn ;
+  rdfs:domain sgkg:KeyQuestion ;
+  rdfs:range sgkg:Publication ;
+  rdfs:label "Key question definedIn Publication" .
+
+sgkg:definedIn_Evidence_Publication a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:definedIn ;
+  rdfs:domain sgkg:Evidence ;
+  rdfs:range sgkg:Publication ;
+  rdfs:label "Evidence definedIn Publication" .
+
+sgkg:definedIn_Outcome_Publication a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:definedIn ;
+  rdfs:domain sgkg:Outcome ;
+  rdfs:range sgkg:Publication ;
+  rdfs:label "Outcome definedIn Publication" .
+
+sgkg:definedIn_Remark_Publication a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:definedIn ;
+  rdfs:domain sgkg:Remark ;
+  rdfs:range sgkg:Publication ;
+  rdfs:label "Remark definedIn Publication" .
+
+sgkg:presentedIn_Recommendation_PublicationSection a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:PublicationSection ;
+  rdfs:label "Recommendation presentedIn Publication section" .
+
+sgkg:presentedIn_Recommendation_PublicationElement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:PublicationElement ;
+  rdfs:label "Recommendation presentedIn Publication element" .
+
+sgkg:presentedIn_Indicator_PublicationSection a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:Indicator ;
+  rdfs:range sgkg:PublicationSection ;
+  rdfs:label "Indicator presentedIn Publication section" .
+
+sgkg:presentedIn_Indicator_PublicationElement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:Indicator ;
+  rdfs:range sgkg:PublicationElement ;
+  rdfs:label "Indicator presentedIn Publication element" .
+
+sgkg:presentedIn_HealthIntervention_PublicationSection a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:HealthIntervention ;
+  rdfs:range sgkg:PublicationSection ;
+  rdfs:label "Health intervention presentedIn Publication section" .
+
+sgkg:presentedIn_HealthIntervention_PublicationElement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:HealthIntervention ;
+  rdfs:range sgkg:PublicationElement ;
+  rdfs:label "Health intervention presentedIn Publication element" .
+
+sgkg:presentedIn_KeyQuestion_PublicationSection a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:KeyQuestion ;
+  rdfs:range sgkg:PublicationSection ;
+  rdfs:label "Key question presentedIn Publication section" .
+
+sgkg:presentedIn_KeyQuestion_PublicationElement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:KeyQuestion ;
+  rdfs:range sgkg:PublicationElement ;
+  rdfs:label "Key question presentedIn Publication element" .
+
+sgkg:presentedIn_Evidence_PublicationSection a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:Evidence ;
+  rdfs:range sgkg:PublicationSection ;
+  rdfs:label "Evidence presentedIn Publication section" .
+
+sgkg:presentedIn_Evidence_PublicationElement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:Evidence ;
+  rdfs:range sgkg:PublicationElement ;
+  rdfs:label "Evidence presentedIn Publication element" .
+
+sgkg:presentedIn_Outcome_PublicationSection a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:Outcome ;
+  rdfs:range sgkg:PublicationSection ;
+  rdfs:label "Outcome presentedIn Publication section" .
+
+sgkg:presentedIn_Outcome_PublicationElement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:Outcome ;
+  rdfs:range sgkg:PublicationElement ;
+  rdfs:label "Outcome presentedIn Publication element" .
+
+sgkg:presentedIn_Remark_PublicationSection a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:Remark ;
+  rdfs:range sgkg:PublicationSection ;
+  rdfs:label "Remark presentedIn Publication section" .
+
+sgkg:presentedIn_Remark_PublicationElement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:presentedIn ;
+  rdfs:domain sgkg:Remark ;
+  rdfs:range sgkg:PublicationElement ;
+  rdfs:label "Remark presentedIn Publication element" .
+
+sgkg:answers_Recommendation_KeyQuestion a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:answers ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:KeyQuestion ;
+  rdfs:label "Recommendation answers Key question" .
+
+sgkg:addresses_Evidence_KeyQuestion a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:addresses ;
+  rdfs:domain sgkg:Evidence ;
+  rdfs:range sgkg:KeyQuestion ;
+  rdfs:label "Evidence addresses Key question" .
+
+sgkg:hasOutcome_KeyQuestion_Outcome a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasOutcome ;
+  rdfs:domain sgkg:KeyQuestion ;
+  rdfs:range sgkg:Outcome ;
+  rdfs:label "Key question hasOutcome Outcome" .
+
+sgkg:forOutcome_Evidence_Outcome a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:forOutcome ;
+  rdfs:domain sgkg:Evidence ;
+  rdfs:range sgkg:Outcome ;
+  rdfs:label "Evidence forOutcome Outcome" .
+
+sgkg:aboutIntervention_KeyQuestion_HealthIntervention a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:aboutIntervention ;
+  rdfs:domain sgkg:KeyQuestion ;
+  rdfs:range sgkg:HealthIntervention ;
+  rdfs:label "Key question aboutIntervention Health intervention" .
+
+sgkg:supportedBy_Recommendation_Evidence a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:supportedBy ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:Evidence ;
+  rdfs:label "Recommendation supportedBy Evidence" .
+
+sgkg:hasRemark_Recommendation_Remark a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasRemark ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:Remark ;
+  rdfs:label "Recommendation hasRemark Remark" .
+
+sgkg:recommends_Recommendation_HealthIntervention a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:recommends ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:HealthIntervention ;
+  rdfs:label "Recommendation recommends Health intervention" .
+
+sgkg:measures_Indicator_HealthIntervention a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:measures ;
+  rdfs:domain sgkg:Indicator ;
+  rdfs:range sgkg:HealthIntervention ;
+  rdfs:label "Indicator measures Health intervention" .
+
+sgkg:measures_Indicator_Recommendation a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:measures ;
+  rdfs:domain sgkg:Indicator ;
+  rdfs:range sgkg:Recommendation ;
+  rdfs:label "Indicator measures Recommendation" .
+
+sgkg:justifiedBy_Indicator_Recommendation a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:justifiedBy ;
+  rdfs:domain sgkg:Indicator ;
+  rdfs:range sgkg:Recommendation ;
+  rdfs:label "Indicator justifiedBy Recommendation" .
+
+sgkg:crossReferences_Recommendation_TerminologyCode a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:TerminologyCode ;
+  rdfs:label "Recommendation crossReferences Terminology code" .
+
+sgkg:crossReferences_Recommendation_TerminologyCode_2 a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:TerminologyCode ;
+  skos:note "qualifier: intervention" ;
+  rdfs:label "Recommendation intervention Terminology code" .
+
+sgkg:crossReferences_Recommendation_TerminologyCode_3 a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:TerminologyCode ;
+  skos:note "qualifier: population" ;
+  rdfs:label "Recommendation population Terminology code" .
+
+sgkg:crossReferences_Recommendation_TerminologyCode_4 a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:TerminologyCode ;
+  skos:note "qualifier: setting" ;
+  rdfs:label "Recommendation setting Terminology code" .
+
+sgkg:crossReferences_Recommendation_TerminologyCode_5 a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:TerminologyCode ;
+  skos:note "qualifier: provider" ;
+  rdfs:label "Recommendation provider Terminology code" .
+
+sgkg:crossReferences_Recommendation_TerminologyCode_6 a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:TerminologyCode ;
+  skos:note "qualifier: timing" ;
+  rdfs:label "Recommendation timing Terminology code" .
+
+sgkg:crossReferences_KeyQuestion_TerminologyCode a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:KeyQuestion ;
+  rdfs:range sgkg:TerminologyCode ;
+  rdfs:label "Key question crossReferences Terminology code" .
+
+sgkg:crossReferences_Indicator_TerminologyCode a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:Indicator ;
+  rdfs:range sgkg:TerminologyCode ;
+  rdfs:label "Indicator crossReferences Terminology code" .
+
+sgkg:crossReferences_HealthIntervention_TerminologyCode a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:HealthIntervention ;
+  rdfs:range sgkg:TerminologyCode ;
+  rdfs:label "Health intervention crossReferences Terminology code" .
+
+sgkg:crossReferences_Outcome_TerminologyCode a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:Outcome ;
+  rdfs:range sgkg:TerminologyCode ;
+  rdfs:label "Outcome crossReferences Terminology code" .
+
+sgkg:classifiedAs_HealthIntervention_TerminologyCode a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:classifiedAs ;
+  rdfs:domain sgkg:HealthIntervention ;
+  rdfs:range sgkg:TerminologyCode ;
+  skos:note "qualifier: UHC" ;
+  rdfs:label "Health intervention UHC Terminology code" .
+
+sgkg:classifiedAs_HealthIntervention_TerminologyCode_2 a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:classifiedAs ;
+  rdfs:domain sgkg:HealthIntervention ;
+  rdfs:range sgkg:TerminologyCode ;
+  skos:note "qualifier: ICHI" ;
+  rdfs:label "Health intervention ICHI Terminology code" .
+
+sgkg:classifiedAs_HealthIntervention_TerminologyCode_3 a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:classifiedAs ;
+  rdfs:domain sgkg:HealthIntervention ;
+  rdfs:range sgkg:TerminologyCode ;
+  skos:note "qualifier: CDHI" ;
+  rdfs:label "Health intervention CDHI Terminology code" .
+
+sgkg:numberedAs_Citation_ReferenceEntry a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:numberedAs ;
+  rdfs:domain sgkg:Citation ;
+  rdfs:range sgkg:ReferenceEntry ;
+  rdfs:label "Citation numberedAs Reference entry" .
+
+sgkg:resolvesTo_Citation_Publication a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:resolvesTo ;
+  rdfs:domain sgkg:Citation ;
+  rdfs:range sgkg:Publication ;
+  rdfs:label "Citation resolvesTo Publication" .
+
+sgkg:resolvesTo_Citation_PublicationSection a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:resolvesTo ;
+  rdfs:domain sgkg:Citation ;
+  rdfs:range sgkg:PublicationSection ;
+  rdfs:label "Citation resolvesTo Publication section" .
+
+sgkg:resolvesTo_Citation_PublicationElement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:resolvesTo ;
+  rdfs:domain sgkg:Citation ;
+  rdfs:range sgkg:PublicationElement ;
+  rdfs:label "Citation resolvesTo Publication element" .
+
+sgkg:resolvesTo_Citation_Recommendation a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:resolvesTo ;
+  rdfs:domain sgkg:Citation ;
+  rdfs:range sgkg:Recommendation ;
+  rdfs:label "Citation resolvesTo Recommendation" .
+
+sgkg:resolvesTo_Citation_Indicator a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:resolvesTo ;
+  rdfs:domain sgkg:Citation ;
+  rdfs:range sgkg:Indicator ;
+  rdfs:label "Citation resolvesTo Indicator" .
+
+sgkg:resolvesTo_Citation_HealthIntervention a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:resolvesTo ;
+  rdfs:domain sgkg:Citation ;
+  rdfs:range sgkg:HealthIntervention ;
+  rdfs:label "Citation resolvesTo Health intervention" .
+
+sgkg:resolvesTo_ReferenceEntry_Publication a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:resolvesTo ;
+  rdfs:domain sgkg:ReferenceEntry ;
+  rdfs:range sgkg:Publication ;
+  rdfs:label "Reference entry resolvesTo Publication" .
+
+sgkg:resolvesTo_ReferenceEntry_PublicationSection a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:resolvesTo ;
+  rdfs:domain sgkg:ReferenceEntry ;
+  rdfs:range sgkg:PublicationSection ;
+  rdfs:label "Reference entry resolvesTo Publication section" .
+
+sgkg:resolvesTo_ReferenceEntry_PublicationElement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:resolvesTo ;
+  rdfs:domain sgkg:ReferenceEntry ;
+  rdfs:range sgkg:PublicationElement ;
+  rdfs:label "Reference entry resolvesTo Publication element" .
+
+sgkg:resolvesTo_ReferenceEntry_Recommendation a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:resolvesTo ;
+  rdfs:domain sgkg:ReferenceEntry ;
+  rdfs:range sgkg:Recommendation ;
+  rdfs:label "Reference entry resolvesTo Recommendation" .
+
+sgkg:resolvesTo_ReferenceEntry_Indicator a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:resolvesTo ;
+  rdfs:domain sgkg:ReferenceEntry ;
+  rdfs:range sgkg:Indicator ;
+  rdfs:label "Reference entry resolvesTo Indicator" .
+
+sgkg:resolvesTo_ReferenceEntry_HealthIntervention a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:resolvesTo ;
+  rdfs:domain sgkg:ReferenceEntry ;
+  rdfs:range sgkg:HealthIntervention ;
+  rdfs:label "Reference entry resolvesTo Health intervention" .
+

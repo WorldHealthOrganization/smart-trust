@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "What does the head's evidence say?" — GW_Evidence in merge-to-main.bpmn.
+  Skill: merge-to-main §"Evidence — read on the head, live, every time".
+
+  The facts are READ on the PR's current head, never supplied from memory:
+
+    ciState   "green" | "red" | "pending" | "none" | "unreadable"
+              per OWED job on the head SHA. "none" means the repository
+              declares no workflow for the event, so nothing tested the head:
+              it is NOT green. "unreadable" means the runs could not be asked.
+              Where merge:guard exists, its check 5 supplies this; its refusal
+              "no pull_request run names the head" in a repository with no
+              workflow files reads as "none".
+    mergeable "clean" | "dirty" | "unknown"
+    review    "clear" | "blocking" | "unknown" — open CHANGES_REQUESTED, a
+              draft, needs-merge-human, and Claude Approvals where the
+              repository runs it (no approval on the head is "blocking").
+    release   true | false — the merge is a release (merge:guard's release flag,
+              or the PR carries the `release` label). Owner, card Q-CIB-4 A,
+              2026-11-08: "CI not gate on non-release merge to main". So CI
+              gates a release only; on any other merge ciState is read and
+              reported, and mergeability and review still decide.
+
+  Hit policy FIRST, so the order is the precedence: a defect hands back before
+  anything else is asked; could-not-determine is never a pass; "none" is its
+  own branch, never folded into "ready".
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_MergeEvidence"
+             name="Merge evidence"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_MergeEvidence" name="What does the head's evidence say?">
+    <decisionTable id="Table_MergeEvidence" hitPolicy="FIRST">
+      <input id="In_Ci" label="CI on the head, per owed job">
+        <inputExpression id="Expr_Ci" typeRef="string"><text>ciState</text></inputExpression>
+      </input>
+      <input id="In_Mergeable" label="GitHub's mergeability of the head into main">
+        <inputExpression id="Expr_Mergeable" typeRef="string"><text>mergeable</text></inputExpression>
+      </input>
+      <input id="In_Review" label="review state, including Claude Approvals where run">
+        <inputExpression id="Expr_Review" typeRef="string"><text>review</text></inputExpression>
+      </input>
+      <input id="In_Release" label="the merge is a release (CI gates it)">
+        <inputExpression id="Expr_Release" typeRef="boolean"><text>release</text></inputExpression>
+      </input>
+      <output id="Out_Evidence" name="outcome" typeRef="string" />
+      <rule id="Rule_RedCi">
+        <description>On a release, a red owed job is a defect in the PR: it goes back to its owner.</description>
+        <inputEntry id="IE_RedCi_1"><text>"red"</text></inputEntry>
+        <inputEntry id="IE_RedCi_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_RedCi_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_RedCi_4"><text>true</text></inputEntry>
+        <outputEntry id="OE_RedCi"><text>"hand-back"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Dirty">
+        <description>The head conflicts with main: the owner merges main in, not the merger.</description>
+        <inputEntry id="IE_Dirty_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Dirty_2"><text>"dirty"</text></inputEntry>
+        <inputEntry id="IE_Dirty_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Dirty_4"><text>-</text></inputEntry>
+        <outputEntry id="OE_Dirty"><text>"hand-back"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Blocking">
+        <description>A blocking review, a draft, needs-merge-human, or no Claude Approval where the repository runs it.</description>
+        <inputEntry id="IE_Blocking_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Blocking_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Blocking_3"><text>"blocking"</text></inputEntry>
+        <inputEntry id="IE_Blocking_4"><text>-</text></inputEntry>
+        <outputEntry id="OE_Blocking"><text>"hand-back"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Unreadable">
+        <description>The runs could not be asked about. Could not determine is never a pass, and permission does not fix a read that failed.</description>
+        <inputEntry id="IE_Unreadable_1"><text>"unreadable"</text></inputEntry>
+        <inputEntry id="IE_Unreadable_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Unreadable_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Unreadable_4"><text>true</text></inputEntry>
+        <outputEntry id="OE_Unreadable"><text>"unknown"</text></outputEntry>
+      </rule>
+      <rule id="Rule_ReviewUnknown">
+        <description>The review state could not be read.</description>
+        <inputEntry id="IE_ReviewUnknown_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_ReviewUnknown_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_ReviewUnknown_3"><text>"unknown"</text></inputEntry>
+        <inputEntry id="IE_ReviewUnknown_4"><text>-</text></inputEntry>
+        <outputEntry id="OE_ReviewUnknown"><text>"unknown"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Pending">
+        <description>Owed runs still in flight: not ready yet, and not a defect.</description>
+        <inputEntry id="IE_Pending_1"><text>"pending"</text></inputEntry>
+        <inputEntry id="IE_Pending_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Pending_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Pending_4"><text>true</text></inputEntry>
+        <outputEntry id="OE_Pending"><text>"not-yet"</text></outputEntry>
+      </rule>
+      <rule id="Rule_MergeableUnknown">
+        <description>GitHub has not computed mergeability yet. Re-enter once it has.</description>
+        <inputEntry id="IE_MergeableUnknown_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_MergeableUnknown_2"><text>"unknown"</text></inputEntry>
+        <inputEntry id="IE_MergeableUnknown_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_MergeableUnknown_4"><text>-</text></inputEntry>
+        <outputEntry id="OE_MergeableUnknown"><text>"not-yet"</text></outputEntry>
+      </rule>
+      <rule id="Rule_NoCi">
+        <description>The repository runs no CI. Nothing tested this head, so it is not green: local gates, then an authorisation no standing waiver can give.</description>
+        <inputEntry id="IE_NoCi_1"><text>"none"</text></inputEntry>
+        <inputEntry id="IE_NoCi_2"><text>"clean"</text></inputEntry>
+        <inputEntry id="IE_NoCi_3"><text>"clear"</text></inputEntry>
+        <inputEntry id="IE_NoCi_4"><text>true</text></inputEntry>
+        <outputEntry id="OE_NoCi"><text>"no-ci"</text></outputEntry>
+      </rule>
+      <rule id="Rule_AdvisoryCi">
+        <description>A non-release merge: CI is advisory, not a gate (owner, card Q-CIB-4 A, 2026-11-08). The head merges cleanly and review is clear, so it is ready; what CI said goes in the report.</description>
+        <inputEntry id="IE_AdvisoryCi_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_AdvisoryCi_2"><text>"clean"</text></inputEntry>
+        <inputEntry id="IE_AdvisoryCi_3"><text>"clear"</text></inputEntry>
+        <inputEntry id="IE_AdvisoryCi_4"><text>false</text></inputEntry>
+        <outputEntry id="OE_AdvisoryCi"><text>"ready"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Ready">
+        <description>Every owed job green on the head, the head merges cleanly, and review is clear.</description>
+        <inputEntry id="IE_Ready_1"><text>"green"</text></inputEntry>
+        <inputEntry id="IE_Ready_2"><text>"clean"</text></inputEntry>
+        <inputEntry id="IE_Ready_3"><text>"clear"</text></inputEntry>
+        <inputEntry id="IE_Ready_4"><text>-</text></inputEntry>
+        <outputEntry id="OE_Ready"><text>"ready"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Unclassified">
+        <description>Any other combination was not foreseen by this table. It is reported as could-not-determine rather than guessed.</description>
+        <inputEntry id="IE_Unclassified_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Unclassified_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Unclassified_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Unclassified_4"><text>-</text></inputEntry>
+        <outputEntry id="OE_Unclassified"><text>"unknown"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

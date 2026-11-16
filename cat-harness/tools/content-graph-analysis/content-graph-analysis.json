@@ -1,0 +1,108 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "content-graph-analysis",
+    "title": "Editorial content-graph analysis",
+    "description": "Build the block- and section-level editorial dependency graph of one paper from its `.ts` manifests and report forward references, cross-chapter coupling, sparse or dense sections and isolated blocks, ranked. Reads `uses[]`/`interprets` only — the editorial relation, never the formal one.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat content:graph-analysis"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "paper",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "The paper: a directory name under the folio directory, or a path to it. When omitted, the folio's only paper; required when the folio holds several.",
+          "required": false,
+          "arg": {
+            "flag": "--paper"
+          }
+        },
+        {
+          "name": "chapter",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "Restrict the analysis to one chapter directory.",
+          "required": false,
+          "arg": {
+            "flag": "--chapter"
+          }
+        },
+        {
+          "name": "json",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Emit the whole graph as JSON on stdout and exit.",
+          "required": false,
+          "arg": {
+            "flag": "--json"
+          }
+        },
+        {
+          "name": "md",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Write the report to /tmp/content-graph-report.md.",
+          "required": false,
+          "arg": {
+            "flag": "--md"
+          }
+        },
+        {
+          "name": "visualise",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Render the Graphviz SVGs (needs graphviz).",
+          "required": false,
+          "arg": {
+            "flag": "--visualise"
+          }
+        },
+        {
+          "name": "proposals",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Write concrete reorganisation proposals to /tmp/content-graph-proposals.md.",
+          "required": false,
+          "arg": {
+            "flag": "--proposals"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The ranked findings, or the graph as JSON with `--json`."
+        }
+      ]
+    },
+    "satisfies": [
+      "content-graph"
+    ],
+    "requires": {
+      "runtime": [
+        "python3"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "── Scripts a skill used to list as its own (#1168, B3) ─────────────────\n\nUntil B3 a skill named its scripts (`SkillDefinition.scripts`), which is\nthe general node pointing at its dependents: every new script meant an\nedit to the skill. Each script that exists is now a Tool that names the\nskill it `satisfies`; the entries naming a script that does not exist\n(eleven, e.g. `scripts/verify-proofs.sh`) were dropped rather than\nmodelled, since a Tool whose command is missing is a false claim."
+    }
+  ]
+}

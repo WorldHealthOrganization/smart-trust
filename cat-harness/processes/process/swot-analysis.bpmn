@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_SwotAnalysis" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="business-analyst" name="Business analyst"/>
+  <bpmn:resource id="stakeholder" name="Stakeholder"/>
+  <bpmn:collaboration id="Collaboration_Process_SwotAnalysis">
+    <bpmn:participant id="Participant_Process_SwotAnalysis" name="SWOT situation analysis" processRef="Process_SwotAnalysis"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_SwotAnalysis" name="SWOT situation analysis" isExecutable="false">
+    <bpmn:documentation>Situation analysis over two axes — internal/external and helpful/harmful — producing the raw material a decision is made from, and NEVER the decision.
+
+THE ONE STRUCTURAL CLAIM THIS DIAGRAM MAKES: there is no path through it that decides anything. Every completed run ends either at a recorded situation or at a handoff into `options-analysis`, which selects a decision methodology. That is not a modelling preference; it is the `swot` methodology's stated refusal drawn so it cannot be skipped. Gürel and Tat's conclusion is that SWOT gives "the raw material needed to perform more in-depth strategic analysis" but "cannot show them how to achieve a competitive advantage", and that it must not become "an end in itself". A diagram with a decide-here activity would contradict the methodology it implements.
+
+WHY EXTERNAL IS SCANNED FIRST: Weihrich (1982), reported in the source, holds that the only logical starting point is opportunities and threats — they are outside the organisation and largely beyond its control, and must be managed using its strengths and weaknesses. The order is his argument, rendered; it is not a house preference.
+
+WHAT IT DOES NOT DO: it does not rank the factors it finds. The source is explicit that SWOT has no way to prioritise — "quantity does not mean quality" — and the long list of quantitative extensions it surveys (AHP, ANP, their fuzzy variants, SMART, SMAA-O, MADM, TRIZ) is NOT adopted here. An activity that scored or weighted factors would be inventing the part of the method that does not exist.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_SwotAnalysis">
+      <bpmn:lane id="Lane_BusinessAnalyst" name="Business analyst" partitionElementRef="business-analyst">
+        <bpmn:documentation>Performs the scan and the crossing. This lane owns the analysis and owns nothing else: it does not authorise, and it does not choose between options. Its deliverable is four lists, the four matched strategies, and an explicit record of what could not be classified.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Process_SwotAnalysis</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_FrameSubject</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ScanExternal</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ScanInternal</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_RecordAmbiguous</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Cross</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_DecisionFollows</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_HandOff</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_SituationRecorded</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_HandedToDecision</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Stakeholder" name="Stakeholder" partitionElementRef="stakeholder">
+        <!-- Bound EXPLICITLY even though the lane name matches the role id.
+             `code-change-review.bpmn` states the reason on its own reviewer
+             lane: "a binding that works by coincidence of wording is one
+             rename from silently unbinding." -->
+        <bpmn:documentation>Consulted, in a lane of their own because the source names group discussion as a property of the method rather than as good practice around it: SWOT "promotes group discussion about strategic issues" and pools knowledge through participatory techniques. It is also the mitigation for the limitation the source states most sharply — that a list of strengths is "bound up with aspirations, biases, and hope of the individuals involved". A single analyst producing four lists alone has performed the technique's shape without the part that checks it.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_GroupReview</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Process_SwotAnalysis" name="A situation must be understood"/>
+    <bpmn:task id="A_FrameSubject" name="Name the subject&#10;and the level">
+      <bpmn:documentation>One sentence naming WHAT is being analysed and at WHICH level — individual, organisational, national, international. The source requires this before anything is listed: "the classification of a variable also depends on the purpose of the practice", and the criteria for assigning a variable to a quadrant "may be more difficult to clarify if the methodology is not used for a company but for a country".
+
+It also bounds the known limitation that SWOT "is rarely deployed at lower than the organization level", where one scan drives strategy for units its factors do not hold equally for. Naming the level does not remove that risk; it makes it visible in the record.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="swot-analysis"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_ScanExternal" name="Scan the environment&#10;opportunities and threats">
+      <bpmn:documentation>The external axis, first, per Weihrich. Work the source's categories of environmental change rather than free-associating: societal, governmental, economic, competitive, supplier and market changes, each item recorded with what it impacts.
+
+An opportunity is an external element that gives benefit; a threat is one that could cause trouble. Both are outside the subject and largely beyond its control — that is what puts them on this axis, not whether they feel good or bad.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="swot-analysis"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_ScanInternal" name="Scan the subject&#10;strengths and weaknesses">
+      <bpmn:documentation>The internal axis. Work the source's functional checklist rather than a blank page: marketing, research and development, management information systems, management team, operations, finance, human resources.
+
+A strength gives advantage over others in the field; a weakness places the subject at a disadvantage relative to others. Both are attributes OF the subject. The source's warning belongs to this step specifically: listing strengths on paper "is very different from testing the organization and experiencing the strengths at work", so a strength recorded here is a claim, and where evidence for it exists it is cited.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="swot-analysis"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_GroupReview" name="Pool knowledge&#10;across participants">
+      <bpmn:documentation>The four lists are reviewed by more than the person who wrote them. This is the method's own answer to its own bias limitation, and it is a distinct activity rather than advice attached to the scans, because an activity can be recorded as not performed and a recommendation cannot.
+
+Disagreement about which quadrant a factor belongs in is an OUTPUT of this step, not a failure of it — it feeds A_RecordAmbiguous.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="swot-analysis"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_RecordAmbiguous" name="Record what did not&#10;classify cleanly">
+      <bpmn:documentation>Factors that sit in two quadrants, or in none, are written down as such. The source states this as inherent rather than as analyst error: "the same factor can be fitted in two categories. A factor can be a strength and a weakness at the same time." It adds the two drifts — strengths not maintained become weaknesses, and opportunities not taken but taken by competitors become threats.
+
+A scan that silently forced every factor into one quadrant would report a cleanliness the method does not have. This is the same third-state discipline the rest of this repository applies to "could not determine": an unclassifiable factor is a finding, not a blank.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="swot-analysis"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Cross" name="Cross the axes&#10;into SO, WO, ST, WT">
+      <bpmn:documentation>The TOWS matching step, and the only step that produces anything actionable. Strengths and weaknesses across, opportunities and threats down, and each cell names the strategy the pairing implies: SO — achieve opportunities that greatly match the strengths; WO — overcome weaknesses to attain opportunities; ST — use strengths to reduce vulnerability to threats; WT — prevent weaknesses, to avoid becoming more susceptible to threats.
+
+A SWOT that stops at four lists is the failure the source names as its central one. This step is what the process exists to reach.
+
+It produces CANDIDATE strategies, not a chosen one, and they are not ranked — see the process documentation on why no scoring activity exists.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="swot-analysis"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_DecisionFollows" name="Does a decision&#10;follow?">
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="Whether a decision follows is a fact about the CALLER'S intent, not a function of anything the analysis produced, so there is no recurring input for a table to key on. `dmn`'s own test — would the same inputs have to produce the same branch next month — fails: the same four lists feed a decision one month and stand as situation analysis the next."/>
+      </bpmn:extensionElements>
+      <bpmn:documentation>Is this scan feeding a choice that has to be made now, or is it standing situation analysis?
+
+DELIBERATELY NOT DMN-BACKED. Whether a decision follows is a fact about the caller's intent, not a function of the analysis's contents, so there is nothing recurring for a table to compute. `dmn`'s own test — would the same inputs have to produce the same branch next month — fails here, and a table would assert a repeatability this does not have.
+
+Both branches are completed runs. Neither is a skipped step.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="A_HandOff" name="Hand the candidates to&#10;a decision methodology">
+      <bpmn:documentation>The candidate strategies go to `options-analysis`, which selects the decision methodology by context and applies it. SWOT does not make that selection and does not make the decision.
+
+What is handed over includes the ambiguities from A_RecordAmbiguous and the fact that the candidates are UNRANKED. A receiving methodology that assumed an ordered list would be reading a priority SWOT never established.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="methodology-adoption"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_HandedToDecision" name="Candidates handed to a decision methodology"/>
+    <bpmn:endEvent id="End_SituationRecorded" name="Situation recorded; no decision in play">
+      <bpmn:documentation>A SEPARATE end event rather than a short-circuit into the other, because the two are different facts for a reader: "a situation was analysed and nothing was being decided" is not "an analysis fed a decision". Collapsing them would leave nobody able to tell a standing scan from one whose handoff was forgotten.</bpmn:documentation>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SF_Process_SwotAnalysis_1" sourceRef="Start_Process_SwotAnalysis" targetRef="A_FrameSubject"/>
+    <bpmn:sequenceFlow id="SF_Process_SwotAnalysis_2" sourceRef="A_FrameSubject" targetRef="A_ScanExternal"/>
+    <bpmn:sequenceFlow id="SF_Process_SwotAnalysis_3" sourceRef="A_ScanExternal" targetRef="A_ScanInternal"/>
+    <bpmn:sequenceFlow id="SF_Process_SwotAnalysis_4" sourceRef="A_ScanInternal" targetRef="A_GroupReview"/>
+    <bpmn:sequenceFlow id="SF_Process_SwotAnalysis_5" sourceRef="A_GroupReview" targetRef="A_RecordAmbiguous"/>
+    <bpmn:sequenceFlow id="SF_Process_SwotAnalysis_6" sourceRef="A_RecordAmbiguous" targetRef="A_Cross"/>
+    <bpmn:sequenceFlow id="SF_Process_SwotAnalysis_7" sourceRef="A_Cross" targetRef="GW_DecisionFollows"/>
+    <bpmn:sequenceFlow id="SF_Process_SwotAnalysis_8" name="yes" sourceRef="GW_DecisionFollows" targetRef="A_HandOff"/>
+    <bpmn:sequenceFlow id="SF_Process_SwotAnalysis_9" name="no" sourceRef="GW_DecisionFollows" targetRef="End_SituationRecorded"/>
+    <bpmn:sequenceFlow id="SF_Process_SwotAnalysis_10" sourceRef="A_HandOff" targetRef="End_HandedToDecision"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_SwotAnalysis">
+    <bpmndi:BPMNPlane id="Plane_Process_SwotAnalysis" bpmnElement="Collaboration_Process_SwotAnalysis">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_SwotAnalysis" bpmnElement="Participant_Process_SwotAnalysis" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1340" height="334" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_BusinessAnalyst" bpmnElement="Lane_BusinessAnalyst" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1310" height="190" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Stakeholder" bpmnElement="Lane_Stakeholder" isHorizontal="true">
+        <dc:Bounds x="190" y="270" width="1310" height="144" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Process_SwotAnalysis" bpmnElement="Start_Process_SwotAnalysis">
+        <dc:Bounds x="232" y="152" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="221" y="187.5" width="90" height="53" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_FrameSubject" bpmnElement="A_FrameSubject">
+        <dc:Bounds x="320" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ScanExternal" bpmnElement="A_ScanExternal">
+        <dc:Bounds x="480" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ScanInternal" bpmnElement="A_ScanInternal">
+        <dc:Bounds x="640" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_GroupReview" bpmnElement="A_GroupReview">
+        <dc:Bounds x="640" y="282" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_RecordAmbiguous" bpmnElement="A_RecordAmbiguous">
+        <dc:Bounds x="800" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Cross" bpmnElement="A_Cross">
+        <dc:Bounds x="960" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_DecisionFollows" bpmnElement="GW_DecisionFollows" isMarkerVisible="true">
+        <dc:Bounds x="1120" y="145" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1100" y="88" width="90" height="53" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_HandOff" bpmnElement="A_HandOff">
+        <dc:Bounds x="1220" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_HandedToDecision" bpmnElement="End_HandedToDecision">
+        <dc:Bounds x="1400" y="152" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_SituationRecorded" bpmnElement="End_SituationRecorded">
+        <dc:Bounds x="1127" y="235" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1170.5" y="233.06" width="180" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_SwotAnalysis_1" bpmnElement="SF_Process_SwotAnalysis_1">
+        <di:waypoint x="268" y="170" />
+        <di:waypoint x="320" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_SwotAnalysis_2" bpmnElement="SF_Process_SwotAnalysis_2">
+        <di:waypoint x="440" y="170" />
+        <di:waypoint x="480" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_SwotAnalysis_3" bpmnElement="SF_Process_SwotAnalysis_3">
+        <di:waypoint x="600" y="170" />
+        <di:waypoint x="640" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_SwotAnalysis_4" bpmnElement="SF_Process_SwotAnalysis_4">
+        <di:waypoint x="700" y="230" />
+        <di:waypoint x="700" y="282" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_SwotAnalysis_5" bpmnElement="SF_Process_SwotAnalysis_5">
+        <di:waypoint x="760" y="342" />
+        <di:waypoint x="860" y="342" />
+        <di:waypoint x="860" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_SwotAnalysis_6" bpmnElement="SF_Process_SwotAnalysis_6">
+        <di:waypoint x="920" y="170" />
+        <di:waypoint x="960" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_SwotAnalysis_7" bpmnElement="SF_Process_SwotAnalysis_7">
+        <di:waypoint x="1080" y="170" />
+        <di:waypoint x="1120" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_SwotAnalysis_8" bpmnElement="SF_Process_SwotAnalysis_8">
+        <di:waypoint x="1170" y="170" />
+        <di:waypoint x="1220" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_SwotAnalysis_9" bpmnElement="SF_Process_SwotAnalysis_9">
+        <di:waypoint x="1145" y="195" /><di:waypoint x="1145" y="235" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_SwotAnalysis_10" bpmnElement="SF_Process_SwotAnalysis_10">
+        <di:waypoint x="1340" y="170" />
+        <di:waypoint x="1400" y="170" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,35 @@
+# Fails when a generated README region of this repository is stale (owner,
+# 2026-10-01: "each repo owns its README" — no host regenerates it).
+# Standalone on purpose: the output must not depend on bootstrap sitting
+# beside it, so the check runs without it.
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: bootstrap-tools
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - name: Install
+        working-directory: bootstrap-tools
+        run: bun install --frozen-lockfile
+      - name: README generated sections are current
+        working-directory: bootstrap-tools
+        run: bun run scripts/readme-sections.ts --root . --check
+      - name: Directory READMEs are current
+        working-directory: bootstrap-tools
+        run: bun run scripts/subgraph-readmes.ts --repo . --check
+      - name: Every link on the README page lands
+        working-directory: bootstrap-tools
+        run: bun run scripts/readme-book.ts --root . --check

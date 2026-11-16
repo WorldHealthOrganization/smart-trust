@@ -1,0 +1,26 @@
+#!/bin/sh
+# Run the fast gates on the tree being pushed and refuse the push on a red one
+# (scripts/pre-push-gates.ts says what it decides and why).
+#
+# Bypass, which is logged to .git/cat-gates/push.log:
+#   CAT_GATES_BYPASS='<reason>' git push ...
+# `git push --no-verify` also skips this hook, and leaves no log.
+#
+# Args: $1 = remote name, $2 = remote URL; the pushed refs come on stdin.
+
+command -v bun >/dev/null 2>&1 || {
+    echo "note: bun is not installed here, so pre-push ran no gate; CI runs them" >&2
+    exit 0
+}
+
+# By path, not through `bun run cat`: the index layout first, then
+# cat-harness-tools on its own (the same lookup as pre-commit's beans-retag).
+script=""
+for p in cat-harness-tools/scripts/pre-push-gates.ts scripts/pre-push-gates.ts; do
+    if [ -f "$p" ]; then script="$p"; break; fi
+done
+if [ -z "$script" ]; then
+    echo "note: scripts/pre-push-gates.ts is not in this checkout, so pre-push ran no gate" >&2
+    exit 0
+fi
+exec bun run "$script" --git-hook "$1"

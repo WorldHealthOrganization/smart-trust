@@ -1,0 +1,34 @@
+---
+doc_id: who-pub-tps-931
+doc_title: "WHO Editorial Style Manual"
+section_id: page-121
+section_title: "Page 121"
+section_number: null
+pages: 121-121
+source_pdf: WHO_PUB_TPS_93.1.pdf
+source_sha256: ecc88eee99756755
+toc_source: undetermined
+---
+WHO Editorial Style Manual
+
+English French English French
+square bracket crochet ; add ajouter
+ellipsis [...] points de suspen- insert insérer
+
+sion, ellipse centre centrer
+thin/fine space espace mi-fin transpose transposer
+prime sign prime align aligner
+bullet gros point take back [line, passer a la ligne
+asterisk astérisque word, etc. ] supérieure, a la
+dagger croix mortuaire , ligne précédente
+omission bourdon take over a la ligne suivante
+
+tun on faire suivre
+
+Instructions increase space blanc a augmenter
+indent renfoncer teduce space blanc & diminuer
+to be typeset composer stet bon
+delete supprimer OK to print, OK bon a tirer
+close up rapprocher for press
+
+116
