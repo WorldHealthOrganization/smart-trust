@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_Process_DIIG" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:collaboration id="Collaboration_Process_DIIG">
+    <bpmn:participant id="Participant_Process_DIIG" name="DIIG — from a health system bottleneck to a costed implementation plan" processRef="Process_DIIG"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_DIIG" name="DIIG — from a health system bottleneck to a costed implementation plan" isExecutable="false">
+    <bpmn:documentation>The nine-chapter sequence of the WHO/ITU Digital Implementation Investment Guide, as the Guide numbers it. Each chapter's output is the next chapter's input, and the two exclusive gateways are the Guide's OWN progress checks (4.5 and 8.5) rather than gates added here.
+
+Adopted whole per `methodology-adoption`, and rendered from the ingested sections at `who-iris/library/9789240010567-eng/`. Chapter 1 is the Guide's introduction — scope, key terms and when the Guide applies — so it is the start event's documentation rather than an activity: nothing is performed there.
+
+ADVISORY, not strict. This is a per-methodology process and DIIG is somebody else's method: the engine can report where a programme has got to, but what counts as an adequate answer to "have we identified the bottlenecks" belongs to the programme and its stakeholders, not to this repository. The four unrelaxable steps of the base editorial gate are untouched by it.
+
+WHAT THIS DIAGRAM DOES NOT DO. DIIG Table 3.3.1 scores bottlenecks on three 1-3 criteria and sums them into a ranking. The three criteria are adopted; the arithmetic is refused, per `methodology-adoption` — three ordinal judgements on incommensurable scales, summed with equal weight, produce a number whose precision is invented. So A_PrioritizeBottlenecks records each criterion's answer and its reason and orders by argument. There is no computed score anywhere in this process, and a DMN-backed gateway would be the wrong shape for exactly that reason.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_DIIG">
+      <bpmn:lane id="Lane_ProgrammeManager" name="Programme manager">
+        <bpmn:documentation>DIIG Table 2.1.1 names the key roles and their descriptions. The lane is the ROLE, taken on for its duration — the same actor is a business analyst in the next lane along, and on a small team frequently is.
+
+There is NO stakeholder lane, and the first draft of this diagram had one. A lane is who PERFORMS the task, not who receives its output: Chapter 9's value proposition is made BY the implementing team TO whoever pays, so the activity belongs here and the stakeholder is its audience. `kg:audit` caught it as `role-carries-activity-skill` — the stakeholder role carries no skills at all, which is the shape of a role that acts on nothing.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="programme-manager"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_Process_DIIG</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_FormTeam</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanOpen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_BeanYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_BeanNotYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_PlanImplementation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_DevelopBudget</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_MonitorAndUseData</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_ProgressCheck8</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ValueProposition</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Process_DIIG</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanClose</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_BusinessAnalyst" name="Business analyst">
+        <bpmn:documentation>DIIG's own description of the role, verbatim from `sections/page-031.md`: "Analyses and documents workflow of the clinical care and health programme processes and recommends digital health interventions relative to the prioritized business requirements." Chapters 3, 4 and 6 are that work.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="business-analyst"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>A_MapCurrentState</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_PrioritizeBottlenecks</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_DetermineInterventions</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_ProgressCheck4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_LinkEnterpriseArchitecture</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Process_DIIG" name="A health programme
+needs digital support">
+      <bpmn:documentation>DIIG Chapter 1 — how to use the Guide, its key terms, and WHEN to use it. Nothing is performed here, which is why it is the start event rather than an activity: a reader who has not settled the key terms will conflate a bottleneck with a health system challenge two chapters later.</bpmn:documentation>
+    </bpmn:startEvent>
+
+    <bpmn:task id="A_FormTeam" name="Form the team
+and establish goals">
+      <bpmn:documentation>DIIG Chapter 2. Determine roles and responsibilities; develop a common understanding of the health programme's needs and goals; understand programme operations across levels of the health system.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="methodology-adoption"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_MapCurrentState" name="Map the current state
+and confirm bottlenecks">
+      <bpmn:documentation>DIIG Chapter 3.1. Determine the health programme processes to target, map their workflows, identify and confirm bottlenecks. Then 3.2, a root cause analysis.
+
+This is where DIIG builds on CRDM, and it says so: "This process builds on the Public Health Informatics Institute's Collaborative Requirements Development Methodology (CRDM)". Its three areas of concentration are business process analysis, business process redesign and requirements definition — two of which name diagrams this platform already executes. They are parallel tracks, not a composite: pick one per decision and name it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="methodology-adoption"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_PrioritizeBottlenecks" name="Prioritize, and map to
+health system challenges">
+      <bpmn:documentation>DIIG Chapters 3.3 and 3.4. Prioritize the bottlenecks, then map the programme-specific ones onto the generic health system challenges.
+
+THE ARITHMETIC IS REFUSED HERE. DIIG Table 3.3.1 asks three questions, each scored 1-3 — how much impact does this bottleneck have on the process, what is the likelihood of overcoming it, is it important to a wide range of stakeholders — and sums them into a Score and a Prioritized Ranking. The three criteria are adopted whole; the total is not. Record each criterion's answer AND its reason, and order by argument. A ranked list reads as evidence in a way three stated judgements do not, and the weights were invented.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="methodology-adoption"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_DetermineInterventions" name="Determine appropriate
+digital health interventions">
+      <bpmn:documentation>DIIG Chapter 4. Select interventions for the prioritized challenges, assess whether the enabling environment can support them, identify functional requirements and user stories, map the future-state workflow, and check whether existing applications already meet the requirements.
+
+The interventions CONSIDERED AND NOT CHOSEN are part of the output, with why — `methodology-adoption`'s fourth refusal. A deleted alternative leaves the next reader unable to tell a decision from an oversight.
+
+Selection is from the Classification, and the `who-digital-health` voice governs the naming: an intervention is a capability, not the software that delivers it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="methodology-adoption"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_ProgressCheck4" name="Progress check 4.5:
+requirements settled?">
+      <bpmn:documentation>DIIG's own gate at 4.5, not one added here. No DMN: what counts as settled is the programme's judgement and its stakeholders', and a computed branch would assert a repeatability this question does not have.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_PlanImplementation" name="Plan the
+implementation">
+      <bpmn:documentation>DIIG Chapter 5. Infrastructure; legislation, policy and compliance, including data management, privacy and security, and the regulation of new technologies; leadership and governance, including external partnerships; workforce and training; services and applications.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="methodology-adoption"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_LinkEnterpriseArchitecture" name="Link to the enterprise
+architecture">
+      <bpmn:documentation>DIIG Chapter 6. Assess the digital health enterprise architecture, identify the common and enabling components and shared services that make up the digital health platform, and link the investment to both.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="methodology-adoption"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_DevelopBudget" name="Develop
+a budget">
+      <bpmn:documentation>DIIG Chapter 7. Phases of implementation, cost drivers, and the budget matrix. This is the chapter that turns the preceding six into a COSTED implementation plan, which is the artefact the whole Guide exists to produce and the one a funder reads.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="methodology-adoption"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_MonitorAndUseData" name="Monitor, and use
+data effectively">
+      <bpmn:documentation>DIIG Chapter 8. Establish a logic model, plan the monitoring and evaluation, establish a culture of data use, and manage adaptively — using the data to optimize the interventions rather than only to report on them.
+
+The full treatment of this chapter is a separate publication in this library, `9789241511766-eng`, Monitoring and Evaluating Digital Health Interventions. It is a parallel track, not a sub-step: do not blend the two.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="methodology-adoption"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_ProgressCheck8" name="Progress check 8.5:
+implementation on track?">
+      <bpmn:documentation>DIIG's own gate at 8.5. A "no" returns to Chapter 8 rather than failing the process, because adaptive management IS the answer the Guide gives: 8.4 is "use data to optimize interventions", so iterating here is the method working rather than the method stalling.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_ValueProposition" name="Make the value proposition
+and set next steps">
+      <bpmn:documentation>DIIG Chapter 9. The case made to whoever pays, and what follows. Scaling up is a different method and a different publication — `9789241509510-eng`, The MAPS Toolkit — which begins where this implementation ends.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="methodology-adoption"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Process_DIIG" name="Costed implementation
+plan, and its case"/>
+
+    <bpmn:callActivity id="Call_BeanOpen" name="Open the bean" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Process_BeanOpen: check before you create, find out whose the bean is, and claim it — or leave it alone when it is someone else's. The one place a claim is drawn (bean m8gz, owner 2026-10-24); the gateway after this reads which end it reached.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_BeanYours" name="Bean claimed?">
+      <bpmn:documentation>Reads which end Process_BeanOpen reached. `claimed`: the bean is in progress and this process works it. `not yours`: a sibling session or a human holds it, nothing was written to it, and this process stops here rather than work a bean it does not own (bean-coordination).</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_BeanNotYours" name="Not yours —&#10;left alone">
+      <bpmn:documentation>Someone else holds the bean; this run stops without touching it.</bpmn:documentation>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Call_BeanClose" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>Process_BeanClose: end the bean in a state that says why — complete and archive it, scrap it with its reasons and archive it, or record the blocker and hand it back. The one place resolve and archive are drawn (bean m8gz, owner 2026-10-24); placed straight before the end so the engine's resolve sees nothing left but the archive step.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SF_DIIG_01" sourceRef="Start_Process_DIIG" targetRef="Call_BeanOpen"/>
+    <bpmn:sequenceFlow id="SF_DIIG_02" sourceRef="A_FormTeam" targetRef="A_MapCurrentState"/>
+    <bpmn:sequenceFlow id="SF_DIIG_03" sourceRef="A_MapCurrentState" targetRef="A_PrioritizeBottlenecks"/>
+    <bpmn:sequenceFlow id="SF_DIIG_04" sourceRef="A_PrioritizeBottlenecks" targetRef="A_DetermineInterventions"/>
+    <bpmn:sequenceFlow id="SF_DIIG_05" sourceRef="A_DetermineInterventions" targetRef="GW_ProgressCheck4"/>
+    <bpmn:sequenceFlow id="SF_DIIG_06" name="no — revisit the bottlenecks" sourceRef="GW_ProgressCheck4" targetRef="A_MapCurrentState"/>
+    <bpmn:sequenceFlow id="SF_DIIG_07" name="yes" sourceRef="GW_ProgressCheck4" targetRef="A_PlanImplementation"/>
+    <bpmn:sequenceFlow id="SF_DIIG_08" sourceRef="A_PlanImplementation" targetRef="A_LinkEnterpriseArchitecture"/>
+    <bpmn:sequenceFlow id="SF_DIIG_09" sourceRef="A_LinkEnterpriseArchitecture" targetRef="A_DevelopBudget"/>
+    <bpmn:sequenceFlow id="SF_DIIG_10" sourceRef="A_DevelopBudget" targetRef="A_MonitorAndUseData"/>
+    <bpmn:sequenceFlow id="SF_DIIG_11" sourceRef="A_MonitorAndUseData" targetRef="GW_ProgressCheck8"/>
+    <bpmn:sequenceFlow id="SF_DIIG_12" name="no — adapt" sourceRef="GW_ProgressCheck8" targetRef="A_MonitorAndUseData"/>
+    <bpmn:sequenceFlow id="SF_DIIG_13" name="yes" sourceRef="GW_ProgressCheck8" targetRef="A_ValueProposition"/>
+    <bpmn:sequenceFlow id="SF_DIIG_14" sourceRef="A_ValueProposition" targetRef="Call_BeanClose"/>
+    <bpmn:sequenceFlow id="SF_Bean_1" name="claimed" sourceRef="GW_BeanYours" targetRef="A_FormTeam"/>
+    <bpmn:sequenceFlow id="SF_Bean_2" sourceRef="Call_BeanOpen" targetRef="GW_BeanYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_3" name="not yours" sourceRef="GW_BeanYours" targetRef="End_BeanNotYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_4" sourceRef="Call_BeanClose" targetRef="End_Process_DIIG"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_Process_DIIG">
+    <bpmndi:BPMNPlane id="Plane_Process_DIIG" bpmnElement="Collaboration_Process_DIIG">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_DIIG" bpmnElement="Participant_Process_DIIG" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="2590" height="420" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_ProgrammeManager" bpmnElement="Lane_ProgrammeManager" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="2560" height="210" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_BusinessAnalyst" bpmnElement="Lane_BusinessAnalyst" isHorizontal="true">
+        <dc:Bounds x="190" y="290" width="2560" height="210" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start_Process_DIIG" bpmnElement="Start_Process_DIIG">
+        <dc:Bounds x="240" y="167" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_FormTeam" bpmnElement="A_FormTeam">
+        <dc:Bounds x="610" y="145" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_MapCurrentState" bpmnElement="A_MapCurrentState">
+        <dc:Bounds x="800" y="355" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_PrioritizeBottlenecks" bpmnElement="A_PrioritizeBottlenecks">
+        <dc:Bounds x="990" y="355" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_DetermineInterventions" bpmnElement="A_DetermineInterventions">
+        <dc:Bounds x="1180" y="355" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_ProgressCheck4" bpmnElement="GW_ProgressCheck4" isMarkerVisible="true">
+        <dc:Bounds x="1370" y="370" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1420" y="404" width="84" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_PlanImplementation" bpmnElement="A_PlanImplementation">
+        <dc:Bounds x="1470" y="145" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_LinkEnterpriseArchitecture" bpmnElement="A_LinkEnterpriseArchitecture">
+        <dc:Bounds x="1660" y="355" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_DevelopBudget" bpmnElement="A_DevelopBudget">
+        <dc:Bounds x="1850" y="145" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_MonitorAndUseData" bpmnElement="A_MonitorAndUseData">
+        <dc:Bounds x="2040" y="145" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_ProgressCheck8" bpmnElement="GW_ProgressCheck8" isMarkerVisible="true">
+        <dc:Bounds x="2230" y="160" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ValueProposition" bpmnElement="A_ValueProposition">
+        <dc:Bounds x="2330" y="145" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Process_DIIG" bpmnElement="End_Process_DIIG">
+        <dc:Bounds x="2680" y="167" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_01" bpmnElement="SF_DIIG_01"><di:waypoint x="276" y="185"/><di:waypoint x="330" y="185"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_02" bpmnElement="SF_DIIG_02">
+        <di:waypoint x="750" y="185" /><di:waypoint x="775" y="185" /><di:waypoint x="775" y="395" /><di:waypoint x="800" y="395" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_03" bpmnElement="SF_DIIG_03">
+        <di:waypoint x="940" y="395" /><di:waypoint x="990" y="395" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_04" bpmnElement="SF_DIIG_04">
+        <di:waypoint x="1130" y="395" /><di:waypoint x="1180" y="395" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_05" bpmnElement="SF_DIIG_05">
+        <di:waypoint x="1320" y="395" /><di:waypoint x="1370" y="395" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_06" bpmnElement="SF_DIIG_06">
+        <di:waypoint x="1395" y="420" /><di:waypoint x="1395" y="470" /><di:waypoint x="870" y="470" /><di:waypoint x="870" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_07" bpmnElement="SF_DIIG_07">
+        <di:waypoint x="1395" y="370" /><di:waypoint x="1395" y="185" /><di:waypoint x="1470" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_08" bpmnElement="SF_DIIG_08">
+        <di:waypoint x="1610" y="185" /><di:waypoint x="1635" y="185" /><di:waypoint x="1635" y="395" /><di:waypoint x="1660" y="395" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_09" bpmnElement="SF_DIIG_09">
+        <di:waypoint x="1800" y="395" /><di:waypoint x="1825" y="395" /><di:waypoint x="1825" y="185" /><di:waypoint x="1850" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_10" bpmnElement="SF_DIIG_10">
+        <di:waypoint x="1990" y="185" /><di:waypoint x="2040" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_11" bpmnElement="SF_DIIG_11">
+        <di:waypoint x="2180" y="185" /><di:waypoint x="2230" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_12" bpmnElement="SF_DIIG_12">
+        <di:waypoint x="2255" y="160" /><di:waypoint x="2255" y="120" /><di:waypoint x="2110" y="120" /><di:waypoint x="2110" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_13" bpmnElement="SF_DIIG_13">
+        <di:waypoint x="2280" y="185" /><di:waypoint x="2330" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_DIIG_14" bpmnElement="SF_DIIG_14"><di:waypoint x="2470" y="185"/><di:waypoint x="2520" y="185"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Call_BeanOpen_di" bpmnElement="Call_BeanOpen"><dc:Bounds x="330" y="145" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SF_Bean_1_di" bpmnElement="SF_Bean_1"><di:waypoint x="530" y="185"/><di:waypoint x="610" y="185"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="GW_BeanYours_di" bpmnElement="GW_BeanYours" isMarkerVisible="true"><dc:Bounds x="480" y="160" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_BeanNotYours_di" bpmnElement="End_BeanNotYours"><dc:Bounds x="487" y="240" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SF_Bean_2_di" bpmnElement="SF_Bean_2"><di:waypoint x="450" y="185"/><di:waypoint x="480" y="185"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_3_di" bpmnElement="SF_Bean_3"><di:waypoint x="505" y="210"/><di:waypoint x="505" y="240"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Call_BeanClose_di" bpmnElement="Call_BeanClose"><dc:Bounds x="2520" y="145" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SF_Bean_4_di" bpmnElement="SF_Bean_4"><di:waypoint x="2640" y="185"/><di:waypoint x="2680" y="185"/></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

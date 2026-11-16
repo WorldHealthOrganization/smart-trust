@@ -1,0 +1,106 @@
+---
+doc_id: 10665-385346
+doc_title: "Cost-effectiveness of introducing the pneumococcal conjugate vaccine for children under 5 years in the Islamic Republic of Iran"
+section_id: page-001
+section_title: "Page 1"
+pages: 1-1
+pdf_page: 1
+source_pdf: 10665-385346.pdf
+source_sha256: fb44d54395d4c22b
+text_source: ocr
+granularity: page
+---
+Research article EMH] - Vol. 25 No. 10 - 2019
+
+Cost-effectiveness of introducing the pneumococcal conjugate
+vaccine for children under 5 years in the Islamic Republic of Iran
+
+Khadijeh Ezoji’,7, Mohsen Yaghoubi?, Marzieh Nojomi*, Sussan Mahmoody*, Seyed Mohsen Zahraie’, Maziar Moradi-Lakeh*, Sedigheh R. Tabatabaei®
+and Abdollah Karimi®
+
+‘Social Determinants of Health Research Center, Health Research Institute, Babol University of Medical Sciences, Babol, Islamic Republic of Iran. *De-
+partment of Community Medicine, Iran University of Medical Sciences, Tehran, Islamic Republic of Iran. *School of Public Health, University of Sas-
+katchewan, Saskatoon, Canada. ‘Preventive Medicine and Public Health Research Center, Department of Community Medicine, School of Medicine,
+Iran University of Medical Sciences, Tehran, Islamic Republic of Iran (Correspondence to Maziar Moradi-Lakeh: moradilakeh.m@iums.ac.ir). ‘Center
+for Communicable Disease Control, Ministry of Health and Medical Education, Tehran, Islamic Republic of Iran. ‘Pediatric Infections Research Center,
+Research Institute for Child Health, Shahid Beheshti University of Medical Sciences, Tehran, Islamic Republic of Iran (Correspondence to Sedigheh R.
+Tabatabaei: srt.tabatabaei@gmail.com).
+
+Abstract
+
+Background: Pneumococcal disease caused by Streptococcus pneumoniae results in considerable mortality and mor-
+bidity. Pneumococcal conjugate vaccines (PCV), such as PCV-13, can prevent invasive pneumococcal disease and avoid
+disability and death. The cost of introducing PCV-13 in childhood immunization schedules should be assessed against the
+cost of pneumococcal diseases for each community.
+
+Aims: This study aimed to evaluate the cost-effectiveness of introducing PCV-13 in the national immunization pro-
+gramme for children under 5 years in the Islamic Republic of Iran.
+
+Methods: The TRIVAC decision support model was used to estimate total costs of introducing PCV-13 and the disabili-
+ty-adjusted life years (DALYs) averted. The main pneumococcal diseases were considered—pneumonia, meningitis, acute
+otitis media, and non-pneumonia, non-meningitis infections—in terms of hospital admissions, outpatient visits and
+deaths. Local data were used to estimate costs.
+
+Results: Pneumococcal disease is estimated to affect 18 713 211 children under 5 years (519 412 pneumonia, 18 148 116 acute
+otitis media, 6884 meningitis, and 38 799 non-pneumonia, non-meningitis) in 10 years (2014-2023) without use of the vac-
+cine. Introduction of PCV-13 would prevent 4 900 084 cases of pneumococcal disease (190 849 pneumonia, 4692 450
+acute otitis media, 2529 meningitis, and 14 256 non-pneumonia, non-meningitis). Pneumococcal infection would cause
+287 950 hospital admissions and 29 399 deaths; vaccination could avert 105 802 hospital admissions and 9997 deaths. The
+incremental cost-effectiveness was estimated to be US$ 1890 and USs$ 1538 per averted DALY for the government and
+society respectively.
+
+Conclusion: According to WHO-recommended thresholds for interpreting cost-effectiveness, introduction of PCV-13 for
+children under 5 years in the Islamic Republic of Iran would be cost-effective.
+
+Keywords: pneumococcal conjugate vaccine, children, cost-effectiveness, Iran
+
+Citation: Ezoji K; Yaghoubi M; Nojomi M; Mahmoody S; Mohsen-Zahraie S; Moradi-Lakeh M. et al. Cost-effectiveness of introducing the pneumococ-
+cal conjugate vaccine for children under 5 years in the Islamic Republic of Iran. East Mediterr Health J. 2019;25(10):686-697. https://doi.org/10.26719/
+emhj.19.039
+
+Received: 02/09/17; accepted: 19/04/18
+
+Copyright © World Health Organization (WHO) 2019. Some rights reserved. This work is available under the CC BY-NC-SA 3.0 IGO license https://
+creativecommons.org/licenses/by-nc-sa/3.0/igo
+
+resources (6,8). However, invasive pneumococcal dis-
+eases can be prevented by vaccination (3,6).
+
+Introduction
+
+Streptococcus pneumoniae is a well-known invasive bac-
+terium. Disease caused by S. pneumoniae (pneumococcal
+diseases) can result in death, especially in very young
+
+Among all serotypes of S. pneumoniae, only a few are
+invasive and the new pneumococcal conjugate vaccines
+
+children. S pneumoniae causes about 11% (8-12%) of all
+deaths in children aged 1-59 months (1). The diseases
+range from non-invasive pneumococcal diseases (e.g.
+acute otitis media) to invasive pneumococcal diseases
+(e.g. meningitis and bacteraemia) that can be life-threat-
+ening (2-5). Invasive pneumococcal diseases kill over
+500 000 children under 5 years old each year (6), and
+accounted for nearly 9% of deaths in children aged
+1-59 months in 2008 in South America (7). Children in
+low-income and developing countries are particularly at
+risk of severe disease caused by S. pneumoniae (6). The
+cost of diseases caused by S. pneumoniae is reported to
+be one of the highest in terms of the use of health care
+
+(PCVs) protect against them (6,9). Of the most preventable
+serotypes, the PCV vaccines target either 10 serotypes
+(PCV-10) or 13 serotypes (PCV-13) (9).
+
+The main advantage of a childhood vaccination
+programme against S. pneumoniae is that it saves lives
+by preventing S. pneumoniae infection and hence the
+adverse complications of pneumococcal diseases,
+and this counterbalances the costs of the programme
+(5). Vaccination of children under 5 years would also
+indirectly reduce the incidence of invasive pneumococcal
+diseases by reducing the rate of nasopharyngeal carriers
+of S. pneumoniae (10-12).
+
+686

@@ -1,0 +1,103 @@
+Feature: An IG's narrative pages in the locales its translation catalogues fill
+
+  The verdict is read from the review records the platform already writes:
+  the page's translation node and the locale's status.json. A page with no
+  record that a person reviewed it counts as not reviewed.
+
+  @test:scripts/ig-page-translations.test.ts::ig-page-translations_(fhir-harness#382)::a_locale_with_an_empty_catalogue,_and_the_source_locale,_are_not_offered
+  Scenario: a locale whose catalogue is empty, and the source locale, are not offered
+    Given French, Arabic and English catalogues of the index page, with only French filled
+    Then the only locale offered is French, and it is unverified
+    And the index page is offered in English and French, and another page in English only
+
+  @test:scripts/ig-page-translations.test.ts::ig-page-translations_(fhir-harness#382)::no_translations_directory:_no_locales
+  Scenario: with no translations directory there are no locales
+    Then no directory, or one that does not exist, gives no locales
+
+  @test:scripts/ig-page-translations.test.ts::ig-page-translations_(fhir-harness#382)::injects_the_catalogue_into_the_page
+  Scenario: the catalogue is injected into the page
+    Given the French catalogue of the index page
+    When the page is translated
+    Then it holds the French text and counts one translated message
+
+  @test:scripts/ig-page-translations.test.ts::ig-page-translations_(fhir-harness#382)::a_locale_is_verified_only_with_a_named_sign-off
+  Scenario: a locale is verified only with a named sign-off
+    Then a status marked official without a sign-off is not signed off
+    And a status naming who signed off and when is signed off
+
+  @test:scripts/ig-page-translations.test.ts::ig-page-translations_(fhir-harness#382)::relative_links_climb_out_of_the_locale_folder_unless_the_target_is_translated
+  Scenario: relative links climb out of the locale folder unless the target is translated
+    Given a page linking a translated page, untranslated pages and an image, an external URL, an anchor, a Liquid base URL and a rooted path
+    When it is relinked for the locale
+    Then only the links to untranslated pages and the image gain "../", in markdown and in HTML
+
+  @test:scripts/ig-page-translations.test.ts::ig-page-translations_(fhir-harness#382)::Arabic_is_right_to_left
+  Scenario: Arabic is right to left
+    Then Arabic is rtl and French is ltr
+
+  @test:scripts/ig-page-translations.test.ts::ig-page-translations_(fhir-harness#382)::a_page_made_only_of_includes_is_translated_through_them_(home_page)
+  Scenario: a page made only of includes is translated through them
+    Given a home page that includes the translated index page and an untranslated page
+    Then the home page has a translation and the untranslated page has none
+    And the translated home page holds the French text and keeps the include of the untranslated page
+
+  @test:scripts/ig-page-translations.test.ts::lang-fragment:_a_translated_page_reads_its_locale's_own_fragment::names_the_fragment_as_the_IG_Publisher_does
+  Scenario: the locale's fragment is named as the IG Publisher names it
+    Then the locale code goes before the extension, or at the end of a name without one
+
+  @test:scripts/ig-page-translations.test.ts::lang-fragment:_a_translated_page_reads_its_locale's_own_fragment::the_locale's_fragment_when_the_IG_has_it,_the_source's_otherwise;_the_source_page_always_the_source's
+  Scenario: a lang-fragment resolves to the locale's fragment when the IG has it, the source's otherwise
+    Given a page with two lang-fragment tags, one with whitespace control, and an IG with only the Arabic cards fragment
+    Then in Arabic the cards include the Arabic fragment and the hero the source one
+    And in French both include the source fragments
+    And the source page always includes the source fragments
+
+  @test:scripts/ig-page-translations.test.ts::lang-fragment:_a_translated_page_reads_its_locale's_own_fragment::a_translated_page_keeps_its_lang-fragment_for_the_build_to_resolve
+  Scenario: a translated page keeps its lang-fragment tag for the build to resolve
+    Given a page with a lang-fragment tag and a sentence the catalogue translates
+    When it is translated
+    Then the lang-fragment tag is kept and the sentence is translated
+
+  @test:scripts/ig-page-translations.test.ts::unreviewed_translations_are_announced_(fail_closed)::no_review_record_means_not_reviewed
+  Scenario: a translated page with no review record is not reviewed
+    Given a French catalogue for a page and no review record for it
+    Then the page is not reviewed, because no record says a person reviewed it
+
+  @test:scripts/ig-page-translations.test.ts::unreviewed_translations_are_announced_(fail_closed)::an_agent_translation_marked_unofficial_is_not_reviewed
+  Scenario: an agent translation recorded as unofficial is not reviewed
+    Given the page's translation node says official false, generated by an agent
+    Then the page is not reviewed
+
+  @test:scripts/ig-page-translations.test.ts::unreviewed_translations_are_announced_(fail_closed)::a_page_sign-off_against_the_current_source_is_reviewed
+  Scenario: a person's sign-off against the current source makes the page reviewed
+    Given the page's translation node is official, names a reviewer and a time, and carries the current source hash
+    Then the page is reviewed, by that reviewer
+
+  @test:scripts/ig-page-translations.test.ts::unreviewed_translations_are_announced_(fail_closed)::a_sign-off_against_an_earlier_source_is_not_reviewed
+  Scenario: a sign-off made against an earlier source does not cover the page as it is now
+    Given a sign-off whose source hash is not the current source's
+    Then the page is not reviewed, because the sign-off is stale
+
+  @test:scripts/ig-page-translations.test.ts::unreviewed_translations_are_announced_(fail_closed)::a_locale_sign-off_counts_only_for_the_source_file_it_names
+  Scenario: a locale sign-off covers only the source file it names, and not when flagged for review
+    Given a locale status.json signed off for one source file
+    Then that page is reviewed, another page is not, and a flagged sign-off covers none
+
+  @test:scripts/ig-page-translations.test.ts::unreviewed_translations_are_announced_(fail_closed)::unreviewed_words_are_fenced_as_a_marked_block,_reviewed_ones_are_not
+  Scenario: each block of unreviewed translated words is marked, in the page's language
+    Given a French page whose catalogue no person reviewed
+    Then its translated words sit in a block labelled "Non relu par une personne"
+    And a reviewed catalogue's words carry no such block
+
+  @test:scripts/ig-page-translations.test.ts::unreviewed_translations_are_announced_(fail_closed)::the_front_matter_says_reviewed_only_when_told_so
+  Scenario: a translated page's front matter says reviewed only when the verdict says so
+    Given a translated page and no reviewed verdict
+    Then its front matter says translation_reviewed false
+    And a source-language page carries no translation_reviewed key
+
+  @test:scripts/ig-page-translations.test.ts::unreviewed_translations_are_announced_(fail_closed)::the_notice_renders_in_the_page_language_and_English,_linking_to_the_source,_and_only_when_unreviewed
+  Scenario: the full-width notice is in the page's language and English, and links to the source page
+    Given an unreviewed French page
+    Then the notice reads "Traduction automatique" and "Machine translation" and links to the source-language page
+    And a page in a language with no notice text falls back to English
+    And a reviewed page, or a source-language page, shows no notice

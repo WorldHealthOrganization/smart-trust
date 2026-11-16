@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  who-iris — IRIS CDN initial load.
+
+  Source of truth: this file; open it in any BPMN 2.0 tool. Prose:
+  docs/iris-cdn-export.md. Skills: skills/iris-cdn-*.md. Code: scripts/iris-cdn/.
+
+  Constraints shared by the IRIS CDN processes: the initial load carries
+  metadata AND the PDFs; changes are read from the DSpace REST API only; exports
+  live on Cloudflare (a git repository on Cloudflare Artifacts, NOT GitHub, plus
+  R2 behind the CDN), and who-iris's GitHub Pages only previews the exported
+  site; keys are published as verificationMethods of a did:web DID document (no
+  GDHCN trust list is assumed); content that has not changed is not rewritten,
+  re-uploaded or re-signed.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_IrisCdnInitialLoad"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="iris-cdn-owner" name="Owner"/>
+  <bpmn:resource id="iris-cdn-exporter" name="IRIS CDN Exporter"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="cloudflare-r2-cdn" name="Cloudflare R2 and CDN"/>
+  <bpmn:resource id="cloudflare-git" name="Cloudflare git (Artifacts)"/>
+  <bpmn:process id="Process_IrisCdnInitialLoad" name="IRIS CDN initial load" isExecutable="false">
+    <bpmn:documentation>The first full export of WHO IRIS onto Cloudflare (git on Artifacts, bytes in R2): every item record and every bitstream: metadata plus PDFs. Run in batches with a checkpoint, so a run that stops resumes where it stopped and never re-fetches what it already holds. Ends in one signed, verified release.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_IrisCdnInitialLoad">
+      <bpmn:lane id="Lane_Owner" name="Owner" partitionElementRef="iris-cdn-owner">
+        <bpmn:documentation>A person: decides scope, budget and the storage target. Nothing downstream widens what the owner approved.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_LoadApproved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_StateBudget</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Exporter" name="IRIS CDN Exporter (agent)" partitionElementRef="iris-cdn-exporter">
+        <bpmn:documentation>The agent role. It plans, reviews and reports; it does not hold the signing key, and it never pushes to a WHO repository.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_PlanBatches</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewLoad</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Loaded</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pipeline" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Deterministic scripts in scripts/iris-cdn/, entry point run.ts. Same input, same bytes.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_HarvestBatch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FetchBitstreams</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Fixity</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Quarantine</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_More_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_More</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BuildGraph</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_SignPublish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_StoreBytes</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Checkpoint</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_LoadApproved" name="Owner approves&#10;an initial load"/>
+    <bpmn:task id="Task_StateBudget" name="State scope and budget,&#10;with denominators">
+      <bpmn:documentation>Items, files and bytes upstream (273,559 items, 1,057,223 files, 361.55 GiB as last transcribed), the storage target for each kind of file, and a request rate IRIS will tolerate. A budget with no denominator is a preference, not a limit.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-exporter"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_PlanBatches" name="Plan batches by&#10;community and collection">
+      <bpmn:documentation>One batch per collection (large collections split by page).</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-exporter"/><bootstrap.processes:skill ref="iris-dspace"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_HarvestBatch" name="Harvest a batch of&#10;item records (REST)">
+      <bpmn:documentation>DSpace REST: the item, its metadata, bundles and bitstream descriptors. Written as canonical JSON (sorted keys, LF, no fetch timestamp inside the record) so the same item always serialises to the same bytes.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-rest-feed"/><bootstrap.processes:skill ref="iris-dspace"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_FetchBitstreams" name="Fetch bitstreams&#10;not already held">
+      <bpmn:documentation>A bitstream is stored under its SHA-256. If that object already exists it is not downloaded again; a re-run of a batch therefore moves no bytes.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-exporter"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Fixity" name="Bytes match the&#10;IRIS checksum?">
+      <bpmn:documentation>DSpace reports an MD5 checksum per bitstream. The downloaded bytes must match it before their SHA-256 is recorded.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_StoreBytes" name="Store bytes under&#10;SHA-256 (skip if held)">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-exporter"/></bpmn:extensionElements>
+      <bpmn:dataOutputAssociation id="DOA_Task_StoreBytes">
+        <bpmn:targetRef>DSR_cloudflare_r2_cdn</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:task id="Task_Checkpoint" name="Commit the batch&#10;checkpoint">
+      <bpmn:documentation>state/initial-load.json in the Cloudflare git repository. A restarted load reads it and skips finished batches.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-exporter"/></bpmn:extensionElements>
+      <bpmn:dataOutputAssociation id="DOA_Task_Checkpoint">
+        <bpmn:targetRef>DSR_cloudflare_git</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:task id="Task_Quarantine" name="Quarantine and report&#10;the mismatch">
+      <bpmn:documentation>Not published, not retried silently. The record keeps its reference to IRIS and the bitstream is marked unknown.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-exporter"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_More_Join">
+      <bpmn:documentation>Brings the paths together before the decision after it, so that decision only splits.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="GW_More" name="More batches?"/>
+    <bpmn:callActivity id="Call_BuildGraph" name="Build the graph&#10;partitions" calledElement="Process_NQuadsDistribution">
+      <bpmn:documentation>The platform process nquads-distribution (cat-harness): spine plus one partition per community, zero blank nodes, sorted N-Quads.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-oxigraph"/><bootstrap.processes:skill ref="nquads-distribution"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_SignPublish" name="Sign and publish&#10;the release" calledElement="Process_IrisCdnSignPublish">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-signing"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:task id="Task_ReviewLoad" name="Review the load report;&#10;open beans for gaps">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-exporter"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Loaded" name="Initial release&#10;published and verified"/>
+    <bpmn:sequenceFlow id="F1" sourceRef="Start_LoadApproved" targetRef="Task_StateBudget"/>
+    <bpmn:sequenceFlow id="F2" sourceRef="Task_StateBudget" targetRef="Task_PlanBatches"/>
+    <bpmn:sequenceFlow id="F3" sourceRef="Task_PlanBatches" targetRef="Task_HarvestBatch"/>
+    <bpmn:sequenceFlow id="F4" sourceRef="Task_HarvestBatch" targetRef="Task_FetchBitstreams"/>
+    <bpmn:sequenceFlow id="F5" sourceRef="Task_FetchBitstreams" targetRef="GW_Fixity"/>
+    <bpmn:sequenceFlow id="F6" name="yes" sourceRef="GW_Fixity" targetRef="Task_StoreBytes"/>
+    <bpmn:sequenceFlow id="F6b" sourceRef="Task_StoreBytes" targetRef="Task_Checkpoint"/>
+    <bpmn:sequenceFlow id="F7" name="no" sourceRef="GW_Fixity" targetRef="Task_Quarantine"/>
+    <bpmn:sequenceFlow id="F8" sourceRef="Task_Checkpoint" targetRef="GW_More_Join"/>
+    <bpmn:sequenceFlow id="F9" sourceRef="Task_Quarantine" targetRef="GW_More_Join"/>
+    <bpmn:sequenceFlow id="Flow_GW_More_Join" sourceRef="GW_More_Join" targetRef="GW_More"/>
+    <bpmn:sequenceFlow id="F10" name="yes" sourceRef="GW_More" targetRef="Task_HarvestBatch"/>
+    <bpmn:sequenceFlow id="F11" name="no" sourceRef="GW_More" targetRef="Call_BuildGraph"/>
+    <bpmn:sequenceFlow id="F12" sourceRef="Call_BuildGraph" targetRef="Call_SignPublish"/>
+    <bpmn:sequenceFlow id="F13" sourceRef="Call_SignPublish" targetRef="Task_ReviewLoad"/>
+    <bpmn:sequenceFlow id="F14" sourceRef="Task_ReviewLoad" targetRef="End_Loaded"/>
+    <bpmn:dataStoreReference id="DSR_cloudflare_r2_cdn" name="Cloudflare R2 + CDN" dataStoreRef="cloudflare-r2-cdn"/>
+    <bpmn:dataStoreReference id="DSR_cloudflare_git" name="Cloudflare git (Artifacts)" dataStoreRef="cloudflare-git"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_IrisCdnInitialLoad">
+    <bpmndi:BPMNPlane id="Plane_IrisCdnInitialLoad" bpmnElement="Process_IrisCdnInitialLoad">
+      <bpmndi:BPMNShape id="S_Lane_Owner" bpmnElement="Lane_Owner" isHorizontal="true"><dc:Bounds x="160" y="60" width="2680" height="140" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Lane_Exporter" bpmnElement="Lane_Exporter" isHorizontal="true"><dc:Bounds x="160" y="200" width="2680" height="140" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Lane_Pipeline" bpmnElement="Lane_Pipeline" isHorizontal="true"><dc:Bounds x="160" y="340" width="2680" height="560" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Start_LoadApproved" bpmnElement="Start_LoadApproved"><dc:Bounds x="297" y="112" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="255" y="152" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_StateBudget" bpmnElement="Task_StateBudget"><dc:Bounds x="430" y="90" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_PlanBatches" bpmnElement="Task_PlanBatches"><dc:Bounds x="620" y="230" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_HarvestBatch" bpmnElement="Task_HarvestBatch"><dc:Bounds x="825" y="352" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_FetchBitstreams" bpmnElement="Task_FetchBitstreams"><dc:Bounds x="1015" y="352" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_GW_Fixity" bpmnElement="GW_Fixity" isMarkerVisible="true"><dc:Bounds x="1240" y="385" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1205" y="439" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_StoreBytes" bpmnElement="Task_StoreBytes"><dc:Bounds x="1380" y="650" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_Checkpoint" bpmnElement="Task_Checkpoint"><dc:Bounds x="1570" y="790" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_Quarantine" bpmnElement="Task_Quarantine"><dc:Bounds x="1585" y="490" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_More_Join" bpmnElement="GW_More_Join" isMarkerVisible="true">
+        <dc:Bounds x="1810" y="385" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_GW_More_Join" bpmnElement="Flow_GW_More_Join">
+        <di:waypoint x="1860" y="410"/>
+        <di:waypoint x="1900" y="410"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="S_GW_More" bpmnElement="GW_More" isMarkerVisible="true"><dc:Bounds x="1900" y="385" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1865" y="439" width="120" height="17" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Call_BuildGraph" bpmnElement="Call_BuildGraph"><dc:Bounds x="2055" y="352" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Call_SignPublish" bpmnElement="Call_SignPublish"><dc:Bounds x="2245" y="352" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_ReviewLoad" bpmnElement="Task_ReviewLoad"><dc:Bounds x="2420" y="230" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_End_Loaded" bpmnElement="End_Loaded"><dc:Bounds x="2667" y="252" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="2707" y="243.5" width="120" height="53" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="E_F1" bpmnElement="F1"><di:waypoint x="333" y="130"/><di:waypoint x="430" y="130"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F2" bpmnElement="F2"><di:waypoint x="580" y="130"/><di:waypoint x="600" y="130"/><di:waypoint x="600" y="270"/><di:waypoint x="620" y="270"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F3" bpmnElement="F3">
+        <di:waypoint x="770" y="270" />
+        <di:waypoint x="797.5" y="270" />
+        <di:waypoint x="797.5" y="412" />
+        <di:waypoint x="825" y="412" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F4" bpmnElement="F4">
+        <di:waypoint x="945" y="412" />
+        <di:waypoint x="1015" y="412" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F5" bpmnElement="F5">
+        <di:waypoint x="1135" y="412" />
+        <di:waypoint x="1187.5" y="412" />
+        <di:waypoint x="1187.5" y="410" />
+        <di:waypoint x="1240" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F6" bpmnElement="F6"><di:waypoint x="1290" y="410"/><di:waypoint x="1360" y="410"/><di:waypoint x="1360" y="690"/><di:waypoint x="1380" y="690"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F6b" bpmnElement="F6b"><di:waypoint x="1530" y="690"/><di:waypoint x="1550" y="690"/><di:waypoint x="1550" y="830"/><di:waypoint x="1570" y="830"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F7" bpmnElement="F7">
+        <di:waypoint x="1290" y="410" />
+        <di:waypoint x="1437.5" y="410" />
+        <di:waypoint x="1437.5" y="550" />
+        <di:waypoint x="1585" y="550" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F8" bpmnElement="F8"><di:waypoint x="1720" y="830"/><di:waypoint x="1790" y="830"/><di:waypoint x="1790" y="410"/><di:waypoint x="1810" y="410"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F9" bpmnElement="F9">
+        <di:waypoint x="1705" y="550" />
+        <di:waypoint x="1757.5" y="550" />
+        <di:waypoint x="1757.5" y="410" />
+        <di:waypoint x="1810" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F10" bpmnElement="F10">
+        <di:waypoint x="1925" y="385" />
+        <di:waypoint x="1925" y="345" />
+        <di:waypoint x="885" y="345" />
+        <di:waypoint x="885" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F11" bpmnElement="F11">
+        <di:waypoint x="1950" y="410" />
+        <di:waypoint x="2002.5" y="410" />
+        <di:waypoint x="2002.5" y="412" />
+        <di:waypoint x="2055" y="412" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1956" y="390" width="90" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F12" bpmnElement="F12">
+        <di:waypoint x="2175" y="412" />
+        <di:waypoint x="2245" y="412" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F13" bpmnElement="F13">
+        <di:waypoint x="2365" y="412" />
+        <di:waypoint x="2392.5" y="412" />
+        <di:waypoint x="2392.5" y="270" />
+        <di:waypoint x="2420" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F14" bpmnElement="F14"><di:waypoint x="2570" y="270"/><di:waypoint x="2667" y="270"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_DSR_cloudflare_r2_cdn" bpmnElement="DSR_cloudflare_r2_cdn"><dc:Bounds x="1430" y="940" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1484" y="937" width="90" height="53" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_StoreBytes" bpmnElement="DOA_Task_StoreBytes"><di:waypoint x="1455" y="730"/><di:waypoint x="1455" y="940"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_DSR_cloudflare_git" bpmnElement="DSR_cloudflare_git"><dc:Bounds x="1620" y="940" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1674" y="947" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_Checkpoint" bpmnElement="DOA_Task_Checkpoint"><di:waypoint x="1645" y="870"/><di:waypoint x="1645" y="940"/></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

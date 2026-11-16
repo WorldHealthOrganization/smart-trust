@@ -1,0 +1,57 @@
+---
+doc_id: 10665-37905
+doc_title: "Accélération des activités de vaccination : principes de planification / déclaration conjointe OMS/FISE"
+section_id: page-028
+section_title: "Page 28"
+pages: 28-28
+pdf_page: 28
+source_pdf: 10665-37905.pdf
+source_sha256: 9ca36288eaaca93f
+text_source: ocr
+granularity: page
+---
+- 28 -
+
+l'on veut atteindre le but fixé pour 1990. Les
+efforts d'accélération devraient notamment
+consister à améliorer la qualité des services
+existants. Il s'agit pour cela de fournir aux
+agents de santé une meilleure formation et un
+meilleur encadrement et de veiller à ce que les
+communautés participent de près à la planification
+et à la prestation de ces services. Un certain
+nombre de pays ont recouru avec succès à des
+journées nationales de vaccination pour compléter
+les services ordinaires. Cette approche doit
+néanmoins être planifiée et appliquée d'une
+manière qui permette la permanence des services de
+vaccination; elle doit être considérée comme
+l'une des manières possibles et non la seule
+possible pour accélérer les programmes. L'évalu-
+ation est une partie importante de toutes les
+activités de vaccination et elle devrait être un
+élément prioritaire des activités accélérées, y
+compris les journées nationales de vaccination,
+
+pour que les pouvoirs publics nationaux puissent
+se faire rapidement une idée objective de ce qui
+fonctionne et de ce qui ne fonctionne pas et modi-
+fier leur stratégie en conséquence.
+
+RE
+
+Les efforts de vaccination accélérée
+devraient, dans la mesure du possible, comprendre
+les éléments ci-après:
+
+Utilisation de tous les antigênes inclus
+dans le plan national de vaccination
+systématique des nouveaux-nés.
+
+Utilisation d'un calendrier pour toute
+stratégie d'accélération afin de permet-
+tre l'administration des trois doses des
+vaccins DTC/antipoliomyélitique, soit
+trois journées ou semaines de vaccination
+au minimum avec un intervalle de quatre
+semaines entre les vaccinations.

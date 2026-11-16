@@ -1,0 +1,91 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "pdf-viewer-install",
+    "title": "Install the inline PDF viewer into a built site",
+    "description": "Download the pinned pdf.js release (legacy build), verify its SHA-256, copy the parts a site needs into `<site>/assets/vendor/pdfjs/`, and add the shim that opens `?src=` only for the allowlisted URL prefixes or the site's own origin. Nothing is committed: the viewer exists only in the built site.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat pdf:viewer"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "site",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The built site directory, `_site` in both site workflows.",
+          "required": true,
+          "arg": {
+            "flag": "--site"
+          }
+        },
+        {
+          "name": "allow",
+          "schema": {
+            "$type": "Url"
+          },
+          "description": "An https URL prefix the viewer may open, ending in `/`. Repeat the flag for more than one. `same-origin-only` is the explicit way to allow none — an omitted flag is a usage error, because a viewer that refuses every CDN document would otherwise ship green.",
+          "required": true,
+          "arg": {
+            "flag": "--allow"
+          }
+        },
+        {
+          "name": "zip",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A local copy of the release zip, for offline runs and tests. Its hash is checked exactly as a download's would be.",
+          "required": false,
+          "arg": {
+            "flag": "--zip"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "summary",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "One line on stdout: version, destination, file count, and the prefixes it will open. Exit 2 on a usage error; a hash mismatch or a release missing a kept path throws, refusing the install."
+        }
+      ]
+    },
+    "satisfies": [
+      "pdf-inline-viewer"
+    ],
+    "selection": {
+      "when": "A site build that publishes pages carrying `pdf-viewer-embed` fragments. Run it after the site is assembled and before any pass that walks every page.",
+      "limits": "It installs one pinned version and nothing else: moving the pin is `upstream-version-adoption`, with the hash re-measured. It does not decide which PDFs may be shown — the allowlist bounds where the viewer will FETCH from, and a page's publication gates decide whether a page embeds a document at all.",
+      "cost": "One ~7 MB download per build and ~12 MB (404 files) added to the built site. Not committed, so no clone cost."
+    },
+    "requires": {
+      "runtime": [
+        "bun",
+        "unzip"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "pdf.js is fetched from its GitHub release and no copy is vendored; the site builds without the viewer."
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "/io/inputs/0",
+      "comment": "input-site: inert #5ead75ee — prose naming the directory, in a message or a description"
+    },
+    {
+      "at": "",
+      "comment": "── The inline PDF viewer (bean `folio-assistant-5ea6`, issue #2119).\n\nOwner, 2026-10-04: \"is there a lightweight inline viewer that could be\nused for viewing PDF on CDN … basic functionality (search, scroll, jump\nto page, print, d/l)\", then \"add as skill and tool\". Two Tools for one\nscript, because installing the viewer into a built site and embedding it\nin a page are different acts with different callers: a workflow does the\nfirst once per build, a page generator does the second once per page."
+    }
+  ]
+}

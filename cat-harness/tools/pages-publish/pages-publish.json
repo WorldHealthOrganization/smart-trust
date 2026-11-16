@@ -1,0 +1,72 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "pages-publish",
+    "title": "GitHub Pages publish",
+    "description": "Push a built directory to the `gh-pages` branch, where it is served. How the knowledge graph and its schema reach a URL.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat site:workflow publish"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "directory",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The built tree to publish.",
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "baseUrl",
+          "schema": {
+            "$type": "Url"
+          },
+          "description": "Publication base; a preview passes its own.",
+          "required": false,
+          "arg": {
+            "flag": "--base-url"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "url",
+          "schema": {
+            "$type": "Url"
+          },
+          "description": "Where the tree is served.",
+          "render": {
+            "as": "url",
+            "reason": "a reader opens it; the scheme is checked before it reaches an href"
+          }
+        }
+      ]
+    },
+    "satisfies": [
+      "kg-export",
+      "docs-generation"
+    ],
+    "requires": {
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "It is a GitHub Actions workflow; it runs on GitHub or not at all."
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "/satisfies",
+      "comment": "`docs-generation` too (owner, 2026-10-05, bean lehh): this is the CI\nbuild of the site, and `site-build-local` is the same build on a\ndeveloper's machine — two Tools, one skill."
+    }
+  ]
+}

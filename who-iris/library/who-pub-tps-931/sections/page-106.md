@@ -1,0 +1,56 @@
+---
+doc_id: who-pub-tps-931
+doc_title: "WHO Editorial Style Manual"
+section_id: page-106
+section_title: "Page 106"
+section_number: null
+pages: 106-106
+source_pdf: WHO_PUB_TPS_93.1.pdf
+source_sha256: ecc88eee99756755
+toc_source: undetermined
+---
+Annex 2 - Member States
+
+Short name Full name Adjective/People Capital city
+Croatia the Republic of Croatia Croatian Zagreb
+Cuba the Republic of Cuba Cuban Havana
+Cyprus the Republic of Cyprus Cypriot Nicosia
+Czech Republic the Czech Republic Czech Prague
+(the)
+Democratic People’s the Democratic People’s of the Democratic Pyongyang
+Republic of Korea Republic of Korea People’s Republic
+(the) of Korea
+Democratic the Democratic Republic of the Democratic Kinshasa
+Republic of of the Congo Republic of the
+the Congo (the) Congo, Congolese
+Denmark the Kingdom of Denmark Danish, a Dane Copenhagen
+Djibouti the Republic of Djibouti (of) Djibouti, Djibouti
+a Djiboutian
+
+Dominica the Commonwealth (of) Dominica Roseau
+
+of Dominica
+Dominican the Dominican Republic Dominican Santo
+Republic (the) Domingo
+Ecuador the Republic of Ecuador Ecuadorian Quito
+Egypt the Arab Republic of Egypt Egyptian Cairo
+El Salvador the Republic of El Salvador Salvadoran San Salvador
+Equatorial Guinea _ the Republic of (of) Equatorial Malabo
+
+Equatorial Guinea Guinea
+Eritrea Eritrea Eritrean Asmara
+Estonia the Republic of Estonia Estonian Tallinn
+Ethiopia Federal Democratic Ethiopian Addis Ababa
+
+Republic of Ethiopia
+Fiji the Republic of Fiji of Fiji Suva
+Finland the Republic of Finland Finnish, a Finn Helsinki
+France the French Republic French, a French- Paris
+
+man, the French
+
+Gabon the Gabonese Republic Gabonese Libreville
+Gambia (the) the Republic of the Gambia Gambian Banjul
+Georgia Georgia Georgian Tbilisi
+
+101

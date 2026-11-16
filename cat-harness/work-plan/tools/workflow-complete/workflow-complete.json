@@ -1,0 +1,128 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "workflow-complete",
+    "title": "Complete a step",
+    "description": "Record an enabled step as done — or supply the facts a decision gateway is computed from — and advance the layer. Refuses a step that is not enabled.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "mcp": {
+        "tool": "workflow_complete"
+      },
+      "inProcess": {
+        "module": "src/tools/workflow.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "InstanceId"
+          },
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "node",
+          "schema": {
+            "$type": "NodeId"
+          },
+          "required": true,
+          "arg": {
+            "positional": 1
+          }
+        },
+        {
+          "name": "outcome",
+          "schema": {
+            "$type": "NodeId"
+          },
+          "description": "Which branch a plain gateway takes. Refused at a gateway backed by a decision table — asserting the answer would defeat the table.",
+          "required": false,
+          "arg": {
+            "flag": "--outcome"
+          }
+        },
+        {
+          "name": "facts",
+          "schema": {
+            "$type": "DecisionFacts"
+          },
+          "description": "Facts a DMN table is evaluated against. Structured, so it is never a command-line word.",
+          "required": false
+        },
+        {
+          "name": "actor",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Who you say performed the step, written to the history. Authorization is decided on the principal GitHub vouches for, in strict mode (issue #1207).",
+          "required": false
+        },
+        {
+          "name": "target",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The content the step acted on, for the access check.",
+          "required": false
+        },
+        {
+          "name": "note",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "Appended to the layer's bean.",
+          "required": false,
+          "arg": {
+            "stdin": true
+          }
+        },
+        {
+          "name": "activities",
+          "schema": {
+            "$type": "ProvActivity"
+          },
+          "description": "PROV-O activities a Tool returned while doing this step, verbatim (e.g. skill_update's `activity`). Kept on the step's history entry; each must name this step as its plan.",
+          "required": false,
+          "repeated": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "position",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "The layer's new position, and what is enabled next."
+        }
+      ]
+    },
+    "satisfies": [
+      "process-state",
+      "bean-coordination"
+    ],
+    "requires": {
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/io/inputs/6",
+      "comment": "Free prose, and prose is not a command-line word — see\n`tool-types` on why `Markdown` is excluded from INJECTION_SAFE."
+    },
+    {
+      "at": "/io/inputs/7",
+      "comment": "Served since cat-harness-tools#887 (bean cat-tools-ycn6) and declared here\nsince bean w1gy (finding 2), owner option A of 2026-10-30. Structured,\nso it has no `arg`: `ProvActivity` is not in INJECTION_SAFE, like\n`DecisionFacts`. The engine also checks that each activity's\n`prov:qualifiedAssociation.prov:hadPlan` ends in `#<node>`."
+    },
+    {
+      "at": "/satisfies",
+      "comment": "NOT `dmn-authoring`: EVALUATING a decision table is not AUTHORING\none, and the skill's contract says so — it requires `decisionName` and\n`inputVariables`, which are what you supply to write a table, not to\nanswer one. `check:tools` refuses the edge."
+    }
+  ]
+}

@@ -1,0 +1,417 @@
+{%- comment -%}
+  The landing page, as a board of sticky notes.
+
+  Everything here comes from `harness.json` via `_data/harness.json` (written by
+  `scripts/sync-docs-harness.ts`, which in turn reads the sticky NODES that
+  `scripts/ensure-landing-sticky.ts` wrote into the instance's `folio/` graph).
+  NOTHING about this repo is written in: an instance overrides the words, the
+  links and the art by editing its own declaration and its own stickies.
+
+  ## The geometry came BACK, and this comment used to say the opposite
+
+  This file once composited the description into the quiet interior of the
+  backdrop, positioned by each layout's declared `textRegion`. That was dropped
+  when the board was built, on the argument that "a sticky note is not a thought
+  cloud" — the sticky is the container, so it should size to its content, and a
+  fixed interior would reimpose geometry the change removed. This comment said
+  **"nothing here reads textRegion"** in as many words.
+
+  It is read again, and the reversal is the owner's, 2026-09-20, looking at one:
+
+    i want stickys to be the same fixd size, so there would be [no] unused space
+    ... dispalyed content matches layout ratios. placemetn of markdown and
+    scaling/size can be adjusted (in schema) to allow more control. default is
+    centered in the various clouds positions of the default grump cloud
+    (across three layouts)
+
+  So: a sticky is a FIXED SHAPE whose aspect is its crop's, and the words go in
+  the cloud — per layout, because the cloud moves between crops.
+
+  The old objection was real, and it is answered rather than ignored. Text that
+  did not fit used to clip or spill SILENTLY. A sticky that needs more room now
+  says so in its declaration — `text.scale` shrinks the words, `text.box` widens
+  their box — and the text box SCROLLS rather than spilling, so overflow is
+  visible instead of quiet. That is the difference between reimposing the
+  geometry and reimposing the failure.
+
+  Recorded rather than quietly rewritten: a comment that states the opposite of
+  what its file does is worse than no comment.
+
+  ## Three states, and the third is why this is a template rather than a div
+
+    1. Stickies, each with its theme's art resolved  -> the board below.
+    2. Stickies whose theme has no art (or none installed) -> the same board,
+       flat-coloured. `.fa-sticky--backdrop` is only added when art exists, so
+       the scrim never sits over nothing.
+    3. No stickies at all -> the instance's description, plainly. An instance
+       whose initiation has not run is ordinary, not broken.
+
+  ## The art is `<picture>`, not a CSS background
+
+  A background can only name one crop. `<picture>` swaps the FILE at a
+  breakpoint, which is the whole reason three crops are declared — a portrait
+  crop is not a landscape crop scaled down. `<source>` order is narrowest-first,
+  because a `<picture>` takes the FIRST matching source and `max-width: 48rem`
+  matches a 20rem phone too.
+
+  `alt=""` deliberately: the backdrop is decorative, and every word it carries
+  is in the sticky's own markdown as real text. Announcing a paragraph about
+  composition to somebody who already has the content is the mistake
+  `title.html` shipped once.
+{%- endcomment -%}
+
+{%- comment -%}
+  TWO data files, and the split is a layering one rather than a convenience.
+  `harness` is the INSTANCE's own declaration, written by the harness layer;
+  `stickies` is folio CONTENT, written by core. They were one file until
+  `repo-partition --edges` reported the harness reaching up into core's content
+  nodes to build it.
+{%- endcomment -%}
+{%- assign h = site.data.harness -%}
+{%- assign stickies = site.data.stickies.stickies -%}
+
+{%- if stickies and stickies.size > 0 -%}
+{%- comment -%}
+  THE STICKY PANEL — SLID AWAY, and that is the default rather than a setting.
+
+  Owner, 2026-09-21, twice and then once more in capitals:
+
+    i thought the sticky panel had some todos, but they seem gone. they should
+    be closed/tiled to start.
+
+    please!!! i dont want to see these giant cats at the top anymore. priority
+    #1 make the stikypanel slid away
+
+  The stickies used to be the FIRST thing on the page, full-bleed, one card per
+  harness. On a laptop that is a screen and a half of cat before the page says
+  what the repository is — and `index.md` carries the title, the description and
+  the Get started button BELOW this include, so everything that answers "what is
+  this" was under the fold.
+
+  ## Why this is a `<details>` and not a script
+
+  The same reason `nav_footer_custom.html` gives for the harness tabs, and it is
+  load-bearing rather than stylistic: keyboard-operable for free, announces its
+  own open/closed state to a screen reader, and works with NO JAVASCRIPT AT ALL.
+  That last one is the `jtj` floor — *the listing is the ARTEFACT and the board
+  is the overlay* — and a JS disclosure would have put the stickies behind a
+  script, which is the exact defect measured on 2026-09-21: every note on an
+  ordinary page was built from a `fetch`, so a reader with JS off got nothing
+  and no hint that anything existed.
+
+  ## Why the panel is at the TOP, and why that is not the thing being complained about
+
+  Issue #764 §5 S6, which is the owner's own words for a webpage as against a
+  folio: *"if not placed on a document somewhere, they in slide down panel at
+  top with [stikcy] icon to open or so."* A docs page is a webpage, not a folio,
+  so a slide-down at the top IS the specified home. What was wrong was never the
+  position — it was that the panel had no closed state, so "at the top" meant a
+  screen and a half rather than one bar.
+
+  ## The count is the panel's own cardinality
+
+  `stickies.size`, rendered here, so a collapsed panel still says how much is
+  behind it — the same rule `harness-tiles` states for the collapsed tab groups.
+  `docs-ui.js` ADDS the todo count to it once `mountTodoBoard` has mounted into
+  the board below; with no script the number is the stickies alone, which is
+  correct rather than degraded, because with no script there are no todo cards
+  in here to count. The no-JS todo listing is a separate generated include and
+  is not affected by this panel at all.
+{%- endcomment -%}
+{%- comment -%}
+  `include.open`: a page whose CONTENT is the stickies (`/todos/`, #1906,
+  generated by `state-visualizer.ts`) includes this panel open. The landing
+  page includes it bare, so it stays slid away there as the owner asked.
+
+  `lang="en" dir="ltr"` (bean `giiw`): `_data/stickies` is ONE English file
+  that every locale's landing page includes, so on the Arabic page this panel
+  is English, and is laid out as English rather than inheriting `dir="rtl"`.
+  An attribute rather than a CSS `direction`, for the reason `chromeText` in
+  `docs-ui.js` gives: the bidi algorithm reads `dir`, and a stylesheet that
+  fails to load must not reverse a sentence.
+{%- endcomment -%}
+<details class="fa-sticky-panel" lang="en" dir="ltr"{% if include.open %} open{% endif %}>
+  <summary class="fa-sticky-panel__handle">
+    {%- comment -%}
+      A sticky note with a turned-up corner. `aria-hidden` because the label
+      beside it says the same thing in words, and a screen reader announcing
+      both reads the control twice.
+    {%- endcomment -%}
+    <svg class="fa-sticky-panel__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M5 3h14a2 2 0 0 1 2 2v9l-7 7H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+      <path d="M21 14h-5a2 2 0 0 0-2 2v5z" opacity="0.55"/>
+    </svg>
+    <span class="fa-sticky-panel__label">Stickies</span>
+    <span class="fa-sticky-panel__count" data-fa-sticky-count="{{ stickies.size }}">{{ stickies.size }}</span>
+  </summary>
+  <div class="fa-sticky-panel__body">
+  {%- comment -%}
+    A HOME PANEL (bean `pv6g`, owner 2026-09-23: the home is "the panel it
+    came from"). Each cell is a slot, so a landing sticky pinned onto the
+    glass knows where closing it returns it.
+  {%- endcomment -%}
+  <div class="fa-sticky-board fa-landing-board" data-fa-home-panel="landing">
+  {%- for st in stickies -%}
+  {%- assign has_art = false -%}
+  {%- if st.art.laptop -%}{%- assign has_art = true -%}{%- endif -%}
+  {%- comment -%}
+    FIXED SHAPE, and the shape is the CROP'S, not the text's.
+
+      i want stickys to be the same fixd size, so there would be [no] unused
+      space in the example above. dispalyed content matches layout ratios.
+      -- owner, 2026-09-20
+
+    Every layout's aspect and cloud region is emitted as its own custom
+    property, and the stylesheet ALIASES `--fa-sticky-aspect` to one of them per
+    breakpoint. That indirection is what makes this correct rather than nearly
+    correct: `<picture>` swaps the FILE at `30rem` and `48rem`, so the card's
+    ratio and the cloud's position have to change at exactly those widths or the
+    words land in the wrong part of the art. A media query cannot read which
+    `<source>` won, so both sides are keyed to the same two numbers instead.
+
+    The per-sticky default (widest viewport) is set here, because only this
+    template knows which crop this sticky chose.
+  {%- endcomment -%}
+  {%- assign sh = st.shape -%}
+  {%- assign d = st.art[sh] -%}
+  {%- if d == nil -%}{%- assign d = st.art.laptop -%}{%- endif -%}
+  {%- comment -%}
+    THE CELL, and the reason it exists is one line of the owner's:
+
+      i want the [pencil] edit icon, (edit, view links can be below, not
+      inside stick)                                     -- 2026-09-21
+
+    View and Edit used to sit INSIDE the `<article>`, in the sticky's own
+    text box. A sticky is a note; the links are about the FILE the note was
+    declared in, which is a different subject — and on a card with backdrop
+    art they were competing with the words for the quiet part of the cloud.
+
+    So the grid item is now the CELL, and it holds two things: the sticky,
+    and a caption row beneath it. `.fa-landing-sticky--fixed` still carries
+    the aspect ratio, so the sticky keeps its declared shape and the caption
+    adds its own height below rather than eating into the art.
+  {%- endcomment -%}
+  <div class="fa-sticky-cell" data-fa-home-slot="{{ st.id }}">
+  <article class="fa-sticky fa-landing-sticky{% if has_art %} fa-sticky--backdrop fa-landing-sticky--fixed{% endif %}"
+           data-fa-sticky-theme="{{ st.theme }}"
+           {% if st.art.card %}data-fa-art-card="{{ st.art.card.src | relative_url }}"{% endif %}
+           {%- if has_art %} data-fa-shape="{{ st.shape }}" style="
+             {%- comment -%}
+               RAW PER-LAYOUT VALUES ONLY. Which layout's aspect and cloud are
+               in force is decided entirely in the stylesheet, and that split is
+               forced rather than stylistic: a custom property set in a `style`
+               attribute CANNOT be overridden by a stylesheet rule, so setting
+               `--fa-sticky-aspect` here would pin the widest viewport's crop at
+               every width and the words would sit in the laptop cloud on a
+               phone. `data-fa-shape` tells the stylesheet which layout is this
+               sticky's default; the media queries take it from there.
+
+               The one thing that IS set here is an authored `text.box`, and
+               inline is exactly right for it: an explicit override should beat
+               every breakpoint, which is what an inline custom property does.
+             {%- endcomment -%}
+             {%- if st.art.laptop.aspect %}--fa-aspect-laptop:{{ st.art.laptop.aspect }};{% endif -%}
+             {%- if st.art.mobile.aspect %}--fa-aspect-mobile:{{ st.art.mobile.aspect }};{% endif -%}
+             {%- if st.art.card.aspect %}--fa-aspect-card:{{ st.art.card.aspect }};{% endif -%}
+             {%- for L in st.art -%}
+               {%- if L[1].textRegion -%}
+                 --fa-tx-{{ L[0] }}:{{ L[1].textRegion.x }};--fa-ty-{{ L[0] }}:{{ L[1].textRegion.y }};--fa-tw-{{ L[0] }}:{{ L[1].textRegion.w }};--fa-th-{{ L[0] }}:{{ L[1].textRegion.h }};
+               {%- endif -%}
+             {%- endfor -%}
+             {%- if st.text.box -%}
+               --fa-tx:{{ st.text.box.x }};--fa-ty:{{ st.text.box.y }};--fa-tw:{{ st.text.box.w }};--fa-th:{{ st.text.box.h }};
+             {%- endif -%}
+             {%- if st.text.scale %}--fa-text-scale:{{ st.text.scale }};{% endif -%}
+             {%- if st.text.align %}--fa-text-align:{{ st.text.align }};{% endif -%}
+           {%- comment -%}
+             NO `-%}` HERE. The right-strip eats this newline and its indent, so
+             the `style` attribute's closing quote lands directly against the
+             next attribute: `--fa-text-scale:0.74;"aria-labelledby=`. That is
+             not a cosmetic slip — an opening tag with no whitespace between two
+             attributes is unparseable, and `index.md` is MARKDOWN, so Kramdown
+             stops recognising the block as HTML and escapes the whole of it.
+             The published page carried `&lt;article class="fa-sticky …"` as
+             visible text with `&lt;/article&gt;` to match: 3 escaped, 0 real,
+             every `.fa-landing-sticky--fixed` rule dead and the raw tag printed
+             on screen. Measured on the built site, not argued from the template
+             — which is how it shipped, because the template IS correct HTML and
+             only the build shows what Kramdown did to it.
+
+             The `has_art == false` branch has the same hazard: with the strip,
+             `data-fa-sticky-theme="…"` welds to `aria-labelledby` just as
+             readily. One `endif` without the dash fixes both.
+           {%- endcomment -%}
+           "{% endif %}
+           aria-labelledby="fa-sticky-{{ st.id }}-summary">
+    {%- if has_art -%}
+    {%- comment -%}
+      The DEFAULT crop is the one this sticky's CONTENT wants — `st.shape`,
+      computed in the generator from how much text and how many links the card
+      carries. Until now the choice was viewport-only, so a two-line sticky and a
+      twelve-line one got the same landscape crop and neither fitted.
+
+      The narrow-viewport `<source>`s stay on top of it: a phone should not be
+      handed a landscape crop just because the text happened to be short. So
+      content decides the default and the viewport still overrides, which is the
+      right precedence — the viewport is a hard constraint and the content shape
+      is a preference.
+
+      `<source>` order is narrowest-first, because a `<picture>` takes the FIRST
+      matching source and `max-width: 48rem` matches a 20rem phone too.
+    {%- endcomment -%}
+    {%- assign chosen = st.art[st.shape] | default: st.art.laptop | default: st.art.mobile | default: st.art.card -%}
+    <picture>
+      {%- comment -%}
+        PORTRAIT FOR A PORTRAIT VIEWPORT. These two were the other way round —
+        the SQUARE crop at the narrowest width and the portrait one above it —
+        which was harmless while a card sized to its text and wrong the moment
+        the card took its crop's ratio: a 430px phone got a 329x329 card, the
+        least room there is, on the tallest screen there is. Measured, all three
+        art-bearing stickies overflowed their text box at that width and none
+        did one breakpoint up.
+
+        So the narrowest gets `mobile` (941x1670, portrait) and the middle band
+        gets `card`, where a column really is about square.
+      {%- endcomment -%}
+      {%- if st.art.mobile %}<source media="(max-width: 30rem)" srcset="{{ st.art.mobile.src | relative_url }}"{% if st.art.mobile.width %} width="{{ st.art.mobile.width }}" height="{{ st.art.mobile.height }}"{% endif %}>{% endif -%}
+      {%- if st.art.card %}<source media="(max-width: 48rem)" srcset="{{ st.art.card.src | relative_url }}"{% if st.art.card.width %} width="{{ st.art.card.width }}" height="{{ st.art.card.height }}"{% endif %}>{% endif -%}
+      <img class="fa-sticky-art" src="{{ chosen.src | relative_url }}" alt="" aria-hidden="true"
+           {% if chosen.width %}width="{{ chosen.width }}" height="{{ chosen.height }}"{% endif %}
+           decoding="async" loading="lazy">
+    </picture>
+    {%- endif -%}
+
+    {%- comment -%}
+      Visually hidden rather than absent. The summary is what names this card for
+      a screen reader via `aria-labelledby`, and a board of three `<article>`s
+      with no accessible names is three anonymous regions. Sighted readers get
+      the heading from the markdown below it, so showing both would be the same
+      words twice.
+    {%- endcomment -%}
+    <h2 id="fa-sticky-{{ st.id }}-summary" class="fa-sr-only">{{ st.summary }}</h2>
+
+    {%- comment -%}
+      The words live in their own box so they can be placed against the art.
+      Without art there is no cloud to sit in, so the wrapper is still there but
+      the stylesheet leaves it in normal flow — a themeless sticky reads exactly
+      as it did.
+    {%- endcomment -%}
+    <div class="fa-landing-sticky__text">
+    <div class="fa-landing-sticky__body">
+      {{ st.comment | markdownify }}
+    </div>
+
+    {%- if st.links and st.links.size > 0 -%}
+    <ul class="fa-landing-sticky__links">
+      {%- for l in st.links -%}
+      {%- comment -%}
+        `relative_url` on a site path and NOT on an absolute one. Applying it to
+        an absolute URL breaks it; omitting it on a site path drops the
+        `/folio-assistant` baseurl. `external` was decided in the generator by
+        reading the URL scheme, so the template does not guess — bean `blv9` is
+        exactly the class of bug where a link-shaped value resolves by luck.
+      {%- endcomment -%}
+      <li>
+        <a href="{% if l.external %}{{ l.href }}{% else %}{{ l.href | relative_url }}{% endif %}"
+           {% if l.external %}rel="noopener"{% endif %}>{{ l.label }}</a>
+        {%- if l.note != "" %} <span class="fa-landing-sticky__note">{{ l.note }}</span>{% endif -%}
+      </li>
+      {%- endfor -%}
+    </ul>
+    {%- endif -%}
+
+    {%- comment -%}
+      THE SOURCE CONTROLS — view and edit, on the DECLARATION this card came
+      from. Bean `pb04`, the owner: *"stckynnotes should have edit tool = link
+      to github pages edit directrly, liek with other content blocks.
+      rendeding shows edit src icon (and also need view icon) if github tools
+      avaialable in rendering pipeline."*
+
+      The generator resolved both into `stickies.json` months before anything
+      rendered them, which is the half worth noticing: the data was right, the
+      capability gate worked, and on the page there was no control at all. A
+      value nothing renders is indistinguishable from one nothing computes.
+
+      ABSENT, not disabled, with no forge. `sourceLinks` returns `undefined`
+      for anything that is not a github.com `origin`, and the generator SPREADS
+      the result — so the keys are missing rather than empty, and this `if` is
+      the whole gate. A dead edit link invites a click and, on a private
+      repository, 404s for exactly the reader who cannot edit.
+
+      `st.declaredIn` is the CONTRIBUTING instance's own declaration, so
+      bootstrap's card links to `bootstrap/harness.json` rather than to
+      whichever declaration happened to be read first. Three instances
+      contribute here, so a wrong default would be silently right one time in
+      three.
+
+      Always external: these are github.com URLs, never site paths, so
+      `relative_url` must not touch them.
+    {%- endcomment -%}
+    </div>
+  </article>
+  {%- comment -%}
+    BELOW the sticky, not in it. Icons rather than "⎘ View" / "✎ Edit":
+
+    - the owner asked for the pencil by name;
+    - `✎` and `⎘` are CHARACTERS, and which glyph a font actually has for
+      them varies — `⎘` in particular falls back to a box on several common
+      stacks, which is how a control ends up looking broken without anyone
+      changing it. An inline SVG draws the same shape everywhere and takes
+      `currentColor`;
+    - the row is a caption under a card now, so it has to stay one line.
+
+    NO VISIBLE TEXT, so each carries `aria-label` AND `title`: the label
+    names the action for a screen reader, the title gives a pointer user the
+    same words on hover. They are not interchangeable and both are needed.
+    Target size is held in the stylesheet, not here — this instance's
+    declared interaction profile is low-dexterity.
+
+    Always external: these are github.com URLs, never site paths, so
+    `relative_url` must not touch them. ABSENT rather than disabled when the
+    pipeline has no forge — `pb04`: a dead link invites a click and then
+    reads as "this page is broken".
+  {%- endcomment -%}
+  {%- if st.viewHref or st.editHref -%}
+  <p class="fa-sticky-links">
+    {%- if st.viewHref -%}
+    <a class="fa-node-edit fa-sticky-view" href="{{ st.viewHref }}" rel="noopener"
+       title="View {{ st.declaredIn }} on GitHub"
+       aria-label="View the declaration of {{ st.summary }}"
+    ><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5c-5 0-8.6 4.2-9.6 6a1 1 0 0 0 0 1c1 1.8 4.6 6 9.6 6s8.6-4.2 9.6-6a1 1 0 0 0 0-1c-1-1.8-4.6-6-9.6-6zm0 11a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-2.2a2.3 2.3 0 1 0 0-4.6 2.3 2.3 0 0 0 0 4.6z"/></svg></a>
+    {%- endif -%}
+    {%- if st.editHref -%}
+    <a class="fa-node-edit fa-sticky-edit" href="{{ st.editHref }}" rel="noopener"
+       title="Edit {{ st.declaredIn }} on GitHub"
+       aria-label="Edit the declaration of {{ st.summary }}"
+    ><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16.5V20h3.5L17.8 9.7l-3.5-3.5L4 16.5zM20.7 7.3a1 1 0 0 0 0-1.4l-2.6-2.6a1 1 0 0 0-1.4 0l-1.7 1.7 3.5 3.5 1.7-1.7z"/></svg></a>
+    {%- endif -%}
+  </p>
+  {%- endif -%}
+  </div>
+  {%- endfor -%}
+  </div>
+  </div>
+</details>
+{%- else -%}
+{%- comment -%}
+  No stickies: initiation has not run here, or this instance keeps none. The
+  description alone is the honest fallback, and it is the same markdown the
+  `landing` sticky would have carried.
+{%- endcomment -%}
+<div class="folio-landing folio-landing--plain">
+  {{ h.description | markdownify }}
+</div>
+{%- endif -%}
+{%- comment -%}
+  THE NEUTRAL HUB (issue #1904). Owner, 2026-10-02: *"If more than one is
+  flagged, then neutral hub with listing of harnesses, todos,"*. The todos are
+  the sticky panel above, which `docs-ui.js` already mounts the todo board
+  into, so the hub reuses it rather than building a second board. The harness
+  listing is `harness_details.html`, the tiles `harness-tiles.ts` generates
+  for the sidebar. `landingInstance` is written by `sync-docs-harness.ts` from
+  `resolveLandingInstance`; with one landing harness it is `instance` and this
+  renders nothing.
+{%- endcomment -%}
+{%- if h.landingInstance.kind == "hub" -%}
+{% include harness_details.html %}
+{%- endif -%}

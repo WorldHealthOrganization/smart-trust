@@ -1,0 +1,1 @@
+In addition, a clear policy articulating rules-based algorithms for data validation and de-duplication must be in place. Necessary and sufficient data access controls must be instituted based on an agreed policy to address data privacy, security, confidentiality and meaningful use.
