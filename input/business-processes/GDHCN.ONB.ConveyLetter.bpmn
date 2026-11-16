@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" id="GDHCN.ONB.ConveyLetter.Definitions" targetNamespace="http://smart.who.int/trust/bpmn">
+  <bpmn:resource id="BusinessOwnerRepresentative" name="Business Owner Representative" />
+  <bpmn:resource id="OfficialDelegate" name="Official Delegate" />
+  <bpmn:resource id="GDHCNSecretariat" name="GDHCN Secretariat" />
+  <bpmn:resource id="WHOCountryRepresentative" name="WHO Country Representative" />
+  <bpmn:collaboration id="GDHCN.ONB.ConveyLetter.Collaboration">
+    <bpmn:documentation>Convey a Letter of Application through a secure channel. Framework IX.</bpmn:documentation>
+    <bpmn:participant id="GDHCN.ONB.ConveyLetter.Pool.Participant" name="GDHCN Participant" processRef="GDHCN.ONB.ConveyLetter.Participant">
+      <bpmn:documentation>The Eligible GDHCN Participant (Framework VII).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.ONB.ConveyLetter.Pool.Secretariat" name="GDHCN Secretariat (WHO)" processRef="GDHCN.ONB.ConveyLetter.Secretariat">
+      <bpmn:documentation>The GDHCN Secretariat at WHO (Framework V, VI).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:messageFlow id="C.M.Country" name="Letter and passport" sourceRef="C.P.Country" targetRef="C.S.Meet" />
+    <bpmn:messageFlow id="C.M.Assembly" name="Letter and passport" sourceRef="C.P.Assembly" targetRef="C.S.Assembly" />
+  </bpmn:collaboration>
+  <bpmn:process id="GDHCN.ONB.ConveyLetter.Participant" name="Convey the Letter" isExecutable="false">
+    <bpmn:documentation>Framework IX: the Letter goes through a secure channel.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.ConveyLetter.Participant.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.ConveyLetter.Participant.Lane.BusinessOwnerRepresentative" name="Business Owner Representative" partitionElementRef="BusinessOwnerRepresentative">
+        <bpmn:documentation>Sends the Statement of Interest and the Letter of Application; may meet WHO in person (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/BusinessOwnerRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>C.P.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>C.P.Channel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>C.P.Country</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>C.P.Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>C.P.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="GDHCN.ONB.ConveyLetter.Participant.Lane.OfficialDelegate" name="Official Delegate" partitionElementRef="OfficialDelegate">
+        <bpmn:documentation>Delegate at the World Health Assembly or another WHO governing body meeting (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/OfficialDelegate.</bpmn:documentation>
+        <bpmn:flowNodeRef>C.P.Assembly</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="C.P.Start" name="Letter signed">
+      <bpmn:documentation>Framework IX: officially signed, one for each Trust Domain.</bpmn:documentation>
+      <bpmn:outgoing>Flow_39</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="C.P.Channel" name="Which secure channel?">
+      <bpmn:documentation>Framework IX names two.</bpmn:documentation>
+      <bpmn:incoming>Flow_39</bpmn:incoming>
+      <bpmn:outgoing>Flow_40</bpmn:outgoing>
+      <bpmn:outgoing>Flow_41</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="C.P.Country" name="Meet WHO in country with passport">
+      <bpmn:documentation>Framework IX: with the WHO Country Representative or authorized Secretariat staff. The Legal Representative may meet instead.</bpmn:documentation>
+      <bpmn:incoming>Flow_40</bpmn:incoming>
+      <bpmn:outgoing>Flow_42</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="C.P.Assembly" name="Meet WHO at a governing body with passport">
+      <bpmn:documentation>Framework IX: at the World Health Assembly or another WHO governing body meeting.</bpmn:documentation>
+      <bpmn:incoming>Flow_41</bpmn:incoming>
+      <bpmn:outgoing>Flow_43</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="C.P.Merge" name="">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_42</bpmn:incoming>
+      <bpmn:incoming>Flow_43</bpmn:incoming>
+      <bpmn:outgoing>Flow_44</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="C.P.End" name="Letter conveyed">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_44</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_39" sourceRef="C.P.Start" targetRef="C.P.Channel" />
+    <bpmn:sequenceFlow id="Flow_40" name="in country" sourceRef="C.P.Channel" targetRef="C.P.Country" />
+    <bpmn:sequenceFlow id="Flow_41" name="governing body" sourceRef="C.P.Channel" targetRef="C.P.Assembly" />
+    <bpmn:sequenceFlow id="Flow_42" sourceRef="C.P.Country" targetRef="C.P.Merge" />
+    <bpmn:sequenceFlow id="Flow_43" sourceRef="C.P.Assembly" targetRef="C.P.Merge" />
+    <bpmn:sequenceFlow id="Flow_44" sourceRef="C.P.Merge" targetRef="C.P.End" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.ONB.ConveyLetter.Secretariat" name="Receive the Letter" isExecutable="false">
+    <bpmn:documentation>Framework IX: the Letter reaches WHO Headquarters through a secure channel.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.ConveyLetter.Secretariat.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.ConveyLetter.Secretariat.Lane.GDHCNSecretariat" name="GDHCN Secretariat" partitionElementRef="GDHCNSecretariat">
+        <bpmn:documentation>Authorized WHO staff of the GDHCN Secretariat (Framework V, VI). ActorDefinition http://smart.who.int/trust/ActorDefinition/GDHCNSecretariat.</bpmn:documentation>
+        <bpmn:flowNodeRef>C.S.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>C.S.Channel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>C.S.Assembly</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>C.S.Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>C.S.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="GDHCN.ONB.ConveyLetter.Secretariat.Lane.WHOCountryRepresentative" name="WHO Country Representative" partitionElementRef="WHOCountryRepresentative">
+        <bpmn:documentation>Meets the representative in country and sends the Letter by diplomatic pouch (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/WHOCountryRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>C.S.Meet</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>C.S.Pouch</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="C.S.Start" name="Letter expected">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:outgoing>Flow_45</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="C.S.Channel" name="Which secure channel?">
+      <bpmn:documentation>As the Participant conveys it.</bpmn:documentation>
+      <bpmn:incoming>Flow_45</bpmn:incoming>
+      <bpmn:outgoing>Flow_46</bpmn:outgoing>
+      <bpmn:outgoing>Flow_47</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="C.S.Meet" name="Meet the representative and check passport">
+      <bpmn:documentation>Framework IX.</bpmn:documentation>
+      <bpmn:incoming>Flow_46</bpmn:incoming>
+      <bpmn:outgoing>Flow_48</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="C.S.Pouch" name="Send the Letter by diplomatic pouch">
+      <bpmn:documentation>Framework IX: from the WHO Country Office, or the Permanent Mission in Geneva, to WHO Headquarters.</bpmn:documentation>
+      <bpmn:incoming>Flow_48</bpmn:incoming>
+      <bpmn:outgoing>Flow_49</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="C.S.Assembly" name="Meet the delegate and check passport">
+      <bpmn:documentation>Framework IX.</bpmn:documentation>
+      <bpmn:incoming>Flow_47</bpmn:incoming>
+      <bpmn:outgoing>Flow_50</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="C.S.Merge" name="">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_49</bpmn:incoming>
+      <bpmn:incoming>Flow_50</bpmn:incoming>
+      <bpmn:outgoing>Flow_51</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="C.S.End" name="Letter at WHO Headquarters">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_51</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_45" sourceRef="C.S.Start" targetRef="C.S.Channel" />
+    <bpmn:sequenceFlow id="Flow_46" name="in country" sourceRef="C.S.Channel" targetRef="C.S.Meet" />
+    <bpmn:sequenceFlow id="Flow_47" name="governing body" sourceRef="C.S.Channel" targetRef="C.S.Assembly" />
+    <bpmn:sequenceFlow id="Flow_48" sourceRef="C.S.Meet" targetRef="C.S.Pouch" />
+    <bpmn:sequenceFlow id="Flow_49" sourceRef="C.S.Pouch" targetRef="C.S.Merge" />
+    <bpmn:sequenceFlow id="Flow_50" sourceRef="C.S.Assembly" targetRef="C.S.Merge" />
+    <bpmn:sequenceFlow id="Flow_51" sourceRef="C.S.Merge" targetRef="C.S.End" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="GDHCN.ONB.ConveyLetter.Diagram">
+    <bpmndi:BPMNPlane id="GDHCN.ONB.ConveyLetter.Plane" bpmnElement="GDHCN.ONB.ConveyLetter.Collaboration">
+      <bpmndi:BPMNShape id="GDHCN.ONB.ConveyLetter.Pool.Participant_di" bpmnElement="GDHCN.ONB.ConveyLetter.Pool.Participant" isHorizontal="true"><dc:Bounds x="120" y="60" width="970" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ConveyLetter.Participant.Lane.BusinessOwnerRepresentative_di" bpmnElement="GDHCN.ONB.ConveyLetter.Participant.Lane.BusinessOwnerRepresentative" isHorizontal="true"><dc:Bounds x="150" y="60" width="940" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ConveyLetter.Participant.Lane.OfficialDelegate_di" bpmnElement="GDHCN.ONB.ConveyLetter.Participant.Lane.OfficialDelegate" isHorizontal="true"><dc:Bounds x="150" y="220" width="940" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ConveyLetter.Pool.Secretariat_di" bpmnElement="GDHCN.ONB.ConveyLetter.Pool.Secretariat" isHorizontal="true"><dc:Bounds x="120" y="430" width="970" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ConveyLetter.Secretariat.Lane.GDHCNSecretariat_di" bpmnElement="GDHCN.ONB.ConveyLetter.Secretariat.Lane.GDHCNSecretariat" isHorizontal="true"><dc:Bounds x="150" y="430" width="940" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ConveyLetter.Secretariat.Lane.WHOCountryRepresentative_di" bpmnElement="GDHCN.ONB.ConveyLetter.Secretariat.Lane.WHOCountryRepresentative" isHorizontal="true"><dc:Bounds x="150" y="590" width="940" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C.P.Start_di" bpmnElement="C.P.Start"><dc:Bounds x="232" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C.P.Channel_di" bpmnElement="C.P.Channel" isMarkerVisible="true"><dc:Bounds x="365" y="115" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="330" y="81" width="120" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C.P.Country_di" bpmnElement="C.P.Country"><dc:Bounds x="470" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C.P.Assembly_di" bpmnElement="C.P.Assembly"><dc:Bounds x="610" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C.P.Merge_di" bpmnElement="C.P.Merge" isMarkerVisible="true"><dc:Bounds x="785" y="115" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C.P.End_di" bpmnElement="C.P.End"><dc:Bounds x="932" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="895" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C.S.Start_di" bpmnElement="C.S.Start"><dc:Bounds x="232" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C.S.Channel_di" bpmnElement="C.S.Channel" isMarkerVisible="true"><dc:Bounds x="365" y="485" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="330" y="451" width="120" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C.S.Meet_di" bpmnElement="C.S.Meet"><dc:Bounds x="470" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C.S.Pouch_di" bpmnElement="C.S.Pouch"><dc:Bounds x="610" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C.S.Assembly_di" bpmnElement="C.S.Assembly"><dc:Bounds x="610" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C.S.Merge_di" bpmnElement="C.S.Merge" isMarkerVisible="true"><dc:Bounds x="785" y="485" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C.S.End_di" bpmnElement="C.S.End"><dc:Bounds x="932" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="895" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_39_di" bpmnElement="Flow_39"><di:waypoint x="268" y="140" /><di:waypoint x="365" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_40_di" bpmnElement="Flow_40"><di:waypoint x="415" y="140" /><di:waypoint x="470" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_41_di" bpmnElement="Flow_41"><di:waypoint x="390" y="165" /><di:waypoint x="390" y="300" /><di:waypoint x="610" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_42_di" bpmnElement="Flow_42"><di:waypoint x="590" y="140" /><di:waypoint x="785" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_43_di" bpmnElement="Flow_43"><di:waypoint x="730" y="300" /><di:waypoint x="810" y="300" /><di:waypoint x="810" y="165" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_44_di" bpmnElement="Flow_44"><di:waypoint x="835" y="140" /><di:waypoint x="932" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_45_di" bpmnElement="Flow_45"><di:waypoint x="268" y="510" /><di:waypoint x="365" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_46_di" bpmnElement="Flow_46"><di:waypoint x="390" y="535" /><di:waypoint x="390" y="670" /><di:waypoint x="470" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_47_di" bpmnElement="Flow_47"><di:waypoint x="415" y="510" /><di:waypoint x="610" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_48_di" bpmnElement="Flow_48"><di:waypoint x="590" y="670" /><di:waypoint x="610" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_49_di" bpmnElement="Flow_49"><di:waypoint x="730" y="670" /><di:waypoint x="810" y="670" /><di:waypoint x="810" y="535" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_50_di" bpmnElement="Flow_50"><di:waypoint x="730" y="510" /><di:waypoint x="785" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_51_di" bpmnElement="Flow_51"><di:waypoint x="835" y="510" /><di:waypoint x="932" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C.M.Country_di" bpmnElement="C.M.Country"><di:waypoint x="530" y="200" /><di:waypoint x="530" y="610" /><bpmndi:BPMNLabel><dc:Bounds x="536" y="391" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C.M.Assembly_di" bpmnElement="C.M.Assembly"><di:waypoint x="670" y="360" /><di:waypoint x="670" y="450" /><bpmndi:BPMNLabel><dc:Bounds x="676" y="391" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

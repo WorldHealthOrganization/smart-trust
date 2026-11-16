@@ -1,0 +1,32 @@
+@startuml
+
+title DSA P3: Register Parties and Keys with a Trust Anchor
+!include ./style.iuml
+
+participant "[[system-actors.html#trust-network-participant Party\n(data provider or recipient)]]" as Party
+participant "[[system-actors.html#trust-network-anchor Accepted\nTrust Anchor]]" as Anchor
+participant "Verifier\n(the other party)" as Verifier
+
+autonumber "<b>00:</b>"
+
+Party -> Party : choose the anchor(s)\nthe DSA accepts
+alt GDHCN
+  Party -> Anchor : Letter of Application,\nTerms of Participation, onboarding
+  Party -> Party : generate keys\n(SCA, DSC, UP, TLS, ...)
+  Party -> Anchor : [[transactions.html#publish_keys Publish Keys]]
+  Anchor -> Anchor : validate keys; sign trust list\n(JsonWebSignature2020)
+else National PKI (X.509)
+  Party -> Anchor : national rules
+  Party -> Party : generate key pair
+  Anchor -> Party : issue X.509 certificate
+else Own did:web
+  Party -> Party : generate key pair
+  Party -> Party : publish verificationMethod\nin own DID document
+else Local list
+  Party -> Verifier : key or root, by a channel\nthe instance owner chooses
+end
+... time passes ...
+Verifier -> Anchor : fetch the list, DID document\nor certificate chain
+Verifier -> Verifier : check its signature\n(proof, or RFC 5280 path validation)
+
+@enduml

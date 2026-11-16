@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" id="GDHCN.TrustDomain.Propose.Definitions" targetNamespace="http://smart.who.int/trust/bpmn">
+  <bpmn:resource id="BusinessOwnerRepresentative" name="Business Owner Representative" />
+  <bpmn:resource id="GDHCNSecretariat" name="GDHCN Secretariat" />
+  <bpmn:collaboration id="GDHCN.TrustDomain.Propose.Collaboration">
+    <bpmn:documentation>Propose a new Trust Domain and have it approved. Framework V.3, VI.2-3 and XI.</bpmn:documentation>
+    <bpmn:participant id="GDHCN.TrustDomain.Propose.Pool.Participant" name="GDHCN Participant" processRef="GDHCN.TrustDomain.Propose.Participant">
+      <bpmn:documentation>The Eligible GDHCN Participant (Framework VII).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.TrustDomain.Propose.Pool.Secretariat" name="GDHCN Secretariat (WHO)" processRef="GDHCN.TrustDomain.Propose.Secretariat">
+      <bpmn:documentation>The GDHCN Secretariat at WHO (Framework V, VI).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:messageFlow id="TP.M" name="Trust Domain proposal" sourceRef="TP.Send" targetRef="TS.Start" />
+    <bpmn:messageFlow id="TP.M2" name="Annex published" sourceRef="TS.Publish" targetRef="TP.Recv" />
+  </bpmn:collaboration>
+  <bpmn:process id="GDHCN.TrustDomain.Propose.Participant" name="Propose a Trust Domain" isExecutable="false">
+    <bpmn:documentation>Framework V.3.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.TrustDomain.Propose.Participant.LaneSet">
+      <bpmn:lane id="GDHCN.TrustDomain.Propose.Participant.Lane.BusinessOwnerRepresentative" name="Business Owner Representative" partitionElementRef="BusinessOwnerRepresentative">
+        <bpmn:documentation>Sends the Statement of Interest and the Letter of Application; may meet WHO in person (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/BusinessOwnerRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>TP.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TP.Draft</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TP.Send</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TP.Recv</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TP.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="TP.Start" name="Need for a new Trust Domain">
+      <bpmn:documentation>Framework V.3: one or more Eligible GDHCN Participants may propose one.</bpmn:documentation>
+      <bpmn:outgoing>Flow_104</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="TP.Draft" name="Describe the proposed Trust Domain">
+      <bpmn:documentation>Framework V.3: use cases, technical specifications, and policy and regulatory standards.</bpmn:documentation>
+      <bpmn:incoming>Flow_104</bpmn:incoming>
+      <bpmn:outgoing>Flow_105</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="TP.Send" name="Propose it to the Secretariat">
+      <bpmn:documentation>Framework V.3.</bpmn:documentation>
+      <bpmn:incoming>Flow_105</bpmn:incoming>
+      <bpmn:outgoing>Flow_106</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="TP.Recv" name="Receive the published Annex">
+      <bpmn:documentation>Framework XI.2.</bpmn:documentation>
+      <bpmn:incoming>Flow_106</bpmn:incoming>
+      <bpmn:outgoing>Flow_107</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:endEvent id="TP.End" name="Trust Domain in effect">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_107</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_104" sourceRef="TP.Start" targetRef="TP.Draft" />
+    <bpmn:sequenceFlow id="Flow_105" sourceRef="TP.Draft" targetRef="TP.Send" />
+    <bpmn:sequenceFlow id="Flow_106" sourceRef="TP.Send" targetRef="TP.Recv" />
+    <bpmn:sequenceFlow id="Flow_107" sourceRef="TP.Recv" targetRef="TP.End" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.TrustDomain.Propose.Secretariat" name="Approve a Trust Domain" isExecutable="false">
+    <bpmn:documentation>Framework V.3, VI.2-3 and XI.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.TrustDomain.Propose.Secretariat.LaneSet">
+      <bpmn:lane id="GDHCN.TrustDomain.Propose.Secretariat.Lane.GDHCNSecretariat" name="GDHCN Secretariat" partitionElementRef="GDHCNSecretariat">
+        <bpmn:documentation>Authorized WHO staff of the GDHCN Secretariat (Framework V, VI). ActorDefinition http://smart.who.int/trust/ActorDefinition/GDHCNSecretariat.</bpmn:documentation>
+        <bpmn:flowNodeRef>TS.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TS.Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TS.Ok</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TS.No</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TS.Annex</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TS.Publish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TS.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="TS.Start" name="Proposal received">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:outgoing>Flow_108</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="TS.Start.Def" />
+    </bpmn:startEvent>
+    <bpmn:userTask id="TS.Review" name="Review the proposal">
+      <bpmn:documentation>Framework V.3. The Secretariat may convene Advisory Committees (VI.3, X).</bpmn:documentation>
+      <bpmn:incoming>Flow_108</bpmn:incoming>
+      <bpmn:outgoing>Flow_109</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="TS.Ok" name="Approved?" default="TS.F.ok">
+      <bpmn:documentation>Framework V.3: the GDHCN operationalizes Trust Domains the Secretariat approves.</bpmn:documentation>
+      <bpmn:incoming>Flow_109</bpmn:incoming>
+      <bpmn:outgoing>TS.F.ok</bpmn:outgoing>
+      <bpmn:outgoing>Flow_110</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="TS.No" name="Not approved">
+      <bpmn:documentation>The Framework does not say how a proposal that is not approved is answered.</bpmn:documentation>
+      <bpmn:incoming>Flow_110</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="TS.Annex" name="Adopt the Trust Domain as an Annex">
+      <bpmn:documentation>Framework VI.2 and XI.1. Output: a TrustDomain instance.</bpmn:documentation>
+      <bpmn:incoming>TS.F.ok</bpmn:incoming>
+      <bpmn:outgoing>Flow_111</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="TS.Publish" name="Publish and notify the representatives">
+      <bpmn:documentation>Framework XI.2: published on the GDHCN website and sent to the Legal, Technical and Business Representatives.</bpmn:documentation>
+      <bpmn:incoming>Flow_111</bpmn:incoming>
+      <bpmn:outgoing>Flow_112</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="TS.End" name="Annex in effect">
+      <bpmn:documentation>Framework XI.2: from the date of notice.</bpmn:documentation>
+      <bpmn:incoming>Flow_112</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_108" sourceRef="TS.Start" targetRef="TS.Review" />
+    <bpmn:sequenceFlow id="Flow_109" sourceRef="TS.Review" targetRef="TS.Ok" />
+    <bpmn:sequenceFlow id="TS.F.ok" name="yes" sourceRef="TS.Ok" targetRef="TS.Annex" />
+    <bpmn:sequenceFlow id="Flow_110" name="no" sourceRef="TS.Ok" targetRef="TS.No" />
+    <bpmn:sequenceFlow id="Flow_111" sourceRef="TS.Annex" targetRef="TS.Publish" />
+    <bpmn:sequenceFlow id="Flow_112" sourceRef="TS.Publish" targetRef="TS.End" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="GDHCN.TrustDomain.Propose.Diagram">
+    <bpmndi:BPMNPlane id="GDHCN.TrustDomain.Propose.Plane" bpmnElement="GDHCN.TrustDomain.Propose.Collaboration">
+      <bpmndi:BPMNShape id="GDHCN.TrustDomain.Propose.Pool.Participant_di" bpmnElement="GDHCN.TrustDomain.Propose.Pool.Participant" isHorizontal="true"><dc:Bounds x="120" y="60" width="1250" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.TrustDomain.Propose.Participant.Lane.BusinessOwnerRepresentative_di" bpmnElement="GDHCN.TrustDomain.Propose.Participant.Lane.BusinessOwnerRepresentative" isHorizontal="true"><dc:Bounds x="150" y="60" width="1220" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.TrustDomain.Propose.Pool.Secretariat_di" bpmnElement="GDHCN.TrustDomain.Propose.Pool.Secretariat" isHorizontal="true"><dc:Bounds x="120" y="270" width="1250" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.TrustDomain.Propose.Secretariat.Lane.GDHCNSecretariat_di" bpmnElement="GDHCN.TrustDomain.Propose.Secretariat.Lane.GDHCNSecretariat" isHorizontal="true"><dc:Bounds x="150" y="270" width="1220" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TP.Start_di" bpmnElement="TP.Start"><dc:Bounds x="232" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TP.Draft_di" bpmnElement="TP.Draft"><dc:Bounds x="330" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TP.Send_di" bpmnElement="TP.Send"><dc:Bounds x="470" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TP.Recv_di" bpmnElement="TP.Recv"><dc:Bounds x="1030" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TP.End_di" bpmnElement="TP.End"><dc:Bounds x="1212" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1175" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TS.Start_di" bpmnElement="TS.Start"><dc:Bounds x="512" y="332" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="475" y="372" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TS.Review_di" bpmnElement="TS.Review"><dc:Bounds x="610" y="290" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TS.Ok_di" bpmnElement="TS.Ok" isMarkerVisible="true"><dc:Bounds x="785" y="325" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="750" y="291" width="120" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TS.No_di" bpmnElement="TS.No"><dc:Bounds x="932" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="895" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TS.Annex_di" bpmnElement="TS.Annex"><dc:Bounds x="890" y="290" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TS.Publish_di" bpmnElement="TS.Publish"><dc:Bounds x="1030" y="290" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TS.End_di" bpmnElement="TS.End"><dc:Bounds x="1212" y="332" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1175" y="372" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_104_di" bpmnElement="Flow_104"><di:waypoint x="268" y="140" /><di:waypoint x="330" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_105_di" bpmnElement="Flow_105"><di:waypoint x="450" y="140" /><di:waypoint x="470" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_106_di" bpmnElement="Flow_106"><di:waypoint x="590" y="140" /><di:waypoint x="1030" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_107_di" bpmnElement="Flow_107"><di:waypoint x="1150" y="140" /><di:waypoint x="1212" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_108_di" bpmnElement="Flow_108"><di:waypoint x="548" y="350" /><di:waypoint x="610" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_109_di" bpmnElement="Flow_109"><di:waypoint x="730" y="350" /><di:waypoint x="785" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="TS.F.ok_di" bpmnElement="TS.F.ok"><di:waypoint x="835" y="350" /><di:waypoint x="890" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_110_di" bpmnElement="Flow_110"><di:waypoint x="810" y="375" /><di:waypoint x="810" y="510" /><di:waypoint x="932" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_111_di" bpmnElement="Flow_111"><di:waypoint x="1010" y="350" /><di:waypoint x="1030" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_112_di" bpmnElement="Flow_112"><di:waypoint x="1150" y="350" /><di:waypoint x="1212" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="TP.M_di" bpmnElement="TP.M"><di:waypoint x="530" y="200" /><di:waypoint x="530" y="332" /><bpmndi:BPMNLabel><dc:Bounds x="536" y="231" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="TP.M2_di" bpmnElement="TP.M2"><di:waypoint x="1090" y="290" /><di:waypoint x="1090" y="200" /><bpmndi:BPMNLabel><dc:Bounds x="1096" y="231" width="105" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" id="GDHCN.ONB.RegisterKeys.Definitions" targetNamespace="http://smart.who.int/trust/bpmn">
+  <bpmn:import namespace="https://litlfred.github.io/cat-harness/v0/processes/ns/" location="https://litlfred.github.io/cat-harness/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld" />
+  <bpmn:resource id="TrustNetworkAnchor" name="Trust Network Anchor" />
+  <bpmn:resource id="OperationsTeam" name="Operations Team" />
+  <bpmn:resource id="GitHubBot" name="GitHub Bot" />
+  <bpmn:resource id="KeyMasterRepresentative" name="Key Master Representative" />
+  <bpmn:collaboration id="GDHCN.ONB.RegisterKeys.Collaboration">
+    <bpmn:documentation>Register a Participant's keys for one environment. Phase 2, steps [31]-[50].</bpmn:documentation>
+    <bpmn:participant id="GDHCN.ONB.RegisterKeys.Pool.Secretariat" name="GDHCN Secretariat (WHO)" processRef="GDHCN.ONB.RegisterKeys.Secretariat">
+      <bpmn:documentation>The GDHCN Secretariat at WHO (Framework V, VI).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.ONB.RegisterKeys.Pool.Operator" name="Gateway operator" processRef="GDHCN.ONB.RegisterKeys.Operator">
+      <bpmn:documentation>The service provider that operates the Trust Network Gateway (steps [30]-[80]).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.ONB.RegisterKeys.Pool.Participant" name="GDHCN Participant" processRef="GDHCN.ONB.RegisterKeys.Participant">
+      <bpmn:documentation>The Eligible GDHCN Participant (Framework VII).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:messageFlow id="R.M.Sig" name="Signed keys" sourceRef="R.T.Sign" targetRef="R.O.Sig" />
+    <bpmn:messageFlow id="R.M.Fail" name="Verification failed" sourceRef="R.O.Fail" targetRef="R.P.Start" />
+    <bpmn:messageFlow id="R.M.Fix" name="Correction" sourceRef="R.P.Fix" targetRef="R.B.Again" />
+  </bpmn:collaboration>
+  <bpmn:process id="GDHCN.ONB.RegisterKeys.Secretariat" name="Verify and sign PROD keys" isExecutable="false">
+    <bpmn:documentation>Steps [36]-[37] and [47]; Framework VI.6.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.RegisterKeys.Secretariat.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.RegisterKeys.Secretariat.Lane.TrustNetworkAnchor" name="Trust Network Anchor" partitionElementRef="TrustNetworkAnchor">
+        <bpmn:documentation>WHO as trust anchor for the Public Key Infrastructure (Framework VI.6). ActorDefinition http://smart.who.int/trust/ActorDefinition/TrustNetworkAnchor.</bpmn:documentation>
+        <bpmn:flowNodeRef>R.T.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.T.Sign</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.T.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="R.T.Start" name="PROD pull request open">
+      <bpmn:documentation>Step [36]: for PROD, the pull request is verified by WHO.</bpmn:documentation>
+      <bpmn:outgoing>Flow_65</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sendTask id="R.T.Sign" name="Verify the PR and sign air-gapped">
+      <bpmn:documentation>Steps [36]-[37].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.RegisterKeys.md#R.T.Sign" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_65</bpmn:incoming>
+      <bpmn:outgoing>Flow_66</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="R.T.End" name="PROD keys signed">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_66</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_65" sourceRef="R.T.Start" targetRef="R.T.Sign" />
+    <bpmn:sequenceFlow id="Flow_66" sourceRef="R.T.Sign" targetRef="R.T.End" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.ONB.RegisterKeys.Operator" name="Register the keys" isExecutable="false">
+    <bpmn:documentation>Steps [31]-[50], for one environment.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.RegisterKeys.Operator.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.RegisterKeys.Operator.Lane.OperationsTeam" name="Operations Team" partitionElementRef="OperationsTeam">
+        <bpmn:documentation>The gateway service provider's operations team (steps [30]-[50]). ActorDefinition http://smart.who.int/trust/ActorDefinition/OperationsTeam.</bpmn:documentation>
+        <bpmn:flowNodeRef>R.O.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.O.Config</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.O.Sig</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.O.Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.O.Verify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.O.Ok</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.O.End</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.O.Fail</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.O.Failed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="GDHCN.ONB.RegisterKeys.Operator.Lane.GitHubBot" name="GitHub Bot" partitionElementRef="GitHubBot">
+        <bpmn:documentation>The gateway's GitHub bot user for the environment (steps [11]-[13], [34]-[38]). ActorDefinition http://smart.who.int/trust/ActorDefinition/GitHubBot.</bpmn:documentation>
+        <bpmn:flowNodeRef>R.B.Again</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.B.Pr</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.B.Env</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.B.Auto</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="R.O.Start" name="Onboarding information received">
+      <bpmn:documentation>Step [30]. Input: the environment.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.RegisterKeys.md#R.O.Start" /></bpmn:extensionElements>
+      <bpmn:outgoing>Flow_67</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="R.O.Config" name="Add the data to the configuration files">
+      <bpmn:documentation>Steps [31]-[33].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.RegisterKeys.md#R.O.Config" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_67</bpmn:incoming>
+      <bpmn:outgoing>Flow_68</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:receiveTask id="R.O.Sig" name="Receive the signed keys">
+      <bpmn:documentation>Step [37].</bpmn:documentation>
+      <bpmn:incoming>Flow_72</bpmn:incoming>
+      <bpmn:outgoing>Flow_73</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:exclusiveGateway id="R.O.Merge" name="">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_73</bpmn:incoming>
+      <bpmn:incoming>Flow_74</bpmn:incoming>
+      <bpmn:outgoing>Flow_75</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="R.O.Verify" name="Verify the pull request">
+      <bpmn:documentation>Steps [39] (UAT) and [47] (PROD).</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.RegisterKeys.md#R.O.Verify" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_75</bpmn:incoming>
+      <bpmn:outgoing>Flow_76</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="R.O.Ok" name="Passed?" default="R.F.ok">
+      <bpmn:documentation>Steps [40] and [48].</bpmn:documentation>
+      <bpmn:incoming>Flow_76</bpmn:incoming>
+      <bpmn:outgoing>R.F.ok</bpmn:outgoing>
+      <bpmn:outgoing>Flow_77</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="R.O.End" name="Keys registered">
+      <bpmn:documentation>Ready for whitelisting, steps [43] and [67].</bpmn:documentation>
+      <bpmn:incoming>R.F.ok</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sendTask id="R.O.Fail" name="Send the failure">
+      <bpmn:documentation>Steps [40]-[41] and [48]-[49]: to the Participant; WHO is informed as well.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.RegisterKeys.md#R.O.Fail" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_77</bpmn:incoming>
+      <bpmn:outgoing>Flow_78</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="R.O.Failed" name="Correction requested">
+      <bpmn:documentation>Step [42]: the correction starts the registration again from the pull request.</bpmn:documentation>
+      <bpmn:incoming>Flow_78</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="R.B.Again" name="Correction made">
+      <bpmn:documentation>Steps [42] and [50]: the key material is pulled again (steps [34]-[35]).</bpmn:documentation>
+      <bpmn:outgoing>Flow_69</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="R.B.Again.Def" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="R.B.Pr" name="Pull the key material and open a PR">
+      <bpmn:documentation>Steps [34]-[35].</bpmn:documentation>
+      <bpmn:incoming>Flow_68</bpmn:incoming>
+      <bpmn:incoming>Flow_69</bpmn:incoming>
+      <bpmn:outgoing>Flow_70</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="R.B.Env" name="Which environment?">
+      <bpmn:documentation>Steps [36]-[38].</bpmn:documentation>
+      <bpmn:incoming>Flow_70</bpmn:incoming>
+      <bpmn:outgoing>Flow_71</bpmn:outgoing>
+      <bpmn:outgoing>Flow_72</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="R.B.Auto" name="Sign the keys automatically">
+      <bpmn:documentation>Step [38], UAT (and optional DEV).</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.RegisterKeys.md#R.B.Auto" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_71</bpmn:incoming>
+      <bpmn:outgoing>Flow_74</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_67" sourceRef="R.O.Start" targetRef="R.O.Config" />
+    <bpmn:sequenceFlow id="Flow_68" sourceRef="R.O.Config" targetRef="R.B.Pr" />
+    <bpmn:sequenceFlow id="Flow_69" sourceRef="R.B.Again" targetRef="R.B.Pr" />
+    <bpmn:sequenceFlow id="Flow_70" sourceRef="R.B.Pr" targetRef="R.B.Env" />
+    <bpmn:sequenceFlow id="Flow_71" name="UAT" sourceRef="R.B.Env" targetRef="R.B.Auto" />
+    <bpmn:sequenceFlow id="Flow_72" name="PROD" sourceRef="R.B.Env" targetRef="R.O.Sig" />
+    <bpmn:sequenceFlow id="Flow_73" sourceRef="R.O.Sig" targetRef="R.O.Merge" />
+    <bpmn:sequenceFlow id="Flow_74" sourceRef="R.B.Auto" targetRef="R.O.Merge" />
+    <bpmn:sequenceFlow id="Flow_75" sourceRef="R.O.Merge" targetRef="R.O.Verify" />
+    <bpmn:sequenceFlow id="Flow_76" sourceRef="R.O.Verify" targetRef="R.O.Ok" />
+    <bpmn:sequenceFlow id="R.F.ok" name="yes" sourceRef="R.O.Ok" targetRef="R.O.End" />
+    <bpmn:sequenceFlow id="Flow_77" name="no" sourceRef="R.O.Ok" targetRef="R.O.Fail" />
+    <bpmn:sequenceFlow id="Flow_78" sourceRef="R.O.Fail" targetRef="R.O.Failed" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.ONB.RegisterKeys.Participant" name="Correct the key material" isExecutable="false">
+    <bpmn:documentation>Steps [41]-[42] and [49]-[50].</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.RegisterKeys.Participant.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.RegisterKeys.Participant.Lane.KeyMasterRepresentative" name="Key Master Representative" partitionElementRef="KeyMasterRepresentative">
+        <bpmn:documentation>Manages the Participant's Public Key Infrastructure and holds the GPG key named in the Letter (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/KeyMasterRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>R.P.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.P.Fix</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>R.P.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="R.P.Start" name="Verification failure received">
+      <bpmn:documentation>Steps [41] and [49].</bpmn:documentation>
+      <bpmn:outgoing>Flow_79</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="R.P.Start.Def" />
+    </bpmn:startEvent>
+    <bpmn:sendTask id="R.P.Fix" name="Correct the key material">
+      <bpmn:documentation>Steps [42] and [50], in the Participant's repository.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.RegisterKeys.md#R.P.Fix" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_79</bpmn:incoming>
+      <bpmn:outgoing>Flow_80</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="R.P.End" name="Correction made">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_80</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_79" sourceRef="R.P.Start" targetRef="R.P.Fix" />
+    <bpmn:sequenceFlow id="Flow_80" sourceRef="R.P.Fix" targetRef="R.P.End" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="GDHCN.ONB.RegisterKeys.Diagram">
+    <bpmndi:BPMNPlane id="GDHCN.ONB.RegisterKeys.Plane" bpmnElement="GDHCN.ONB.RegisterKeys.Collaboration">
+      <bpmndi:BPMNShape id="GDHCN.ONB.RegisterKeys.Pool.Secretariat_di" bpmnElement="GDHCN.ONB.RegisterKeys.Pool.Secretariat" isHorizontal="true"><dc:Bounds x="120" y="60" width="1390" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.RegisterKeys.Secretariat.Lane.TrustNetworkAnchor_di" bpmnElement="GDHCN.ONB.RegisterKeys.Secretariat.Lane.TrustNetworkAnchor" isHorizontal="true"><dc:Bounds x="150" y="60" width="1360" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.RegisterKeys.Pool.Operator_di" bpmnElement="GDHCN.ONB.RegisterKeys.Pool.Operator" isHorizontal="true"><dc:Bounds x="120" y="270" width="1390" height="480" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.RegisterKeys.Operator.Lane.OperationsTeam_di" bpmnElement="GDHCN.ONB.RegisterKeys.Operator.Lane.OperationsTeam" isHorizontal="true"><dc:Bounds x="150" y="270" width="1360" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.RegisterKeys.Operator.Lane.GitHubBot_di" bpmnElement="GDHCN.ONB.RegisterKeys.Operator.Lane.GitHubBot" isHorizontal="true"><dc:Bounds x="150" y="590" width="1360" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.RegisterKeys.Pool.Participant_di" bpmnElement="GDHCN.ONB.RegisterKeys.Pool.Participant" isHorizontal="true"><dc:Bounds x="120" y="800" width="1390" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.RegisterKeys.Participant.Lane.KeyMasterRepresentative_di" bpmnElement="GDHCN.ONB.RegisterKeys.Participant.Lane.KeyMasterRepresentative" isHorizontal="true"><dc:Bounds x="150" y="800" width="1360" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.T.Start_di" bpmnElement="R.T.Start"><dc:Bounds x="652" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="615" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.T.Sign_di" bpmnElement="R.T.Sign"><dc:Bounds x="750" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.T.End_di" bpmnElement="R.T.End"><dc:Bounds x="932" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="895" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.O.Start_di" bpmnElement="R.O.Start"><dc:Bounds x="232" y="332" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="372" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.O.Config_di" bpmnElement="R.O.Config"><dc:Bounds x="330" y="290" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.O.Sig_di" bpmnElement="R.O.Sig"><dc:Bounds x="750" y="290" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.O.Merge_di" bpmnElement="R.O.Merge" isMarkerVisible="true"><dc:Bounds x="925" y="325" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.O.Verify_di" bpmnElement="R.O.Verify"><dc:Bounds x="1030" y="290" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.O.Ok_di" bpmnElement="R.O.Ok" isMarkerVisible="true"><dc:Bounds x="1205" y="325" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1170" y="291" width="120" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.O.End_di" bpmnElement="R.O.End"><dc:Bounds x="1352" y="332" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1315" y="372" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.O.Fail_di" bpmnElement="R.O.Fail"><dc:Bounds x="1170" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.O.Failed_di" bpmnElement="R.O.Failed"><dc:Bounds x="1352" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1315" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.B.Again_di" bpmnElement="R.B.Again"><dc:Bounds x="372" y="652" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="335" y="620" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.B.Pr_di" bpmnElement="R.B.Pr"><dc:Bounds x="470" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.B.Env_di" bpmnElement="R.B.Env" isMarkerVisible="true"><dc:Bounds x="645" y="645" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="610" y="699" width="120" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.B.Auto_di" bpmnElement="R.B.Auto"><dc:Bounds x="750" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.P.Start_di" bpmnElement="R.P.Start"><dc:Bounds x="1212" y="862" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1175" y="902" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.P.Fix_di" bpmnElement="R.P.Fix"><dc:Bounds x="1030" y="820" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R.P.End_di" bpmnElement="R.P.End"><dc:Bounds x="932" y="862" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="895" y="902" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_65_di" bpmnElement="Flow_65"><di:waypoint x="688" y="140" /><di:waypoint x="750" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_66_di" bpmnElement="Flow_66"><di:waypoint x="870" y="140" /><di:waypoint x="932" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_67_di" bpmnElement="Flow_67"><di:waypoint x="268" y="350" /><di:waypoint x="330" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_68_di" bpmnElement="Flow_68"><di:waypoint x="450" y="350" /><di:waypoint x="530" y="350" /><di:waypoint x="530" y="610" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_69_di" bpmnElement="Flow_69"><di:waypoint x="408" y="670" /><di:waypoint x="470" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_70_di" bpmnElement="Flow_70"><di:waypoint x="590" y="670" /><di:waypoint x="645" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_71_di" bpmnElement="Flow_71"><di:waypoint x="695" y="670" /><di:waypoint x="750" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_72_di" bpmnElement="Flow_72"><di:waypoint x="670" y="645" /><di:waypoint x="670" y="350" /><di:waypoint x="750" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_73_di" bpmnElement="Flow_73"><di:waypoint x="870" y="350" /><di:waypoint x="925" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_74_di" bpmnElement="Flow_74"><di:waypoint x="870" y="670" /><di:waypoint x="950" y="670" /><di:waypoint x="950" y="375" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_75_di" bpmnElement="Flow_75"><di:waypoint x="975" y="350" /><di:waypoint x="1030" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_76_di" bpmnElement="Flow_76"><di:waypoint x="1150" y="350" /><di:waypoint x="1205" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R.F.ok_di" bpmnElement="R.F.ok"><di:waypoint x="1255" y="350" /><di:waypoint x="1352" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_77_di" bpmnElement="Flow_77"><di:waypoint x="1230" y="375" /><di:waypoint x="1230" y="450" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_78_di" bpmnElement="Flow_78"><di:waypoint x="1290" y="510" /><di:waypoint x="1352" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_79_di" bpmnElement="Flow_79"><di:waypoint x="1212" y="880" /><di:waypoint x="1150" y="880" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_80_di" bpmnElement="Flow_80"><di:waypoint x="1030" y="880" /><di:waypoint x="968" y="880" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R.M.Sig_di" bpmnElement="R.M.Sig"><di:waypoint x="810" y="200" /><di:waypoint x="810" y="290" /><bpmndi:BPMNLabel><dc:Bounds x="816" y="231" width="79" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R.M.Fail_di" bpmnElement="R.M.Fail"><di:waypoint x="1230" y="570" /><di:waypoint x="1230" y="862" /><bpmndi:BPMNLabel><dc:Bounds x="1236" y="761" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R.M.Fix_di" bpmnElement="R.M.Fix"><di:waypoint x="1090" y="820" /><di:waypoint x="1090" y="775" /><di:waypoint x="390" y="775" /><di:waypoint x="390" y="688" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

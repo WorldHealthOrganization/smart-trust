@@ -112,7 +112,7 @@ The Digital Documentation of COVID-19 Certificates (DDCC) Trust Domain covers th
 
 ######## 3.2.7.1.4 Digital Documentation of Covid Certificate - Test Results (DDCCTR)
 The Digital Documentation of COVID-19 Certificates (DDCC) Trust Domain covers the utilization of COVID-19 Vaccine Certificates and Test Results. The Test Results guidance is for test result certificates that attest to: (a) the fact that an individual has been tested for SARS-CoV-2, and (b) the result of that SARS-CoV-2 diagnostic test. 
-- [DDCC Vaccination Status (DDCC:TR)](https://www.who.int/publications/i/item/WHO-2019-nCoV-Digital_certificates_diagnostic_test_results-2022.1) documents the use cases, data requirements, technical specifications and implementation guidance for vaccination certificates.
+- [DDCC Test Result (DDCC:TR)](https://www.who.int/publications/i/item/WHO-2019-nCoV-Digital_certificates_diagnostic_test_results-2022.1) documents the use cases, data requirements, technical specifications and implementation guidance for test result certificates.
 - [DDCC FHIR Implementation Guide](https://smart.who.int/ddcc/)
 
 ######## 3.2.7.1.5 Verifiable Health Link (VHL)

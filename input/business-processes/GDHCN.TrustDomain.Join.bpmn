@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" id="GDHCN.TrustDomain.Join.Definitions" targetNamespace="http://smart.who.int/trust/bpmn">
+  <bpmn:resource id="BusinessOwnerRepresentative" name="Business Owner Representative" />
+  <bpmn:resource id="TechnicalRepresentative" name="Technical Representative" />
+  <bpmn:resource id="OperationsTeam" name="Operations Team" />
+  <bpmn:resource id="OnboardingTeam" name="Onboarding Team" />
+  <bpmn:resource id="GDHCNSecretariat" name="GDHCN Secretariat" />
+  <bpmn:collaboration id="GDHCN.TrustDomain.Join.Collaboration">
+    <bpmn:documentation>Join a further Trust Domain once onboarded. Framework V.4 and IX.</bpmn:documentation>
+    <bpmn:participant id="GDHCN.TrustDomain.Join.Pool.Participant" name="GDHCN Participant" processRef="GDHCN.TrustDomain.Join.Participant">
+      <bpmn:documentation>The Eligible GDHCN Participant (Framework VII).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.TrustDomain.Join.Pool.Operator" name="Gateway operator" processRef="GDHCN.TrustDomain.Join.Operator">
+      <bpmn:documentation>The service provider that operates the Trust Network Gateway (steps [30]-[80]).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.TrustDomain.Join.Pool.Secretariat" name="GDHCN Secretariat (WHO)" processRef="GDHCN.TrustDomain.Join.Secretariat">
+      <bpmn:documentation>The GDHCN Secretariat at WHO (Framework V, VI).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:messageFlow id="J.M.Letter" name="Letter of Application" sourceRef="J.P.Letter" targetRef="J.S.Letter" />
+    <bpmn:messageFlow id="J.M.Hand" name="Onboarding information" sourceRef="J.S.Hand" targetRef="J.O.Start" />
+    <bpmn:messageFlow id="J.M.Live" name="Connection information and test results" sourceRef="J.O.Live" targetRef="J.P.Live" />
+  </bpmn:collaboration>
+  <bpmn:process id="GDHCN.TrustDomain.Join.Participant" name="Join a further Trust Domain" isExecutable="false">
+    <bpmn:documentation>Framework V.4 and IX.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.TrustDomain.Join.Participant.LaneSet">
+      <bpmn:lane id="GDHCN.TrustDomain.Join.Participant.Lane.BusinessOwnerRepresentative" name="Business Owner Representative" partitionElementRef="BusinessOwnerRepresentative">
+        <bpmn:documentation>Sends the Statement of Interest and the Letter of Application; may meet WHO in person (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/BusinessOwnerRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>J.P.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>J.P.Letter</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="GDHCN.TrustDomain.Join.Participant.Lane.TechnicalRepresentative" name="Technical Representative" partitionElementRef="TechnicalRepresentative">
+        <bpmn:documentation>Connects the Participant's systems to the Trust Network Gateway and runs the tests (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/TechnicalRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>J.P.Live</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>J.P.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="J.P.Start" name="Decided to join a further Trust Domain">
+      <bpmn:documentation>Framework VII.1 and V.4.</bpmn:documentation>
+      <bpmn:outgoing>Flow_113</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="J.P.Letter" name="Convey the Letter for it" calledElement="GDHCN.ONB.VerifyLetter.Participant">
+      <bpmn:documentation>Framework IX: one Letter for each Trust Domain, on that Trust Domain's Annex form.</bpmn:documentation>
+      <bpmn:incoming>Flow_113</bpmn:incoming>
+      <bpmn:outgoing>Flow_114</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="J.P.Live" name="Go live" calledElement="GDHCN.ONB.GoLive.Participant">
+      <bpmn:documentation>Framework V.4.b-c and IX (user acceptance testing).</bpmn:documentation>
+      <bpmn:incoming>Flow_114</bpmn:incoming>
+      <bpmn:outgoing>Flow_115</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="J.P.End" name="Joined">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_115</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_113" sourceRef="J.P.Start" targetRef="J.P.Letter" />
+    <bpmn:sequenceFlow id="Flow_114" sourceRef="J.P.Letter" targetRef="J.P.Live" />
+    <bpmn:sequenceFlow id="Flow_115" sourceRef="J.P.Live" targetRef="J.P.End" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.TrustDomain.Join.Operator" name="Set up the further Trust Domain" isExecutable="false">
+    <bpmn:documentation>As phases 2 and 3 of onboarding.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.TrustDomain.Join.Operator.LaneSet">
+      <bpmn:lane id="GDHCN.TrustDomain.Join.Operator.Lane.OperationsTeam" name="Operations Team" partitionElementRef="OperationsTeam">
+        <bpmn:documentation>The gateway service provider's operations team (steps [30]-[50]). ActorDefinition http://smart.who.int/trust/ActorDefinition/OperationsTeam.</bpmn:documentation>
+        <bpmn:flowNodeRef>J.O.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>J.O.Keys</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="GDHCN.TrustDomain.Join.Operator.Lane.OnboardingTeam" name="Onboarding Team" partitionElementRef="OnboardingTeam">
+        <bpmn:documentation>The gateway service provider's onboarding team (steps [64]-[77]). ActorDefinition http://smart.who.int/trust/ActorDefinition/OnboardingTeam.</bpmn:documentation>
+        <bpmn:flowNodeRef>J.O.Live</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>J.O.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="J.O.Start" name="Onboarding information received">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:outgoing>Flow_119</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="J.O.Start.Def" />
+    </bpmn:startEvent>
+    <bpmn:callActivity id="J.O.Keys" name="Register the keys" calledElement="GDHCN.ONB.RegisterKeys.Operator">
+      <bpmn:documentation>As phase 2, for each environment.</bpmn:documentation>
+      <bpmn:incoming>Flow_119</bpmn:incoming>
+      <bpmn:outgoing>Flow_120</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics />
+    </bpmn:callActivity>
+    <bpmn:callActivity id="J.O.Live" name="Whitelist and check the tests" calledElement="GDHCN.ONB.GoLive.Operator">
+      <bpmn:documentation>As phase 3.</bpmn:documentation>
+      <bpmn:incoming>Flow_120</bpmn:incoming>
+      <bpmn:outgoing>Flow_121</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="J.O.End" name="Further Trust Domain live">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_121</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_119" sourceRef="J.O.Start" targetRef="J.O.Keys" />
+    <bpmn:sequenceFlow id="Flow_120" sourceRef="J.O.Keys" targetRef="J.O.Live" />
+    <bpmn:sequenceFlow id="Flow_121" sourceRef="J.O.Live" targetRef="J.O.End" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.TrustDomain.Join.Secretariat" name="Admit to a further Trust Domain" isExecutable="false">
+    <bpmn:documentation>Framework V.4 and IX.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.TrustDomain.Join.Secretariat.LaneSet">
+      <bpmn:lane id="GDHCN.TrustDomain.Join.Secretariat.Lane.GDHCNSecretariat" name="GDHCN Secretariat" partitionElementRef="GDHCNSecretariat">
+        <bpmn:documentation>Authorized WHO staff of the GDHCN Secretariat (Framework V, VI). ActorDefinition http://smart.who.int/trust/ActorDefinition/GDHCNSecretariat.</bpmn:documentation>
+        <bpmn:flowNodeRef>J.S.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>J.S.Letter</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>J.S.Hand</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>J.S.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="J.S.Start" name="Ready to receive the Letter">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:outgoing>Flow_116</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="J.S.Letter" name="Verify the Letter" calledElement="GDHCN.ONB.VerifyLetter.Secretariat">
+      <bpmn:documentation>Framework V.4.a-b and IX.</bpmn:documentation>
+      <bpmn:incoming>Flow_116</bpmn:incoming>
+      <bpmn:outgoing>Flow_117</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sendTask id="J.S.Hand" name="Send onboarding information to the operator">
+      <bpmn:documentation>As step [30].</bpmn:documentation>
+      <bpmn:incoming>Flow_117</bpmn:incoming>
+      <bpmn:outgoing>Flow_118</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="J.S.End" name="Handed over">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_118</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_116" sourceRef="J.S.Start" targetRef="J.S.Letter" />
+    <bpmn:sequenceFlow id="Flow_117" sourceRef="J.S.Letter" targetRef="J.S.Hand" />
+    <bpmn:sequenceFlow id="Flow_118" sourceRef="J.S.Hand" targetRef="J.S.End" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="GDHCN.TrustDomain.Join.Diagram">
+    <bpmndi:BPMNPlane id="GDHCN.TrustDomain.Join.Plane" bpmnElement="GDHCN.TrustDomain.Join.Collaboration">
+      <bpmndi:BPMNShape id="GDHCN.TrustDomain.Join.Pool.Participant_di" bpmnElement="GDHCN.TrustDomain.Join.Pool.Participant" isHorizontal="true"><dc:Bounds x="120" y="60" width="970" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.TrustDomain.Join.Participant.Lane.BusinessOwnerRepresentative_di" bpmnElement="GDHCN.TrustDomain.Join.Participant.Lane.BusinessOwnerRepresentative" isHorizontal="true"><dc:Bounds x="150" y="60" width="940" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.TrustDomain.Join.Participant.Lane.TechnicalRepresentative_di" bpmnElement="GDHCN.TrustDomain.Join.Participant.Lane.TechnicalRepresentative" isHorizontal="true"><dc:Bounds x="150" y="220" width="940" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.TrustDomain.Join.Pool.Operator_di" bpmnElement="GDHCN.TrustDomain.Join.Pool.Operator" isHorizontal="true"><dc:Bounds x="120" y="430" width="970" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.TrustDomain.Join.Operator.Lane.OperationsTeam_di" bpmnElement="GDHCN.TrustDomain.Join.Operator.Lane.OperationsTeam" isHorizontal="true"><dc:Bounds x="150" y="430" width="940" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.TrustDomain.Join.Operator.Lane.OnboardingTeam_di" bpmnElement="GDHCN.TrustDomain.Join.Operator.Lane.OnboardingTeam" isHorizontal="true"><dc:Bounds x="150" y="590" width="940" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.TrustDomain.Join.Pool.Secretariat_di" bpmnElement="GDHCN.TrustDomain.Join.Pool.Secretariat" isHorizontal="true"><dc:Bounds x="120" y="800" width="970" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.TrustDomain.Join.Secretariat.Lane.GDHCNSecretariat_di" bpmnElement="GDHCN.TrustDomain.Join.Secretariat.Lane.GDHCNSecretariat" isHorizontal="true"><dc:Bounds x="150" y="800" width="940" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="J.P.Start_di" bpmnElement="J.P.Start"><dc:Bounds x="232" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="J.P.Letter_di" bpmnElement="J.P.Letter" isExpanded="false"><dc:Bounds x="330" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="J.P.Live_di" bpmnElement="J.P.Live" isExpanded="false"><dc:Bounds x="750" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="J.P.End_di" bpmnElement="J.P.End"><dc:Bounds x="932" y="282" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="895" y="322" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="J.S.Start_di" bpmnElement="J.S.Start"><dc:Bounds x="232" y="862" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="902" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="J.S.Letter_di" bpmnElement="J.S.Letter" isExpanded="false"><dc:Bounds x="330" y="820" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="J.S.Hand_di" bpmnElement="J.S.Hand"><dc:Bounds x="470" y="820" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="J.S.End_di" bpmnElement="J.S.End"><dc:Bounds x="652" y="862" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="615" y="902" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="J.O.Start_di" bpmnElement="J.O.Start"><dc:Bounds x="512" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="475" y="460" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="J.O.Keys_di" bpmnElement="J.O.Keys" isExpanded="false"><dc:Bounds x="610" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="J.O.Live_di" bpmnElement="J.O.Live" isExpanded="false"><dc:Bounds x="750" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="J.O.End_di" bpmnElement="J.O.End"><dc:Bounds x="932" y="652" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="895" y="692" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_113_di" bpmnElement="Flow_113"><di:waypoint x="268" y="140" /><di:waypoint x="330" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_114_di" bpmnElement="Flow_114"><di:waypoint x="450" y="140" /><di:waypoint x="810" y="140" /><di:waypoint x="810" y="240" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_115_di" bpmnElement="Flow_115"><di:waypoint x="870" y="300" /><di:waypoint x="932" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_116_di" bpmnElement="Flow_116"><di:waypoint x="268" y="880" /><di:waypoint x="330" y="880" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_117_di" bpmnElement="Flow_117"><di:waypoint x="450" y="880" /><di:waypoint x="470" y="880" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_118_di" bpmnElement="Flow_118"><di:waypoint x="590" y="880" /><di:waypoint x="652" y="880" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_119_di" bpmnElement="Flow_119"><di:waypoint x="548" y="510" /><di:waypoint x="610" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_120_di" bpmnElement="Flow_120"><di:waypoint x="670" y="570" /><di:waypoint x="670" y="670" /><di:waypoint x="750" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_121_di" bpmnElement="Flow_121"><di:waypoint x="870" y="670" /><di:waypoint x="932" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="J.M.Letter_di" bpmnElement="J.M.Letter"><di:waypoint x="390" y="200" /><di:waypoint x="390" y="820" /><bpmndi:BPMNLabel><dc:Bounds x="396" y="391" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="J.M.Hand_di" bpmnElement="J.M.Hand"><di:waypoint x="530" y="820" /><di:waypoint x="530" y="528" /><bpmndi:BPMNLabel><dc:Bounds x="536" y="761" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="J.M.Live_di" bpmnElement="J.M.Live"><di:waypoint x="810" y="610" /><di:waypoint x="810" y="360" /><bpmndi:BPMNLabel><dc:Bounds x="816" y="384" width="130" height="42" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

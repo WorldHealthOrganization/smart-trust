@@ -269,6 +269,8 @@ Usage: #definition
 * publisher = "WHO"
 * description = "Publish trust material to a Trust Anchor via API"
 * actor[+] = Canonical(TrustNetworkParticipant)
+// The API it is met through: the gateway's OpenAPI (smart-trust#146).
+* reference = "http://smart.who.int/trust/openapi/openapi.json"
 * extension[satisfies].valueReference = Reference(PublishPKIMaterial)
 
 Instance:   PublishPKIMaterialDID

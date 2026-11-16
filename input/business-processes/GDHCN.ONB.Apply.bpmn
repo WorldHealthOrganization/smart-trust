@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" id="GDHCN.ONB.Apply.Definitions" targetNamespace="http://smart.who.int/trust/bpmn">
+  <bpmn:import namespace="https://litlfred.github.io/cat-harness/v0/processes/ns/" location="https://litlfred.github.io/cat-harness/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld" />
+  <bpmn:resource id="KeyMasterRepresentative" name="Key Master Representative" />
+  <bpmn:resource id="BusinessOwnerRepresentative" name="Business Owner Representative" />
+  <bpmn:resource id="GDHCNSecretariat" name="GDHCN Secretariat" />
+  <bpmn:collaboration id="GDHCN.ONB.Apply.Collaboration">
+    <bpmn:documentation>Apply to join and have the Letter of Application verified. Phase 1, steps [1]-[29]; Framework V.4 and IX.</bpmn:documentation>
+    <bpmn:participant id="GDHCN.ONB.Apply.Pool.Participant" name="GDHCN Participant" processRef="GDHCN.ONB.Apply.Participant">
+      <bpmn:documentation>The Eligible GDHCN Participant (Framework VII).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.ONB.Apply.Pool.Secretariat" name="GDHCN Secretariat (WHO)" processRef="GDHCN.ONB.Apply.Secretariat">
+      <bpmn:documentation>The GDHCN Secretariat at WHO (Framework V, VI).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:messageFlow id="A.M.Interest" name="Statement of Interest" sourceRef="A.P.Interest" targetRef="A.S.Start" />
+    <bpmn:messageFlow id="A.M.Reject" name="Rejection" sourceRef="A.S.Reject" targetRef="A.P.Result" />
+    <bpmn:messageFlow id="A.M.Invite" name="Invitation and technical information" sourceRef="A.S.Invite" targetRef="A.P.Result" />
+    <bpmn:messageFlow id="A.M.Letter" name="Letter of Application" sourceRef="A.P.Letter" targetRef="A.S.Letter" />
+  </bpmn:collaboration>
+  <bpmn:process id="GDHCN.ONB.Apply.Participant" name="Apply and be verified" isExecutable="false">
+    <bpmn:documentation>Steps [1]-[14] and [20].</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.Apply.Participant.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.Apply.Participant.Lane.KeyMasterRepresentative" name="Key Master Representative" partitionElementRef="KeyMasterRepresentative">
+        <bpmn:documentation>Manages the Participant's Public Key Infrastructure and holds the GPG key named in the Letter (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/KeyMasterRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>A.P.Keys</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="GDHCN.ONB.Apply.Participant.Lane.BusinessOwnerRepresentative" name="Business Owner Representative" partitionElementRef="BusinessOwnerRepresentative">
+        <bpmn:documentation>Sends the Statement of Interest and the Letter of Application; may meet WHO in person (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/BusinessOwnerRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>A.P.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A.P.Interest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A.P.Result</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A.P.Invited</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A.P.Modify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A.P.Letter</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A.P.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="A.P.Start" name="Decided to apply">
+      <bpmn:documentation>Framework VII.1.</bpmn:documentation>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sendTask id="A.P.Interest" name="Send the Statement of Interest">
+      <bpmn:documentation>Step [1].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.Apply.md#A.P.Interest" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:incoming>Flow_16</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="A.P.Result" name="Receive the result of the check">
+      <bpmn:documentation>Steps [5] and [8].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.Apply.md#A.P.Result" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:exclusiveGateway id="A.P.Invited" name="Invited?" default="A.F.inv">
+      <bpmn:documentation>Step [7].</bpmn:documentation>
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+      <bpmn:outgoing>A.F.inv</bpmn:outgoing>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="A.P.Modify" name="Modify the data">
+      <bpmn:documentation>Step [6]: modify the data and re-apply.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.Apply.md#A.P.Modify" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+      <bpmn:outgoing>Flow_16</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:callActivity id="A.P.Keys" name="Prepare keys and repository" calledElement="GDHCN.ONB.PrepareKeys.Participant">
+      <bpmn:documentation>Steps [9]-[13], once for each environment.</bpmn:documentation>
+      <bpmn:incoming>A.F.inv</bpmn:incoming>
+      <bpmn:outgoing>Flow_17</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics />
+    </bpmn:callActivity>
+    <bpmn:callActivity id="A.P.Letter" name="Convey the Letter of Application" calledElement="GDHCN.ONB.VerifyLetter.Participant">
+      <bpmn:documentation>Steps [14]-[20]: one Letter for each Trust Domain.</bpmn:documentation>
+      <bpmn:incoming>Flow_17</bpmn:incoming>
+      <bpmn:outgoing>Flow_18</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics />
+    </bpmn:callActivity>
+    <bpmn:endEvent id="A.P.End" name="Letter verified">
+      <bpmn:documentation>Ready for set-up, step [30].</bpmn:documentation>
+      <bpmn:incoming>Flow_18</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="A.P.Start" targetRef="A.P.Interest" />
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="A.P.Interest" targetRef="A.P.Result" />
+    <bpmn:sequenceFlow id="Flow_14" sourceRef="A.P.Result" targetRef="A.P.Invited" />
+    <bpmn:sequenceFlow id="A.F.inv" name="yes" sourceRef="A.P.Invited" targetRef="A.P.Keys" />
+    <bpmn:sequenceFlow id="Flow_15" name="no" sourceRef="A.P.Invited" targetRef="A.P.Modify" />
+    <bpmn:sequenceFlow id="Flow_16" sourceRef="A.P.Modify" targetRef="A.P.Interest" />
+    <bpmn:sequenceFlow id="Flow_17" sourceRef="A.P.Keys" targetRef="A.P.Letter" />
+    <bpmn:sequenceFlow id="Flow_18" sourceRef="A.P.Letter" targetRef="A.P.End" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.ONB.Apply.Secretariat" name="Check the application and the Letter" isExecutable="false">
+    <bpmn:documentation>Steps [1]-[7] and [15]-[23].</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.Apply.Secretariat.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.Apply.Secretariat.Lane.GDHCNSecretariat" name="GDHCN Secretariat" partitionElementRef="GDHCNSecretariat">
+        <bpmn:documentation>Authorized WHO staff of the GDHCN Secretariat (Framework V, VI). ActorDefinition http://smart.who.int/trust/ActorDefinition/GDHCNSecretariat.</bpmn:documentation>
+        <bpmn:flowNodeRef>A.S.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A.S.Check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A.S.Ok</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A.S.Reject</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A.S.Rejected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A.S.Invite</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A.S.Letter</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A.S.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="A.S.Start" name="Statement of Interest received">
+      <bpmn:documentation>Step [1].</bpmn:documentation>
+      <bpmn:outgoing>Flow_19</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="A.S.Start.Def" />
+    </bpmn:startEvent>
+    <bpmn:userTask id="A.S.Check" name="Validate the data and the Terms of Participation">
+      <bpmn:documentation>Steps [2]-[3]; Framework V.4.a and VIII.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.Apply.md#A.S.Check" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_19</bpmn:incoming>
+      <bpmn:outgoing>Flow_20</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="A.S.Ok" name="Compliant?" default="A.F.ok">
+      <bpmn:documentation>Step [4].</bpmn:documentation>
+      <bpmn:incoming>Flow_20</bpmn:incoming>
+      <bpmn:outgoing>A.F.ok</bpmn:outgoing>
+      <bpmn:outgoing>Flow_21</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="A.S.Reject" name="Reject by email">
+      <bpmn:documentation>Steps [4]-[5].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.Apply.md#A.S.Reject" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_21</bpmn:incoming>
+      <bpmn:outgoing>Flow_22</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="A.S.Rejected" name="Application rejected">
+      <bpmn:documentation>Step [6]: the Participant may re-apply.</bpmn:documentation>
+      <bpmn:incoming>Flow_22</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sendTask id="A.S.Invite" name="Invite to start onboarding">
+      <bpmn:documentation>Step [7].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.Apply.md#A.S.Invite" /></bpmn:extensionElements>
+      <bpmn:incoming>A.F.ok</bpmn:incoming>
+      <bpmn:outgoing>Flow_23</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:callActivity id="A.S.Letter" name="Verify the Letter of Application" calledElement="GDHCN.ONB.VerifyLetter.Secretariat">
+      <bpmn:documentation>Steps [15]-[23], once for each Letter.</bpmn:documentation>
+      <bpmn:incoming>Flow_23</bpmn:incoming>
+      <bpmn:outgoing>Flow_24</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics />
+    </bpmn:callActivity>
+    <bpmn:endEvent id="A.S.End" name="Letter verified">
+      <bpmn:documentation>Ready for hand-over, step [30].</bpmn:documentation>
+      <bpmn:incoming>Flow_24</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_19" sourceRef="A.S.Start" targetRef="A.S.Check" />
+    <bpmn:sequenceFlow id="Flow_20" sourceRef="A.S.Check" targetRef="A.S.Ok" />
+    <bpmn:sequenceFlow id="A.F.ok" name="yes" sourceRef="A.S.Ok" targetRef="A.S.Invite" />
+    <bpmn:sequenceFlow id="Flow_21" name="no" sourceRef="A.S.Ok" targetRef="A.S.Reject" />
+    <bpmn:sequenceFlow id="Flow_22" sourceRef="A.S.Reject" targetRef="A.S.Rejected" />
+    <bpmn:sequenceFlow id="Flow_23" sourceRef="A.S.Invite" targetRef="A.S.Letter" />
+    <bpmn:sequenceFlow id="Flow_24" sourceRef="A.S.Letter" targetRef="A.S.End" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="GDHCN.ONB.Apply.Diagram">
+    <bpmndi:BPMNPlane id="GDHCN.ONB.Apply.Plane" bpmnElement="GDHCN.ONB.Apply.Collaboration">
+      <bpmndi:BPMNShape id="GDHCN.ONB.Apply.Pool.Participant_di" bpmnElement="GDHCN.ONB.Apply.Pool.Participant" isHorizontal="true"><dc:Bounds x="120" y="60" width="1110" height="480" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Apply.Participant.Lane.KeyMasterRepresentative_di" bpmnElement="GDHCN.ONB.Apply.Participant.Lane.KeyMasterRepresentative" isHorizontal="true"><dc:Bounds x="150" y="60" width="1080" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Apply.Participant.Lane.BusinessOwnerRepresentative_di" bpmnElement="GDHCN.ONB.Apply.Participant.Lane.BusinessOwnerRepresentative" isHorizontal="true"><dc:Bounds x="150" y="220" width="1080" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Apply.Pool.Secretariat_di" bpmnElement="GDHCN.ONB.Apply.Pool.Secretariat" isHorizontal="true"><dc:Bounds x="120" y="630" width="1110" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Apply.Secretariat.Lane.GDHCNSecretariat_di" bpmnElement="GDHCN.ONB.Apply.Secretariat.Lane.GDHCNSecretariat" isHorizontal="true"><dc:Bounds x="150" y="630" width="1080" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.P.Start_di" bpmnElement="A.P.Start"><dc:Bounds x="232" y="442" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="482" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.P.Interest_di" bpmnElement="A.P.Interest"><dc:Bounds x="330" y="400" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.P.Result_di" bpmnElement="A.P.Result"><dc:Bounds x="470" y="400" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.P.Invited_di" bpmnElement="A.P.Invited" isMarkerVisible="true"><dc:Bounds x="645" y="435" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="610" y="489" width="120" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.P.Modify_di" bpmnElement="A.P.Modify"><dc:Bounds x="610" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.P.Keys_di" bpmnElement="A.P.Keys" isExpanded="false"><dc:Bounds x="750" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.P.Letter_di" bpmnElement="A.P.Letter" isExpanded="false"><dc:Bounds x="890" y="400" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.P.End_di" bpmnElement="A.P.End"><dc:Bounds x="1072" y="442" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1035" y="482" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.S.Start_di" bpmnElement="A.S.Start"><dc:Bounds x="372" y="852" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="335" y="892" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.S.Check_di" bpmnElement="A.S.Check"><dc:Bounds x="470" y="810" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.S.Ok_di" bpmnElement="A.S.Ok" isMarkerVisible="true"><dc:Bounds x="645" y="845" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="610" y="899" width="120" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.S.Reject_di" bpmnElement="A.S.Reject"><dc:Bounds x="610" y="650" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.S.Rejected_di" bpmnElement="A.S.Rejected"><dc:Bounds x="512" y="692" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="475" y="732" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.S.Invite_di" bpmnElement="A.S.Invite"><dc:Bounds x="750" y="810" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.S.Letter_di" bpmnElement="A.S.Letter" isExpanded="false"><dc:Bounds x="890" y="810" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A.S.End_di" bpmnElement="A.S.End"><dc:Bounds x="1072" y="852" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1035" y="892" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_12_di" bpmnElement="Flow_12"><di:waypoint x="268" y="460" /><di:waypoint x="330" y="460" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13_di" bpmnElement="Flow_13"><di:waypoint x="450" y="460" /><di:waypoint x="470" y="460" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14_di" bpmnElement="Flow_14"><di:waypoint x="590" y="460" /><di:waypoint x="645" y="460" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A.F.inv_di" bpmnElement="A.F.inv"><di:waypoint x="695" y="460" /><di:waypoint x="810" y="460" /><di:waypoint x="810" y="200" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15_di" bpmnElement="Flow_15"><di:waypoint x="670" y="435" /><di:waypoint x="670" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16_di" bpmnElement="Flow_16"><di:waypoint x="610" y="300" /><di:waypoint x="390" y="300" /><di:waypoint x="390" y="400" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_17_di" bpmnElement="Flow_17"><di:waypoint x="870" y="140" /><di:waypoint x="950" y="140" /><di:waypoint x="950" y="400" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18_di" bpmnElement="Flow_18"><di:waypoint x="1010" y="460" /><di:waypoint x="1072" y="460" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19_di" bpmnElement="Flow_19"><di:waypoint x="408" y="870" /><di:waypoint x="470" y="870" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_20_di" bpmnElement="Flow_20"><di:waypoint x="590" y="870" /><di:waypoint x="645" y="870" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A.F.ok_di" bpmnElement="A.F.ok"><di:waypoint x="695" y="870" /><di:waypoint x="750" y="870" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_21_di" bpmnElement="Flow_21"><di:waypoint x="670" y="845" /><di:waypoint x="670" y="770" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_22_di" bpmnElement="Flow_22"><di:waypoint x="610" y="710" /><di:waypoint x="548" y="710" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_23_di" bpmnElement="Flow_23"><di:waypoint x="870" y="870" /><di:waypoint x="890" y="870" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_24_di" bpmnElement="Flow_24"><di:waypoint x="1010" y="870" /><di:waypoint x="1072" y="870" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A.M.Interest_di" bpmnElement="A.M.Interest"><di:waypoint x="390" y="520" /><di:waypoint x="390" y="852" /><bpmndi:BPMNLabel><dc:Bounds x="254" y="571" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A.M.Reject_di" bpmnElement="A.M.Reject"><di:waypoint x="670" y="650" /><di:waypoint x="670" y="585" /><di:waypoint x="500" y="585" /><di:waypoint x="500" y="520" /><bpmndi:BPMNLabel><dc:Bounds x="552" y="588" width="66" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A.M.Invite_di" bpmnElement="A.M.Invite"><di:waypoint x="810" y="810" /><di:waypoint x="810" y="571" /><di:waypoint x="560" y="571" /><di:waypoint x="560" y="520" /><bpmndi:BPMNLabel><dc:Bounds x="620" y="540" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="A.M.Letter_di" bpmnElement="A.M.Letter"><di:waypoint x="950" y="520" /><di:waypoint x="950" y="810" /><bpmndi:BPMNLabel><dc:Bounds x="956" y="571" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

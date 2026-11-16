@@ -3,12 +3,10 @@ name: Generate Participants - Nightly
 permissions:
   contents: write
 
+# Manual trigger only (owner decision, 2026-10-06): GitHub workflows here are
+# defined, not run automatically. Start it from the Actions tab.
+# (workflow_call, if present, is kept so other repositories can call it.)
 on:
-  # Run nightly at 2 AM UTC
-  schedule:
-    - cron: '0 2 * * *'
-  
-  # Allow manual triggering
   workflow_dispatch:
     inputs:
       environments:
@@ -23,16 +21,15 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
-      
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Setup Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.11'
         
     - name: Install dependencies
       run: |
-        pip install pandas urllib3 requests cryptography
+        pip install --require-hashes -r .github/requirements/generate-participants.lock
         
     - name: Configure Git
       run: |
@@ -41,19 +38,28 @@ jobs:
         
     - name: Determine environments
       id: environments
+      env:
+        INPUT: ${{ github.event.inputs.environments }}
       run: |
-        INPUT="${{ github.event.inputs.environments }}"
         if [ -z "$INPUT" ] || [ "$INPUT" = "all" ]; then
-          echo "envs=PROD,UAT,DEV" >> $GITHUB_OUTPUT
-        else
-          echo "envs=$INPUT" >> $GITHUB_OUTPUT
+          echo "envs=PROD,UAT,DEV" >> "$GITHUB_OUTPUT"
+          exit 0
         fi
+        # Refuse anything that is not a comma-separated list of known names.
+        IFS=',' read -ra REQ <<< "$INPUT"
+        for e in "${REQ[@]}"; do
+          case "$e" in
+            PROD|UAT|DEV) ;;
+            *) echo "::error::refused: environments must be PROD, UAT, DEV (comma-separated) or all"; exit 1 ;;
+          esac
+        done
+        echo "envs=$INPUT" >> "$GITHUB_OUTPUT"
         
     - name: Generate participants for all environments
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ENVIRONMENTS: ${{ steps.environments.outputs.envs }}
       run: |
-        ENVIRONMENTS="${{ steps.environments.outputs.envs }}"
         IFS=',' read -ra ENV_ARRAY <<< "$ENVIRONMENTS"
         
         OVERALL_CHANGES=false
@@ -99,7 +105,9 @@ jobs:
         fi
         
     - name: Summary
+      env:
+        ENVIRONMENTS: ${{ steps.environments.outputs.envs }}
       run: |
         echo "Nightly participant generation completed"
-        echo "Processed environments: ${{ steps.environments.outputs.envs }}"
+        echo "Processed environments: $ENVIRONMENTS"
         git log --oneline -5

@@ -21,7 +21,7 @@ The list of onboarded Trust Network Participants is availabe in the  [GDHCN Part
 
 #### Trustlist Distribution Endpoints
 
-THe following are the endpoints for the [GDHCN DID Trust List](concepts_did_gdhcn.html) for each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s:
+The following are the endpoints for the [GDHCN DID Trust List](concepts_did_gdhcn.html) for each of development (DEV), user-acceptance testing (UAT) and production (PROD) **environments**:
 
 |  Environment   |      Variant         | URL                                                                                     |
 |---------|------------|--------------------------------------------------------------------------------------------------------------|
@@ -37,7 +37,7 @@ THe following are the endpoints for the [GDHCN DID Trust List](concepts_did_gdhc
 #### Trust Network Gateway 
 
 
-THe following are the endpoints for the [Trust Network Gateway](concepts.html#trust-network-gateway-tng) for each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s:
+The following are the endpoints for the [Trust Network Gateway](concepts.html#trust-network-gateway-tng) for each of development (DEV), user-acceptance testing (UAT) and production (PROD) **environments**:
 
 | Environment | URL |
 |-------------|-----|
@@ -50,7 +50,7 @@ THe following are the endpoints for the [Trust Network Gateway](concepts.html#tr
 
 #### Status Monitoring Dashboards
 
-The following dashboards reflect the realtime status of key materials for each of development (DEV), user-acceptence testing (UAT) and production (PROD) **environment*s:
+The following dashboards reflect the realtime status of key materials for each of development (DEV), user-acceptance testing (UAT) and production (PROD) **environments**:
 
 
 | Environment | Dashboard | 

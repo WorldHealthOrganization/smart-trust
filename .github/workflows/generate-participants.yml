@@ -3,8 +3,10 @@ name: Generate Participants
 permissions:
   contents: write
 
+# Manual trigger only (owner decision, 2026-10-06): GitHub workflows here are
+# defined, not run automatically. Start it from the Actions tab.
+# (workflow_call, if present, is kept so other repositories can call it.)
 on:
-  # Allows manual triggering
   workflow_dispatch:
     inputs:
       environment:
@@ -16,10 +18,7 @@ on:
         - PROD
         - UAT
         - DEV
-  
-  # Webhook trigger from participant repositories
-  repository_dispatch:
-    types: [participant-update]
+
 
 jobs:
   generate:
@@ -27,76 +26,34 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
-      
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Setup Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.11'
         
     - name: Install dependencies
       run: |
-        pip install pandas urllib3 requests cryptography
-        
-    - name: Validate webhook source
-      if: github.event_name == 'repository_dispatch'
-      id: validate
-      run: |
-        # Security: Validate webhook source repository
-        SOURCE_REPO="${{ github.event.client_payload.source_repository }}"
-        
-        # List of allowed repositories
-        ALLOWED_REPOS=(
-          "WorldHealthOrganization/tng-participants-prod"
-          "WorldHealthOrganization/tng-participants-uat" 
-          "WorldHealthOrganization/tng-participants-dev"
-        )
-        
-        # Check if source repository is in allowed list
-        REPO_ALLOWED=false
-        for allowed_repo in "${ALLOWED_REPOS[@]}"; do
-          if [ "$SOURCE_REPO" = "$allowed_repo" ]; then
-            REPO_ALLOWED=true
-            break
-          fi
-        done
-        
-        if [ "$REPO_ALLOWED" = "false" ]; then
-          echo "ERROR: Webhook rejected - repository '$SOURCE_REPO' is not in allowed list"
-          echo "Allowed repositories: ${ALLOWED_REPOS[*]}"
-          exit 1
-        fi
-        
-        # Validate organization
-        ORG=$(echo "$SOURCE_REPO" | cut -d'/' -f1)
-        if [ "$ORG" != "WorldHealthOrganization" ]; then
-          echo "ERROR: Webhook rejected - organization '$ORG' is not 'WorldHealthOrganization'"
-          exit 1
-        fi
-        
-        echo "Webhook source validated: $SOURCE_REPO"
-        echo "source_repo=$SOURCE_REPO" >> $GITHUB_OUTPUT
+        pip install --require-hashes -r .github/requirements/generate-participants.lock
         
     - name: Determine environment
       id: env
+      env:
+        INPUT_ENVIRONMENT: ${{ github.event.inputs.environment }}
       run: |
-        if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-          # Extract environment from repository name (part after last dash)
-          SOURCE_REPO="${{ steps.validate.outputs.source_repo }}"
-          ENV_SUFFIX=$(echo "$SOURCE_REPO" | sed 's/.*-//')
-          ENV=$(echo "$ENV_SUFFIX" | tr '[:lower:]' '[:upper:]')
-        else
-          # Use manual input
-          ENV="${{ github.event.inputs.environment }}"
-        fi
-        echo "environment=$ENV" >> $GITHUB_OUTPUT
-        echo "Using environment: $ENV"
+        case "$INPUT_ENVIRONMENT" in
+          PROD|UAT|DEV) ;;
+          *) echo "::error::refused: environment must be PROD, UAT or DEV"; exit 1 ;;
+        esac
+        echo "environment=$INPUT_ENVIRONMENT" >> "$GITHUB_OUTPUT"
+        echo "Using environment: $INPUT_ENVIRONMENT"
         
     - name: Generate organization files
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ENVIRONMENT: ${{ steps.env.outputs.environment }}
       run: |
-        python3 input/scripts/generate_organizations.py --env ${{ steps.env.outputs.environment }} --source github-api
+        python3 input/scripts/generate_organizations.py --env "$ENVIRONMENT" --source github-api
         
     - name: Check for changes
       id: changes
@@ -114,7 +71,9 @@ jobs:
         
     - name: Commit and push changes
       if: steps.changes.outputs.changes == 'true'
+      env:
+        ENVIRONMENT: ${{ steps.env.outputs.environment }}
       run: |
         git add input/fsh/instances/ input/fsh/codesystems/ input/fsh/valuesets/
-        git commit -m "Auto-update ${{ steps.env.outputs.environment }} participants from repository changes"
+        git commit -m "Auto-update $ENVIRONMENT participants from repository changes"
         git push

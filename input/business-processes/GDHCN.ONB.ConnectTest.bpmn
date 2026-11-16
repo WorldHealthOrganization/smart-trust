@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" id="GDHCN.ONB.ConnectTest.Definitions" targetNamespace="http://smart.who.int/trust/bpmn">
+  <bpmn:import namespace="https://litlfred.github.io/cat-harness/v0/processes/ns/" location="https://litlfred.github.io/cat-harness/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld" />
+  <bpmn:resource id="TechnicalRepresentative" name="Technical Representative" />
+  <bpmn:resource id="OnboardingTeam" name="Onboarding Team" />
+  <bpmn:resource id="TrustNetworkGateway" name="Trust Network Gateway" />
+  <bpmn:collaboration id="GDHCN.ONB.ConnectTest.Collaboration">
+    <bpmn:documentation>Connect to the gateway and pass the test, for one environment. Steps [43]-[46], [60]-[66] (UAT) and [67]-[76] (PROD).</bpmn:documentation>
+    <bpmn:participant id="GDHCN.ONB.ConnectTest.Pool.Participant" name="GDHCN Participant" processRef="GDHCN.ONB.ConnectTest.Participant">
+      <bpmn:documentation>The Eligible GDHCN Participant (Framework VII).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.ONB.ConnectTest.Pool.Operator" name="Gateway operator" processRef="GDHCN.ONB.ConnectTest.Operator">
+      <bpmn:documentation>The service provider that operates the Trust Network Gateway (steps [30]-[80]).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:messageFlow id="X.M.Info" name="Connection information" sourceRef="X.O.Inform" targetRef="X.P.Start" />
+    <bpmn:messageFlow id="X.M.Res" name="Test results" sourceRef="X.P.Send" targetRef="X.O.Recv" />
+    <bpmn:messageFlow id="X.M.Fix" name="Corrective actions" sourceRef="X.O.Fix" targetRef="X.P.Result" />
+    <bpmn:messageFlow id="X.M.Pass" name="Test passed" sourceRef="X.O.End" targetRef="X.P.Result" />
+  </bpmn:collaboration>
+  <bpmn:process id="GDHCN.ONB.ConnectTest.Participant" name="Connect and test" isExecutable="false">
+    <bpmn:documentation>Steps [60]-[63] and [70]-[73].</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.ConnectTest.Participant.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.ConnectTest.Participant.Lane.TechnicalRepresentative" name="Technical Representative" partitionElementRef="TechnicalRepresentative">
+        <bpmn:documentation>Connects the Participant's systems to the Trust Network Gateway and runs the tests (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/TechnicalRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>X.P.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.P.Connect</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.P.Conn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.P.Fix</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.P.Test</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.P.Send</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.P.Result</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.P.Ok</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.P.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="X.P.Start" name="Connection information received">
+      <bpmn:documentation>Steps [46] and [69].</bpmn:documentation>
+      <bpmn:outgoing>Flow_89</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="X.P.Start.Def" />
+    </bpmn:startEvent>
+    <bpmn:userTask id="X.P.Connect" name="Connect to the gateway">
+      <bpmn:documentation>Steps [60] and [70].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.ConnectTest.md#X.P.Connect" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_89</bpmn:incoming>
+      <bpmn:incoming>Flow_92</bpmn:incoming>
+      <bpmn:outgoing>Flow_90</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="X.P.Conn" name="Connected?" default="X.F.conn">
+      <bpmn:documentation>Steps [61] and [71].</bpmn:documentation>
+      <bpmn:incoming>Flow_90</bpmn:incoming>
+      <bpmn:outgoing>X.F.conn</bpmn:outgoing>
+      <bpmn:outgoing>Flow_91</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="X.P.Fix" name="Correct the connection with the operations team">
+      <bpmn:documentation>Steps [61] and [71].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.ConnectTest.md#X.P.Fix" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_91</bpmn:incoming>
+      <bpmn:outgoing>Flow_92</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="X.P.Test" name="Run the test">
+      <bpmn:documentation>Step [62]: the UAT dry run. Step [72]: the PROD readiness test.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.ConnectTest.md#X.P.Test" /></bpmn:extensionElements>
+      <bpmn:incoming>X.F.conn</bpmn:incoming>
+      <bpmn:incoming>Flow_96</bpmn:incoming>
+      <bpmn:outgoing>Flow_93</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="X.P.Send" name="Send the test results">
+      <bpmn:documentation>Steps [63] and [73].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.ConnectTest.md#X.P.Send" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_93</bpmn:incoming>
+      <bpmn:outgoing>Flow_94</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="X.P.Result" name="Receive the check result">
+      <bpmn:documentation>Steps [65] and [75].</bpmn:documentation>
+      <bpmn:incoming>Flow_94</bpmn:incoming>
+      <bpmn:outgoing>Flow_95</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:exclusiveGateway id="X.P.Ok" name="Passed?" default="X.F.pok">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_95</bpmn:incoming>
+      <bpmn:outgoing>X.F.pok</bpmn:outgoing>
+      <bpmn:outgoing>Flow_96</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="X.P.End" name="Test passed">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>X.F.pok</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_89" sourceRef="X.P.Start" targetRef="X.P.Connect" />
+    <bpmn:sequenceFlow id="Flow_90" sourceRef="X.P.Connect" targetRef="X.P.Conn" />
+    <bpmn:sequenceFlow id="X.F.conn" name="yes" sourceRef="X.P.Conn" targetRef="X.P.Test" />
+    <bpmn:sequenceFlow id="Flow_91" name="no" sourceRef="X.P.Conn" targetRef="X.P.Fix" />
+    <bpmn:sequenceFlow id="Flow_92" sourceRef="X.P.Fix" targetRef="X.P.Connect" />
+    <bpmn:sequenceFlow id="Flow_93" sourceRef="X.P.Test" targetRef="X.P.Send" />
+    <bpmn:sequenceFlow id="Flow_94" sourceRef="X.P.Send" targetRef="X.P.Result" />
+    <bpmn:sequenceFlow id="Flow_95" sourceRef="X.P.Result" targetRef="X.P.Ok" />
+    <bpmn:sequenceFlow id="X.F.pok" name="yes" sourceRef="X.P.Ok" targetRef="X.P.End" />
+    <bpmn:sequenceFlow id="Flow_96" name="no, after correction" sourceRef="X.P.Ok" targetRef="X.P.Test" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.ONB.ConnectTest.Operator" name="Whitelist and check the test" isExecutable="false">
+    <bpmn:documentation>Steps [43]-[46], [64]-[69] and [74]-[76].</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.ConnectTest.Operator.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.ConnectTest.Operator.Lane.OnboardingTeam" name="Onboarding Team" partitionElementRef="OnboardingTeam">
+        <bpmn:documentation>The gateway service provider's onboarding team (steps [64]-[77]). ActorDefinition http://smart.who.int/trust/ActorDefinition/OnboardingTeam.</bpmn:documentation>
+        <bpmn:flowNodeRef>X.O.Inform</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.O.Recv</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.O.Check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.O.Ok</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.O.Fix</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.O.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="GDHCN.ONB.ConnectTest.Operator.Lane.TrustNetworkGateway" name="Trust Network Gateway" partitionElementRef="TrustNetworkGateway">
+        <bpmn:documentation>The Trust Network Gateway (Framework V.1). ActorDefinition http://smart.who.int/trust/ActorDefinition/TrustNetworkGateway.</bpmn:documentation>
+        <bpmn:flowNodeRef>X.O.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>X.O.White</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="X.O.Start" name="Keys registered">
+      <bpmn:documentation>Input: the environment.</bpmn:documentation>
+      <bpmn:outgoing>Flow_97</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="X.O.White" name="Whitelist the certificates">
+      <bpmn:documentation>Steps [43] (UAT) and [67] (PROD, after the dry run passed).</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.ConnectTest.md#X.O.White" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_97</bpmn:incoming>
+      <bpmn:outgoing>Flow_98</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="X.O.Inform" name="Send the connection information">
+      <bpmn:documentation>Steps [44]-[45] and [68].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.ConnectTest.md#X.O.Inform" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_98</bpmn:incoming>
+      <bpmn:outgoing>Flow_99</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="X.O.Recv" name="Receive the test results">
+      <bpmn:documentation>Steps [64] and [74].</bpmn:documentation>
+      <bpmn:incoming>Flow_99</bpmn:incoming>
+      <bpmn:incoming>Flow_103</bpmn:incoming>
+      <bpmn:outgoing>Flow_100</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:userTask id="X.O.Check" name="Check the test results">
+      <bpmn:documentation>Steps [65] and [75].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.ConnectTest.md#X.O.Check" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_100</bpmn:incoming>
+      <bpmn:outgoing>Flow_101</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="X.O.Ok" name="Passed?" default="X.F.ook">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_101</bpmn:incoming>
+      <bpmn:outgoing>X.F.ook</bpmn:outgoing>
+      <bpmn:outgoing>Flow_102</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="X.O.Fix" name="Agree corrective actions">
+      <bpmn:documentation>Steps [66] and [76].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.ConnectTest.md#X.O.Fix" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_102</bpmn:incoming>
+      <bpmn:outgoing>Flow_103</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="X.O.End" name="Test passed">
+      <bpmn:documentation>The Participant is told the test passed.</bpmn:documentation>
+      <bpmn:incoming>X.F.ook</bpmn:incoming>
+      <bpmn:messageEventDefinition id="X.O.End.Def" />
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_97" sourceRef="X.O.Start" targetRef="X.O.White" />
+    <bpmn:sequenceFlow id="Flow_98" sourceRef="X.O.White" targetRef="X.O.Inform" />
+    <bpmn:sequenceFlow id="Flow_99" sourceRef="X.O.Inform" targetRef="X.O.Recv" />
+    <bpmn:sequenceFlow id="Flow_100" sourceRef="X.O.Recv" targetRef="X.O.Check" />
+    <bpmn:sequenceFlow id="Flow_101" sourceRef="X.O.Check" targetRef="X.O.Ok" />
+    <bpmn:sequenceFlow id="X.F.ook" name="yes" sourceRef="X.O.Ok" targetRef="X.O.End" />
+    <bpmn:sequenceFlow id="Flow_102" name="no" sourceRef="X.O.Ok" targetRef="X.O.Fix" />
+    <bpmn:sequenceFlow id="Flow_103" sourceRef="X.O.Fix" targetRef="X.O.Recv" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="GDHCN.ONB.ConnectTest.Diagram">
+    <bpmndi:BPMNPlane id="GDHCN.ONB.ConnectTest.Plane" bpmnElement="GDHCN.ONB.ConnectTest.Collaboration">
+      <bpmndi:BPMNShape id="GDHCN.ONB.ConnectTest.Pool.Participant_di" bpmnElement="GDHCN.ONB.ConnectTest.Pool.Participant" isHorizontal="true"><dc:Bounds x="120" y="60" width="1390" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ConnectTest.Participant.Lane.TechnicalRepresentative_di" bpmnElement="GDHCN.ONB.ConnectTest.Participant.Lane.TechnicalRepresentative" isHorizontal="true"><dc:Bounds x="150" y="60" width="1360" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ConnectTest.Pool.Operator_di" bpmnElement="GDHCN.ONB.ConnectTest.Pool.Operator" isHorizontal="true"><dc:Bounds x="120" y="430" width="1390" height="480" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ConnectTest.Operator.Lane.OnboardingTeam_di" bpmnElement="GDHCN.ONB.ConnectTest.Operator.Lane.OnboardingTeam" isHorizontal="true"><dc:Bounds x="150" y="430" width="1360" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ConnectTest.Operator.Lane.TrustNetworkGateway_di" bpmnElement="GDHCN.ONB.ConnectTest.Operator.Lane.TrustNetworkGateway" isHorizontal="true"><dc:Bounds x="150" y="750" width="1360" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.P.Start_di" bpmnElement="X.P.Start"><dc:Bounds x="372" y="282" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="335" y="250" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.P.Connect_di" bpmnElement="X.P.Connect"><dc:Bounds x="470" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.P.Conn_di" bpmnElement="X.P.Conn" isMarkerVisible="true"><dc:Bounds x="645" y="275" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="610" y="329" width="120" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.P.Fix_di" bpmnElement="X.P.Fix"><dc:Bounds x="610" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.P.Test_di" bpmnElement="X.P.Test"><dc:Bounds x="750" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.P.Send_di" bpmnElement="X.P.Send"><dc:Bounds x="890" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.P.Result_di" bpmnElement="X.P.Result"><dc:Bounds x="1030" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.P.Ok_di" bpmnElement="X.P.Ok" isMarkerVisible="true"><dc:Bounds x="1205" y="275" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1170" y="329" width="120" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.P.End_di" bpmnElement="X.P.End"><dc:Bounds x="1352" y="282" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1315" y="322" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.O.Start_di" bpmnElement="X.O.Start"><dc:Bounds x="232" y="812" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="852" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.O.White_di" bpmnElement="X.O.White"><dc:Bounds x="330" y="770" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.O.Inform_di" bpmnElement="X.O.Inform"><dc:Bounds x="330" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.O.Recv_di" bpmnElement="X.O.Recv"><dc:Bounds x="890" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.O.Check_di" bpmnElement="X.O.Check"><dc:Bounds x="1030" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.O.Ok_di" bpmnElement="X.O.Ok" isMarkerVisible="true"><dc:Bounds x="1205" y="645" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1170" y="699" width="120" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.O.Fix_di" bpmnElement="X.O.Fix"><dc:Bounds x="1030" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X.O.End_di" bpmnElement="X.O.End"><dc:Bounds x="1352" y="652" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1315" y="692" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_89_di" bpmnElement="Flow_89"><di:waypoint x="408" y="300" /><di:waypoint x="470" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_90_di" bpmnElement="Flow_90"><di:waypoint x="590" y="300" /><di:waypoint x="645" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="X.F.conn_di" bpmnElement="X.F.conn"><di:waypoint x="695" y="300" /><di:waypoint x="750" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_91_di" bpmnElement="Flow_91"><di:waypoint x="670" y="275" /><di:waypoint x="670" y="200" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_92_di" bpmnElement="Flow_92"><di:waypoint x="610" y="140" /><di:waypoint x="530" y="140" /><di:waypoint x="530" y="240" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_93_di" bpmnElement="Flow_93"><di:waypoint x="870" y="300" /><di:waypoint x="890" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_94_di" bpmnElement="Flow_94"><di:waypoint x="1010" y="300" /><di:waypoint x="1030" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_95_di" bpmnElement="Flow_95"><di:waypoint x="1150" y="300" /><di:waypoint x="1205" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="X.F.pok_di" bpmnElement="X.F.pok"><di:waypoint x="1255" y="300" /><di:waypoint x="1352" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_96_di" bpmnElement="Flow_96"><di:waypoint x="1230" y="275" /><di:waypoint x="1230" y="215" /><di:waypoint x="810" y="215" /><di:waypoint x="810" y="240" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_97_di" bpmnElement="Flow_97"><di:waypoint x="268" y="830" /><di:waypoint x="330" y="830" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_98_di" bpmnElement="Flow_98"><di:waypoint x="390" y="770" /><di:waypoint x="390" y="730" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_99_di" bpmnElement="Flow_99"><di:waypoint x="450" y="670" /><di:waypoint x="890" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_100_di" bpmnElement="Flow_100"><di:waypoint x="1010" y="670" /><di:waypoint x="1030" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_101_di" bpmnElement="Flow_101"><di:waypoint x="1150" y="670" /><di:waypoint x="1205" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="X.F.ook_di" bpmnElement="X.F.ook"><di:waypoint x="1255" y="670" /><di:waypoint x="1352" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_102_di" bpmnElement="Flow_102"><di:waypoint x="1230" y="645" /><di:waypoint x="1230" y="510" /><di:waypoint x="1150" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_103_di" bpmnElement="Flow_103"><di:waypoint x="1030" y="510" /><di:waypoint x="950" y="510" /><di:waypoint x="950" y="610" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="X.M.Info_di" bpmnElement="X.M.Info"><di:waypoint x="390" y="610" /><di:waypoint x="390" y="318" /><bpmndi:BPMNLabel><dc:Bounds x="396" y="391" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="X.M.Res_di" bpmnElement="X.M.Res"><di:waypoint x="920" y="360" /><di:waypoint x="920" y="610" /><bpmndi:BPMNLabel><dc:Bounds x="828" y="398" width="86" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="X.M.Fix_di" bpmnElement="X.M.Fix"><di:waypoint x="1060" y="450" /><di:waypoint x="1060" y="360" /><bpmndi:BPMNLabel><dc:Bounds x="929" y="398" width="125" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="X.M.Pass_di" bpmnElement="X.M.Pass"><di:waypoint x="1370" y="652" /><di:waypoint x="1370" y="405" /><di:waypoint x="1120" y="405" /><di:waypoint x="1120" y="360" /><bpmndi:BPMNLabel><dc:Bounds x="1376" y="514" width="79" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

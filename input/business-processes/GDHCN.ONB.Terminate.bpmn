@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" id="GDHCN.ONB.Terminate.Definitions" targetNamespace="http://smart.who.int/trust/bpmn">
+  <bpmn:resource id="BusinessOwnerRepresentative" name="Business Owner Representative" />
+  <bpmn:resource id="GDHCNSecretariat" name="GDHCN Secretariat" />
+  <bpmn:collaboration id="GDHCN.ONB.Terminate.Collaboration">
+    <bpmn:documentation>End participation in one or more Trust Domains. Framework XV.1-3; XV.4 (the Secretariat ceases the GDHCN) is out of scope.</bpmn:documentation>
+    <bpmn:participant id="GDHCN.ONB.Terminate.Pool.Participant" name="GDHCN Participant" processRef="GDHCN.ONB.Terminate.Participant">
+      <bpmn:documentation>The Eligible GDHCN Participant (Framework VII).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.ONB.Terminate.Pool.Secretariat" name="GDHCN Secretariat (WHO)" processRef="GDHCN.ONB.Terminate.Secretariat">
+      <bpmn:documentation>The GDHCN Secretariat at WHO (Framework V, VI).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:messageFlow id="E.M" name="Notice of termination" sourceRef="E.P.Notice" targetRef="E.S.Start" />
+  </bpmn:collaboration>
+  <bpmn:process id="GDHCN.ONB.Terminate.Participant" name="Leave the GDHCN" isExecutable="false">
+    <bpmn:documentation>Framework XV.1.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.Terminate.Participant.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.Terminate.Participant.Lane.BusinessOwnerRepresentative" name="Business Owner Representative" partitionElementRef="BusinessOwnerRepresentative">
+        <bpmn:documentation>Sends the Statement of Interest and the Letter of Application; may meet WHO in person (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/BusinessOwnerRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>E.P.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>E.P.Notice</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>E.P.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="E.P.Start" name="Decided to leave">
+      <bpmn:documentation>Framework XV.1: for one or more Trust Domains.</bpmn:documentation>
+      <bpmn:outgoing>Flow_134</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sendTask id="E.P.Notice" name="Send written notice by diplomatic channel">
+      <bpmn:documentation>Framework XV.1: at least 30 days ahead.</bpmn:documentation>
+      <bpmn:incoming>Flow_134</bpmn:incoming>
+      <bpmn:outgoing>Flow_135</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="E.P.End" name="Notice given">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_135</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_134" sourceRef="E.P.Start" targetRef="E.P.Notice" />
+    <bpmn:sequenceFlow id="Flow_135" sourceRef="E.P.Notice" targetRef="E.P.End" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.ONB.Terminate.Secretariat" name="End a participation" isExecutable="false">
+    <bpmn:documentation>Framework XV.1-3.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.Terminate.Secretariat.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.Terminate.Secretariat.Lane.GDHCNSecretariat" name="GDHCN Secretariat" partitionElementRef="GDHCNSecretariat">
+        <bpmn:documentation>Authorized WHO staff of the GDHCN Secretariat (Framework V, VI). ActorDefinition http://smart.who.int/trust/ActorDefinition/GDHCNSecretariat.</bpmn:documentation>
+        <bpmn:flowNodeRef>E.S.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>E.S.Inform</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>E.S.Wait</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>E.S.End</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>E.S.Own</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>E.S.Term</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>E.S.End2</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="E.S.Start" name="Notice received">
+      <bpmn:documentation>Framework XV.1.</bpmn:documentation>
+      <bpmn:outgoing>Flow_136</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="E.S.Start.Def" />
+    </bpmn:startEvent>
+    <bpmn:sendTask id="E.S.Inform" name="Inform the other Participants">
+      <bpmn:documentation>Framework XV.2.</bpmn:documentation>
+      <bpmn:incoming>Flow_136</bpmn:incoming>
+      <bpmn:outgoing>Flow_137</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:intermediateCatchEvent id="E.S.Wait" name="30 days after the notice">
+      <bpmn:documentation>Framework XV.1: termination takes effect 30 days after the Secretariat receives the notice.</bpmn:documentation>
+      <bpmn:incoming>Flow_137</bpmn:incoming>
+      <bpmn:outgoing>Flow_138</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="E.S.Wait.Def"><bpmn:timeDuration>P30D</bpmn:timeDuration></bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="E.S.End" name="Participation ended">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_138</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="E.S.Own" name="Secretariat decides to terminate">
+      <bpmn:documentation>Framework XV.3: at its sole discretion.</bpmn:documentation>
+      <bpmn:outgoing>Flow_139</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="E.S.Term" name="Terminate the participation">
+      <bpmn:documentation>Framework XV.3. The Framework sets no notice period for this case.</bpmn:documentation>
+      <bpmn:incoming>Flow_139</bpmn:incoming>
+      <bpmn:outgoing>Flow_140</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="E.S.End2" name="Participation terminated">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_140</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_136" sourceRef="E.S.Start" targetRef="E.S.Inform" />
+    <bpmn:sequenceFlow id="Flow_137" sourceRef="E.S.Inform" targetRef="E.S.Wait" />
+    <bpmn:sequenceFlow id="Flow_138" sourceRef="E.S.Wait" targetRef="E.S.End" />
+    <bpmn:sequenceFlow id="Flow_139" sourceRef="E.S.Own" targetRef="E.S.Term" />
+    <bpmn:sequenceFlow id="Flow_140" sourceRef="E.S.Term" targetRef="E.S.End2" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="GDHCN.ONB.Terminate.Diagram">
+    <bpmndi:BPMNPlane id="GDHCN.ONB.Terminate.Plane" bpmnElement="GDHCN.ONB.Terminate.Collaboration">
+      <bpmndi:BPMNShape id="GDHCN.ONB.Terminate.Pool.Participant_di" bpmnElement="GDHCN.ONB.Terminate.Pool.Participant" isHorizontal="true"><dc:Bounds x="120" y="60" width="830" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Terminate.Participant.Lane.BusinessOwnerRepresentative_di" bpmnElement="GDHCN.ONB.Terminate.Participant.Lane.BusinessOwnerRepresentative" isHorizontal="true"><dc:Bounds x="150" y="60" width="800" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Terminate.Pool.Secretariat_di" bpmnElement="GDHCN.ONB.Terminate.Pool.Secretariat" isHorizontal="true"><dc:Bounds x="120" y="270" width="830" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Terminate.Secretariat.Lane.GDHCNSecretariat_di" bpmnElement="GDHCN.ONB.Terminate.Secretariat.Lane.GDHCNSecretariat" isHorizontal="true"><dc:Bounds x="150" y="270" width="800" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E.P.Start_di" bpmnElement="E.P.Start"><dc:Bounds x="232" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E.P.Notice_di" bpmnElement="E.P.Notice"><dc:Bounds x="330" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E.P.End_di" bpmnElement="E.P.End"><dc:Bounds x="512" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="475" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E.S.Start_di" bpmnElement="E.S.Start"><dc:Bounds x="372" y="332" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="335" y="372" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E.S.Inform_di" bpmnElement="E.S.Inform"><dc:Bounds x="470" y="290" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E.S.Wait_di" bpmnElement="E.S.Wait"><dc:Bounds x="652" y="332" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="615" y="372" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E.S.End_di" bpmnElement="E.S.End"><dc:Bounds x="792" y="332" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="755" y="372" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E.S.Own_di" bpmnElement="E.S.Own"><dc:Bounds x="372" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="335" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E.S.Term_di" bpmnElement="E.S.Term"><dc:Bounds x="470" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="E.S.End2_di" bpmnElement="E.S.End2"><dc:Bounds x="652" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="615" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_134_di" bpmnElement="Flow_134"><di:waypoint x="268" y="140" /><di:waypoint x="330" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_135_di" bpmnElement="Flow_135"><di:waypoint x="450" y="140" /><di:waypoint x="512" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_136_di" bpmnElement="Flow_136"><di:waypoint x="408" y="350" /><di:waypoint x="470" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_137_di" bpmnElement="Flow_137"><di:waypoint x="590" y="350" /><di:waypoint x="652" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_138_di" bpmnElement="Flow_138"><di:waypoint x="688" y="350" /><di:waypoint x="792" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_139_di" bpmnElement="Flow_139"><di:waypoint x="408" y="510" /><di:waypoint x="470" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_140_di" bpmnElement="Flow_140"><di:waypoint x="590" y="510" /><di:waypoint x="652" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E.M_di" bpmnElement="E.M"><di:waypoint x="390" y="200" /><di:waypoint x="390" y="332" /><bpmndi:BPMNLabel><dc:Bounds x="396" y="231" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

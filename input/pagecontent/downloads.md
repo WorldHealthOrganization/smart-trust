@@ -9,10 +9,10 @@
     Download the entire implementation guide <a href="full-ig.zip">here</a>
 	</p>
 
-	
 <table>
 		<tbody>
 			<tr>
+
 				<th>Artifact Definitions</th>
 {% unless excludexml == 'y' %}
 				<td>
@@ -29,8 +29,8 @@
 					<a href="definitions.ttl.zip">Turtle</a>
 				</td>
 {% endunless %}
-			</tr>
-			<tr>
+			</tr><tr>
+
 				<th>Examples</th>
 {% unless excludexml == 'y' %}
 				<td>

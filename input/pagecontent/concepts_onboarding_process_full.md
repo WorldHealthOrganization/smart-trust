@@ -1,17 +1,14 @@
-
 ####  Details of the Onboarding Process
 
-This document describes the standard onboarding process (so called Future Onboarding Process - FOP).
+This page describes the onboarding process of the GDHCN (the so called Future Onboarding Process, FOP), drawn in BPMN 2.0. Under each drawing is the text of the steps it shows. That text is kept in a Markdown file beside each BPMN file, with one section per task, and each task of the drawing links to its section, so the page and the drawings come from one source. The numbers **[n]** are the step numbers of [the original drawing](#original-drawing).
 
-**Note:** In the embedded image the following relabels apply:
+Where a drawing and a text differ, the text is authority: the GDHCN Administrative and Operational Framework first, then the step text. The drawings only refer to the documentation; requirements such as key sizes are stated in the documentation they name, for example [the requirements on GPG keys](concepts_certificate_governance.html#gpg-keys).
 
-* DCCG -> TNG
+#### Overview of the onboarding processes
 
-* CSCA -> SCA
+Onboarding runs in three phases. In **phase 1** the Participant applies and has its Letter of Application verified. In **phase 2** the gateway operator registers the Participant's keys, once for each environment. In **phase 3** the Participant connects to the gateway and passes the tests, first in UAT and then in PROD. After onboarding, a Participant may join a further Trust Domain, change its keys or its representatives, or end its participation, and an Eligible GDHCN Participant may propose a new Trust Domain.
 
-* DCC -> VDHC (Verifiable Digital Health Certificate)
-
-* NB -> TNP
+Each drawing has one pool for each party (the GDHCN Participant, the GDHCN Secretariat at WHO, and the gateway operator) and one lane for each actor. A task with a **+** marker calls another process: select it in a drawing to go to that process. The environment (UAT, PROD, and DEV if used) is an input of the processes that run once for each environment.
 
 It is highly recommended:
 
@@ -19,17 +16,61 @@ It is highly recommended:
 
 - **Not to reuse any certificates across the different staging environments**
 
+The processes are listed by phase: [Top level](#top-level), [Phase 1: apply and be verified](#phase-1), [Phase 2: register the keys](#phase-2), [Phase 3: go live](#phase-3), [After onboarding](#after-onboarding). A process that is reused later is listed under the phase where it first runs.
 
-In the following description the required steps are divided into three sections:
+To try onboarding hands-on, play [*Join the Network*](en/cat-harness/apps/onboarding-game/), a simulation in which a sample country onboards to the GDHCN one choice at a time. Its steps are the processes on this page.
 
-**[1]** - **[29]** - Application and Verification  
-**[30]** - **[59]** Setup  
-**[60]** - **[End]** Participant Onboarding
+##### Actors
 
+Each lane is one actor, defined as an ActorDefinition of this guide.
 
-<img src="OnboardingProcess_Full.png" style="float:none; margin: 0px 0px 0px 0px;"/>
+| Actor | Role in onboarding |
+| --- | --- |
+| [Business Owner Representative](ActorDefinition-BusinessOwnerRepresentative.html) | Sends the Statement of Interest and the Letter of Application; may meet WHO in person (Framework IX). |
+| [Legal Representative](ActorDefinition-LegalRepresentative.html) | May meet WHO in person to convey the Letter (Framework IX); receives notice of amendments (XI.2). |
+| [Official Delegate](ActorDefinition-OfficialDelegate.html) | Delegate at the World Health Assembly or another WHO governing body meeting (Framework IX). |
+| [Key Master Representative](ActorDefinition-KeyMasterRepresentative.html) | Manages the Participant's Public Key Infrastructure and holds the GPG key named in the Letter (Framework IX). |
+| [Technical Representative](ActorDefinition-TechnicalRepresentative.html) | Connects the Participant's systems to the Trust Network Gateway and runs the tests (Framework IX). |
+| [GDHCN Secretariat](ActorDefinition-GDHCNSecretariat.html) | Authorized WHO staff of the GDHCN Secretariat (Framework V, VI). |
+| [WHO Country Representative](ActorDefinition-WHOCountryRepresentative.html) | Meets the representative in country and sends the Letter by diplomatic pouch (Framework IX). |
+| [Trust Network Anchor](ActorDefinition-TrustNetworkAnchor.html) | WHO as trust anchor for the Public Key Infrastructure (Framework VI.6). |
+| [Operations Team](ActorDefinition-OperationsTeam.html) | The gateway service provider's operations team (steps [30]-[50]). |
+| [Onboarding Team](ActorDefinition-OnboardingTeam.html) | The gateway service provider's onboarding team (steps [64]-[77]). |
+| [GitHub Bot](ActorDefinition-GitHubBot.html) | The gateway's GitHub bot user for the environment (steps [11]-[13], [34]-[38]). |
+| [Trust Network Gateway](ActorDefinition-TrustNetworkGateway.html) | The Trust Network Gateway (Framework V.1). |
 
-##### Application and Verification
+<a name="top-level"></a>
+#### Top level
+
+| Process | What it does | Calls | Called by |
+| --- | --- | --- | --- |
+| [Onboard a Participant (top level)](#gdhcn-onb) | Onboard a GDHCN Participant to a Trust Domain, in three phases: apply and verify, set up and go live. | [Apply and be verified](#gdhcn-onb-apply), [Go live](#gdhcn-onb-golive), [Register the keys](#gdhcn-onb-registerkeys) | - |
+
+<a name="gdhcn-onb"></a>
+##### Onboard a Participant (top level)
+
+Onboard a GDHCN Participant to a Trust Domain, in three phases: apply and verify, set up and go live.
+
+Framework V.4, VI.5 and IX. Calls: [Apply and be verified](#gdhcn-onb-apply), [Go live](#gdhcn-onb-golive), [Register the keys](#gdhcn-onb-registerkeys). Called by: no other process. BPMN file: [GDHCN.ONB.bpmn](https://github.com/litlfred/smart-trust/blob/main/input/business-processes/GDHCN.ONB.bpmn).
+
+<figure style="width:100%">
+  <object data="GDHCN.ONB.svg" type="image/svg+xml" style="width:100%; max-width:1400px;" aria-label="Onboard a Participant (top level)"><img src="GDHCN.ONB.svg" alt="Onboard a Participant (top level)" style="width:100%;"/></object>
+</figure>
+
+<a name="phase-1"></a>
+#### Phase 1: apply and be verified
+
+| Process | What it does | Calls | Called by |
+| --- | --- | --- | --- |
+| [Apply and be verified](#gdhcn-onb-apply) | Apply to join and have the Letter of Application verified. | [Prepare the keys and the repository](#gdhcn-onb-preparekeys), [Verify the Letter of Application](#gdhcn-onb-verifyletter) | [Onboard a Participant (top level)](#gdhcn-onb) |
+| [Prepare the keys and the repository](#gdhcn-onb-preparekeys) | Prepare the keys and the repository for one environment. | - | [Apply and be verified](#gdhcn-onb-apply), [Change the keys or the representatives](#gdhcn-onb-changekeys) |
+| [Verify the Letter of Application](#gdhcn-onb-verifyletter) | Verify one Letter of Application, and have it corrected if needed. | [Convey the Letter through a secure channel](#gdhcn-onb-conveyletter) | [Apply and be verified](#gdhcn-onb-apply), [Join a further Trust Domain](#gdhcn-trustdomain-join), [Change the keys or the representatives](#gdhcn-onb-changekeys) |
+| [Convey the Letter through a secure channel](#gdhcn-onb-conveyletter) | Convey a Letter of Application through a secure channel. | - | [Verify the Letter of Application](#gdhcn-onb-verifyletter), [Change the keys or the representatives](#gdhcn-onb-changekeys) |
+
+<a name="gdhcn-onb-apply"></a>
+##### Apply and be verified
+
+Apply to join and have the Letter of Application verified.
 
 **[1]** The eligible Trust Network Participant (TNP) has to submit its Statement of Interest [link to the form. [Document 5] ] to gdhcn-support@who.int .
 
@@ -50,6 +91,17 @@ In the following description the required steps are divided into three sections:
 **[8]** The TNP receives the confirmation and necessary technical information to connect to the TNG and register the certificates.
 
 For a successful connection to the Trust Network Gateway there are the following steps [9] – [11] to prepare:
+
+Framework V.4 and IX. Calls: [Prepare the keys and the repository](#gdhcn-onb-preparekeys), [Verify the Letter of Application](#gdhcn-onb-verifyletter). Called by: [Onboard a Participant (top level)](#gdhcn-onb). BPMN file: [GDHCN.ONB.Apply.bpmn](https://github.com/litlfred/smart-trust/blob/main/input/business-processes/GDHCN.ONB.Apply.bpmn).
+
+<figure style="width:100%">
+  <object data="GDHCN.ONB.Apply.svg" type="image/svg+xml" style="width:100%; max-width:1400px;" aria-label="Apply and be verified"><img src="GDHCN.ONB.Apply.svg" alt="Apply and be verified" style="width:100%;"/></object>
+</figure>
+
+<a name="gdhcn-onb-preparekeys"></a>
+##### Prepare the keys and the repository
+
+Prepare the keys and the repository for one environment.
 
 **[9]** Create certificates per environment. Details can be found here: https://smart.who.int/trust/concepts_CertificatePreperation.html
 
@@ -76,7 +128,7 @@ In all other cases, the participant provides the appropriate CA certificate.
 
 Follow the instructions to create a key: https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key
 
-Use Algorithm RSA or EC with minimum key length of 4096 bit (RSA) or 256 bit (EC).
+The key must meet the [GPG key requirements](concepts_certificate_governance.html#gpg-keys) in the Certificate Governance.
 
 **[11]** The TNP creates the private GitHub repositories per environment
 
@@ -89,6 +141,17 @@ Use Algorithm RSA or EC with minimum key length of 4096 bit (RSA) or 256 bit (EC
 
 **[13]** Invitation for GitHub bot user must be accepted by WHO within 7 days since invitation was emitted.
 
+Framework V.4.c, VII.4-5 and IX. Calls: no other process. Called by: [Apply and be verified](#gdhcn-onb-apply), [Change the keys or the representatives](#gdhcn-onb-changekeys). BPMN file: [GDHCN.ONB.PrepareKeys.bpmn](https://github.com/litlfred/smart-trust/blob/main/input/business-processes/GDHCN.ONB.PrepareKeys.bpmn).
+
+<figure style="width:100%">
+  <object data="GDHCN.ONB.PrepareKeys.svg" type="image/svg+xml" style="width:100%; max-width:1400px;" aria-label="Prepare the keys and the repository"><img src="GDHCN.ONB.PrepareKeys.svg" alt="Prepare the keys and the repository" style="width:100%;"/></object>
+</figure>
+
+<a name="gdhcn-onb-verifyletter"></a>
+##### Verify the Letter of Application
+
+Verify one Letter of Application, and have it corrected if needed.
+
 **[14]** TNP is ready for onboarding according to WHO requirements and governance and has collected the following information in the Letter of Application [Document 16]:
 
 - the URL of the private GitHub repositories for each environment (UAT, PROD, DEV (optional))
@@ -99,7 +162,7 @@ Use Algorithm RSA or EC with minimum key length of 4096 bit (RSA) or 256 bit (EC
 
 - The contact details (including email address) of the people authorized to provide the certificates of the TNPThe TNP exchanges the Letter of Application to WHO.
 
-**[15]** The Letter of Application is received and processed by WHO. The TNP .
+**[15]** The Letter of Application is received and processed by WHO.
 
 **[16 - 17]** The verification and confirmation of the named people that are allowed to provide the key material for the TNP takes place through either of different channels:
 
@@ -120,7 +183,7 @@ When the Letter of Application is received, identification of individuals take p
 
 **[22]** Validate that GPG key matches cryptographic/governance criteria
 
-- Key length (min. 3072 bit for RSA and min. 256 bit for ECDSA)
+- the [GPG key requirements](concepts_certificate_governance.html#gpg-keys) in the Certificate Governance, including the key length
 
 - mail address in GPG key must match with the provided mail address in the Letter of Application
 
@@ -134,34 +197,92 @@ When the Letter of Application is received, identification of individuals take p
 
 - the confirmation that the invitation for the GitHub bot users has been accepted
 
-##### Setup
+Framework V.4.a-b and IX. Calls: [Convey the Letter through a secure channel](#gdhcn-onb-conveyletter). Called by: [Apply and be verified](#gdhcn-onb-apply), [Join a further Trust Domain](#gdhcn-trustdomain-join), [Change the keys or the representatives](#gdhcn-onb-changekeys). BPMN file: [GDHCN.ONB.VerifyLetter.bpmn](https://github.com/litlfred/smart-trust/blob/main/input/business-processes/GDHCN.ONB.VerifyLetter.bpmn).
+
+<figure style="width:100%">
+  <object data="GDHCN.ONB.VerifyLetter.svg" type="image/svg+xml" style="width:100%; max-width:1400px;" aria-label="Verify the Letter of Application"><img src="GDHCN.ONB.VerifyLetter.svg" alt="Verify the Letter of Application" style="width:100%;"/></object>
+</figure>
+
+<a name="gdhcn-onb-conveyletter"></a>
+##### Convey the Letter through a secure channel
+
+Convey a Letter of Application through a secure channel.
+
+Framework IX. Calls: no other process. Called by: [Verify the Letter of Application](#gdhcn-onb-verifyletter), [Change the keys or the representatives](#gdhcn-onb-changekeys). BPMN file: [GDHCN.ONB.ConveyLetter.bpmn](https://github.com/litlfred/smart-trust/blob/main/input/business-processes/GDHCN.ONB.ConveyLetter.bpmn).
+
+<figure style="width:100%">
+  <object data="GDHCN.ONB.ConveyLetter.svg" type="image/svg+xml" style="width:100%; max-width:1400px;" aria-label="Convey the Letter through a secure channel"><img src="GDHCN.ONB.ConveyLetter.svg" alt="Convey the Letter through a secure channel" style="width:100%;"/></object>
+</figure>
+
+<a name="phase-2"></a>
+#### Phase 2: register the keys
+
+| Process | What it does | Calls | Called by |
+| --- | --- | --- | --- |
+| [Register the keys](#gdhcn-onb-registerkeys) | Register a Participant's keys for one environment. | - | [Onboard a Participant (top level)](#gdhcn-onb), [Join a further Trust Domain](#gdhcn-trustdomain-join), [Change the keys or the representatives](#gdhcn-onb-changekeys) |
+
+<a name="gdhcn-onb-registerkeys"></a>
+##### Register the keys
+
+Register a Participant's keys for one environment.
 
 **[30]** The collected onboarding information is sent to the operations (OPS) team. The onboarding (OB) team is informed as well.
 
 **[31 - 35]** The onboarding data is taken over to the configuration files by the OPS team to automate the GitHub processes. As a result, a Pull Request (PR) is created. Dependent on the environment, the subsequent steps differ.
 
-**[38]** For UAT (and optional DEV), an auto signing process signs the keys.
-
 **[36 -37]** For PROD environment, the PR is verified by WHO. After successful verification, the air-gapped signing process is performed to sign the keys. Follow to **[47]**
+
+**[38]** For UAT (and optional DEV), an auto signing process signs the keys.
 
 **[39]** The service provider checks the PR as well.
 
-**[40 - 41]** In case the verification failed, WHO is informed about the outcome.
-
-**[42]** Correction.
-
-
-**[43]** In case the verification was successful the whitelisting of the certificates is initiated.
-
-**[44 - 46]** and the participant will be informed that the preparation has been completed successfully.
-
 **[47]** TSI Verification of Pull Request in PROD Environment.
+
+**[40 - 41]** In case the verification failed, WHO is informed about the outcome.
 
 **[48 - 50]** In case Pull Request failed, TSIS to communicate to Participant for them to Correct
 
+**[42]** Correction.
 
+Calls: no other process. Called by: [Onboard a Participant (top level)](#gdhcn-onb), [Join a further Trust Domain](#gdhcn-trustdomain-join), [Change the keys or the representatives](#gdhcn-onb-changekeys). BPMN file: [GDHCN.ONB.RegisterKeys.bpmn](https://github.com/litlfred/smart-trust/blob/main/input/business-processes/GDHCN.ONB.RegisterKeys.bpmn).
 
-#### Participant Onboarding
+<figure style="width:100%">
+  <object data="GDHCN.ONB.RegisterKeys.svg" type="image/svg+xml" style="width:100%; max-width:1400px;" aria-label="Register the keys"><img src="GDHCN.ONB.RegisterKeys.svg" alt="Register the keys" style="width:100%;"/></object>
+</figure>
+
+<a name="phase-3"></a>
+#### Phase 3: go live
+
+| Process | What it does | Calls | Called by |
+| --- | --- | --- | --- |
+| [Go live](#gdhcn-onb-golive) | Connect to the gateway and pass the tests, in UAT and then PROD. | [Connect and test](#gdhcn-onb-connecttest) | [Onboard a Participant (top level)](#gdhcn-onb), [Join a further Trust Domain](#gdhcn-trustdomain-join) |
+| [Connect and test](#gdhcn-onb-connecttest) | Connect to the gateway and pass the test, for one environment. | - | [Go live](#gdhcn-onb-golive) |
+
+<a name="gdhcn-onb-golive"></a>
+##### Go live
+
+Connect to the gateway and pass the tests, in UAT and then PROD.
+
+**[77 - 80]** After passing the Production Readiness Test, the participant is allowed to use the TNG PROD environment. A confirmation email is sent to the participant and to WHO with the confirmation about the successfully passed test and the completion of the onboarding process.
+
+Calls: [Connect and test](#gdhcn-onb-connecttest). Called by: [Onboard a Participant (top level)](#gdhcn-onb), [Join a further Trust Domain](#gdhcn-trustdomain-join). BPMN file: [GDHCN.ONB.GoLive.bpmn](https://github.com/litlfred/smart-trust/blob/main/input/business-processes/GDHCN.ONB.GoLive.bpmn).
+
+<figure style="width:100%">
+  <object data="GDHCN.ONB.GoLive.svg" type="image/svg+xml" style="width:100%; max-width:1400px;" aria-label="Go live"><img src="GDHCN.ONB.GoLive.svg" alt="Go live" style="width:100%;"/></object>
+</figure>
+
+<a name="gdhcn-onb-connecttest"></a>
+##### Connect and test
+
+Connect to the gateway and pass the test, for one environment.
+
+**[43]** In case the verification was successful the whitelisting of the certificates is initiated.
+
+**[67]** If the Dry Run Test has passed successfully, the whitelisting of the certificates in the gateway (PROD environment) continues.
+
+**[44 - 46]** and the participant will be informed that the preparation has been completed successfully.
+
+**[68 - 69]** The Onboarding team informs the TNP to be ready to connect to TNG PROD environment.
 
 **[60]** The participant is connecting to UAT environment and the following steps has to be performed to check the connection:
 
@@ -204,7 +325,11 @@ You should see an output like:
 
 2) Test the other Trustlist Routes in the same style (e. g. with DSC/SCA/Upload/Authentication…)
 
+**[70]** The participant is allowed and enabled to connect to TNG PROD environment (for detailed information see [60]).
+
 **[61]** In case the connection fails, some corrective actions must be performed to analyze and solve the issue(s). The operations team is supporting the TNP.
+
+**[71]** In case the connection fails, some corrective actions must be performed to analyze and solve the issue(s). The operations team is supporting the TNP.
 
 **[62]** After the connection to the TNG is established the participant can start the dry run test on UAT.
 
@@ -221,23 +346,6 @@ d) Download the trust list from the TNG gateway [(API)](openapi)
 e) Provide sample VDHC s to be verified by the service provider
 
 f) Validate some sample VDHC 's to ensure the validation implementation is working fine
-
-**[63]** After executing all required steps, the participant must provide the test results to the onboarding team.
-
-**[64 - 65]** The onboarding team checks the results and provides feedback to the participant.
-
-**[66]** In case of any issues additional corrective actions are bespoken and solved with the participant.
-
-**[67]** If the Dry Run Test has passed successfully, the whitelisting of the certificates in the gateway (PROD environment) continues.
-
-**[68 - 69]** The Onboarding team informs the TNP to be ready to connect to TNG PROD environment.
-
-**[70]** The participant is allowed and enabled to connect to TNG PROD environment (for detailed information see [60]).
-
-**[71]** In case the connection fails, some corrective actions must be performed to analyze and solve the issue(s). The operations team is supporting the TNP.
-
-
-
 
 **[72]** After the connection to the TNG PROD is established the Production Readiness Test can start. 
 
@@ -280,12 +388,91 @@ e) Delete at least one DSC again (Revocation)
 
 f) Upload it again in case the DSC is required
 
-</details> 
+</details>
+
+**[63]** After executing all required steps, the participant must provide the test results to the onboarding team.
 
 **[73 - 74]** After executing all required steps, the participant must provide the test results to the service provider by mail.
 
+**[64 - 65]** The onboarding team checks the results and provides feedback to the participant.
+
 **[75]** The service provider checks the results.
+
+**[66]** In case of any issues additional corrective actions are bespoken and solved with the participant.
 
 **[76]** and in case of any issues additional corrective actions are bespoken and solved with the participant.
 
-**[77 - 80]** After passing the Production Readiness Test, the participant is allowed to use the TNG PROD environment. A confirmation email is sent to the participant and to WHO with the confirmation about the successfully passed test and the completion of the onboarding process.
+Calls: no other process. Called by: [Go live](#gdhcn-onb-golive). BPMN file: [GDHCN.ONB.ConnectTest.bpmn](https://github.com/litlfred/smart-trust/blob/main/input/business-processes/GDHCN.ONB.ConnectTest.bpmn).
+
+<figure style="width:100%">
+  <object data="GDHCN.ONB.ConnectTest.svg" type="image/svg+xml" style="width:100%; max-width:1400px;" aria-label="Connect and test"><img src="GDHCN.ONB.ConnectTest.svg" alt="Connect and test" style="width:100%;"/></object>
+</figure>
+
+<a name="after-onboarding"></a>
+#### After onboarding
+
+| Process | What it does | Calls | Called by |
+| --- | --- | --- | --- |
+| [Join a further Trust Domain](#gdhcn-trustdomain-join) | Join a further Trust Domain once onboarded. | [Verify the Letter of Application](#gdhcn-onb-verifyletter), [Go live](#gdhcn-onb-golive), [Register the keys](#gdhcn-onb-registerkeys) | - |
+| [Change the keys or the representatives](#gdhcn-onb-changekeys) | Change the keys or the representatives after onboarding. | [Prepare the keys and the repository](#gdhcn-onb-preparekeys), [Convey the Letter through a secure channel](#gdhcn-onb-conveyletter), [Verify the Letter of Application](#gdhcn-onb-verifyletter), [Register the keys](#gdhcn-onb-registerkeys) | - |
+| [Propose a new Trust Domain](#gdhcn-trustdomain-propose) | Propose a new Trust Domain and have it approved. | - | - |
+| [End participation](#gdhcn-onb-terminate) | End participation in one or more Trust Domains. | - | - |
+
+<a name="gdhcn-trustdomain-join"></a>
+##### Join a further Trust Domain
+
+Join a further Trust Domain once onboarded.
+
+Framework V.4 and IX. Calls: [Verify the Letter of Application](#gdhcn-onb-verifyletter), [Go live](#gdhcn-onb-golive), [Register the keys](#gdhcn-onb-registerkeys). Called by: no other process. BPMN file: [GDHCN.TrustDomain.Join.bpmn](https://github.com/litlfred/smart-trust/blob/main/input/business-processes/GDHCN.TrustDomain.Join.bpmn).
+
+<figure style="width:100%">
+  <object data="GDHCN.TrustDomain.Join.svg" type="image/svg+xml" style="width:100%; max-width:1400px;" aria-label="Join a further Trust Domain"><img src="GDHCN.TrustDomain.Join.svg" alt="Join a further Trust Domain" style="width:100%;"/></object>
+</figure>
+
+<a name="gdhcn-onb-changekeys"></a>
+##### Change the keys or the representatives
+
+Change the keys or the representatives after onboarding.
+
+Framework IX. Calls: [Prepare the keys and the repository](#gdhcn-onb-preparekeys), [Convey the Letter through a secure channel](#gdhcn-onb-conveyletter), [Verify the Letter of Application](#gdhcn-onb-verifyletter), [Register the keys](#gdhcn-onb-registerkeys). Called by: no other process. BPMN file: [GDHCN.ONB.ChangeKeys.bpmn](https://github.com/litlfred/smart-trust/blob/main/input/business-processes/GDHCN.ONB.ChangeKeys.bpmn).
+
+<figure style="width:100%">
+  <object data="GDHCN.ONB.ChangeKeys.svg" type="image/svg+xml" style="width:100%; max-width:1400px;" aria-label="Change the keys or the representatives"><img src="GDHCN.ONB.ChangeKeys.svg" alt="Change the keys or the representatives" style="width:100%;"/></object>
+</figure>
+
+<a name="gdhcn-trustdomain-propose"></a>
+##### Propose a new Trust Domain
+
+Propose a new Trust Domain and have it approved.
+
+Framework V.3, VI.2-3 and XI. Calls: no other process. Called by: no other process. BPMN file: [GDHCN.TrustDomain.Propose.bpmn](https://github.com/litlfred/smart-trust/blob/main/input/business-processes/GDHCN.TrustDomain.Propose.bpmn).
+
+<figure style="width:100%">
+  <object data="GDHCN.TrustDomain.Propose.svg" type="image/svg+xml" style="width:100%; max-width:1400px;" aria-label="Propose a new Trust Domain"><img src="GDHCN.TrustDomain.Propose.svg" alt="Propose a new Trust Domain" style="width:100%;"/></object>
+</figure>
+
+<a name="gdhcn-onb-terminate"></a>
+##### End participation
+
+End participation in one or more Trust Domains.
+
+Framework XV.1-3. Calls: no other process. Called by: no other process. BPMN file: [GDHCN.ONB.Terminate.bpmn](https://github.com/litlfred/smart-trust/blob/main/input/business-processes/GDHCN.ONB.Terminate.bpmn).
+
+<figure style="width:100%">
+  <object data="GDHCN.ONB.Terminate.svg" type="image/svg+xml" style="width:100%; max-width:1400px;" aria-label="End participation"><img src="GDHCN.ONB.Terminate.svg" alt="End participation" style="width:100%;"/></object>
+</figure>
+
+<a name="original-drawing"></a>
+#### The original drawing
+
+**Note:** In the embedded image the following relabels apply:
+
+* DCCG -> TNG
+
+* CSCA -> SCA
+
+* DCC -> VDHC (Verifiable Digital Health Certificate)
+
+* NB -> TNP
+
+<img src="OnboardingProcess_Full.png" style="float:none; margin: 0px 0px 0px 0px;"/>

@@ -7,7 +7,6 @@ These [concepts](concepts.html) and the following table contains abbreviations a
 | DCC                         | Digital COVID-19 Certificate.                                                                                                                                                                                                                                                                                   |
 | DDCC                        | Digital Documentation COVID-19 Certificate.                                                                                                                                                                                                                                                                     |
 | DCC Gateway                 | REST web-application for exchange of document signer certificates, DCC value sets, DCC business rules and revocation lists for dcc verification purposes between the national backends of connected states.                                                                                                     |
-ffline SCA certificates.                                                                                                                                            |
 | CMS                         | Cryptographic Message Syntax. According to [RFC5652](https://datatracker.ietf.org/doc/html/rfc5652). This syntax is used to digitally sign, digest, authenticate or encrypt arbitrary message content.                                                                                                          |
 | JRC                         | European Joint Research Centre.                                                                                                                                                                                                                                                                                 |
 | OG                          | Origin Gateway.                                                                                                                                                                                                                                                                                                 |
@@ -323,7 +322,7 @@ All other components like proxies, must be aligned in the configured settings to
 
 ##### WHO Trust Network Gateway Modifications
 
-In the last version of the TNG[^1] architecture, the changes for trusted issuers and trusted certificates were made to allow different types of technologies in trust verification. This could be either X509 or DIDs according to the DID Core Specification[^2]. During the last iterations of specification and alignment, there were some key points which must be additionally supported in the gateway:
+In the last version of the TNG[^1] architecture, the changes for trusted issuers and trusted certificates were made to allow different types of technologies in trust verification. This could be either X509 or DIDs according to the DID Core Specification [[w3c-did-core]](en/folio-assistant-core/bibliography/smart-trust-catalogue/w3c-did-core/). During the last iterations of specification and alignment, there were some key points which must be additionally supported in the gateway:
 
 * Native DID Support for the Gateway's Trustlists (DID Document Format) (optional)
 * Decentralized Exchange of DID Documents to provide it to verifiers
@@ -352,4 +351,4 @@ The WHO Global Digital Health Certification Network Secretariat is responsible t
 
 ________________
 [^1]: TNG Trust Network Gateway, formerly named Digital Documentation of Covid Certificates (DDCC) Gateway
-[^2]: DID Core,   https://www.w3.org/TR/did-core/
+

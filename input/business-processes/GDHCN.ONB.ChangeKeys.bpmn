@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" id="GDHCN.ONB.ChangeKeys.Definitions" targetNamespace="http://smart.who.int/trust/bpmn">
+  <bpmn:resource id="KeyMasterRepresentative" name="Key Master Representative" />
+  <bpmn:resource id="BusinessOwnerRepresentative" name="Business Owner Representative" />
+  <bpmn:resource id="GDHCNSecretariat" name="GDHCN Secretariat" />
+  <bpmn:resource id="OperationsTeam" name="Operations Team" />
+  <bpmn:collaboration id="GDHCN.ONB.ChangeKeys.Collaboration">
+    <bpmn:documentation>Change the keys or the representatives after onboarding. Framework IX.</bpmn:documentation>
+    <bpmn:participant id="GDHCN.ONB.ChangeKeys.Pool.Participant" name="GDHCN Participant" processRef="GDHCN.ONB.ChangeKeys.Participant">
+      <bpmn:documentation>The Eligible GDHCN Participant (Framework VII).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.ONB.ChangeKeys.Pool.Secretariat" name="GDHCN Secretariat (WHO)" processRef="GDHCN.ONB.ChangeKeys.Secretariat">
+      <bpmn:documentation>The GDHCN Secretariat at WHO (Framework V, VI).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.ONB.ChangeKeys.Pool.Operator" name="Gateway operator" processRef="GDHCN.ONB.ChangeKeys.Operator">
+      <bpmn:documentation>The service provider that operates the Trust Network Gateway (steps [30]-[80]).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:messageFlow id="CK.M.Keys" name="Technical change" sourceRef="CK.P.Send" targetRef="CK.S.Keys" />
+    <bpmn:messageFlow id="CK.M.Reps" name="New representatives" sourceRef="CK.P.Reps" targetRef="CK.S.RStart" />
+    <bpmn:messageFlow id="CK.M.Hand" name="New keys" sourceRef="CK.S.Hand" targetRef="CK.O.Start" />
+  </bpmn:collaboration>
+  <bpmn:process id="GDHCN.ONB.ChangeKeys.Participant" name="Report a change" isExecutable="false">
+    <bpmn:documentation>Framework IX.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.ChangeKeys.Participant.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.ChangeKeys.Participant.Lane.KeyMasterRepresentative" name="Key Master Representative" partitionElementRef="KeyMasterRepresentative">
+        <bpmn:documentation>Manages the Participant's Public Key Infrastructure and holds the GPG key named in the Letter (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/KeyMasterRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>CK.P.KStart</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CK.P.Keys</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="GDHCN.ONB.ChangeKeys.Participant.Lane.BusinessOwnerRepresentative" name="Business Owner Representative" partitionElementRef="BusinessOwnerRepresentative">
+        <bpmn:documentation>Sends the Statement of Interest and the Letter of Application; may meet WHO in person (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/BusinessOwnerRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>CK.P.RStart</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CK.P.Reps</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CK.P.REnd</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CK.P.Send</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CK.P.KEnd</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="CK.P.RStart" name="Representatives change">
+      <bpmn:documentation>Framework IX, last paragraph.</bpmn:documentation>
+      <bpmn:outgoing>Flow_122</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sendTask id="CK.P.Reps" name="Notify the new representatives">
+      <bpmn:documentation>Framework IX: notify the Secretariat in a timely manner.</bpmn:documentation>
+      <bpmn:incoming>Flow_122</bpmn:incoming>
+      <bpmn:outgoing>Flow_123</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="CK.P.REnd" name="Change notified">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_123</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="CK.P.KStart" name="Keys change">
+      <bpmn:documentation>Framework IX: changes to the technical information.</bpmn:documentation>
+      <bpmn:outgoing>Flow_124</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="CK.P.Keys" name="Prepare the new key material" calledElement="GDHCN.ONB.PrepareKeys.Participant">
+      <bpmn:documentation>As steps [9]-[13].</bpmn:documentation>
+      <bpmn:incoming>Flow_124</bpmn:incoming>
+      <bpmn:outgoing>Flow_125</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="CK.P.Send" name="Convey the change by secure channel" calledElement="GDHCN.ONB.ConveyLetter.Participant">
+      <bpmn:documentation>Framework IX: changes to the technical information go through the same secure channels.</bpmn:documentation>
+      <bpmn:incoming>Flow_125</bpmn:incoming>
+      <bpmn:outgoing>Flow_126</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="CK.P.KEnd" name="Change conveyed">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_126</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_122" sourceRef="CK.P.RStart" targetRef="CK.P.Reps" />
+    <bpmn:sequenceFlow id="Flow_123" sourceRef="CK.P.Reps" targetRef="CK.P.REnd" />
+    <bpmn:sequenceFlow id="Flow_124" sourceRef="CK.P.KStart" targetRef="CK.P.Keys" />
+    <bpmn:sequenceFlow id="Flow_125" sourceRef="CK.P.Keys" targetRef="CK.P.Send" />
+    <bpmn:sequenceFlow id="Flow_126" sourceRef="CK.P.Send" targetRef="CK.P.KEnd" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.ONB.ChangeKeys.Secretariat" name="Verify a change" isExecutable="false">
+    <bpmn:documentation>Framework IX.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.ChangeKeys.Secretariat.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.ChangeKeys.Secretariat.Lane.GDHCNSecretariat" name="GDHCN Secretariat" partitionElementRef="GDHCNSecretariat">
+        <bpmn:documentation>Authorized WHO staff of the GDHCN Secretariat (Framework V, VI). ActorDefinition http://smart.who.int/trust/ActorDefinition/GDHCNSecretariat.</bpmn:documentation>
+        <bpmn:flowNodeRef>CK.S.RStart</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CK.S.Reps</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CK.S.REnd</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CK.S.KStart</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CK.S.Keys</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CK.S.Hand</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CK.S.KEnd</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="CK.S.RStart" name="New representatives received">
+      <bpmn:documentation>Framework IX.</bpmn:documentation>
+      <bpmn:outgoing>Flow_127</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="CK.S.RStart.Def" />
+    </bpmn:startEvent>
+    <bpmn:userTask id="CK.S.Reps" name="Record the new representatives">
+      <bpmn:documentation>Framework IX.</bpmn:documentation>
+      <bpmn:incoming>Flow_127</bpmn:incoming>
+      <bpmn:outgoing>Flow_128</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="CK.S.REnd" name="Representatives recorded">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_128</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="CK.S.KStart" name="Change expected">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:outgoing>Flow_129</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="CK.S.Keys" name="Verify the change" calledElement="GDHCN.ONB.VerifyLetter.Secretariat">
+      <bpmn:documentation>As steps [15]-[23].</bpmn:documentation>
+      <bpmn:incoming>Flow_129</bpmn:incoming>
+      <bpmn:outgoing>Flow_130</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sendTask id="CK.S.Hand" name="Send the new keys to the operator">
+      <bpmn:documentation>As step [30].</bpmn:documentation>
+      <bpmn:incoming>Flow_130</bpmn:incoming>
+      <bpmn:outgoing>Flow_131</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="CK.S.KEnd" name="Change verified">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_131</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_127" sourceRef="CK.S.RStart" targetRef="CK.S.Reps" />
+    <bpmn:sequenceFlow id="Flow_128" sourceRef="CK.S.Reps" targetRef="CK.S.REnd" />
+    <bpmn:sequenceFlow id="Flow_129" sourceRef="CK.S.KStart" targetRef="CK.S.Keys" />
+    <bpmn:sequenceFlow id="Flow_130" sourceRef="CK.S.Keys" targetRef="CK.S.Hand" />
+    <bpmn:sequenceFlow id="Flow_131" sourceRef="CK.S.Hand" targetRef="CK.S.KEnd" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.ONB.ChangeKeys.Operator" name="Register changed keys" isExecutable="false">
+    <bpmn:documentation>As phase 2 of onboarding.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.ChangeKeys.Operator.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.ChangeKeys.Operator.Lane.OperationsTeam" name="Operations Team" partitionElementRef="OperationsTeam">
+        <bpmn:documentation>The gateway service provider's operations team (steps [30]-[50]). ActorDefinition http://smart.who.int/trust/ActorDefinition/OperationsTeam.</bpmn:documentation>
+        <bpmn:flowNodeRef>CK.O.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CK.O.Keys</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CK.O.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="CK.O.Start" name="New keys received">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:outgoing>Flow_132</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="CK.O.Start.Def" />
+    </bpmn:startEvent>
+    <bpmn:callActivity id="CK.O.Keys" name="Register the keys" calledElement="GDHCN.ONB.RegisterKeys.Operator">
+      <bpmn:documentation>As phase 2, for each changed environment.</bpmn:documentation>
+      <bpmn:incoming>Flow_132</bpmn:incoming>
+      <bpmn:outgoing>Flow_133</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics />
+    </bpmn:callActivity>
+    <bpmn:endEvent id="CK.O.End" name="New keys live">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_133</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_132" sourceRef="CK.O.Start" targetRef="CK.O.Keys" />
+    <bpmn:sequenceFlow id="Flow_133" sourceRef="CK.O.Keys" targetRef="CK.O.End" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="GDHCN.ONB.ChangeKeys.Diagram">
+    <bpmndi:BPMNPlane id="GDHCN.ONB.ChangeKeys.Plane" bpmnElement="GDHCN.ONB.ChangeKeys.Collaboration">
+      <bpmndi:BPMNShape id="GDHCN.ONB.ChangeKeys.Pool.Participant_di" bpmnElement="GDHCN.ONB.ChangeKeys.Pool.Participant" isHorizontal="true"><dc:Bounds x="120" y="60" width="1390" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ChangeKeys.Participant.Lane.KeyMasterRepresentative_di" bpmnElement="GDHCN.ONB.ChangeKeys.Participant.Lane.KeyMasterRepresentative" isHorizontal="true"><dc:Bounds x="150" y="60" width="1360" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ChangeKeys.Participant.Lane.BusinessOwnerRepresentative_di" bpmnElement="GDHCN.ONB.ChangeKeys.Participant.Lane.BusinessOwnerRepresentative" isHorizontal="true"><dc:Bounds x="150" y="220" width="1360" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ChangeKeys.Pool.Secretariat_di" bpmnElement="GDHCN.ONB.ChangeKeys.Pool.Secretariat" isHorizontal="true"><dc:Bounds x="120" y="430" width="1390" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ChangeKeys.Secretariat.Lane.GDHCNSecretariat_di" bpmnElement="GDHCN.ONB.ChangeKeys.Secretariat.Lane.GDHCNSecretariat" isHorizontal="true"><dc:Bounds x="150" y="430" width="1360" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ChangeKeys.Pool.Operator_di" bpmnElement="GDHCN.ONB.ChangeKeys.Pool.Operator" isHorizontal="true"><dc:Bounds x="120" y="640" width="1390" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.ChangeKeys.Operator.Lane.OperationsTeam_di" bpmnElement="GDHCN.ONB.ChangeKeys.Operator.Lane.OperationsTeam" isHorizontal="true"><dc:Bounds x="150" y="640" width="1360" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.P.RStart_di" bpmnElement="CK.P.RStart"><dc:Bounds x="232" y="282" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="322" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.P.Reps_di" bpmnElement="CK.P.Reps"><dc:Bounds x="330" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.P.REnd_di" bpmnElement="CK.P.REnd"><dc:Bounds x="512" y="282" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="475" y="322" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.P.KStart_di" bpmnElement="CK.P.KStart"><dc:Bounds x="652" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="615" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.P.Keys_di" bpmnElement="CK.P.Keys" isExpanded="false"><dc:Bounds x="750" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.P.Send_di" bpmnElement="CK.P.Send" isExpanded="false"><dc:Bounds x="890" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.P.KEnd_di" bpmnElement="CK.P.KEnd"><dc:Bounds x="1072" y="282" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1035" y="322" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.S.RStart_di" bpmnElement="CK.S.RStart"><dc:Bounds x="372" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="335" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.S.Reps_di" bpmnElement="CK.S.Reps"><dc:Bounds x="470" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.S.REnd_di" bpmnElement="CK.S.REnd"><dc:Bounds x="652" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="615" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.S.KStart_di" bpmnElement="CK.S.KStart"><dc:Bounds x="792" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="755" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.S.Keys_di" bpmnElement="CK.S.Keys" isExpanded="false"><dc:Bounds x="890" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.S.Hand_di" bpmnElement="CK.S.Hand"><dc:Bounds x="1030" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.S.KEnd_di" bpmnElement="CK.S.KEnd"><dc:Bounds x="1212" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1175" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.O.Start_di" bpmnElement="CK.O.Start"><dc:Bounds x="1072" y="702" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1035" y="742" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.O.Keys_di" bpmnElement="CK.O.Keys" isExpanded="false"><dc:Bounds x="1170" y="660" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CK.O.End_di" bpmnElement="CK.O.End"><dc:Bounds x="1352" y="702" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1315" y="742" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_122_di" bpmnElement="Flow_122"><di:waypoint x="268" y="300" /><di:waypoint x="330" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_123_di" bpmnElement="Flow_123"><di:waypoint x="450" y="300" /><di:waypoint x="512" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_124_di" bpmnElement="Flow_124"><di:waypoint x="688" y="140" /><di:waypoint x="750" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_125_di" bpmnElement="Flow_125"><di:waypoint x="870" y="140" /><di:waypoint x="950" y="140" /><di:waypoint x="950" y="240" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_126_di" bpmnElement="Flow_126"><di:waypoint x="1010" y="300" /><di:waypoint x="1072" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_127_di" bpmnElement="Flow_127"><di:waypoint x="408" y="510" /><di:waypoint x="470" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_128_di" bpmnElement="Flow_128"><di:waypoint x="590" y="510" /><di:waypoint x="652" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_129_di" bpmnElement="Flow_129"><di:waypoint x="828" y="510" /><di:waypoint x="890" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_130_di" bpmnElement="Flow_130"><di:waypoint x="1010" y="510" /><di:waypoint x="1030" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_131_di" bpmnElement="Flow_131"><di:waypoint x="1150" y="510" /><di:waypoint x="1212" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_132_di" bpmnElement="Flow_132"><di:waypoint x="1108" y="720" /><di:waypoint x="1170" y="720" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_133_di" bpmnElement="Flow_133"><di:waypoint x="1290" y="720" /><di:waypoint x="1352" y="720" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CK.M.Keys_di" bpmnElement="CK.M.Keys"><di:waypoint x="950" y="360" /><di:waypoint x="950" y="450" /><bpmndi:BPMNLabel><dc:Bounds x="956" y="398" width="112" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CK.M.Reps_di" bpmnElement="CK.M.Reps"><di:waypoint x="390" y="360" /><di:waypoint x="390" y="492" /><bpmndi:BPMNLabel><dc:Bounds x="396" y="391" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CK.M.Hand_di" bpmnElement="CK.M.Hand"><di:waypoint x="1090" y="570" /><di:waypoint x="1090" y="702" /><bpmndi:BPMNLabel><dc:Bounds x="1096" y="608" width="60" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

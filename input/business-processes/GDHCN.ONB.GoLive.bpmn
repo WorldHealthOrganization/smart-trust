@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" id="GDHCN.ONB.GoLive.Definitions" targetNamespace="http://smart.who.int/trust/bpmn">
+  <bpmn:import namespace="https://litlfred.github.io/cat-harness/v0/processes/ns/" location="https://litlfred.github.io/cat-harness/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld" />
+  <bpmn:resource id="TechnicalRepresentative" name="Technical Representative" />
+  <bpmn:resource id="BusinessOwnerRepresentative" name="Business Owner Representative" />
+  <bpmn:resource id="OnboardingTeam" name="Onboarding Team" />
+  <bpmn:collaboration id="GDHCN.ONB.GoLive.Collaboration">
+    <bpmn:documentation>Connect to the gateway and pass the tests, in UAT and then PROD. Phase 3, steps [43]-[46] and [60]-[78].</bpmn:documentation>
+    <bpmn:participant id="GDHCN.ONB.GoLive.Pool.Participant" name="GDHCN Participant" processRef="GDHCN.ONB.GoLive.Participant">
+      <bpmn:documentation>The Eligible GDHCN Participant (Framework VII).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.ONB.GoLive.Pool.Operator" name="Gateway operator" processRef="GDHCN.ONB.GoLive.Operator">
+      <bpmn:documentation>The service provider that operates the Trust Network Gateway (steps [30]-[80]).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:messageFlow id="G.M.UAT" name="Connection information and test results" sourceRef="G.O.UAT" targetRef="G.P.UAT" />
+    <bpmn:messageFlow id="G.M.PROD" name="Connection information and test results" sourceRef="G.O.PROD" targetRef="G.P.PROD" />
+    <bpmn:messageFlow id="G.M.Done" name="Production Readiness confirmed" sourceRef="G.O.Confirm" targetRef="G.P.Done" />
+  </bpmn:collaboration>
+  <bpmn:process id="GDHCN.ONB.GoLive.Participant" name="Go live" isExecutable="false">
+    <bpmn:documentation>Steps [60]-[63] (UAT) and [70]-[73] (PROD).</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.GoLive.Participant.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.GoLive.Participant.Lane.TechnicalRepresentative" name="Technical Representative" partitionElementRef="TechnicalRepresentative">
+        <bpmn:documentation>Connects the Participant's systems to the Trust Network Gateway and runs the tests (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/TechnicalRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>G.P.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G.P.UAT</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G.P.PROD</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="GDHCN.ONB.GoLive.Participant.Lane.BusinessOwnerRepresentative" name="Business Owner Representative" partitionElementRef="BusinessOwnerRepresentative">
+        <bpmn:documentation>Sends the Statement of Interest and the Letter of Application; may meet WHO in person (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/BusinessOwnerRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>G.P.Done</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G.P.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="G.P.Start" name="Keys registered">
+      <bpmn:documentation>Step [46].</bpmn:documentation>
+      <bpmn:outgoing>Flow_81</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="G.P.UAT" name="Connect and run the dry run in UAT" calledElement="GDHCN.ONB.ConnectTest.Participant">
+      <bpmn:documentation>Steps [60]-[63]. Environment = UAT.</bpmn:documentation>
+      <bpmn:incoming>Flow_81</bpmn:incoming>
+      <bpmn:outgoing>Flow_82</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="G.P.PROD" name="Connect and run the readiness test in PROD" calledElement="GDHCN.ONB.ConnectTest.Participant">
+      <bpmn:documentation>Steps [70]-[73]. Environment = PROD.</bpmn:documentation>
+      <bpmn:incoming>Flow_82</bpmn:incoming>
+      <bpmn:outgoing>Flow_83</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:receiveTask id="G.P.Done" name="Receive the onboarding confirmation">
+      <bpmn:documentation>Step [77].</bpmn:documentation>
+      <bpmn:incoming>Flow_83</bpmn:incoming>
+      <bpmn:outgoing>Flow_84</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:endEvent id="G.P.End" name="Onboarded">
+      <bpmn:documentation>Step [78].</bpmn:documentation>
+      <bpmn:incoming>Flow_84</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_81" sourceRef="G.P.Start" targetRef="G.P.UAT" />
+    <bpmn:sequenceFlow id="Flow_82" sourceRef="G.P.UAT" targetRef="G.P.PROD" />
+    <bpmn:sequenceFlow id="Flow_83" sourceRef="G.P.PROD" targetRef="G.P.Done" />
+    <bpmn:sequenceFlow id="Flow_84" sourceRef="G.P.Done" targetRef="G.P.End" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.ONB.GoLive.Operator" name="Whitelist and check the tests" isExecutable="false">
+    <bpmn:documentation>Steps [43]-[46], [64]-[69] and [74]-[77].</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.GoLive.Operator.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.GoLive.Operator.Lane.OnboardingTeam" name="Onboarding Team" partitionElementRef="OnboardingTeam">
+        <bpmn:documentation>The gateway service provider's onboarding team (steps [64]-[77]). ActorDefinition http://smart.who.int/trust/ActorDefinition/OnboardingTeam.</bpmn:documentation>
+        <bpmn:flowNodeRef>G.O.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G.O.UAT</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G.O.PROD</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G.O.Confirm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G.O.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="G.O.Start" name="Keys registered">
+      <bpmn:documentation>Steps [43] and [67].</bpmn:documentation>
+      <bpmn:outgoing>Flow_85</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="G.O.UAT" name="Whitelist and check the UAT dry run" calledElement="GDHCN.ONB.ConnectTest.Operator">
+      <bpmn:documentation>Steps [43]-[46] and [64]-[66].</bpmn:documentation>
+      <bpmn:incoming>Flow_85</bpmn:incoming>
+      <bpmn:outgoing>Flow_86</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="G.O.PROD" name="Whitelist and check the PROD readiness test" calledElement="GDHCN.ONB.ConnectTest.Operator">
+      <bpmn:documentation>Steps [67]-[69] and [74]-[76].</bpmn:documentation>
+      <bpmn:incoming>Flow_86</bpmn:incoming>
+      <bpmn:outgoing>Flow_87</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sendTask id="G.O.Confirm" name="Confirm Production Readiness">
+      <bpmn:documentation>Step [77]: to the Participant and to WHO.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.GoLive.md#G.O.Confirm" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_87</bpmn:incoming>
+      <bpmn:outgoing>Flow_88</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="G.O.End" name="Participant live in PROD">
+      <bpmn:documentation>Step [78].</bpmn:documentation>
+      <bpmn:incoming>Flow_88</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_85" sourceRef="G.O.Start" targetRef="G.O.UAT" />
+    <bpmn:sequenceFlow id="Flow_86" sourceRef="G.O.UAT" targetRef="G.O.PROD" />
+    <bpmn:sequenceFlow id="Flow_87" sourceRef="G.O.PROD" targetRef="G.O.Confirm" />
+    <bpmn:sequenceFlow id="Flow_88" sourceRef="G.O.Confirm" targetRef="G.O.End" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="GDHCN.ONB.GoLive.Diagram">
+    <bpmndi:BPMNPlane id="GDHCN.ONB.GoLive.Plane" bpmnElement="GDHCN.ONB.GoLive.Collaboration">
+      <bpmndi:BPMNShape id="GDHCN.ONB.GoLive.Pool.Participant_di" bpmnElement="GDHCN.ONB.GoLive.Pool.Participant" isHorizontal="true"><dc:Bounds x="120" y="60" width="970" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.GoLive.Participant.Lane.TechnicalRepresentative_di" bpmnElement="GDHCN.ONB.GoLive.Participant.Lane.TechnicalRepresentative" isHorizontal="true"><dc:Bounds x="150" y="60" width="940" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.GoLive.Participant.Lane.BusinessOwnerRepresentative_di" bpmnElement="GDHCN.ONB.GoLive.Participant.Lane.BusinessOwnerRepresentative" isHorizontal="true"><dc:Bounds x="150" y="220" width="940" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.GoLive.Pool.Operator_di" bpmnElement="GDHCN.ONB.GoLive.Pool.Operator" isHorizontal="true"><dc:Bounds x="120" y="430" width="970" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.GoLive.Operator.Lane.OnboardingTeam_di" bpmnElement="GDHCN.ONB.GoLive.Operator.Lane.OnboardingTeam" isHorizontal="true"><dc:Bounds x="150" y="430" width="940" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G.P.Start_di" bpmnElement="G.P.Start"><dc:Bounds x="232" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G.P.UAT_di" bpmnElement="G.P.UAT" isExpanded="false"><dc:Bounds x="330" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G.P.PROD_di" bpmnElement="G.P.PROD" isExpanded="false"><dc:Bounds x="610" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G.P.Done_di" bpmnElement="G.P.Done"><dc:Bounds x="750" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G.P.End_di" bpmnElement="G.P.End"><dc:Bounds x="932" y="282" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="895" y="322" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G.O.Start_di" bpmnElement="G.O.Start"><dc:Bounds x="232" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G.O.UAT_di" bpmnElement="G.O.UAT" isExpanded="false"><dc:Bounds x="330" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G.O.PROD_di" bpmnElement="G.O.PROD" isExpanded="false"><dc:Bounds x="610" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G.O.Confirm_di" bpmnElement="G.O.Confirm"><dc:Bounds x="750" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G.O.End_di" bpmnElement="G.O.End"><dc:Bounds x="932" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="895" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_81_di" bpmnElement="Flow_81"><di:waypoint x="268" y="140" /><di:waypoint x="330" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_82_di" bpmnElement="Flow_82"><di:waypoint x="450" y="140" /><di:waypoint x="610" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_83_di" bpmnElement="Flow_83"><di:waypoint x="730" y="140" /><di:waypoint x="810" y="140" /><di:waypoint x="810" y="240" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_84_di" bpmnElement="Flow_84"><di:waypoint x="870" y="300" /><di:waypoint x="932" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_85_di" bpmnElement="Flow_85"><di:waypoint x="268" y="510" /><di:waypoint x="330" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_86_di" bpmnElement="Flow_86"><di:waypoint x="450" y="510" /><di:waypoint x="610" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_87_di" bpmnElement="Flow_87"><di:waypoint x="730" y="510" /><di:waypoint x="750" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_88_di" bpmnElement="Flow_88"><di:waypoint x="870" y="510" /><di:waypoint x="932" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="G.M.UAT_di" bpmnElement="G.M.UAT"><di:waypoint x="390" y="450" /><di:waypoint x="390" y="200" /><bpmndi:BPMNLabel><dc:Bounds x="396" y="384" width="130" height="42" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="G.M.PROD_di" bpmnElement="G.M.PROD"><di:waypoint x="670" y="450" /><di:waypoint x="670" y="200" /><bpmndi:BPMNLabel><dc:Bounds x="534" y="384" width="130" height="42" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="G.M.Done_di" bpmnElement="G.M.Done"><di:waypoint x="810" y="450" /><di:waypoint x="810" y="360" /><bpmndi:BPMNLabel><dc:Bounds x="816" y="391" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

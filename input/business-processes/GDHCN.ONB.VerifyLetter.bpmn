@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" id="GDHCN.ONB.VerifyLetter.Definitions" targetNamespace="http://smart.who.int/trust/bpmn">
+  <bpmn:import namespace="https://litlfred.github.io/cat-harness/v0/processes/ns/" location="https://litlfred.github.io/cat-harness/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld" />
+  <bpmn:resource id="BusinessOwnerRepresentative" name="Business Owner Representative" />
+  <bpmn:resource id="GDHCNSecretariat" name="GDHCN Secretariat" />
+  <bpmn:collaboration id="GDHCN.ONB.VerifyLetter.Collaboration">
+    <bpmn:documentation>Verify one Letter of Application, and have it corrected if needed. Steps [15]-[23]; Framework V.4.a-b and IX.</bpmn:documentation>
+    <bpmn:participant id="GDHCN.ONB.VerifyLetter.Pool.Participant" name="GDHCN Participant" processRef="GDHCN.ONB.VerifyLetter.Participant">
+      <bpmn:documentation>The Eligible GDHCN Participant (Framework VII).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.ONB.VerifyLetter.Pool.Secretariat" name="GDHCN Secretariat (WHO)" processRef="GDHCN.ONB.VerifyLetter.Secretariat">
+      <bpmn:documentation>The GDHCN Secretariat at WHO (Framework V, VI).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:messageFlow id="V.M.Letter" name="Letter of Application" sourceRef="V.P.Convey" targetRef="V.S.Receive" />
+    <bpmn:messageFlow id="V.M.Fail" name="Validation failed" sourceRef="V.S.Fail" targetRef="V.P.Fail" />
+  </bpmn:collaboration>
+  <bpmn:process id="GDHCN.ONB.VerifyLetter.Participant" name="Convey and correct the Letter" isExecutable="false">
+    <bpmn:documentation>Steps [14] and [20].</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.VerifyLetter.Participant.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.VerifyLetter.Participant.Lane.BusinessOwnerRepresentative" name="Business Owner Representative" partitionElementRef="BusinessOwnerRepresentative">
+        <bpmn:documentation>Sends the Statement of Interest and the Letter of Application; may meet WHO in person (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/BusinessOwnerRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>V.P.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>V.P.Again</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>V.P.Convey</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>V.P.End</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>V.P.Fail</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>V.P.Correct</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="V.P.Start" name="Letter signed">
+      <bpmn:documentation>Step [14].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.VerifyLetter.md#V.P.Start" /></bpmn:extensionElements>
+      <bpmn:outgoing>Flow_52</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="V.P.Again" name="">
+      <bpmn:documentation>A corrected Letter goes through a secure channel again (Framework IX).</bpmn:documentation>
+      <bpmn:incoming>Flow_52</bpmn:incoming>
+      <bpmn:incoming>Flow_56</bpmn:incoming>
+      <bpmn:outgoing>Flow_53</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="V.P.Convey" name="Convey the Letter" calledElement="GDHCN.ONB.ConveyLetter.Participant">
+      <bpmn:documentation>Through a secure channel (Framework IX).</bpmn:documentation>
+      <bpmn:incoming>Flow_53</bpmn:incoming>
+      <bpmn:outgoing>Flow_54</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="V.P.End" name="Letter conveyed">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_54</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="V.P.Fail" name="Validation failure received">
+      <bpmn:documentation>Step [20].</bpmn:documentation>
+      <bpmn:outgoing>Flow_55</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="V.P.Fail.Def" />
+    </bpmn:startEvent>
+    <bpmn:userTask id="V.P.Correct" name="Correct the Letter">
+      <bpmn:documentation>Step [20]: corrective activities.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.VerifyLetter.md#V.P.Correct" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_55</bpmn:incoming>
+      <bpmn:outgoing>Flow_56</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_52" sourceRef="V.P.Start" targetRef="V.P.Again" />
+    <bpmn:sequenceFlow id="Flow_53" sourceRef="V.P.Again" targetRef="V.P.Convey" />
+    <bpmn:sequenceFlow id="Flow_54" sourceRef="V.P.Convey" targetRef="V.P.End" />
+    <bpmn:sequenceFlow id="Flow_55" sourceRef="V.P.Fail" targetRef="V.P.Correct" />
+    <bpmn:sequenceFlow id="Flow_56" sourceRef="V.P.Correct" targetRef="V.P.Again" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.ONB.VerifyLetter.Secretariat" name="Verify the Letter of Application" isExecutable="false">
+    <bpmn:documentation>Steps [15]-[23].</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.VerifyLetter.Secretariat.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.VerifyLetter.Secretariat.Lane.GDHCNSecretariat" name="GDHCN Secretariat" partitionElementRef="GDHCNSecretariat">
+        <bpmn:documentation>Authorized WHO staff of the GDHCN Secretariat (Framework V, VI). ActorDefinition http://smart.who.int/trust/ActorDefinition/GDHCNSecretariat.</bpmn:documentation>
+        <bpmn:flowNodeRef>V.S.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>V.S.Again</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>V.S.Receive</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>V.S.Check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>V.S.Ok</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>V.S.Fail</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>V.S.Gpg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>V.S.Collect</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>V.S.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="V.S.Start" name="Letter expected">
+      <bpmn:documentation>Step [15].</bpmn:documentation>
+      <bpmn:outgoing>Flow_57</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="V.S.Again" name="">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_57</bpmn:incoming>
+      <bpmn:incoming>Flow_62</bpmn:incoming>
+      <bpmn:outgoing>Flow_58</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="V.S.Receive" name="Receive the Letter" calledElement="GDHCN.ONB.ConveyLetter.Secretariat">
+      <bpmn:documentation>Step [15], through a secure channel (Framework IX).</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.VerifyLetter.md#V.S.Receive" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_58</bpmn:incoming>
+      <bpmn:outgoing>Flow_59</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:userTask id="V.S.Check" name="Verify accuracy, eligibility and rules">
+      <bpmn:documentation>Step [18]; Framework V.4.a and IX.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.VerifyLetter.md#V.S.Check" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_59</bpmn:incoming>
+      <bpmn:outgoing>Flow_60</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="V.S.Ok" name="Compliant?" default="V.F.ok">
+      <bpmn:documentation>Step [19].</bpmn:documentation>
+      <bpmn:incoming>Flow_60</bpmn:incoming>
+      <bpmn:outgoing>V.F.ok</bpmn:outgoing>
+      <bpmn:outgoing>Flow_61</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="V.S.Fail" name="Inform the Participant of the failure">
+      <bpmn:documentation>Step [19], by email.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.VerifyLetter.md#V.S.Fail" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_61</bpmn:incoming>
+      <bpmn:outgoing>Flow_62</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="V.S.Gpg" name="Check each GPG key">
+      <bpmn:documentation>Steps [21]-[22]: the key holds the email given in the Letter and meets the GPG key requirements in concepts_certificate_governance.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.VerifyLetter.md#V.S.Gpg" /></bpmn:extensionElements>
+      <bpmn:incoming>V.F.ok</bpmn:incoming>
+      <bpmn:outgoing>Flow_63</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="V.S.Collect" name="Collect the information for the operator">
+      <bpmn:documentation>Step [23], as listed there.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.VerifyLetter.md#V.S.Collect" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_63</bpmn:incoming>
+      <bpmn:outgoing>Flow_64</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="V.S.End" name="Letter verified">
+      <bpmn:documentation>Ready for hand-over, step [30].</bpmn:documentation>
+      <bpmn:incoming>Flow_64</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_57" sourceRef="V.S.Start" targetRef="V.S.Again" />
+    <bpmn:sequenceFlow id="Flow_58" sourceRef="V.S.Again" targetRef="V.S.Receive" />
+    <bpmn:sequenceFlow id="Flow_59" sourceRef="V.S.Receive" targetRef="V.S.Check" />
+    <bpmn:sequenceFlow id="Flow_60" sourceRef="V.S.Check" targetRef="V.S.Ok" />
+    <bpmn:sequenceFlow id="V.F.ok" name="yes" sourceRef="V.S.Ok" targetRef="V.S.Gpg" />
+    <bpmn:sequenceFlow id="Flow_61" name="no" sourceRef="V.S.Ok" targetRef="V.S.Fail" />
+    <bpmn:sequenceFlow id="Flow_62" sourceRef="V.S.Fail" targetRef="V.S.Again" />
+    <bpmn:sequenceFlow id="Flow_63" sourceRef="V.S.Gpg" targetRef="V.S.Collect" />
+    <bpmn:sequenceFlow id="Flow_64" sourceRef="V.S.Collect" targetRef="V.S.End" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="GDHCN.ONB.VerifyLetter.Diagram">
+    <bpmndi:BPMNPlane id="GDHCN.ONB.VerifyLetter.Plane" bpmnElement="GDHCN.ONB.VerifyLetter.Collaboration">
+      <bpmndi:BPMNShape id="GDHCN.ONB.VerifyLetter.Pool.Participant_di" bpmnElement="GDHCN.ONB.VerifyLetter.Pool.Participant" isHorizontal="true"><dc:Bounds x="120" y="60" width="1250" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.VerifyLetter.Participant.Lane.BusinessOwnerRepresentative_di" bpmnElement="GDHCN.ONB.VerifyLetter.Participant.Lane.BusinessOwnerRepresentative" isHorizontal="true"><dc:Bounds x="150" y="60" width="1220" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.VerifyLetter.Pool.Secretariat_di" bpmnElement="GDHCN.ONB.VerifyLetter.Pool.Secretariat" isHorizontal="true"><dc:Bounds x="120" y="430" width="1250" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.VerifyLetter.Secretariat.Lane.GDHCNSecretariat_di" bpmnElement="GDHCN.ONB.VerifyLetter.Secretariat.Lane.GDHCNSecretariat" isHorizontal="true"><dc:Bounds x="150" y="430" width="1220" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.P.Start_di" bpmnElement="V.P.Start"><dc:Bounds x="232" y="282" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="322" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.P.Again_di" bpmnElement="V.P.Again" isMarkerVisible="true"><dc:Bounds x="365" y="275" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.P.Convey_di" bpmnElement="V.P.Convey" isExpanded="false"><dc:Bounds x="470" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.P.End_di" bpmnElement="V.P.End"><dc:Bounds x="652" y="282" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="615" y="322" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.P.Fail_di" bpmnElement="V.P.Fail"><dc:Bounds x="792" y="282" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="834" y="286" width="90" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.P.Correct_di" bpmnElement="V.P.Correct"><dc:Bounds x="610" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.S.Start_di" bpmnElement="V.S.Start"><dc:Bounds x="232" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.S.Again_di" bpmnElement="V.S.Again" isMarkerVisible="true"><dc:Bounds x="365" y="485" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.S.Receive_di" bpmnElement="V.S.Receive" isExpanded="false"><dc:Bounds x="470" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.S.Check_di" bpmnElement="V.S.Check"><dc:Bounds x="610" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.S.Ok_di" bpmnElement="V.S.Ok" isMarkerVisible="true"><dc:Bounds x="785" y="485" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="750" y="451" width="120" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.S.Fail_di" bpmnElement="V.S.Fail"><dc:Bounds x="750" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.S.Gpg_di" bpmnElement="V.S.Gpg"><dc:Bounds x="890" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.S.Collect_di" bpmnElement="V.S.Collect"><dc:Bounds x="1030" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="V.S.End_di" bpmnElement="V.S.End"><dc:Bounds x="1212" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1175" y="532" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_52_di" bpmnElement="Flow_52"><di:waypoint x="268" y="300" /><di:waypoint x="365" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_53_di" bpmnElement="Flow_53"><di:waypoint x="415" y="300" /><di:waypoint x="470" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_54_di" bpmnElement="Flow_54"><di:waypoint x="590" y="300" /><di:waypoint x="652" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_55_di" bpmnElement="Flow_55"><di:waypoint x="810" y="282" /><di:waypoint x="810" y="140" /><di:waypoint x="730" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_56_di" bpmnElement="Flow_56"><di:waypoint x="610" y="140" /><di:waypoint x="390" y="140" /><di:waypoint x="390" y="275" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_57_di" bpmnElement="Flow_57"><di:waypoint x="268" y="510" /><di:waypoint x="365" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_58_di" bpmnElement="Flow_58"><di:waypoint x="415" y="510" /><di:waypoint x="470" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_59_di" bpmnElement="Flow_59"><di:waypoint x="590" y="510" /><di:waypoint x="610" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_60_di" bpmnElement="Flow_60"><di:waypoint x="730" y="510" /><di:waypoint x="785" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="V.F.ok_di" bpmnElement="V.F.ok"><di:waypoint x="835" y="510" /><di:waypoint x="890" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_61_di" bpmnElement="Flow_61"><di:waypoint x="810" y="535" /><di:waypoint x="810" y="610" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_62_di" bpmnElement="Flow_62"><di:waypoint x="750" y="670" /><di:waypoint x="390" y="670" /><di:waypoint x="390" y="535" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_63_di" bpmnElement="Flow_63"><di:waypoint x="1010" y="510" /><di:waypoint x="1030" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_64_di" bpmnElement="Flow_64"><di:waypoint x="1150" y="510" /><di:waypoint x="1212" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="V.M.Letter_di" bpmnElement="V.M.Letter"><di:waypoint x="530" y="360" /><di:waypoint x="530" y="450" /><bpmndi:BPMNLabel><dc:Bounds x="536" y="391" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="V.M.Fail_di" bpmnElement="V.M.Fail"><di:waypoint x="870" y="670" /><di:waypoint x="1350" y="670" /><di:waypoint x="1350" y="405" /><di:waypoint x="810" y="405" /><di:waypoint x="810" y="318" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

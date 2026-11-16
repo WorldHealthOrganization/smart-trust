@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" id="GDHCN.ONB.PrepareKeys.Definitions" targetNamespace="http://smart.who.int/trust/bpmn">
+  <bpmn:import namespace="https://litlfred.github.io/cat-harness/v0/processes/ns/" location="https://litlfred.github.io/cat-harness/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld" />
+  <bpmn:resource id="KeyMasterRepresentative" name="Key Master Representative" />
+  <bpmn:resource id="GitHubBot" name="GitHub Bot" />
+  <bpmn:collaboration id="GDHCN.ONB.PrepareKeys.Collaboration">
+    <bpmn:documentation>Prepare the keys and the repository for one environment. Steps [9]-[13]; Framework V.4.c, VII.4-5 and IX.</bpmn:documentation>
+    <bpmn:participant id="GDHCN.ONB.PrepareKeys.Pool.Participant" name="GDHCN Participant" processRef="GDHCN.ONB.PrepareKeys.Participant">
+      <bpmn:documentation>The Eligible GDHCN Participant (Framework VII).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.ONB.PrepareKeys.Pool.Operator" name="Gateway operator" processRef="GDHCN.ONB.PrepareKeys.Operator">
+      <bpmn:documentation>The service provider that operates the Trust Network Gateway (steps [30]-[80]).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:messageFlow id="K.M.Invite" name="Repository invitation" sourceRef="K.Invite" targetRef="KB.Start" />
+    <bpmn:messageFlow id="K.M.Accept" name="Invitation accepted" sourceRef="KB.Accept" targetRef="K.Accept" />
+  </bpmn:collaboration>
+  <bpmn:process id="GDHCN.ONB.PrepareKeys.Participant" name="Prepare keys and repository" isExecutable="false">
+    <bpmn:documentation>Steps [9]-[13], for one environment.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.PrepareKeys.Participant.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.PrepareKeys.Participant.Lane.KeyMasterRepresentative" name="Key Master Representative" partitionElementRef="KeyMasterRepresentative">
+        <bpmn:documentation>Manages the Participant's Public Key Infrastructure and holds the GPG key named in the Letter (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/KeyMasterRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>K.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>K.Split</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>K.Certs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>K.Gpg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>K.Repo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>K.Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>K.Publish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>K.Invite</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>K.Accept</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>K.Expired</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>K.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="K.Start" name="Invitation to onboard received">
+      <bpmn:documentation>Step [8]. Input: the environment.</bpmn:documentation>
+      <bpmn:outgoing>Flow_25</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:parallelGateway id="K.Split" name="">
+      <bpmn:documentation>Steps [9]-[11] run in parallel.</bpmn:documentation>
+      <bpmn:incoming>Flow_25</bpmn:incoming>
+      <bpmn:outgoing>Flow_26</bpmn:outgoing>
+      <bpmn:outgoing>Flow_27</bpmn:outgoing>
+      <bpmn:outgoing>Flow_28</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:userTask id="K.Certs" name="Create the TLS, upload and SCA certificates">
+      <bpmn:documentation>Step [9], as concepts_CertificatePreperation describes.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.PrepareKeys.md#K.Certs" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_26</bpmn:incoming>
+      <bpmn:outgoing>Flow_29</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="K.Gpg" name="Create a GPG key for each authorized person">
+      <bpmn:documentation>Step [10], as concepts_onboarding_checklist describes; the requirements are in concepts_certificate_governance.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.PrepareKeys.md#K.Gpg" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_27</bpmn:incoming>
+      <bpmn:outgoing>Flow_30</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="K.Repo" name="Create the private GitHub repository">
+      <bpmn:documentation>Step [11].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.PrepareKeys.md#K.Repo" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_28</bpmn:incoming>
+      <bpmn:outgoing>Flow_31</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:parallelGateway id="K.Join" name="">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_29</bpmn:incoming>
+      <bpmn:incoming>Flow_30</bpmn:incoming>
+      <bpmn:incoming>Flow_31</bpmn:incoming>
+      <bpmn:outgoing>Flow_32</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:userTask id="K.Publish" name="Commit the public keys and sign a tag">
+      <bpmn:documentation>Steps [9] and [11], as concepts_onboarding_checklist describes.</bpmn:documentation>
+      <bpmn:incoming>Flow_32</bpmn:incoming>
+      <bpmn:outgoing>Flow_33</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="K.Invite" name="Invite the GitHub bot">
+      <bpmn:documentation>Steps [11]-[12].</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.PrepareKeys.md#K.Invite" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_33</bpmn:incoming>
+      <bpmn:incoming>Flow_36</bpmn:incoming>
+      <bpmn:outgoing>Flow_34</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="K.Accept" name="Receive the acceptance">
+      <bpmn:documentation>Step [13].</bpmn:documentation>
+      <bpmn:incoming>Flow_34</bpmn:incoming>
+      <bpmn:outgoing>Flow_35</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:boundaryEvent id="K.Expired" name="Invitation expired" attachedToRef="K.Accept" cancelActivity="true">
+      <bpmn:documentation>Step [12]: the invitation loses validity after the period the page gives.</bpmn:documentation>
+      <bpmn:outgoing>Flow_36</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="K.Expired.Def"><bpmn:timeDuration>P7D</bpmn:timeDuration></bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:endEvent id="K.End" name="Keys and repository ready">
+      <bpmn:documentation>Ready for the Letter of Application, step [14].</bpmn:documentation>
+      <bpmn:incoming>Flow_35</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_25" sourceRef="K.Start" targetRef="K.Split" />
+    <bpmn:sequenceFlow id="Flow_26" sourceRef="K.Split" targetRef="K.Certs" />
+    <bpmn:sequenceFlow id="Flow_27" sourceRef="K.Split" targetRef="K.Gpg" />
+    <bpmn:sequenceFlow id="Flow_28" sourceRef="K.Split" targetRef="K.Repo" />
+    <bpmn:sequenceFlow id="Flow_29" sourceRef="K.Certs" targetRef="K.Join" />
+    <bpmn:sequenceFlow id="Flow_30" sourceRef="K.Gpg" targetRef="K.Join" />
+    <bpmn:sequenceFlow id="Flow_31" sourceRef="K.Repo" targetRef="K.Join" />
+    <bpmn:sequenceFlow id="Flow_32" sourceRef="K.Join" targetRef="K.Publish" />
+    <bpmn:sequenceFlow id="Flow_33" sourceRef="K.Publish" targetRef="K.Invite" />
+    <bpmn:sequenceFlow id="Flow_34" sourceRef="K.Invite" targetRef="K.Accept" />
+    <bpmn:sequenceFlow id="Flow_35" sourceRef="K.Accept" targetRef="K.End" />
+    <bpmn:sequenceFlow id="Flow_36" sourceRef="K.Expired" targetRef="K.Invite" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.ONB.PrepareKeys.Operator" name="Accept the repository invitation" isExecutable="false">
+    <bpmn:documentation>Step [13].</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.PrepareKeys.Operator.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.PrepareKeys.Operator.Lane.GitHubBot" name="GitHub Bot" partitionElementRef="GitHubBot">
+        <bpmn:documentation>The gateway's GitHub bot user for the environment (steps [11]-[13], [34]-[38]). ActorDefinition http://smart.who.int/trust/ActorDefinition/GitHubBot.</bpmn:documentation>
+        <bpmn:flowNodeRef>KB.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>KB.Accept</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>KB.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="KB.Start" name="Invitation received">
+      <bpmn:documentation>Step [12].</bpmn:documentation>
+      <bpmn:outgoing>Flow_37</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="KB.Start.Def" />
+    </bpmn:startEvent>
+    <bpmn:sendTask id="KB.Accept" name="Accept the invitation">
+      <bpmn:documentation>Step [13]: WHO accepts through the bot user.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:narrative href="GDHCN.ONB.PrepareKeys.md#KB.Accept" /></bpmn:extensionElements>
+      <bpmn:incoming>Flow_37</bpmn:incoming>
+      <bpmn:outgoing>Flow_38</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="KB.End" name="Repository readable">
+      <bpmn:documentation></bpmn:documentation>
+      <bpmn:incoming>Flow_38</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_37" sourceRef="KB.Start" targetRef="KB.Accept" />
+    <bpmn:sequenceFlow id="Flow_38" sourceRef="KB.Accept" targetRef="KB.End" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="GDHCN.ONB.PrepareKeys.Diagram">
+    <bpmndi:BPMNPlane id="GDHCN.ONB.PrepareKeys.Plane" bpmnElement="GDHCN.ONB.PrepareKeys.Collaboration">
+      <bpmndi:BPMNShape id="GDHCN.ONB.PrepareKeys.Pool.Participant_di" bpmnElement="GDHCN.ONB.PrepareKeys.Pool.Participant" isHorizontal="true"><dc:Bounds x="120" y="60" width="1250" height="480" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.PrepareKeys.Participant.Lane.KeyMasterRepresentative_di" bpmnElement="GDHCN.ONB.PrepareKeys.Participant.Lane.KeyMasterRepresentative" isHorizontal="true"><dc:Bounds x="150" y="60" width="1220" height="480" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.PrepareKeys.Pool.Operator_di" bpmnElement="GDHCN.ONB.PrepareKeys.Pool.Operator" isHorizontal="true"><dc:Bounds x="120" y="590" width="1250" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.PrepareKeys.Operator.Lane.GitHubBot_di" bpmnElement="GDHCN.ONB.PrepareKeys.Operator.Lane.GitHubBot" isHorizontal="true"><dc:Bounds x="150" y="590" width="1220" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="K.Start_di" bpmnElement="K.Start"><dc:Bounds x="232" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="K.Split_di" bpmnElement="K.Split"><dc:Bounds x="365" y="115" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="K.Certs_di" bpmnElement="K.Certs"><dc:Bounds x="470" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="K.Gpg_di" bpmnElement="K.Gpg"><dc:Bounds x="470" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="K.Repo_di" bpmnElement="K.Repo"><dc:Bounds x="470" y="400" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="K.Join_di" bpmnElement="K.Join"><dc:Bounds x="645" y="115" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="K.Publish_di" bpmnElement="K.Publish"><dc:Bounds x="750" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="K.Invite_di" bpmnElement="K.Invite"><dc:Bounds x="890" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="K.Accept_di" bpmnElement="K.Accept"><dc:Bounds x="1030" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="K.Expired_di" bpmnElement="K.Expired"><dc:Bounds x="1040" y="182" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1064" y="222" width="66" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="K.End_di" bpmnElement="K.End"><dc:Bounds x="1212" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1175" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="KB.Start_di" bpmnElement="KB.Start"><dc:Bounds x="932" y="652" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="895" y="692" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="KB.Accept_di" bpmnElement="KB.Accept"><dc:Bounds x="1030" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="KB.End_di" bpmnElement="KB.End"><dc:Bounds x="1212" y="652" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1175" y="692" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_25_di" bpmnElement="Flow_25"><di:waypoint x="268" y="140" /><di:waypoint x="365" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_26_di" bpmnElement="Flow_26"><di:waypoint x="415" y="140" /><di:waypoint x="470" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_27_di" bpmnElement="Flow_27"><di:waypoint x="390" y="165" /><di:waypoint x="390" y="300" /><di:waypoint x="470" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_28_di" bpmnElement="Flow_28"><di:waypoint x="390" y="165" /><di:waypoint x="390" y="460" /><di:waypoint x="470" y="460" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_29_di" bpmnElement="Flow_29"><di:waypoint x="590" y="140" /><di:waypoint x="645" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_30_di" bpmnElement="Flow_30"><di:waypoint x="590" y="300" /><di:waypoint x="670" y="300" /><di:waypoint x="670" y="165" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_31_di" bpmnElement="Flow_31"><di:waypoint x="590" y="460" /><di:waypoint x="670" y="460" /><di:waypoint x="670" y="165" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_32_di" bpmnElement="Flow_32"><di:waypoint x="695" y="140" /><di:waypoint x="750" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_33_di" bpmnElement="Flow_33"><di:waypoint x="870" y="140" /><di:waypoint x="890" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_34_di" bpmnElement="Flow_34"><di:waypoint x="1010" y="140" /><di:waypoint x="1030" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_35_di" bpmnElement="Flow_35"><di:waypoint x="1150" y="140" /><di:waypoint x="1212" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_36_di" bpmnElement="Flow_36"><di:waypoint x="1058" y="218" /><di:waypoint x="1058" y="263" /><di:waypoint x="980" y="263" /><di:waypoint x="980" y="200" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_37_di" bpmnElement="Flow_37"><di:waypoint x="968" y="670" /><di:waypoint x="1030" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_38_di" bpmnElement="Flow_38"><di:waypoint x="1150" y="670" /><di:waypoint x="1212" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="K.M.Invite_di" bpmnElement="K.M.Invite"><di:waypoint x="950" y="200" /><di:waypoint x="950" y="652" /><bpmndi:BPMNLabel><dc:Bounds x="956" y="551" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="K.M.Accept_di" bpmnElement="K.M.Accept"><di:waypoint x="1135" y="610" /><di:waypoint x="1135" y="200" /><bpmndi:BPMNLabel><dc:Bounds x="1141" y="551" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

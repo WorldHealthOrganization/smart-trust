@@ -1,39 +1,52 @@
 name: Release build
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
-  pull-requests: write
-  
+# Least privilege: nothing by default; each job asks for what it uses.
+permissions: {}
+
+# Manual trigger only (owner decision, 2026-10-06): GitHub workflows here are
+# defined, not run automatically. Start it from the Actions tab.
+# (workflow_call, if present, is kept so other repositories can call it.)
 on:
-  release:
-    types: [created]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag or ref to check out"
+        required: false
+        default: "main"
+        type: string
 
 jobs:
   check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       file_exists: ${{ steps.checkfile.outputs.exists }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ inputs.tag || github.event.release.tag_name || 'main' }}
 
       - name: Check for publication-request.json
         id: checkfile
         run: |
           if [[ -f "publication-request.json" ]]; then
-            echo "::set-output name=exists::true"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::set-output name=exists::false"
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
   trigger:
     needs: check
     if: needs.check.outputs.file_exists == 'true'
-    uses: WorldHealthOrganization/smart-html/.github/workflows/release.yml@main
+    # The called workflow publishes, so this job keeps the write scopes it
+    # had.
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+      pull-requests: write
+    uses: WorldHealthOrganization/smart-html/.github/workflows/release.yml@4191acf30bd22abb4955952c53f51bb475b1c3d7 # main
 #    with:
-#      tag_name: ${{ github.event.release.tag_name }}
+#      tag_name: ${{ inputs.tag || github.event.release.tag_name }}

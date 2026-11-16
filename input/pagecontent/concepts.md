@@ -104,7 +104,10 @@ The GDHCN currently supports two means for key distribution of keys using trust 
 
 #### Trust Network
 A Trust Network is a means to authenticate the encryption public keys used by participants within a network to perform encryption services, verify digital signatures, establish secure connections between systems, and otherwise make use of encryption public keys. 
-{% include img.html img="trust_network.png" caption="Trust Network" width="70%" %}
+<figure>
+{% include trust-network-figure.html %}
+<figcaption>Trust Network</figcaption>
+</figure>
 
 #### Trust Network Gateway (TNG)
 The Trust Network Gateway (TNG) is the open-source software and its IT operational infrastructure, utilizing open standards, for a Public Key Infrastructure and metadata management services which is used to operationalize one or more Trust Domains.  The Trust Network Gateway can be interacted with using the [API](openapi) once a mTLS connection has been established.

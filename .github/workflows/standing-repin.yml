@@ -1,0 +1,31 @@
+# Standing re-pin: keeps every upstream layer this site follows on the newest
+# green commit of its main, writing the standing consent declared on each
+# layer's `trust.standing` in index.config.json (owner, 2026-11-12,
+# Q-BIBNAV-2 "B": platform fixes reach the site without a hand re-pin).
+# It opens or updates ONE `repin/standing-*` PR with auto-merge.
+# The reusable workflow is litlfred/cat-harness-tools standing-repin.yml.
+name: Standing repin
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  repository_dispatch:
+    types: [upstream-merged]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only report what would move"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  repin:
+    uses: litlfred/cat-harness-tools/.github/workflows/standing-repin.yml@418672b09492c6c742a4f9bd09038288a29edfab # index.lock.json
+    with:
+      dry-run: ${{ inputs.dry_run == true }}
+    secrets:
+      repin-token: ${{ secrets.REPIN_TOKEN }}

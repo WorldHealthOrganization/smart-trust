@@ -19,8 +19,11 @@
 
 
 <div style="display:block">
-{% include img.html img="trust_network.png" caption="Trust Network" width="70%" %} 
-</div>
+<figure>
+{% include trust-network-figure.html %}
+<figcaption>Trust Network</figcaption>
+
+</figure></div>
     
 #### Background &amp; Purpose
 <a name="Background"> </a>
@@ -41,9 +44,9 @@
       <li>A Public Key Infrastructure (PKI) that is used for the publishing and distribution of public keys used for verification of digital signatures of the digital health documents.
       </li>
 
-      <li>A Knowledge Library used to maintain metadata including terminology codings, product codes and business rules that are used to provide semantic interoperability of these digital health documents</li>
+      <li>A Knowledge Library used to maintain metadata including terminology codings, product codes and business rules that are used to provide semantic interoperability of these digital health documents</li></ul>
 
-    </ul>
+
 
     
     
@@ -115,8 +118,11 @@ existing trust networks or potential verifiers who may participate in the federa
 
 
 <div style="display:block">
-  {% include img.html img="Participant_Onboarding_Status.png" caption="Trust Network Participants" width="85%" %} 
-</div>
+<figure>
+{% include participant_engagement.svg %}
+<figcaption>Trust Network Participants</figcaption>
+
+</figure></div>
 
   
 <br/>

@@ -11,8 +11,8 @@ or non-member territories) have no mapping and are grouped under Other Participa
 * name = "ParticipantsToWHORegionalOffices"
 * status = #active
 * experimental = true
-* sourceScopeCanonical = Canonical(Participants)
-* targetScopeCanonical = Canonical(WHORegionalOffices)
+* sourceCanonical = Canonical(Participants)
+* targetCanonical = Canonical(WHORegionalOffices)
 
 // ── AFRO ──────────────────────────────────────────────────────────────────────
 * group[+]
@@ -23,13 +23,13 @@ or non-member territories) have no mapping and are grouped under Other Participa
     * display = "Benin"
     * target[+]
       * code = #AFRO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #TGO
     * display = "Togo"
     * target[+]
       * code = #AFRO
-      * relationship = #related-to
+      * equivalence = #relatedto
 
 // ── AMRO ──────────────────────────────────────────────────────────────────────
 * group[+]
@@ -40,7 +40,7 @@ or non-member territories) have no mapping and are grouped under Other Participa
     * display = "Brazil"
     * target[+]
       * code = #AMRO
-      * relationship = #related-to
+      * equivalence = #relatedto
 
 // ── EMRO ──────────────────────────────────────────────────────────────────────
 * group[+]
@@ -51,7 +51,7 @@ or non-member territories) have no mapping and are grouped under Other Participa
     * display = "Oman"
     * target[+]
       * code = #EMRO
-      * relationship = #related-to
+      * equivalence = #relatedto
 
 // ── EURO ──────────────────────────────────────────────────────────────────────
 * group[+]
@@ -62,145 +62,145 @@ or non-member territories) have no mapping and are grouped under Other Participa
     * display = "Albania"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #AND
     * display = "Andorra"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #ARM
     * display = "Armenia"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #BEL
     * display = "Belgium"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #CYP
     * display = "Cyprus"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #CZE
     * display = "Czechia"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #EST
     * display = "Estonia"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #FIN
     * display = "Finland"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #FRA
     * display = "France"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #ISL
     * display = "Iceland"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #IRL
     * display = "Ireland"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #LVA
     * display = "Latvia"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #LTU
     * display = "Lithuania"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #MLT
     * display = "Malta"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #MCO
     * display = "Monaco"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #NLD
     * display = "Netherlands (Kingdom of the)"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #POL
     * display = "Poland"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #PRT
     * display = "Portugal"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #SMR
     * display = "San Marino"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #SVK
     * display = "Slovakia"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #SVN
     * display = "Slovenia"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #ESP
     * display = "Spain"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #SWE
     * display = "Sweden"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #TUR
     * display = "Türkiye"
     * target[+]
       * code = #EURO
-      * relationship = #related-to
+      * equivalence = #relatedto
 
 // ── SEARO ─────────────────────────────────────────────────────────────────────
 * group[+]
@@ -211,13 +211,13 @@ or non-member territories) have no mapping and are grouped under Other Participa
     * display = "Indonesia"
     * target[+]
       * code = #SEARO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #THA
     * display = "Thailand"
     * target[+]
       * code = #SEARO
-      * relationship = #related-to
+      * equivalence = #relatedto
 
 // ── WPRO ──────────────────────────────────────────────────────────────────────
 * group[+]
@@ -228,19 +228,19 @@ or non-member territories) have no mapping and are grouped under Other Participa
     * display = "Malaysia"
     * target[+]
       * code = #WPRO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #NZL
     * display = "New Zealand"
     * target[+]
       * code = #WPRO
-      * relationship = #related-to
+      * equivalence = #relatedto
   * element[+]
     * code = #SGP
     * display = "Singapore"
     * target[+]
       * code = #WPRO
-      * relationship = #related-to
+      * equivalence = #relatedto
 
 // ── No mapping (Other Participants) ───────────────────────────────────────────
 // FRO (Faroe Islands) - not a WHO Member State or State Party

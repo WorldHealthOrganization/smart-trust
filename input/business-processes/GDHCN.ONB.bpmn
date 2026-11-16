@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" id="GDHCN.ONB.Definitions" targetNamespace="http://smart.who.int/trust/bpmn">
+  <bpmn:resource id="BusinessOwnerRepresentative" name="Business Owner Representative" />
+  <bpmn:resource id="TechnicalRepresentative" name="Technical Representative" />
+  <bpmn:resource id="OperationsTeam" name="Operations Team" />
+  <bpmn:resource id="OnboardingTeam" name="Onboarding Team" />
+  <bpmn:resource id="GDHCNSecretariat" name="GDHCN Secretariat" />
+  <bpmn:collaboration id="GDHCN.ONB.Collaboration">
+    <bpmn:documentation>Onboard a GDHCN Participant to a Trust Domain, in three phases: apply and verify (steps [1]-[29]), set up (steps [30]-[59]) and go live (steps [60]-[80]). Framework V.4, VI.5 and IX.</bpmn:documentation>
+    <bpmn:participant id="GDHCN.ONB.Pool.Participant" name="GDHCN Participant" processRef="GDHCN.ONB.Participant">
+      <bpmn:documentation>The Eligible GDHCN Participant (Framework VII).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.ONB.Pool.Operator" name="Gateway operator" processRef="GDHCN.ONB.Operator">
+      <bpmn:documentation>The service provider that operates the Trust Network Gateway (steps [30]-[80]).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="GDHCN.ONB.Pool.Secretariat" name="GDHCN Secretariat (WHO)" processRef="GDHCN.ONB.Secretariat">
+      <bpmn:documentation>The GDHCN Secretariat at WHO (Framework V, VI).</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:messageFlow id="T.M.Apply" name="Statement of Interest and Letter of Application" sourceRef="T.P.Apply" targetRef="T.S.Apply" />
+    <bpmn:messageFlow id="T.M.Hand" name="Onboarding information" sourceRef="T.S.Handover" targetRef="T.O.Start" />
+    <bpmn:messageFlow id="T.M.Live" name="Connection information and test results" sourceRef="T.O.Live" targetRef="T.P.Live" />
+    <bpmn:messageFlow id="T.M.Ready" name="Production Readiness confirmed" sourceRef="T.O.Live" targetRef="T.S.Ready" />
+  </bpmn:collaboration>
+  <bpmn:process id="GDHCN.ONB.Participant" name="Join the GDHCN" isExecutable="false">
+    <bpmn:documentation>The Participant side of onboarding, phase by phase.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.Participant.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.Participant.Lane.BusinessOwnerRepresentative" name="Business Owner Representative" partitionElementRef="BusinessOwnerRepresentative">
+        <bpmn:documentation>Sends the Statement of Interest and the Letter of Application; may meet WHO in person (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/BusinessOwnerRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>T.P.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T.P.Apply</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="GDHCN.ONB.Participant.Lane.TechnicalRepresentative" name="Technical Representative" partitionElementRef="TechnicalRepresentative">
+        <bpmn:documentation>Connects the Participant's systems to the Trust Network Gateway and runs the tests (Framework IX). ActorDefinition http://smart.who.int/trust/ActorDefinition/TechnicalRepresentative.</bpmn:documentation>
+        <bpmn:flowNodeRef>T.P.Live</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T.P.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="T.P.Start" name="Decided to join the GDHCN">
+      <bpmn:documentation>The Participant determines which Trust Domains it intends to participate in (Framework VII.1).</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="T.P.Apply" name="Apply and be verified" calledElement="GDHCN.ONB.Apply.Participant">
+      <bpmn:documentation>Phase 1, steps [1]-[29].</bpmn:documentation>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="T.P.Live" name="Go live" calledElement="GDHCN.ONB.GoLive.Participant">
+      <bpmn:documentation>Phase 3, steps [60]-[78], for UAT and then PROD.</bpmn:documentation>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="T.P.End" name="Onboarded">
+      <bpmn:documentation>Step [78]: the Participant may use the gateway in PROD.</bpmn:documentation>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="T.P.Start" targetRef="T.P.Apply" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="T.P.Apply" targetRef="T.P.Live" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="T.P.Live" targetRef="T.P.End" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.ONB.Operator" name="Set up the gateway" isExecutable="false">
+    <bpmn:documentation>The gateway operator side of onboarding.</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.Operator.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.Operator.Lane.OperationsTeam" name="Operations Team" partitionElementRef="OperationsTeam">
+        <bpmn:documentation>The gateway service provider's operations team (steps [30]-[50]). ActorDefinition http://smart.who.int/trust/ActorDefinition/OperationsTeam.</bpmn:documentation>
+        <bpmn:flowNodeRef>T.O.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T.O.Setup</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="GDHCN.ONB.Operator.Lane.OnboardingTeam" name="Onboarding Team" partitionElementRef="OnboardingTeam">
+        <bpmn:documentation>The gateway service provider's onboarding team (steps [64]-[77]). ActorDefinition http://smart.who.int/trust/ActorDefinition/OnboardingTeam.</bpmn:documentation>
+        <bpmn:flowNodeRef>T.O.Live</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T.O.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="T.O.Start" name="Onboarding information received">
+      <bpmn:documentation>Step [30].</bpmn:documentation>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="T.O.Start.Def" />
+    </bpmn:startEvent>
+    <bpmn:callActivity id="T.O.Setup" name="Register the keys" calledElement="GDHCN.ONB.RegisterKeys.Operator">
+      <bpmn:documentation>Phase 2, steps [31]-[50], once for each environment.</bpmn:documentation>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics />
+    </bpmn:callActivity>
+    <bpmn:callActivity id="T.O.Live" name="Whitelist and check the tests" calledElement="GDHCN.ONB.GoLive.Operator">
+      <bpmn:documentation>Phase 3, steps [43]-[46] and [64]-[77], for UAT and then PROD.</bpmn:documentation>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="T.O.End" name="Participant live in PROD">
+      <bpmn:documentation>Step [78].</bpmn:documentation>
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="T.O.Start" targetRef="T.O.Setup" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="T.O.Setup" targetRef="T.O.Live" />
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="T.O.Live" targetRef="T.O.End" />
+  </bpmn:process>
+  <bpmn:process id="GDHCN.ONB.Secretariat" name="Oversee onboarding" isExecutable="false">
+    <bpmn:documentation>The Secretariat side of onboarding (Framework VI.5).</bpmn:documentation>
+    <bpmn:laneSet id="GDHCN.ONB.Secretariat.LaneSet">
+      <bpmn:lane id="GDHCN.ONB.Secretariat.Lane.GDHCNSecretariat" name="GDHCN Secretariat" partitionElementRef="GDHCNSecretariat">
+        <bpmn:documentation>Authorized WHO staff of the GDHCN Secretariat (Framework V, VI). ActorDefinition http://smart.who.int/trust/ActorDefinition/GDHCNSecretariat.</bpmn:documentation>
+        <bpmn:flowNodeRef>T.S.Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T.S.Apply</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T.S.Handover</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T.S.Ready</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T.S.Record</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T.S.End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="T.S.Start" name="Ready to receive applications">
+      <bpmn:documentation>Framework VI.5.</bpmn:documentation>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="T.S.Apply" name="Check the application and the Letter" calledElement="GDHCN.ONB.Apply.Secretariat">
+      <bpmn:documentation>Phase 1, steps [1]-[29].</bpmn:documentation>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sendTask id="T.S.Handover" name="Send onboarding information to the operator">
+      <bpmn:documentation>Step [30]: the information collected in step [23].</bpmn:documentation>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="T.S.Ready" name="Receive the readiness confirmation">
+      <bpmn:documentation>Step [77].</bpmn:documentation>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:userTask id="T.S.Record" name="Record the Participant as onboarded">
+      <bpmn:documentation>Steps [79]-[80].</bpmn:documentation>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="T.S.End" name="Onboarding overseen">
+      <bpmn:documentation>Framework VI.5.</bpmn:documentation>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="T.S.Start" targetRef="T.S.Apply" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="T.S.Apply" targetRef="T.S.Handover" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="T.S.Handover" targetRef="T.S.Ready" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="T.S.Ready" targetRef="T.S.Record" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="T.S.Record" targetRef="T.S.End" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="GDHCN.ONB.Diagram">
+    <bpmndi:BPMNPlane id="GDHCN.ONB.Plane" bpmnElement="GDHCN.ONB.Collaboration">
+      <bpmndi:BPMNShape id="GDHCN.ONB.Pool.Participant_di" bpmnElement="GDHCN.ONB.Pool.Participant" isHorizontal="true"><dc:Bounds x="120" y="60" width="1110" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Participant.Lane.BusinessOwnerRepresentative_di" bpmnElement="GDHCN.ONB.Participant.Lane.BusinessOwnerRepresentative" isHorizontal="true"><dc:Bounds x="150" y="60" width="1080" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Participant.Lane.TechnicalRepresentative_di" bpmnElement="GDHCN.ONB.Participant.Lane.TechnicalRepresentative" isHorizontal="true"><dc:Bounds x="150" y="220" width="1080" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Pool.Operator_di" bpmnElement="GDHCN.ONB.Pool.Operator" isHorizontal="true"><dc:Bounds x="120" y="430" width="1110" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Operator.Lane.OperationsTeam_di" bpmnElement="GDHCN.ONB.Operator.Lane.OperationsTeam" isHorizontal="true"><dc:Bounds x="150" y="430" width="1080" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Operator.Lane.OnboardingTeam_di" bpmnElement="GDHCN.ONB.Operator.Lane.OnboardingTeam" isHorizontal="true"><dc:Bounds x="150" y="590" width="1080" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Pool.Secretariat_di" bpmnElement="GDHCN.ONB.Pool.Secretariat" isHorizontal="true"><dc:Bounds x="120" y="800" width="1110" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GDHCN.ONB.Secretariat.Lane.GDHCNSecretariat_di" bpmnElement="GDHCN.ONB.Secretariat.Lane.GDHCNSecretariat" isHorizontal="true"><dc:Bounds x="150" y="800" width="1080" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.P.Start_di" bpmnElement="T.P.Start"><dc:Bounds x="232" y="122" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="162" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.P.Apply_di" bpmnElement="T.P.Apply" isExpanded="false"><dc:Bounds x="330" y="80" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.P.Live_di" bpmnElement="T.P.Live" isExpanded="false"><dc:Bounds x="750" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.P.End_di" bpmnElement="T.P.End"><dc:Bounds x="932" y="282" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="895" y="322" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.S.Start_di" bpmnElement="T.S.Start"><dc:Bounds x="232" y="862" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="195" y="902" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.S.Apply_di" bpmnElement="T.S.Apply" isExpanded="false"><dc:Bounds x="330" y="820" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.S.Handover_di" bpmnElement="T.S.Handover"><dc:Bounds x="470" y="820" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.S.Ready_di" bpmnElement="T.S.Ready"><dc:Bounds x="750" y="820" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.S.Record_di" bpmnElement="T.S.Record"><dc:Bounds x="890" y="820" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.S.End_di" bpmnElement="T.S.End"><dc:Bounds x="1072" y="862" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1035" y="902" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.O.Start_di" bpmnElement="T.O.Start"><dc:Bounds x="512" y="492" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="475" y="460" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.O.Setup_di" bpmnElement="T.O.Setup" isExpanded="false"><dc:Bounds x="610" y="450" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.O.Live_di" bpmnElement="T.O.Live" isExpanded="false"><dc:Bounds x="750" y="610" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T.O.End_di" bpmnElement="T.O.End"><dc:Bounds x="932" y="652" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="895" y="692" width="110" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1"><di:waypoint x="268" y="140" /><di:waypoint x="330" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2"><di:waypoint x="450" y="140" /><di:waypoint x="810" y="140" /><di:waypoint x="810" y="240" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3"><di:waypoint x="870" y="300" /><di:waypoint x="932" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4"><di:waypoint x="268" y="880" /><di:waypoint x="330" y="880" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5"><di:waypoint x="450" y="880" /><di:waypoint x="470" y="880" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6"><di:waypoint x="590" y="880" /><di:waypoint x="750" y="880" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7"><di:waypoint x="870" y="880" /><di:waypoint x="890" y="880" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8"><di:waypoint x="1010" y="880" /><di:waypoint x="1072" y="880" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9"><di:waypoint x="548" y="510" /><di:waypoint x="610" y="510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10"><di:waypoint x="670" y="570" /><di:waypoint x="670" y="670" /><di:waypoint x="750" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11"><di:waypoint x="870" y="670" /><di:waypoint x="932" y="670" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="T.M.Apply_di" bpmnElement="T.M.Apply"><di:waypoint x="390" y="200" /><di:waypoint x="390" y="820" /><bpmndi:BPMNLabel><dc:Bounds x="396" y="384" width="130" height="42" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="T.M.Hand_di" bpmnElement="T.M.Hand"><di:waypoint x="530" y="820" /><di:waypoint x="530" y="528" /><bpmndi:BPMNLabel><dc:Bounds x="536" y="761" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="T.M.Live_di" bpmnElement="T.M.Live"><di:waypoint x="810" y="610" /><di:waypoint x="810" y="360" /><bpmndi:BPMNLabel><dc:Bounds x="816" y="384" width="130" height="42" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="T.M.Ready_di" bpmnElement="T.M.Ready"><di:waypoint x="810" y="730" /><di:waypoint x="810" y="820" /><bpmndi:BPMNLabel><dc:Bounds x="816" y="761" width="130" height="28" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

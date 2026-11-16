@@ -491,7 +491,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXK-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Rengo"
+* name = "Onesa"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXK-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXK-DEV-DSC)
@@ -541,7 +541,7 @@ Usage: #definition
 Instance: GDHCNParticipant-XXR-DEV
 InstanceOf: IHE.mCSD.Organization
 Usage: #definition
-* name = "Mumbai"
+* name = "Taifafeki"
 * type = $orgType#govt
 * endpoint[+] = Reference(GDHCNParticipantDID-XXR-DEV-All)
 * endpoint[+] = Reference(GDHCNParticipantDID-XXR-DEV-DSC)

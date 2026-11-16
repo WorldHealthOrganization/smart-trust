@@ -1,0 +1,264 @@
+{
+  "$schema": "cat-harness-declaration/1.0.0",
+  "name": "smart-trust",
+  "version": "0.1.0",
+  "repository": "litlfred/smart-trust",
+  "_restored_comment": "RESTORED 2026-10-15 (bean folio-assistant-63q4; owner: \"Fix trust and immz\"). 336d0f397 removed this declaration on 2026-10-14 when the repository moved to the smart-hiv shape (owner: \"Smart-hiv doesn't need its own harness. It can just define index.config.json and reference smart-base as a dependency\"). That shape still governs how THIS repository mounts smart-base: index.config.json does it, and this file declares no remoteMounts. What it cannot do is let folio-assistant mount smart-trust's own content (fhir-artifact-index/, openapi/), because remote-mount finds an instance only by its `<name>.json` declaration -- without one, the index's override reports the directories as 'named for mounting but not declared'. Restored from 336d0f397^, at the repository root where it was.",
+  "iriBase": "https://litlfred.github.io/smart-trust/",
+  "title": "WHO SMART Trust",
+  "description": "The WHO SMART Trust implementation guide (FHIR IG source under input/), as a harnessed instance of smart-base.",
+  "needs": [
+    "smart-base"
+  ],
+  "assets": [
+    {
+      "id": "agent-instructions",
+      "src": "AGENTS.md",
+      "role": "agent-instructions",
+      "title": "AGENTS.md — smart-trust",
+      "description": "Cold start for work here, and its one rule: the two mounted graphs (fhir-artifact-index/, openapi/) are generated copies of upstream, rewritten by their writers and never edited by hand."
+    },
+    {
+      "id": "instance-readme",
+      "src": "README.md",
+      "role": "instance-readme",
+      "title": "WHO SMART Trust",
+      "description": "The WHO SMART Trust implementation guide: where it is published and where its issues are managed."
+    }
+  ],
+  "directories": [
+    {
+      "id": "smart-trust-ast",
+      "path": "fhir-ast/",
+      "description": "WHO SMART Trust's IG Publisher AST, ingested although the IG's source is not. Read from the branch family `cat/fhir-harness/fhir-ast/` on `litlfred/smart-trust`, one branch per IG package id; this IG's is `cat/fhir-harness/fhir-ast/smart.who.int.trust`. Restored by `fhir-harness/scripts/ig-cache.sh`; never in the checkout.",
+      "graphTypologies": [
+        "ig-ast"
+      ],
+      "storage": {
+        "branchPrefix": "cat/fhir-harness/fhir-ast/",
+        "keyedBy": "family",
+        "keyFrom": "the IG's package id",
+        "repository": "litlfred/smart-trust",
+        "tool": "ig-cache"
+      }
+    },
+    {
+      "id": "smart-trust-artifact-index",
+      "path": "fhir-artifact-index/",
+      "description": "The IG's artefact index. `index.json`, `menu.json`, `releases.json`, `package.tgz` and `sidecars/` are not committed: fhir-harness's `ig-index:build` writes them at publish from the IG's AST (`sidecars/` through smart-base's `ig-site:sidecars` step). Only `README.md` is committed. `index.json` carries a `provenance` block naming the AST or config file each field came from.",
+      "graphTypologies": [
+        "fhir-artifact-index"
+      ],
+      "readOnly": true,
+      "readOnlyBasis": "Generated at publish by fhir-harness's `ig-index:build` from the IG's AST; never edited or committed. A hand edit would change what this repository claims upstream published; `check:materialized-fixity` catches one.",
+      "served": true
+    },
+    {
+      "id": "smart-trust-document-kinds",
+      "path": "document-kinds/",
+      "description": "How this IG realises the document kinds of the layers it needs: `dak.coverage.smart-trust.json`, the DAK view of `fhir-artifact-index/`, which places each artefact in one of the ten DAK components by its FHIR resource type and lists what no rule places. Generated at publish, after the index it reads, by the DAK layer's `gen-document-kinds.ts` (`bun run cat smart-base:document-kinds`); not committed.",
+      "graphTypologies": [
+        "document-kinds"
+      ]
+    },
+    {
+      "id": "smart-trust-openapi",
+      "path": "openapi/",
+      "description": "The OpenAPI documents this instance holds, ingested by the cat-openapi harness from the sources `cat-openapi.config.json` names: the trust network gateway's API, which the published IG carries as a vendored Swagger UI and which `ingest-ig-artifacts.ts` does not treat as the IG's own API. Each document is held verbatim beside a `<id>.source.json` recording the repository, path and commit it was read from. Each operation is a node with a page and an IRI (`gateway/<operationId>/`, `gateway/<operationId>.jsonld`), written by `cat-openapi/scripts/gen-openapi-pages.ts`; the pages are complete HTML that fetch the document beside them, so `served` publishes them as they are.",
+      "graphTypologies": [
+        "openapi"
+      ],
+      "readOnly": true,
+      "readOnlyBasis": "Copies of an upstream API description, each with its `<id>.source.json`, and pages generated from them; `ingest-openapi.ts` and `gen-openapi-pages.ts` rewrite them, a person does not. A hand edit would change what this repository claims the API's authors published; the two scripts' `--check` catches one.",
+      "served": true
+    },
+    {
+      "id": "smart-trust-docs",
+      "path": "docs/",
+      "instanceRoot": true,
+      "description": "The artefact pages of smart-trust's IG site, generated from `fhir-artifact-index/index.json` by `smart-trust:pages` (`fhir-harness/scripts/gen-ig-pages.ts`) with smart-base's themes, built at publish and never committed. They build into the IG's own site at `/smart-trust/`, under the IG's menu; the IG's own index, toc and artifacts pages are the site's landing pages. `instanceRoot: true` makes this directory answer at `/smart-trust/`. It is declared here, not in `cat-harness.json`, because `compose-docs` treats every docs entry there as a composition layer and would overlay this instance's `index.md` onto the main site's.",
+      "graphTypologies": [
+        "docs",
+        "ig-pages"
+      ],
+      "derivedFrom": [
+        "smart-trust-artifact-index",
+        "smart-base-themes"
+      ],
+      "writer": [
+        "fhir-harness/scripts/gen-ig-pages.ts",
+        "fhir-harness/scripts/templates/ig-pages/"
+      ],
+      "igSite": true,
+      "_comment_igSite": "Built INTO smart-trust's own IG site at /smart-trust/, not composed into the main site (bean mftp, owner 2026-10-05: one site, \"clean break on old beahviour, no redirect needed\"). Until then these pages were COMPOSED into the main Jekyll site at /smart-trust/ while the IG's 42 narrative pages were a second site at /smart-trust/ig/ built only in staging previews -- so production /smart-trust/ showed an artefact index and none of WHO's narrative pages. Now `stage-ig-sites.ts` copies this directory's artefact pages and assets into the IG's Jekyll source, under the IG's own menu, and `gen-ig-pages.ts` no longer writes the index/menu/category pages the IG's own index, toc and artifacts pages replace. Still rendered THROUGH just-the-docs, as the 2026-09-21 ruling asked (\"i want the input/page(s)/ content to be rendered viajustthedocs pipeline\"). who-iris does NOT set this and must not: it is a replica of IRIS.",
+      "tile": {
+        "icon": "docs"
+      }
+    },
+    {
+      "id": "library",
+      "path": "library/",
+      "description": "L1 source documents materialized for smart-trust: the GDHCN Administrative and Operational Framework 1.2 (9 October 2026), the legal source for GDHCN definitions and Trust Domains. Every knowledge-graph reference to the Framework resolves through here, and `check:materialized-fixity` verifies its SHA-256 digest against `catalogue/`.",
+      "graphTypologies": [
+        "library"
+      ]
+    },
+    {
+      "id": "smart-trust-catalogue",
+      "path": "catalogue/",
+      "description": "Qualified Dublin Core (`folio-dublin-core/v1`) and catalogue node (`folio-catalogue-node/v1`) records for two kinds of item: the document materialized in `library/` (the GDHCN Administrative and Operational Framework 1.2), and every work the IG cites that is not ingested, as a `referenced` item whose record is the IG's bibliography entry for it, keyed by the citation (`#ref-<slug>`). A capture of a cited work, when one exists, is kept in the repository's `uploads/` data store, which is not part of the KG. `bun run cat check:catalogue` and `bun run cat check:materialized-fixity` verify every node, metadataRef, libraryId, localPath and SHA-256 digest.",
+      "graphTypologies": [
+        "catalogue"
+      ],
+      "readOnly": true,
+      "readOnlyBasis": "Records of the WHO document in `library/`, whose SHA-256 digests `check:materialized-fixity` verifies, and the IG's bibliography of cited works: change a citation's record here, never on a page."
+    },
+    {
+      "id": "glossary",
+      "path": "glossary/",
+      "description": "The primary GDHCN glossary (`gdhcn.glossary.json`, folio-glossary/v1): the 21 definitions in Section II of the GDHCN Administrative and Operational Framework 1.2, quoted from the L1 copy in `library/`. The Framework is the legal source; IG-only terms go in a separate scheme and never override it. Rendered and checked by `check:glossary`.",
+      "graphTypologies": [
+        "glossary"
+      ]
+    },
+    {
+      "id": "smart-trust-translations",
+      "path": "translations/",
+      "description": "The gettext side of smart-trust's own strings, one directory per target locale: the `glossary/` templates of the GDHCN glossary (`glossary/gdhcn.glossary.json`). A scheme's translations sit with the instance whose terms they translate. Written by `bun run cat glossary:pot`.",
+      "graphTypologies": [
+        "translation-sources"
+      ]
+    },
+    {
+      "id": "onboarding-game",
+      "path": "onboarding-game/",
+      "graphTypologies": [
+        "web-app"
+      ],
+      "description": "The GDHCN onboarding game, \"Join the Network\" (Vite, TypeScript, three.js; Apache-2.0, from carlsbox/gdhcn-onboarding-game, see NOTICE). Declared by web-app.json and built and published by the harness's `apps` visualiser (Tool web-app-build) at <locale>/<harness>/apps/onboarding-game/, with no site chrome; nothing else on the site loads it. Its UI strings are translated through translations/<locale>/apps/ (smart-trust#176, Q-GAME-5)."
+    },
+    {
+      "id": "archimate",
+      "path": "archimate/",
+      "graphTypologies": [
+        "archimate"
+      ],
+      "description": "The GDHCN trust network as ArchiMate (cat-harness's archimate subgraph): this guide's actors (input/fsh/actors/actors.fsh), the public keys and the trust list, and the three steps onboard, distribute and verify, as the home page's figure (input/images/trust_network.png) in a view with every box where the figure draws it. Built by archimate/build.py (`check:archimate` fails when the committed model is stale); the archimate-pages visualiser draws the view as SVG, and archimate/pretty.py draws it again in the original figure's style (input/includes/trust-network-pretty.svg). The home page and the Concepts page toggle between the two (input/includes/trust-network-figure.html)."
+    },
+    {
+      "id": "smart-trust-findings",
+      "path": "findings/",
+      "description": "Authored findings about this instance's own pages, kept for the owner rather than built: `wireframes/` holds the as-is wireframes of the visualisers smart-trust declares (today `archimate`), each with its `intent.md`, its candidate HTML and the `checks/report.json` that `wireframe:check` writes at web and mobile sizes. `check:wireframes` reads the `wireframes/` of every declared `docs` directory; it is here, the shape of smart-base's `findings/`, because `docs/` is built at publish and commits nothing.",
+      "graphTypologies": [
+        "docs"
+      ]
+    }
+  ],
+  "visualisers": [
+    {
+      "id": "archimate",
+      "renderedBy": "archimate-pages",
+      "covers": [
+        "archimate"
+      ],
+      "title": "ArchiMate views",
+      "writer": [
+        "cat-harness-tools/archimate/scripts/gen-archimate-pages.ts"
+      ]
+    }
+  ],
+  "avatar": {
+    "glyph": "M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM12 9.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM12 12.5v3",
+    "tone": 199,
+    "reads": "a shield with a keyhole — the trust framework, in WHO blue"
+  },
+  "_avatar_comment": "A shield with a keyhole — a trust framework, about who may open what. NOT the shield-with-check: that is `qa`'s, and the registry refuses two kinds sharing a glyph. WHO BLUE, like smart-base: an organisation's published colour on a neutral glyph is not its identity, which is the line the owner drew for who-iris on 2026-09-23. Added 2026-10-04 (bean `2vpn`) when the owner chose a glyph over the shared operations card it had borrowed through a sticky. Moved here from cat-harness/schemas/avatars.ts, 2026-10-05 (bean sod4 #4): an instance declares its own mark.",
+  "_comment_site": "The WHO SMART Trust implementation guide (FHIR IG source under input/), as a harnessed instance of smart-base. Its artefact index (fhir-artifact-index/), its OpenAPI graph (openapi/) and its generated IG-site pages (docs/, generated by smart-trust:pages and built at publish, never committed) are declared here, so its own site is built by the platform's one publish path (stage-local -> build-instance-site, site.build in smart-trust.config.json) as folio-site.yml built it.",
+  "_builtAtPublish_comment": "Owner, 2026-10-14 (B1; schemas/built-at-publish.ts in cat-harness). This instance's JSON-LD @context is generated by `jsonld:contexts` (cat-harness-tools scripts/gen-instance-contexts.ts) from the prefixes and content-context terms its documents use, flattened with the prefix tables of every instance it needs. Those tables are read at the CHECKOUT's pins, not at pins this instance's commit names, so no commit of it can hold the file current: it is built at publish and never committed (bean folio-assistant-63q4). docs/ joined the list on 2026-10-15 (owner, ~10:45Z, B1): its pages are rendered by `smart-trust:pages` (fhir-harness gen-ig-pages over fhir-artifact-index/, with smart-base's themes and chrome), so they are a function of those layers at the checkout's pins: fhir-harness's switch to thin .html shells on 2026-10-14 made every committed page stale without a commit here. The index that mounts this instance registers `smart-trust:pages` at its root (a mounted instance cannot own a checkout script there), and derive:publish builds the directory; `directory` names the declared entry it fills, so check:declared-dirs and check:declaration-resolution do not expect it on disk before publish, and check:docs-populated does not grade pages a writer produced as authored documentation. The one committed file, docs/README.md, a three-line copy of the README's opening, went with it: nothing declared built at publish is tracked.",
+  "builtAtPublish": [
+    {
+      "path": "fhir-artifact-index/index.json",
+      "writer": [
+        "ig-index:build"
+      ],
+      "because": "checkout",
+      "reason": "the IG's artefact index: built by fhir-harness's ig-index:build from the IG's AST (restored from the IG repository's AST cache) and its own sushi-config.yaml, so it moves when the IG's default branch or its AST cache moves, not with a commit of this instance"
+    },
+    {
+      "path": "fhir-artifact-index/menu.json",
+      "writer": [
+        "ig-index:build"
+      ],
+      "because": "checkout",
+      "reason": "the IG's menu: built by fhir-harness's ig-index:build from the IG's AST (restored from the IG repository's AST cache) and its own sushi-config.yaml, so it moves when the IG's default branch or its AST cache moves, not with a commit of this instance"
+    },
+    {
+      "path": "fhir-artifact-index/releases.json",
+      "writer": [
+        "ig-index:build"
+      ],
+      "because": "checkout",
+      "reason": "the IG's release list: built by fhir-harness's ig-index:build from the IG's AST (restored from the IG repository's AST cache) and its own sushi-config.yaml, so it moves when the IG's default branch or its AST cache moves, not with a commit of this instance"
+    },
+    {
+      "path": "fhir-artifact-index/package.tgz",
+      "writer": [
+        "ig-index:build"
+      ],
+      "because": "checkout",
+      "reason": "the Publisher-shaped package the JSON view pages read each resource from: built by fhir-harness's ig-index:build from the IG's AST (restored from the IG repository's AST cache) and its own sushi-config.yaml, so it moves when the IG's default branch or its AST cache moves, not with a commit of this instance"
+    },
+    {
+      "path": "fhir-artifact-index/sidecars/",
+      "writer": [
+        "ig-index:build"
+      ],
+      "because": "checkout",
+      "reason": "the IG API sidecars bound to each artefact: copied by fhir-harness's ig-index:build from what a mounted layer's ig-site:sidecars leaves in its work directory, so it moves with the checkout's layers and the IG's AST cache, not with a commit of this instance"
+    },
+    {
+      "path": "fhir-artifact-index/contexts/",
+      "writer": [
+        "ig-index:build"
+      ],
+      "because": "checkout",
+      "reason": "the JSON-LD contexts the IG's source defines: copied by fhir-harness's ig-index:build from the IG's source at the checkout's pin, so it moves when the IG's default branch moves, not with a commit of this instance"
+    },
+    {
+      "path": "document-kinds/dak.coverage.smart-trust.json",
+      "writer": [
+        "smart-base:document-kinds"
+      ],
+      "because": "checkout",
+      "directory": "smart-trust-document-kinds",
+      "reason": "the DAK view of this IG's artefact index, which is itself built at publish (fhir-artifact-index/index.json above), so the report moves with the index and is built after it"
+    },
+    {
+      "path": "ns/context/v1.jsonld",
+      "writer": [
+        "jsonld:contexts"
+      ],
+      "because": "checkout",
+      "reason": "the prefixes and content-context terms its documents use, flattened with the jsonldPrefixes of the layers it needs at the checkout's pins"
+    },
+    {
+      "path": "docs/",
+      "writer": [
+        "smart-trust:pages"
+      ],
+      "because": "checkout",
+      "directory": "smart-trust-docs",
+      "reason": "the artefact pages gen-ig-pages renders from this instance's artefact index with the IG-page templates and the smart-base themes and chrome, all read at the checkout's pins"
+    }
+  ],
+  "mountApprovers": [
+    "litlfred"
+  ],
+  "enableSubgraphs": [
+    "folio-assistant-core.collab",
+    "smart-base.collab",
+    "fhir-harness.collab",
+    "smart-base.L2-collab",
+    "smart-base.L3-collab"
+  ]
+}

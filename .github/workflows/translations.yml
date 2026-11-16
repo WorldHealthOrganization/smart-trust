@@ -1,0 +1,42 @@
+name: Translations
+
+# The .pot templates in translations/ are what the five UN-language
+# translators work from. A template that no longer matches its English source
+# (input/pagecontent/*.md, input/business-processes/*.bpmn) FAILS: run
+# `bun input/scripts/translation-pot.ts`. A translation left behind by an
+# English change only WARNS, per catalogue: refresh with
+# `bun input/scripts/po-status.ts --merge`, then translate the new strings.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  templates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.3.14  # the platform's CI version
+      - name: Mount the layers index.lock.json pins
+        # The same lock replay as site-publish.yml (check:workflow-submodules).
+        run: |
+          ref=$(python3 -c "import json;print(next(m['ref'] for m in json.load(open('index.lock.json'))['mounts'] if m['harness']=='cat-harness-tools'))")
+          M="$RUNNER_TEMP/mounter"
+          git init -q "$M"
+          git -C "$M" fetch -q --depth 1 https://github.com/litlfred/cat-harness-tools.git "$ref"
+          git -C "$M" checkout -q FETCH_HEAD
+          bun run "$M/scripts/mount-from-lock.ts" --root .
+          bun install --frozen-lockfile
+      - name: The templates are current with their English sources
+        run: bun input/scripts/translation-pot.ts --check
+      - name: No translation is marked official
+        run: bun cat-harness-tools/scripts/run-script.ts check:translation-officiality
+      - name: How far each translation is behind its template (warns, never fails)
+        run: bun input/scripts/po-status.ts --github

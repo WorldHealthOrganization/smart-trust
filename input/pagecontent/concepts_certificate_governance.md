@@ -22,7 +22,7 @@ The following picture presents a high-level overview of the system.
 
 
 #### Scope of Document
-Digital signatures can be used to achieve data integrity and authenticity. Public Key Infrastructures establish trust by binding public keys to verified identities (or issuers). This is necessary to allow other participants to verify the data origin and the identity of the communication partner and decide about trust. In the TNG, multiple public key certificates are used for authenticity. This document defines which public key certificates are used and how they should be designed in order to allow broad interoperability between the different GDHCN Participants. This document is based on [1] and [2]. It provides more details on the necessary public key certificates and it gives guidance on certificate templates and validity periods for countries that want to operate their own SCA. 
+Digital signatures can be used to achieve data integrity and authenticity. Public Key Infrastructures establish trust by binding public keys to verified identities (or issuers). This is necessary to allow other participants to verify the data origin and the identity of the communication partner and decide about trust. In the TNG, multiple public key certificates are used for authenticity. This document defines which public key certificates are used and how they should be designed in order to allow broad interoperability between the different GDHCN Participants. This document is based on [[ehn-trust-framework-2021]](en/folio-assistant-core/bibliography/smart-trust-catalogue/ehn-trust-framework-2021/) and [[ehn-dcc-techspec-vol1-2021]](en/folio-assistant-core/bibliography/smart-trust-catalogue/ehn-dcc-techspec-vol1-2021/). It provides more details on the necessary public key certificates and it gives guidance on certificate templates and validity periods for countries that want to operate their own SCA. 
 Since DSCs shall be verifiable for a defined time-frame (starting from the issuing, expire after a given time), it is necessary to define a verification model for all signatures applied on the public key certificates and the digital health certificate. 
 Legal and administrative procedures are not in the scope of this document, they must be defined separately.  
 
@@ -67,10 +67,10 @@ All GDHCN Participants that take part in the GDHCN framework MUST use an SCA to 
 Each GDHCN Participant can either use existing certificate authorities or they can set up a dedicated (possibly self-signed) certificate authority for the SCA system.
 The GDHCN Participants MUST present their SCA certificate(s) to the GDHCN Secretariat during the official [on-boarding procedure](concepts_onboarding.html). After successful registration of the GDHCN Participant (see section "Registration of GDHCN Participant Backends" for more details), the GDHCN Secretariat will update a signed trust list that contains all SCA certificates that are active. The GDHCN Secretariat will use a dedicated asymmetric key pair to sign the trust list and the certificates in an offline environment. The private key will not be stored on the online TNG system, such that a compromise of the online system does not enable an attacker to compromise the trust list. The corresponding trust anchor certificate TNG<sub>TA</sub> will be provided to the GDHCN Participants during the onboarding process. GDHCN Participants can retrieve the trust list from the TNG for their verification procedures.
 
-The SCA is defined as the certificate authority that issues DSCs, hence GDHCN Participants that use a multi-tier CA hierarchy (e.g. Root CA -> SCA -> DSCs) MUST provide the subordinate certificate authority that issues the DSCs.  So in that case - if a GDHCN Participant uses an existing certificate authority - the GDHCN system will _ignore_ anything above the SCA -- and whitelist only the SCA as the trust anchor (even though it is a sub-ordinate CA). This is as the ICAO model [2] only allows for exactly two levels - a 'root' SCA and a single 'leaf' DSC signed by just that SCA.
+The SCA is defined as the certificate authority that issues DSCs, hence GDHCN Participants that use a multi-tier CA hierarchy (e.g. Root CA -> SCA -> DSCs) MUST provide the subordinate certificate authority that issues the DSCs.  So in that case - if a GDHCN Participant uses an existing certificate authority - the GDHCN system will _ignore_ anything above the SCA -- and whitelist only the SCA as the trust anchor (even though it is a sub-ordinate CA). This is as the ICAO model [[ehn-dcc-techspec-vol1-2021]](en/folio-assistant-core/bibliography/smart-trust-catalogue/ehn-dcc-techspec-vol1-2021/) only allows for exactly two levels - a 'root' SCA and a single 'leaf' DSC signed by just that SCA.
 In case a GDHCN Participant operates its own SCA, the GDHCN Participant is responsible for the secure operation and key management of that CA. It must be noted that the SCA acts as the trust anchor for DSCs and therefore, protecting the private key of the SCA is essential for the integrity of the Trust Network environment.
 
-The verification model in the Trust Network PKI is the shell model (for example, defined in [3]), which states that all certificates in the certificate path validation must be valid at a given time (i.e. the time of signature validation). Therefore, the following restrictions apply:
+The verification model in the Trust Network PKI is the shell model (for example, defined in [[etsi-en-319-102-1-2016]](en/folio-assistant-core/bibliography/smart-trust-catalogue/etsi-en-319-102-1-2016/)), which states that all certificates in the certificate path validation must be valid at a given time (i.e. the time of signature validation). Therefore, the following restrictions apply:
 -	The SCA SHALL NOT issue certificates that are valid longer than the CA certificate itself (see [2, Section 5]).
 -	The document signer SHALL NOT sign documents that are valid longer than the DSC itself.
 GDHCN Participants that operate their own SCA MUST define validity periods for their SCA and all issued certificates, and they MUST take care of certificate renewal. Section "Certificate authorities, validity periods and renewal" contains recommendations for validity periods. 
@@ -177,6 +177,18 @@ For digital certificates and cryptographic signatures in the TNG context, the ma
 
 The recommended elliptic curve for EC-DSA is again NIST-p-256 due to its widespread implementation.
 
+<a name="gpg-keys"></a>
+###### Requirements on GPG keys
+
+Each person authorised to provide key material for a GDHCN Participant has a GPG key, named in the Letter of Application. The key SHALL be compliant with RFC 4880 (OpenPGP), as the Letter of Application requires, and SHALL meet the following:
+
+|Key algorithm|Key size|Identity|
+|-------------|--------|--------|
+|RSA|Min. 3072 Bit|The email address in the key SHALL match the email address given for that person in the Letter of Application|
+|EC (e.g. ECDSA)|Min. 256 Bit|The email address in the key SHALL match the email address given for that person in the Letter of Application|
+
+The GDHCN Secretariat checks these requirements when it verifies the Letter of Application (see the [onboarding process](concepts_onboarding_process_full.html), step [22]).
+
 ###### 	SCA certificate (TNP<sub>SCA</sub>)
 The following table gives guidance on the TNP<sub>SCA</sub> certificate template in case that a GDHCN Participant decides to operate its own SCA for the DCC system. **Bold** entries are required (MUST be included in the certificate), *italic* entries are recommended (SHOULD be included). For absent fields, no recommendations are defined.
 
@@ -260,7 +272,3 @@ The following table defines the TNG TLS certificate.
 The TLS certificate of the TNG will be issued by a publicly trusted certificate authority (included in all major browsers and operating systems, following the CAB Forum baseline requirements).
 
 
-#### REFERENCES
-[1] Interoperability of health certificates – Trust Framework – v. 1.0 – 12.03.2021 – eHealth Network – available at https://ec.europa.eu/health/sites/health/files/ehealth/docs/trust-framework_interoperability_certificates_en.pdf - last accessed 27.04.2021<br>
-[2] Technical Specifications for Digital COVID Certificates Volume 1 V1.0.5  - eHealth Network – available at  https://ec.europa.eu/health/sites/health/files/ehealth/docs/digital-green-certificates_v1_en.pdf - last accessed 27.04.2021<br>
-[3] ETSI EN 319 102-1: Electronic Signatures and Infrastructures (ESI); Procedures for Creation and Validation of AdES Digital Signatures; Part 1: Creation and Validation – version 1.1.1, 2016 – available at https://www.etsi.org/deliver/etsi_en/319100_319199/31910201/01.01.01_60/en_31910201v010101p.pdf – last accessed 23.04.2021

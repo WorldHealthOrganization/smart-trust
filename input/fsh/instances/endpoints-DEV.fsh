@@ -1666,9 +1666,9 @@ Usage: #definition
 
 Instance: GDHCNParticipantDID-XXK-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Rengo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/did.json"
+Description: "Onesa Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/did.json"
 Usage: #definition
-* name = "Rengo Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/did.json"
+* name = "Onesa Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXK-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1679,7 +1679,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-XXK-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Rengo Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/DSC/did.json"
+* name = "Onesa Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXK-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1690,7 +1690,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-XXK-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Rengo Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/SCA/did.json"
+* name = "Onesa Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXK:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXK/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXK-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1836,9 +1836,9 @@ Usage: #definition
 
 Instance: GDHCNParticipantDID-XXR-DEV-All
 InstanceOf: IHE.mCSD.Endpoint
-Description: "Mumbai Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/did.json"
+Description: "Taifafeki Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/did.json"
 Usage: #definition
-* name = "Mumbai Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/did.json"
+* name = "Taifafeki Trustlist (DID v2) - DEV - All keys\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXR-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1849,7 +1849,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-XXR-DEV-DSC
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Mumbai Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/DSC/did.json"
+* name = "Taifafeki Trustlist (DID v2) - DEV - Document Signing Certificates\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR:DSC\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/DSC/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXR-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get
@@ -1860,7 +1860,7 @@ Usage: #definition
 Instance: GDHCNParticipantDID-XXR-DEV-SCA
 InstanceOf: IHE.mCSD.Endpoint
 Usage: #definition
-* name = "Mumbai Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/SCA/did.json"
+* name = "Taifafeki Trustlist (DID v2) - DEV - Certificate Signing Authority\ndid:web:tng-cdn-dev.who.int:v2:trustlist:-:XXR:SCA\nresolvable at https://tng-cdn-dev.who.int/v2/trustlist/-/XXR/SCA/did.json"
 * managingOrganization = Reference(Organization/GDHCNParticipant-XXR-DEV)
 * status = #active
 * connectionType = $ConnectionTypes#http-get

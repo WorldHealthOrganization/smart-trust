@@ -41,7 +41,7 @@ followed through the lifecycle of the rules:
 
 1. **Conceptualizing the rules:** First, the rules themselves need to be decided at a governance
 level. In this example the health ministry may decide to require a negative COVID-19 test within 72
-hours to allow entry into a county
+hours to allow entry into a country
 
 1. **Authoring the rules:** The rules can be written in CQL by clinical domain experts. For this
 example, the CQL would express the 72 hour timeframe and indicate which COVID-19 tests are
@@ -169,14 +169,9 @@ define "Completed Immunizations":
     where ( I.protocolApplied.doseNumber.value = I.protocolApplied.seriesDoses.value )
 ```
 
-#### References
+#### CQL authoring resources
 
-CQL authoring resources:
-
-* [CQL Introduction](https://cql.hl7.org/01-introduction.html)
-* [CQL Authoring Guide](https://cql.hl7.org/02-authorsguide.html)
-* [CRMI IG CQL Guidelines](https://build.fhir.org/ig/HL7/crmi-ig/branches/master/using-cql.html)
-* [CRMI IG Packaging Guidelines](https://build.fhir.org/ig/HL7/cqf-measures/packaging.html)
+See [CQL Introduction](en/folio-assistant-core/bibliography/smart-trust-catalogue/hl7-cql-introduction/), [CQL Authoring Guide](en/folio-assistant-core/bibliography/smart-trust-catalogue/hl7-cql-authors-guide/), [CRMI IG CQL Guidelines](en/folio-assistant-core/bibliography/smart-trust-catalogue/hl7-crmi-using-cql/) and [CRMI IG Packaging Guidelines](en/folio-assistant-core/bibliography/smart-trust-catalogue/hl7-crmi-packaging/).
 
 ### CQL Execution
 
