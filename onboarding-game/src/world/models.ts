@@ -351,6 +351,49 @@ export function cat(sleeping = false, opts: { bandit?: boolean } = {}): THREE.Gr
     }
     const tail = add(g, new THREE.TorusGeometry(0.12, 0.025, 8, 20, Math.PI), fur, -0.12, 0.08, -0.04);
     tail.rotation.y = Math.PI / 2;
+    if (opts.bandit) {
+      // the thief's loot: two paws up, and three fish it juggles (World.loop moves them; see juggle)
+      for (const s of [-1, 1]) {
+        const shoulder = new THREE.Vector3(s * 0.1, 0.19, 0.06), paw = new THREE.Vector3(s * JUGGLE.hands, JUGGLE.y, JUGGLE.z);
+        const arm = add(g, new THREE.CylinderGeometry(0.026, 0.03, shoulder.distanceTo(paw), 10), fur, 0, 0, 0);
+        arm.position.copy(shoulder).lerp(paw, 0.5);
+        arm.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), paw.clone().sub(shoulder).normalize());
+        add(g, new THREE.SphereGeometry(0.032, 10, 8), fur, paw.x, paw.y, paw.z);
+      }
+      g.userData.fish = [0, 1, 2].map(() => { const f = fish(); g.add(f); return f; });
+      juggle(g, 0);
+    }
   }
   return g;
+}
+
+/** Where the bandit's paws are and how high the fish go, in the cat's own frame (it faces +z). */
+const JUGGLE = { hands: 0.16, y: 0.27, z: 0.2, height: 0.36, period: 4.2 };
+
+/** A small silver fish, nose along +x. */
+function fish(): THREE.Group {
+  const f = new THREE.Group();
+  const scale = std('#9fb4c8', { roughness: 0.35, metalness: 0.4 }), fin = std('#6f86a0', { roughness: 0.5 });
+  const body = add(f, new THREE.SphereGeometry(0.035, 12, 8), scale, 0, 0, 0); body.scale.set(1.6, 0.75, 0.45);
+  const tail = add(f, new THREE.ConeGeometry(0.028, 0.045, 3), fin, -0.068, 0, 0); tail.rotation.z = Math.PI / 2; tail.scale.z = 0.3;
+  add(f, new THREE.SphereGeometry(0.007, 6, 4), std('#17171c'), 0.035, 0.008, 0.012);
+  return f;
+}
+
+/**
+ * The bandit cat's fish at time `t` (seconds): a slow three-fish cascade. Each fish is thrown from one
+ * paw to the other along a parabola (the throws one way higher than the other), the three a third of
+ * a cycle apart, turning end over end.
+ */
+export function juggle(cat: THREE.Object3D, t: number) {
+  const fishes = cat.userData.fish as THREE.Object3D[] | undefined;
+  if (!fishes) return;
+  const { hands, y, z, height, period } = JUGGLE;
+  fishes.forEach((f, i) => {
+    const p = ((t / period + i / fishes.length) % 1 + 1) % 1;
+    const u = (p * 2) % 1, dir = p < 0.5 ? 1 : -1;
+    // right-going throws arc higher and nearer than left-going ones, so two fish never meet mid-air
+    f.position.set(dir * hands * (2 * u - 1), y + 4 * height * (dir > 0 ? 1 : 0.7) * u * (1 - u), z + dir * 0.03);
+    f.rotation.set(0, 0, dir * (Math.PI / 2 - Math.PI * u));
+  });
 }
