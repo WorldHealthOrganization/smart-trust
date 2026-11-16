@@ -82,7 +82,19 @@ var ul=document.createElement("ul");
 rows.forEach(function(r){var li=item(hs[r.i]);if(r.sub.length){var sub=document.createElement("ul");sub.className="igi-contents-sub";r.sub.forEach(function(k){sub.appendChild(item(hs[k]));});li.appendChild(sub);}ul.appendChild(li);});
 nav.appendChild(ul);
 var h1=main.querySelector("h1"),meta=main.querySelector(":scope > .ig-metadata");
-if(h1&&h1.parentNode===main)h1.insertAdjacentElement("afterend",nav);else if(meta)meta.insertAdjacentElement("afterend",nav);else main.insertBefore(nav,main.firstChild);
+var at=h1&&h1.parentNode===main?h1:meta||null;
+var bannerOf=function igIsBanner(e) {
+  if (e.display === "none" || /^(H[1-6]|SCRIPT|STYLE|NAV)$/i.test(e.tag))
+    return !1;
+  if (/(^|[\s_-])(hero|banner)([\s_-]|$)/i.test(e.cls))
+    return !0;
+  return !!e.bgImage && e.bgImage !== "none";
+};
+var b=null,first=hs[0];
+for(var n=main.firstElementChild;n&&n!==first&&!n.contains(first);n=n.nextElementSibling){var cs=getComputedStyle(n);
+if(bannerOf({tag:n.tagName,cls:n.getAttribute("class")||"",bgImage:cs.backgroundImage,display:cs.display}))b=n;}
+if(b&&(!at||at.compareDocumentPosition(b)&4))at=b;
+if(at)at.insertAdjacentElement("afterend",nav);else main.insertBefore(nav,main.firstChild);
 })();</script>
 </main>
 <link rel="stylesheet" href="assets/ig-pages.css">
