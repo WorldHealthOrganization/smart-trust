@@ -27,6 +27,8 @@ The six UN languages: Arabic, Chinese, English, French, Russian and Spanish (`we
 | translation | translators fill `translations/<locale>/apps/onboarding-game.po`, one PR per locale. The key is the `msgctxt`. Keep every `{placeholder}`; translate inside `{n:one|other}` and keep `[[term|text]]` marks. |
 | strings | `npm run strings` (and the harness at publish) writes `public/i18n/<locale>.json` from the `.po`. A string with no translation, or whose placeholders differ, shows in English. |
 
+Which language it opens in (`src/i18n/lang.ts`): a `?lang=<code>` in the URL, then the `/<locale>/` of the site page that opened it, then the reader's last choice, then the browser's language, then English. smart-trust's translated home pages link with `?lang=<locale>` (`input/pagecontent/overview.md`, Liquid on `page.lang`), so the language survives a browser that sends no referrer. The site's publish step puts its search bar and version banner on this page too; the game hides them (`src/style.css`) so its own top bar, with the language switch, shows.
+
 The game loads its language's strings before anything else (`src/main.ts`), then loads the game itself as a separate chunk. The French came from the facilitator-reviewed transcripts (October 2026) and is now kept in the `.po`. Narration exists in English and French; the demo in the other languages runs on captions and says so. Films are in English and French.
 
 ## Run it
