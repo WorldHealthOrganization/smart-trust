@@ -172,14 +172,15 @@ def render(data: dict, rows: list[dict]) -> str:
             out.append(f'<rect x="{x}" y="{y}" width="{pw}" height="{h}" fill="#FFFFFF" stroke="{HEAD_FILL}" stroke-width="1.2"/>')
             head_lines = text_lines(f"{REGION_TITLES[region]} ({len(entries)})", int(pw / 7.6))
             hy = y + (20 if len(head_lines) == 1 else 13)
-            # Absolute x and y per line, so a translation can re-wrap the heading (cat-harness-tools svg-label-po).
+            # Absolute x and y per line, so a translation can re-wrap the heading (cat-harness-tools svg-label-po);
+            # the panel's width and shrink-to-fit keep a longer translation inside the fixed header.
             head_text = "".join(
                 f'<tspan x="{x + pw / 2:.0f}" y="{hy + 14 * i}">{escape(ln)}</tspan>' for i, ln in enumerate(head_lines)
             )
             out.append(
                 f'<a href="CodeSystem-WHORegionalOffices.html#WHORegionalOffices-{region}"><title>{escape(REGION_TITLES[region])} ({region})</title>'
                 f'<rect x="{x}" y="{y}" width="{pw}" height="{HEAD_H}" fill="{HEAD_FILL}"/>'
-                f'<text y="{hy}" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#FFFFFF">{head_text}</text></a>'
+                f'<text y="{hy}" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#FFFFFF" data-label-width="{pw - 12:.0f}" data-label-fit="shrink">{head_text}</text></a>'
             )
             per_col = -(-len(entries) // cols) if entries else 0
             cw = pw / cols
