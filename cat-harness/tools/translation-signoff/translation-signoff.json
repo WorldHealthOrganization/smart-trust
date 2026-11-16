@@ -1,0 +1,83 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "translation-signoff",
+    "title": "Sign off a translation",
+    "description": "Record a translation as official — who signed off, when, and the hash of the source it was signed against, so a later source edit is detectable.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "mcp": {
+        "tool": "translation_signoff"
+      },
+      "inProcess": {
+        "module": "src/tools/translation.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "locale",
+          "schema": {
+            "$type": "Locale"
+          },
+          "required": true,
+          "arg": {
+            "flag": "--locale"
+          }
+        },
+        {
+          "name": "source",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "signed_off_by",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Who is signing off.",
+          "required": true
+        },
+        {
+          "name": "level",
+          "schema": {
+            "$type": "TranslationLevel"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--level"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "record",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "The sign-off recorded, including the source hash."
+        }
+      ]
+    },
+    "satisfies": [
+      "translation-manager",
+      "decision-audit"
+    ],
+    "requires": {
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/io/inputs/2",
+      "comment": "A person's name, so `Text` and no `arg`: it is not a command-line\nword, and the sign-off is an in-process call anyway."
+    }
+  ]
+}

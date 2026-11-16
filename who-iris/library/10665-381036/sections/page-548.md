@@ -1,0 +1,15 @@
+---
+doc_id: 10665-381036
+doc_title: "WHO consolidated guidelines on tuberculosis. Module 3: Diagnosis"
+section_id: page-548
+section_title: "Page 548"
+section_number: null
+pages: 548-548
+source_pdf: 10665-381036.pdf
+source_sha256: 83e481b3ccc61cf4
+toc_source: undetermined
+---
+Figure:  RIF and INH resistance detection  by BD Max MDR-TB assay 
+ 
+ 
+Figure:  RIF and INH resistance detection  by Cobas  MTB-DR assay

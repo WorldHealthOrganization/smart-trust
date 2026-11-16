@@ -1,0 +1,57 @@
+---
+doc_id: 10665-205344
+doc_title: "Information, education and communication: a guide for AIDS programme managers"
+section_id: page-014
+section_title: "Page 14"
+pages: 14-14
+pdf_page: 14
+source_pdf: 10665-205344.pdf
+source_sha256: 0fdcc9d570f32d5f
+text_source: ocr
+granularity: page
+---
+Figure 3. [EC framework
+
+DEVELOP LINKAGES:
+WITH OTHER
+ORGANIZATIONS AND
+
+CARRY QUT ADVOCACY
+
+(6.2.9)
+SITUATIONAL ANALYSIS (6.1.1)
+CIAVAILABLE
+a) NATIONAL POLICIES b) PHILOSOPHY! EPIDEMIO- IDENTIFY TARGET
+AND APPROACH TO IEC LoGicaL GROUPS
+ORGANIZATIONAL FOR AIDS AND 5.1.2)
+STRUCTURE PREVENTION BEHAVIOU-
+Rat DATA
+conpuct
+TRAINING
+6.23)
+DESIGN
+RETEST
+conouet TARSETE MONITOR
+ESTABLISH TARGETE MESSAGE DEVELOP (EC DISSEMINATE ail
+GOALS/OBJECTIVES ‘| RESEARC — Ss. fF—{ MATERIALS F— USE MATERIAL EVALUATE
+OF IEC " CHOOSE 5.3.3) 634) IMPACT
+6.1.3) (3.1) MEDIA 30 Sa
+aa AND
+(CHANNEL
+(5.3.21
+ARRANGE SUPPORT
+SEAVICES (5.2.2)
+- ADVOCACY
++ CONDOMS
++ STD SERVICES
++ COUNSELLING
+PLAN FOR MONITORING &
+EVALUATION
+6.4)
+Planning x», Preparatory activities Implementation of Monitoring
+(5.1) “ including material 7 IEC activities 7 and
+development (8.3) Evaluation
+
+Il odeg
+
+18/SCIV/V4S

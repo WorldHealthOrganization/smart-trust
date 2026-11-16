@@ -1,0 +1,79 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "workflow-start",
+    "title": "Start a process instance",
+    "description": "Open an instance of a process for a subject. Idempotent: an existing layer for the same subject is returned rather than duplicated.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "mcp": {
+        "tool": "workflow_start"
+      },
+      "inProcess": {
+        "module": "src/tools/workflow.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "process",
+          "schema": {
+            "$type": "ProcessId"
+          },
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "subject",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "What the layer is about — a block label, a release, a bean.",
+          "required": true
+        },
+        {
+          "name": "bean",
+          "schema": {
+            "$type": "BeanId"
+          },
+          "description": "The work-plan item this layer carries out.",
+          "required": false,
+          "arg": {
+            "flag": "--bean"
+          }
+        },
+        {
+          "name": "plan",
+          "schema": {
+            "$type": "BeanId"
+          },
+          "description": "The work plan this layer is part of: an epic or milestone whose `process:` tag names this process. Not every process needs one.",
+          "required": false,
+          "arg": {
+            "flag": "--plan"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "InstanceId"
+          },
+          "description": "The layer opened or found."
+        }
+      ]
+    },
+    "satisfies": [
+      "process-state",
+      "bean-coordination"
+    ],
+    "requires": {
+      "network": false
+    }
+  }
+}

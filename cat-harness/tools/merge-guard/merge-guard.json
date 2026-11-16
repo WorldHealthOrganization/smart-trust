@@ -1,0 +1,102 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "merge-guard",
+    "title": "Judge whether a pull request may land",
+    "description": "The enforced merge guard: asks GitHub's live facts about one pull request whether it is finished (its checks, its tier, the session that marked it ready) before it reaches its base, and lands it only when every check passes. With `--status` it posts the verdict as the `merge-guard` commit status on the head, which is what the layer's merge-guard workflow does.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat merge:guard"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "pr",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "The pull request number.",
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "repo",
+          "schema": {
+            "$type": "RepoFullName"
+          },
+          "description": "The repository holding the pull request. Default: the checkout's own.",
+          "required": false,
+          "arg": {
+            "flag": "--repo"
+          }
+        },
+        {
+          "name": "merge",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Land the pull request, only if every check passes. Needs `--session`.",
+          "required": false,
+          "arg": {
+            "flag": "--merge"
+          }
+        },
+        {
+          "name": "status",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Post the verdict as the `merge-guard` commit status on the head.",
+          "required": false,
+          "arg": {
+            "flag": "--status"
+          }
+        },
+        {
+          "name": "full_tier",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Require the full (release) tier of checks, not the fast tier a draft runs.",
+          "required": false,
+          "arg": {
+            "flag": "--full-tier"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "verdict",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "Each check with its verdict; exit 0 when the pull request may land."
+        }
+      ]
+    },
+    "satisfies": [
+      "ci-health"
+    ],
+    "selection": {
+      "when": "Before a pull request lands on its base, by the merge manager or a steward, and on every pull request event through the merge-guard workflow.",
+      "limits": "Reads GitHub's live facts about one pull request; it judges no declared graph.",
+      "cost": "A few GitHub REST calls."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "api.github.com",
+        "none": "The verdict is GitHub's live facts about the pull request (its checks, reviews and the session that marked it ready); with no GitHub there is nothing to judge and nothing to land."
+      }
+    ]
+  }
+}

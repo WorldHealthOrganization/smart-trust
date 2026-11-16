@@ -1,0 +1,88 @@
+---
+doc_id: 9789240101197-eng
+doc_title: "Digital transformation handbook for health supply chain architecture"
+section_id: sec-031-references
+section_title: "References"
+section_number: null
+pages: 65-66
+source_pdf: 9789240101197-eng.pdf
+source_sha256: cd157b40eef513c1
+toc_source: inferred
+---
+2	 All linked references were accessed on 15 October 2024.
+References
+1.	
+Digital implementation investment guide (DIIG): integrating digital interventions into health programmes. Geneva: World Health 
+Organization; 2020 (https://iris.who.int/handle/10665/334306). Licence: CC BY-NC-SA 3.0 IGO.
+2.	
+Digital Health & Interoperability Working Group [website]. Digital Square; 2024 (https://wiki.digitalsquare.io/index.php/Digital_
+Health_%26_Interoperability_Working_Group).
+3. 	
+The differences between digitization, digitalization, and digital transformation in manufacturing [website]. Yokogawa Electric 
+Corporation; 2021 (https://www.yokogawa.com/library/resources/white-papers/the-differences-between-digitization-digitalization-
+and-digital-transformation-in-manufacturing/).
+4.	
+Digital transformation [website]. Gartner; 2024 (https://www.gartner.com/en/information-technology/glossary/digital-
+transformation). 
+5.	
+Standards & digital transformation: good governance in a digital age, 2021. Vienna: United Nations Industrial Development 
+Organization; 2021 (https://www.unido.org/news/standards-digital-transformation-good-governance-digital-age). 
+6.	
+Digitalization [website]. Gartner; 2024 (https://www.gartner.com/en/information-technology/glossary/digitalization).
+7.	
+Digitization [website]. Gartner; 2024 (https://www.gartner.com/en/information-technology/glossary/digitization).
+8.	
+Reynolds CJ, Wyatt JC. Open source, open standards, and health care information systems. J Med Internet Res. 2011;13(1):e24. 
+(https://doi.org/10.2196/jmir.1521).
+9.	
+Licenses [online database]. West Hollywood: Open Source Initiative; 2024 (https://opensource.org/licenses/).
+10.	
+Definition of “Open Standards” [website]. International Telecommunication Union; 2005 (https://www.itu.int/en/ITU-T/ipr/Pages/
+open.aspx).
+11.	
+Pittman PH, Atwater JB, editors. ASCM supply chain dictionary, seventeenth edition. Chicago: Association for Supply Chain 
+Management; 2022 (https://learn.ascm.org/s/ascm-dictionary).
+12.	
+SMART guidelines [website]. World Health Organization; 2024 (https://www.who.int/teams/digital-health-and-innovation/smart-
+guidelines).
+13.	
+Mehl G, Tunçalp Ö, Ratanaprayul N, Tamrat T, Barreix M, Lowrance D et al. WHO SMART guidelines: optimising country-level use 
+of guideline recommendations in the digital age. Lancet Digital Health. 2021;3(4):e213–e216. (https://doi.org/10.1016/S2589-
+7500(21)00038-8).
+14.	
+Policy paper on traceability of medical products. Geneva: World Health Organization; 2021 (https://iris.who.int/
+handle/10665/340237). Licence: CC BY-NC-SA 3.0 IGO.
+15.	
+Global strategy on digital health 2020–2025. Geneva: World Health Organization; 2021 (https://iris.who.int/handle/10665/344249). 
+Licence: CC BY-NC-SA 3.0 IGO.
+16.	
+Supply chain information system maturity model (SCISMM) [website]. Digital Square; 2020 (https://lib.digitalsquare.io/
+collections/8769db8b-cc77-45fa-b1ea-f4ce5d838fde).
+17.	
+OpenHIE: a framework based on real-world application [website]. OpenHIE, 2024 (https://ohie.org/framework/).
+18.	
+The TOGAF® standard, tenth edition. San Francisco: The Open Group; 2022 (https://www.opengroup.org/togaf/10thedition).
+19.	
+National eHealth strategy toolkit. Geneva: World Health Organization and International Telecommunication Union; 2012 (https://iris.
+who.int/handle/10665/75211).
+20.	
+Digital adaptation kit for antenatal care: operational requirements for implementing WHO recommendations in digital systems. 
+Geneva: WHO; 2021 (https://iris.who.int/handle/10665/339745). Licence: CC BY-NC-SA 3.0 IGO.
+21.	
+Promoting national medicines policies [website]. World Health Organization; 2024 (https://www.who.int/activities/promoting-
+national-medicines-policies).
+22.	
+National supply chain assessment (NSCA) toolkit. Washington (DC): USAID Global Health Supply Chain Program; 2022 (https://www.
+ghsupplychain.org/key-initiatives/national-supply-chain-assessment-nsca-toolkit).
+23.	
+IHE Pharmacy (PHARM) white paper: supply of products for healthcare, revision 1.1. Oak Brook (IL): Integrating the Healthcare 
+Enterprise (IHE) International; 2020 (https://www.ihe.net/uploadedFiles/Documents/Pharmacy/IHE_Pharmacy_WP_Supply.pdf).
+24.	
+The MAPS toolkit: mHealth assessment and planning for scale. Geneva: World Health Organization; 2015 (https://iris.who.int/
+handle/10665/185238).
+25.	
+Healthcare traceability and GS1 standards [website]. GS1; (https://www.gs1.org/industries/healthcare/traceability).
+26.	
+Recommendations on common technical denominators for traceability systems for medicines to allow for interoperability. 
+International Coalition of Medicines Regulatory Authorities (ICMRA); 2021 (https://www.icmra.info/drupal/sites/default/
+files/2021-08/recommendations_on_common_technical_denominators_for_T&T_systems_to_allow_for_interoperability_final.pdf).

@@ -1,0 +1,47 @@
+{
+  "$schema": "cache/1.0.0",
+  "id": "ci-image",
+  "title": "Prepared CI image: mounted layers, node_modules and Chromium",
+  "instance": "cat-harness-tools",
+  "kind": "ghcr-image",
+  "trustClass": "a",
+  "location": "ghcr.io/<owner>/<repo>-ci of the INDEX repository (folio-assistant: ghcr.io/litlfred/folio-assistant-ci), tag = key",
+  "keyRecipe": {
+    "source": "script",
+    "implementation": ".github/ci-image/key.sh",
+    "expression": "sha256(index.lock.json, bun.lock, package.json, every file under .github/ci-image and .github/actions/ci-setup sorted by path, bun --version, $ImageOS uname -m)"
+  },
+  "derivedInputs": "Everything the image holds is a function of the key's inputs: the lock pins every mounted layer and its tree digest; bun.lock and package.json fix node_modules and through them Playwright's Chromium build; the recipe files fix how it is laid out; bun and the runner OS fix native modules. State branches are excluded by construction (prepare.sh strips every state-mount marker's directory).",
+  "holds": "Seven zstd layers in a FROM-scratch image: five workspace layers (every instance index.lock.json mounts, plus node_modules split by package and balanced by size) and two Playwright browser layers. The label ci-image.layers names each layer's role (ws|pw). No secrets: public repos at locked commits, and npm through bun.lock.",
+  "producer": ".github/workflows/ci-image.yml job publish (push to main touching the key's inputs, or workflow_dispatch); recipe .github/ci-image/build.sh \u2192 prepare.sh \u2192 docker buildx (zstd, provenance off); skips when the key's tag already exists",
+  "consumers": [
+    ".github/actions/ci-setup (fast path), called by 13 Code-quality-gates jobs and Feature Staging's stage (folio-assistant#2964)"
+  ],
+  "materializes": [
+    "<instance>/ for every instance in index.lock.json",
+    "node_modules/",
+    "~/.cache/ms-playwright/ (only when chromium != none)"
+  ],
+  "needs": [
+    "layers-ref"
+  ],
+  "refresh": {
+    "mode": "whole",
+    "how": "A new key is a new tag, built once on main; tags are never rewritten. A missing tag costs time only: ci-setup falls back to the mount cache, mount-from-lock (which tries layers-ref first) and bun install."
+  },
+  "savePolicy": "main or dispatch only (packages: write in the publish job alone); PR runs build into a throwaway local registry and never push",
+  "verify": "fetch.sh hashes each layer's bytes while they stream and compares them with the manifest digest; then mount:lock:check re-hashes every mounted directory against the committed lock. Either failing \u2192 partial files removed, fallback path.",
+  "owner": "CI speed 9 (bean folio-assistant-ay33); after the move, cat-harness-tools' shared ci-setup",
+  "uses": [
+    ".github/actions/ci-setup/action.yml:61 key",
+    ".github/actions/ci-setup/action.yml:77 fetch",
+    ".github/actions/ci-setup/action.yml:82 verify",
+    ".github/workflows/ci-image.yml publish job",
+    ".github/ci-image/build.sh"
+  ],
+  "notes": "Paths are folio-assistant's (#2961, branch claude/ci-image). Measured on a runner (run 42024357472): restore + mount:lock:check + bun install + Chromium launch = 7 s, against ~35 s of setup per job before (CQG run 42012108138). System libraries for Chromium (apt fonts) cannot be carried by a file image; `chromium: with-deps` still runs apt. Private package: consumers pass registry-token with packages: read (owner default, option 2). Hit/miss and why go to each job's step summary.",
+  "stateInputs": {
+    "reads": "none",
+    "how": "by construction: prepare.sh strips every state-mount marker's directory before the layers are built"
+  }
+}

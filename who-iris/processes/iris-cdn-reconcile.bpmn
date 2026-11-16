@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  who-iris — IRIS CDN weekly reconciliation.
+
+  Source of truth: this file; open it in any BPMN 2.0 tool. Prose:
+  docs/iris-cdn-export.md. Skills: skills/iris-cdn-*.md. Code: scripts/iris-cdn/.
+
+  Constraints shared by the IRIS CDN processes: the initial load carries
+  metadata AND the PDFs; changes are read from the DSpace REST API only; exports
+  live on Cloudflare (a git repository on Cloudflare Artifacts, NOT GitHub, plus
+  R2 behind the CDN), and who-iris's GitHub Pages only previews the exported
+  site; keys are published as verificationMethods of a did:web DID document (no
+  GDHCN trust list is assumed); content that has not changed is not rewritten,
+  re-uploaded or re-signed.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_IrisCdnReconcile"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="iris-cdn-exporter" name="IRIS CDN Exporter"/>
+  <bpmn:process id="Process_IrisCdnReconcile" name="IRIS CDN weekly reconciliation" isExecutable="false">
+    <bpmn:documentation>The DSpace REST API reports no deletions, so once a week every item id IRIS lists is compared with what the library holds. An item no longer listed is re-checked by id; only one IRIS confirms withdrawn is marked so.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_IrisCdnReconcile">
+      <bpmn:lane id="Lane_Pipeline" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Deterministic scripts in scripts/iris-cdn/, entry point run.ts. Same input, same bytes.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Weekly</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ListAll</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Compare</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Plausible</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Recheck</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MarkWithdrawn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Rebuild</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_SignPublish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Reconciled</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Exporter" name="IRIS CDN Exporter (agent)" partitionElementRef="iris-cdn-exporter">
+        <bpmn:documentation>The agent role. It plans, reviews and reports; it does not hold the signing key, and it never pushes to a WHO repository.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Escalate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Refused</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Weekly" name="Weekly,&#10;Sunday 04:00 UTC">
+      <bpmn:timerEventDefinition id="Timer_Start_Weekly"><bpmn:timeCycle>R/2026-11-01T04:00:00Z/P7D</bpmn:timeCycle></bpmn:timerEventDefinition>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_ListAll" name="List every item id&#10;IRIS reports">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-rest-feed"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_Compare" name="Compare with the&#10;ids the library holds">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-rest-feed"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Plausible" name="Missing share&#10;under 1%?">
+      <bpmn:documentation>A listing that came back short (a paging fault, an outage) must not read as a mass withdrawal.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Escalate" name="Treat the listing as&#10;faulty; escalate">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-exporter"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Refused" name="Nothing marked"/>
+    <bpmn:task id="Task_Recheck" name="Re-check each&#10;missing item by id">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-rest-feed"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_MarkWithdrawn" name="Mark confirmed items&#10;withdrawn (keep bytes)">
+      <bpmn:documentation>The record gets a withdrawn state; its bitstreams stay addressable, because a citation to them may exist.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-rest-feed"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_Rebuild" name="Rebuild the whole&#10;graph (sorted output)" calledElement="Process_NQuadsDistribution">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-oxigraph"/><bootstrap.processes:skill ref="nquads-distribution"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_SignPublish" name="Sign and publish&#10;the release" calledElement="Process_IrisCdnSignPublish">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-signing"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_Reconciled" name="Reconciled"/>
+    <bpmn:sequenceFlow id="R1" sourceRef="Start_Weekly" targetRef="Task_ListAll"/>
+    <bpmn:sequenceFlow id="R2" sourceRef="Task_ListAll" targetRef="Task_Compare"/>
+    <bpmn:sequenceFlow id="R3" sourceRef="Task_Compare" targetRef="GW_Plausible"/>
+    <bpmn:sequenceFlow id="R4" name="no" sourceRef="GW_Plausible" targetRef="Task_Escalate"/>
+    <bpmn:sequenceFlow id="R5" sourceRef="Task_Escalate" targetRef="End_Refused"/>
+    <bpmn:sequenceFlow id="R6" name="yes" sourceRef="GW_Plausible" targetRef="Task_Recheck"/>
+    <bpmn:sequenceFlow id="R7" sourceRef="Task_Recheck" targetRef="Task_MarkWithdrawn"/>
+    <bpmn:sequenceFlow id="R8" sourceRef="Task_MarkWithdrawn" targetRef="Call_Rebuild"/>
+    <bpmn:sequenceFlow id="R9" sourceRef="Call_Rebuild" targetRef="Call_SignPublish"/>
+    <bpmn:sequenceFlow id="R10" sourceRef="Call_SignPublish" targetRef="End_Reconciled"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_IrisCdnReconcile">
+    <bpmndi:BPMNPlane id="Plane_IrisCdnReconcile" bpmnElement="Process_IrisCdnReconcile">
+      <bpmndi:BPMNShape id="S_Lane_Pipeline" bpmnElement="Lane_Pipeline" isHorizontal="true"><dc:Bounds x="160" y="60" width="1830" height="144" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Lane_Exporter" bpmnElement="Lane_Exporter" isHorizontal="true"><dc:Bounds x="160" y="204" width="1830" height="144" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Start_Weekly" bpmnElement="Start_Weekly"><dc:Bounds x="297" y="112" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="225" y="152" width="180" height="36" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_ListAll" bpmnElement="Task_ListAll"><dc:Bounds x="445" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_Compare" bpmnElement="Task_Compare"><dc:Bounds x="635" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_GW_Plausible" bpmnElement="GW_Plausible" isMarkerVisible="true"><dc:Bounds x="860" y="105" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="825" y="159" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_Escalate" bpmnElement="Task_Escalate"><dc:Bounds x="1015" y="216" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_End_Refused" bpmnElement="End_Refused"><dc:Bounds x="1247" y="256" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1205" y="296" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_Recheck" bpmnElement="Task_Recheck"><dc:Bounds x="1015" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_MarkWithdrawn" bpmnElement="Task_MarkWithdrawn"><dc:Bounds x="1205" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Call_Rebuild" bpmnElement="Call_Rebuild"><dc:Bounds x="1395" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Call_SignPublish" bpmnElement="Call_SignPublish"><dc:Bounds x="1585" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_End_Reconciled" bpmnElement="End_Reconciled"><dc:Bounds x="1817" y="112" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1775" y="152" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="E_R1" bpmnElement="R1">
+        <di:waypoint x="333" y="130" />
+        <di:waypoint x="389" y="130" />
+        <di:waypoint x="389" y="132" />
+        <di:waypoint x="445" y="132" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_R2" bpmnElement="R2">
+        <di:waypoint x="565" y="132" />
+        <di:waypoint x="635" y="132" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_R3" bpmnElement="R3">
+        <di:waypoint x="755" y="132" />
+        <di:waypoint x="807.5" y="132" />
+        <di:waypoint x="807.5" y="130" />
+        <di:waypoint x="860" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_R4" bpmnElement="R4">
+        <di:waypoint x="910" y="130" />
+        <di:waypoint x="962.5" y="130" />
+        <di:waypoint x="962.5" y="276" />
+        <di:waypoint x="1015" y="276" />
+        <bpmndi:BPMNLabel><dc:Bounds x="868.5" y="231" width="90" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_R5" bpmnElement="R5">
+        <di:waypoint x="1135" y="276" />
+        <di:waypoint x="1191" y="276" />
+        <di:waypoint x="1191" y="274" />
+        <di:waypoint x="1247" y="274" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_R6" bpmnElement="R6">
+        <di:waypoint x="910" y="130" />
+        <di:waypoint x="962.5" y="130" />
+        <di:waypoint x="962.5" y="132" />
+        <di:waypoint x="1015" y="132" />
+        <bpmndi:BPMNLabel><dc:Bounds x="916" y="109" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_R7" bpmnElement="R7">
+        <di:waypoint x="1135" y="132" />
+        <di:waypoint x="1205" y="132" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_R8" bpmnElement="R8">
+        <di:waypoint x="1325" y="132" />
+        <di:waypoint x="1395" y="132" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_R9" bpmnElement="R9">
+        <di:waypoint x="1515" y="132" />
+        <di:waypoint x="1585" y="132" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_R10" bpmnElement="R10">
+        <di:waypoint x="1705" y="132" />
+        <di:waypoint x="1761" y="132" />
+        <di:waypoint x="1761" y="130" />
+        <di:waypoint x="1817" y="130" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,46 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "check-tools",
+    "title": "Do the Tool nodes agree with their skills?",
+    "description": "Check every Tool node's joins: that each `satisfies` resolves to a real skill and agrees with that skill's declared contract, that every io port names a declared type, and that no argv input has a type able to express a shell payload.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat check:tools"
+    },
+    "io": {
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The satisfies map, the count of skills with and without a Tool, then the verdict. Exit 0 every join holds, 1 at least one does not. A skill with NO Tool is reported and is NOT a failure: many skills are pure judgement, and failing on them would make the report unusable."
+        }
+      ]
+    },
+    "satisfies": [
+      "code-node-review"
+    ],
+    "selection": {
+      "when": "Before pushing any change to `tools/`, and as the first of the three audits `code-node-review` lists. It is the check that refuses a contract nobody could satisfy.",
+      "limits": "It checks the JOINS, not the truth: a node can pass while its `invoke` names a command that does something else entirely. That is a reviewer's to catch, which is why the skill exists and not a check script alone.",
+      "cost": "Seconds. Loads the Tool graph and the skill corpus in-process."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "── The two audits over the `tools` graph itself ──────────────────────\n\nBean `shzs`. I nearly filed these as a capability-vocabulary question for\nthe owner, on the grounds that no skill states \"audit the Tool graph's own\ncontracts\". That was wrong, and wrong in a way worth naming: I searched for\na skill NAMED for the capability instead of reading the skills'\ndescriptions. `code-node-review` states it outright —\n\n  \"Review the knowledge graph's CODE nodes — Tool definitions in the\n   `tools` graph and schema definition nodes under `schemas/` — for the\n   joins a reader cannot see: that a node declares what it is, that what it\n   names resolves, and that the mechanism it describes is the one that\n   actually runs.\"\n\n— and its §\"The audits to run\" NAMES `bun run cat check:tools` in a fenced\nblock. So this is case 1 of `covered-is-not-reachable` in its plainest\nform: a mechanism inlined in its skill's prose, and giving it a node is\nexactly the remedy."
+    }
+  ]
+}

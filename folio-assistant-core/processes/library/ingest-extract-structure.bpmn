@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — Ingestion subprocess — extract structure.
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool. The SVG under docs/assets/img/workflows/ is generated from it
+  by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  The <bootstrap.processes:skill> extension on an activity names the folio-assistant skill
+  that implements it; <cat-harness.processes:bean> marks a step that reads or writes the shared
+  work plan in beans/.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_ExtractStructure"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="ingestion-agent" name="Ingestion engine"/>
+  <bpmn:collaboration id="Collaboration_ExtractStructure">
+    <bpmn:participant id="Participant_ExtractStructure" name="Ingestion subprocess — extract structure" processRef="Process_ExtractStructure" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_ExtractStructure" name="Ingestion subprocess — extract structure" isExecutable="false">
+    <bpmn:documentation>Extract the structure of an uploaded source: its text layer, OCR where it has none or where a page's text layer fails the page check, sections, structure and claim candidates. Every step is an arm or rung of `bun run cat ingest` (cat-harness-tools scripts/ingest-document.ts).</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_ExtractStructure_LaneSet">
+      <bpmn:lane id="Lane_0" name="Ingestion Engine (agent, runs unattended)" partitionElementRef="ingestion-agent">
+        <bpmn:documentation>Two provenance paths converge on the same Task_Sections output — an embedded text layer extracted directly, or OCR that leaves the fuller text in ocr/ with only a stub in sections/ — and which branch this lane took is invisible downstream except to a grep that knows to check the fourth tier. Task_Candidates stays a proposal: nothing downstream may treat it as an adjudicated verdict.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_Binary</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_HasText</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ExtractText</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Ocr</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PageCheck</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Sections</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Structure</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Candidates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Structured</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Binary" name="Binary in hand">
+      <bpmn:outgoing>Flow_e1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_HasText" name="Embedded
+text layer?">
+      <bpmn:documentation>Does the binary carry an embedded text layer? `yes` extracts it; `no — scanned` runs OCR into ocr/page-*.txt.</bpmn:documentation>
+      <bpmn:incoming>Flow_e1</bpmn:incoming>
+      <bpmn:outgoing>Flow_e2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_e3</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_ExtractText" name="Extract the text layer">
+      <bpmn:documentation>The document has a text layer: extract it with pdf-extract (pdfminer.six, then a zero-dependency content-stream reader). Exit 2 means no text layer — a scan — and routes to OCR; it is not an empty document.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_e2</bpmn:incoming>
+      <bpmn:outgoing>Flow_e4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_PageCheck" name="Check each page;
+OCR pages that fail">
+      <bpmn:documentation>Owner, 2026-11-11 (who-iris, card Q-ODD-1 = A): "force OCR when a page's text layer fails a quality check". A text layer can hold plenty of letters and still not be the page's text: accents mapped to Greek letters ("dΘclaration"), Persian set in the wrong Arabic code points, words split by kerning ("au g m ente"), fake-bold words printed twice, mojibake. cat-harness-tools scripts/_text_quality.py checks every page against the document's languages (dc.language.iso, or --lang-hint); the router then OCRs the document and pdf-structure.py --ocr takes the OCR text for the failing pages only, listing them in structure.json source.ocr_pages with the reason. When most pages of a document with no outline fail, the whole document is read from OCR, as for a scan. Method: skill l1-document-ingestion, "A text layer that is not text".</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l1-document-ingestion" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_e4</bpmn:incoming>
+      <bpmn:outgoing>Flow_e9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Ocr" name="OCR to ocr/page-*.txt">
+      <bpmn:documentation>Each page is read in the document's languages (--lang-hint, from dc.language.iso), narrowed to the script the page shows. A page Tesseract is unsure of (mean word confidence under 70) is read again with each other installed script added, and the most confident read is kept: a French article's Arabic abstract, or the Latin URLs in an Arabic document's references. A document ingested this way keeps its text in ocr/ and only a stub in sections/, which the documented sections/ grep cannot see. That asymmetry is why the corpus-grep checklist has a fourth tier. The run also records WHICH SOFTWARE made the pages, in ocr/run-context.json: a folio-run-context/v1 (cat-harness schemas/run-context.ts, the record test runs and QA reports use for the same question), naming the OCR engine, the rasteriser and each language model with its version and the sha256 of the bytes that ran. Two OCRs of one scan can read differently ("Manual" and "Manval"), and without it neither could be told from the other or reproduced.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_e3</bpmn:incoming>
+      <bpmn:outgoing>Flow_e5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Sections" name="Split into sections/*.md
+with doc_brief front-matter">
+      <bpmn:documentation>Contextual retrieval: a chunk in isolation loses what makes it mean anything, so each section carries the document brief. An outline is set aside when its entries are machine bookmark names (_GoBack, _Hlk..., "Blank Page", a merged file's name) or when under half of them name a heading the pages print, and the contents are inferred instead (diagnostics.outline_rejected). A section that would hold more than half of a document of 20 pages or more (and over 8,000 words), or over 20,000 words anywhere, is cut at the headings inferred inside it, else one section per page (diagnostics.oversized_split). Owner, 2026-11-11: "split single blocks that hold a whole book". Method: skill l1-document-ingestion, "An outline that is not contents, and a section too long to be a block".</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_e9</bpmn:incoming>
+      <bpmn:incoming>Flow_e5</bpmn:incoming>
+      <bpmn:outgoing>Flow_e6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Structure" name="Write structure.json">
+      <bpmn:documentation>Write structure.json (pdf-structure/v1): doc id, TOC from the PDF outline or inferred from headings, page ranges, metadata, and source{} with the sha256 and a mimetype sniffed from the bytes, never the extension. A structure that could not be determined says so in structure_note rather than being rendered as one. For OCR'd text, source.runContext cites the OCR step's run context by sha256. A title already known for the document (the catalogue's dc.title, or one given with --title) is passed through as the raw title, so the sections' doc_title does not carry a scan's misreading.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_e6</bpmn:incoming>
+      <bpmn:outgoing>Flow_e7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Candidates" name="Extract claim candidates">
+      <bpmn:documentation>candidates.json holds extracted theorems and definitions. Proposals only -- never adjudicated verdicts.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_e7</bpmn:incoming>
+      <bpmn:outgoing>Flow_e8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Structured" name="Structured">
+      <bpmn:incoming>Flow_e8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_e1" sourceRef="StartEvent_Binary" targetRef="Gateway_HasText" />
+    <bpmn:sequenceFlow id="Flow_e2" name="yes" sourceRef="Gateway_HasText" targetRef="Task_ExtractText" />
+    <bpmn:sequenceFlow id="Flow_e3" name="no — scanned" sourceRef="Gateway_HasText" targetRef="Task_Ocr" />
+    <bpmn:sequenceFlow id="Flow_e4" sourceRef="Task_ExtractText" targetRef="Task_PageCheck" />
+    <bpmn:sequenceFlow id="Flow_e9" sourceRef="Task_PageCheck" targetRef="Task_Sections" />
+    <bpmn:sequenceFlow id="Flow_e5" sourceRef="Task_Ocr" targetRef="Task_Sections" />
+    <bpmn:sequenceFlow id="Flow_e6" sourceRef="Task_Sections" targetRef="Task_Structure" />
+    <bpmn:sequenceFlow id="Flow_e7" sourceRef="Task_Structure" targetRef="Task_Candidates" />
+    <bpmn:sequenceFlow id="Flow_e8" sourceRef="Task_Candidates" targetRef="EndEvent_Structured" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_ExtractStructure">
+    <bpmndi:BPMNPlane id="Plane_ExtractStructure" bpmnElement="Collaboration_ExtractStructure">
+      <bpmndi:BPMNShape id="Participant_ExtractStructure_di" bpmnElement="Participant_ExtractStructure" isHorizontal="true"><dc:Bounds x="160" y="80" width="1400" height="300" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0_di" bpmnElement="Lane_0" isHorizontal="true"><dc:Bounds x="190" y="80" width="1370" height="300" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Binary_di" bpmnElement="StartEvent_Binary"><dc:Bounds x="277" y="212" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_HasText_di" bpmnElement="Gateway_HasText"><dc:Bounds x="380" y="205" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ExtractText_di" bpmnElement="Task_ExtractText"><dc:Bounds x="520" y="100" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Ocr_di" bpmnElement="Task_Ocr"><dc:Bounds x="520" y="240" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PageCheck_di" bpmnElement="Task_PageCheck"><dc:Bounds x="720" y="100" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Sections_di" bpmnElement="Task_Sections"><dc:Bounds x="940" y="170" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Structure_di" bpmnElement="Task_Structure"><dc:Bounds x="1120" y="170" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Candidates_di" bpmnElement="Task_Candidates"><dc:Bounds x="1300" y="170" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Structured_di" bpmnElement="EndEvent_Structured"><dc:Bounds x="1480" y="212" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_e1_di" bpmnElement="Flow_e1"><di:waypoint x="313" y="230" /><di:waypoint x="380" y="230" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_e2_di" bpmnElement="Flow_e2"><di:waypoint x="430" y="230" /><di:waypoint x="470" y="230" /><di:waypoint x="470" y="160" /><di:waypoint x="520" y="160" /><bpmndi:BPMNLabel><dc:Bounds x="474" y="138" width="30" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_e3_di" bpmnElement="Flow_e3"><di:waypoint x="430" y="230" /><di:waypoint x="470" y="230" /><di:waypoint x="470" y="300" /><di:waypoint x="520" y="300" /><bpmndi:BPMNLabel><dc:Bounds x="436" y="310" width="44" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_e4_di" bpmnElement="Flow_e4"><di:waypoint x="640" y="160" /><di:waypoint x="720" y="160" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_e9_di" bpmnElement="Flow_e9"><di:waypoint x="840" y="160" /><di:waypoint x="900" y="160" /><di:waypoint x="900" y="230" /><di:waypoint x="940" y="230" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_e5_di" bpmnElement="Flow_e5"><di:waypoint x="640" y="300" /><di:waypoint x="900" y="300" /><di:waypoint x="900" y="230" /><di:waypoint x="940" y="230" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_e6_di" bpmnElement="Flow_e6"><di:waypoint x="1060" y="230" /><di:waypoint x="1120" y="230" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_e7_di" bpmnElement="Flow_e7"><di:waypoint x="1240" y="230" /><di:waypoint x="1300" y="230" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_e8_di" bpmnElement="Flow_e8"><di:waypoint x="1420" y="230" /><di:waypoint x="1480" y="230" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

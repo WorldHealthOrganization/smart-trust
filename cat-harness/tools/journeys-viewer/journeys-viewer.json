@@ -1,0 +1,78 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "journeys-viewer",
+    "title": "Journeys viewer",
+    "description": "Draw every journey (`user-scenario`) and workshop (`workshop`) in the checkout as static pages at the route of the visualiser a layer declares for this Tool, `<locale>/<instance>/<id>/`: an index of all journeys, grouped by layer (each a sub-graph page), each parent's `parts` nested under it in its order with optional and repeating parts marked (an older file's `partOf` children after them, ordered along `follows`), and a plain DAK user scenario with no steps listed as one; one page per journey, its parts in order and the journeys it is a part of, a journey map with a lane and a feeling curve per persona, then each step, linked to the journey it `includes`, with its BPMN drawing (the step's flow nodes highlighted), user stories, requirements, FHIR examples, building blocks, the DAK assets it uses (data sets, decision tables and indicators, linked into the IG) and ArchiMate views; and the workshop layer, the questions for the room on each step, a page per workshop and per module, job aids, and printable A3/A4 sheets; and each device screen (`device-screen`) that shows a step a workshop presents, drawn as a static device mock (phone, tablet, scanner, desktop, kiosk) with its owner beside it, in the workshop's Device Demo, linked both ways with the walkthrough. A persona's picture (`meta.persona.avatar`) is drawn wherever the persona appears. Layers below the declaring one are read through their declarations, so a downstream site shows the journeys of the layers it mounts too.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat journeys:viz"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The layer whose `visualisers` declare this Tool: the pages go to that visualiser's route. One that declares none gets nothing, and the run exits 78 (not applicable).",
+          "required": true,
+          "arg": {
+            "flag": "--instance"
+          }
+        },
+        {
+          "name": "site",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A site being built: the pages are written at the declared route under it. Absent, under the layer's own site directory. The route is this Tool's alone and is replaced whole.",
+          "required": false,
+          "arg": {
+            "flag": "--site"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "pages",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The viewer's pages and its two assets (`assets/journeys.css`, `assets/journeys.js`), under the declared route."
+        }
+      ]
+    },
+    "satisfies": [
+      "journey-maps"
+    ],
+    "selection": {
+      "when": "A site build of a layer that declares a `journeys-viewer` visualiser over its `user-scenario`, `workshop` and `device-screen` directories; run with the other declared writers (`visualiser-writers.ts`), before the navbar pass.",
+      "limits": "Static pages: the stepper, the filter and the remembered assessment ticks are a small dependency-free script, and every page reads complete without it. A FHIR example links to its page only where a layer declares a `fhir-artifact-index`; an ArchiMate view is drawn only where its layer declares `archimate-pages`. A device screen is drawn in the one state its node says: a toggle is drawn on or off, a button is a label; a workshop that declares no screen for its steps frames its own app (`presentation.deviceDemo`) instead.",
+      "cost": "Milliseconds per journey; a BPMN drawing is inlined once per step that names it."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    },
+    "renders": [
+      "user-scenario",
+      "workshop",
+      "device-screen"
+    ]
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "Owner, 2026-11-05 (option A): a generic journey and workshop viewer in the harness, so that a demonstrator's journeys and an IG's pilgrim journey are content instances of it rather than apps of their own."
+    },
+    {
+      "at": "",
+      "comment": "Owner, 2026-11-06 (option A): device screens as a kind, so any journey can show what each person sees on their device without an app of its own."
+    }
+  ]
+}
