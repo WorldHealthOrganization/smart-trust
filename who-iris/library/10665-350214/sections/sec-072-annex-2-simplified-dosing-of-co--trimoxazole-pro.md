@@ -1,0 +1,14 @@
+---
+doc_id: 10665-350214
+doc_title: "COMPREHENSIVE PACKAGE OF CARE FOR INFANTS AND YOUNG CHILDREN EXPOSED TO HIV"
+section_id: sec-072-annex-2-simplified-dosing-of-co--trimoxazole-pro
+section_title: "SIMPLIFIED DOSING OF CO- TRIMOXAZOLE PROPHYLAXIS FOR INFANTS AND CHILDREN AT LEAST FOUR WEEKS OLD"
+section_number: Annex 2
+pages: 32-33
+source_pdf: 10665-350214.pdf
+source_sha256: 4fd118adacc72d4b
+toc_source: inferred
+---
+TRIMOXAZOLE PROPHYLAXIS FOR 
+INFANTS AND CHILDREN AT LEAST 
+FOUR WEEKS OLD

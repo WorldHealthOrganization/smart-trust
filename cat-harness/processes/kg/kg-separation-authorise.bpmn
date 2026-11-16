@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_KgSeparationAuthorise" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="administrator" name="Administrator"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:collaboration id="Collaboration_Process_KgSeparationAuthorise">
+    <bpmn:participant id="Participant_Process_KgSeparationAuthorise" name="Authorise the extraction" processRef="Process_KgSeparationAuthorise"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_KgSeparationAuthorise" name="Authorise the extraction" isExecutable="false">
+    <bpmn:documentation>Reports what would move, with sizes and what breaks, and asks the administrator to authorise the extraction; the gateway after the ask reads the answer. Called by kg-separation and sub-kg-lifecycle (bpmn-authoring: a question is a gateway, never a task).</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_KgSeparationAuthorise">
+      <bpmn:lane id="Lane_Agent" name="Authoring agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Briefs, measures the signals, runs declare-detangle-isolate, reports what would move, seeds the repositories once they exist, and adopts each later release. Verification is always by re-running a gate, never by a change looking right.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Authorise</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Propose</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Admin" name="Administrator" partitionElementRef="administrator">
+        <bpmn:documentation>The person's decisions: whether to separate at all, authorising the extraction, creating the repositories, and the cutover that retires the parent's copy. An agent reports and waits at each; none of them may be relaxed by a package.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Authorise</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Authorised</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Authorised</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NotAuthorised</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Authorise" name="Ready to leave">
+      <bpmn:outgoing>F1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="Task_Propose" name="Report what moves&#10;— sizes, what breaks" calledElement="GT_ReportWhatMoves">
+      <bpmn:incoming>F1</bpmn:incoming>
+      <bpmn:outgoing>F2</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Task_Authorise" calledElement="Process_AskThePerson" name="Ask to authorise&#10;the extraction">
+      <bpmn:documentation>A repository cut changes the substrate every other process binds to; that is a person's decision. Declining leaves the graph declared, detangled, isolated and split in place.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="deletion-requires-confirmation"/>
+        <cat-harness.processes:policy relaxable="false"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F2</bpmn:incoming>
+      <bpmn:outgoing>F3</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Authorised" name="Authorised?">
+      <bpmn:documentation>Reads the administrator's answer to the ask before it.</bpmn:documentation>
+      <bpmn:incoming>F3</bpmn:incoming>
+      <bpmn:outgoing>F4</bpmn:outgoing>
+      <bpmn:outgoing>F5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Authorised" name="Authorised">
+      <bpmn:documentation>The administrator authorised the extraction.</bpmn:documentation>
+      <bpmn:incoming>F4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_NotAuthorised" name="Declined">
+      <bpmn:documentation>Declined: the graph stays in place, ready to leave.</bpmn:documentation>
+      <bpmn:incoming>F5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="F1" sourceRef="Start_Authorise" targetRef="Task_Propose"/>
+    <bpmn:sequenceFlow id="F2" sourceRef="Task_Propose" targetRef="Task_Authorise"/>
+    <bpmn:sequenceFlow id="F3" sourceRef="Task_Authorise" targetRef="GW_Authorised"/>
+    <bpmn:sequenceFlow id="F4" name="authorised" sourceRef="GW_Authorised" targetRef="End_Authorised"/>
+    <bpmn:sequenceFlow id="F5" name="declined" sourceRef="GW_Authorised" targetRef="End_NotAuthorised"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_KgSeparationAuthorise">
+    <bpmndi:BPMNPlane id="Plane_Process_KgSeparationAuthorise" bpmnElement="Collaboration_Process_KgSeparationAuthorise">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_KgSeparationAuthorise" bpmnElement="Participant_Process_KgSeparationAuthorise" isHorizontal="true"><dc:Bounds x="130" y="60" width="1155" height="750"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent" bpmnElement="Lane_Agent" isHorizontal="true"><dc:Bounds x="160" y="60" width="1125" height="250"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Admin" bpmnElement="Lane_Admin" isHorizontal="true"><dc:Bounds x="160" y="310" width="1125" height="500"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Authorise" bpmnElement="Start_Authorise"><dc:Bounds x="272" y="167" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="240" y="209" width="100" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Propose" bpmnElement="Task_Propose"><dc:Bounds x="405" y="125" width="120" height="120"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Authorise" bpmnElement="Task_Authorise"><dc:Bounds x="580" y="416.667" width="120" height="120"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Authorised" bpmnElement="GW_Authorised"><dc:Bounds x="790" y="451.667" width="50" height="50"/><bpmndi:BPMNLabel><dc:Bounds x="822" y="421.667" width="100" height="28"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Authorised" bpmnElement="End_Authorised"><dc:Bounds x="972" y="458.667" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="940" y="500.667" width="100" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_NotAuthorised" bpmnElement="End_NotAuthorised"><dc:Bounds x="972" y="625.333" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="940" y="667.333" width="100" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_F1" bpmnElement="F1"><di:waypoint x="308" y="185"/><di:waypoint x="405" y="185"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F2" bpmnElement="F2"><di:waypoint x="525" y="185"/><di:waypoint x="555" y="185"/><di:waypoint x="555" y="476.667"/><di:waypoint x="580" y="476.667"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F3" bpmnElement="F3"><di:waypoint x="700" y="476.667"/><di:waypoint x="790" y="476.667"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F4" bpmnElement="F4"><di:waypoint x="840" y="476.667"/><di:waypoint x="972" y="476.667"/><bpmndi:BPMNLabel><dc:Bounds x="844" y="479.333" width="80" height="14"/></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F5" bpmnElement="F5"><di:waypoint x="815" y="501.667"/><di:waypoint x="815" y="643.333"/><di:waypoint x="972" y="643.333"/><bpmndi:BPMNLabel><dc:Bounds x="819" y="564" width="80" height="17" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

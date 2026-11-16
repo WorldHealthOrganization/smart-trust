@@ -1,0 +1,3 @@
+Sub-indicator 2-07.7
+Existence of national and/or subnational standards for community health workers’ curriculum (Yes/ Partial/No/Not applicable)
+Guiding questions: Is there a national and/or subnational standard describing the content for the curriculum of community health workers (CHWs), with associated knowledge, skills and competencies required by them to perform their tasks? Do national and/or subnational mechanisms for accreditation of health workforce education and training institutions and their programmes include CHW curriculum? Note: if there are no CHWs in the country, then report as “Not applicable”.

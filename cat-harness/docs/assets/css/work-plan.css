@@ -1,0 +1,701 @@
+/*
+ * The work-plan dashboard's styles.
+ *
+ * Split out of `docs-ui.css` for the reason `work-plan.js` is split out of
+ * `docs-ui.js`: `scripts/state-visualizer.ts` INLINES these bytes into every
+ * generated visualiser page, and a rule that exists twice is a rule free to
+ * drift between the two surfaces it paints.
+ */
+
+/* What the bean store and the todo store currently hold, on the page that
+   documents them. `work-plan.js` builds the markup.
+
+   ## The surface is set HERE, deliberately
+
+   Every contrast figure quoted below is measured against a surface, and a
+   figure measured against a surface the chart does not render on is not a
+   measurement. just-the-docs defines none of the custom properties the rest
+   of this file falls back around, so inheriting "whatever the page ground
+   happens to be" would leave those numbers unverifiable. The panel therefore
+   paints its own surface and the numbers hold.
+
+   ## The colours, and which rule each one follows
+
+   One series colour, because the chart has one series: sequential blue, step
+   400 on the dark surface and 450 on the light one. Both clear 3:1 against
+   the surface set here.
+
+   The four status colours are RESERVED for state and are never reused as
+   series colours. Bean statuses take none of them on purpose — a bean being
+   `todo` is its ordinary resting state, not a warning, and an interface that
+   paints ordinary state amber teaches a reader to ignore amber.
+
+   ## Measured, and mitigated rather than argued away
+
+   `warning` (#fab219) and `serious` (#ec835a) sit ΔE 13.6 apart in normal
+   vision, below the 15 floor, and on the LIGHT surface both fall under 3:1
+   (1.79 and 2.57). Those two are also the two findings this dashboard emits
+   most. The mitigation is the documented one and it is structural, not a
+   matter of care: every finding row carries a distinct ICON and a distinct
+   WORD as well as its colour, so no finding is ever distinguished by hue
+   alone. Removing either the icon or the label re-opens this. */
+
+.fa-workplan {
+  /* Dark is the default scheme on this site; light is the override below. */
+  --fa-wp-surface: #1a1a19;
+  --fa-wp-ink: #ffffff;
+  --fa-wp-ink-2: #c3c2b7;
+  --fa-wp-muted: #898781;
+  --fa-wp-border: rgba(255, 255, 255, 0.10);
+  --fa-wp-track: #2c2c2a;
+  --fa-wp-series: #3987e5;
+  --fa-wp-good: #0ca30c;
+  --fa-wp-warning: #fab219;
+  --fa-wp-serious: #ec835a;
+  --fa-wp-critical: #d03b3b;
+  /* Critical as TEXT: #d03b3b on the dark surface is 3.62:1, under WCAG's
+     4.5:1 for the badge's 11.5px label (axe, beans dashboard, 2026-10-03, the
+     first time a critical finding was shown). The reserved status hue stays
+     for fills; text takes this shade (5.07:1). Light keeps #d03b3b (4.68:1). */
+  --fa-wp-critical-text: #e85c5c;
+  /* Series as TEXT (the in-progress status word): #3987e5 is 4.79:1 here, so
+     dark keeps it; light needs its own shade, below. */
+  --fa-wp-series-text: #3987e5;
+  /* The other status hues as TEXT. On the dark surface each hue clears 4.5:1
+     itself (good 5.19, warning 9.49, serious 6.60). On the light one none
+     does (3.27, 1.79, 2.57) — axe on /beans/, 2026-10-10: every warning badge
+     label at 1.78:1 — so the light override gives each a darker shade. The
+     icon-and-word mitigation above is for telling statuses APART; it does not
+     make a label legible. */
+  --fa-wp-good-text: var(--fa-wp-good);
+  --fa-wp-warning-text: var(--fa-wp-warning);
+  --fa-wp-serious-text: var(--fa-wp-serious);
+  margin: 1.5rem 0;
+}
+
+:root[data-fa-scheme="light"] .fa-workplan {
+  --fa-wp-surface: #fcfcfb;
+  --fa-wp-ink: #0b0b0b;
+  --fa-wp-ink-2: #52514e;
+  --fa-wp-border: rgba(11, 11, 11, 0.10);
+  --fa-wp-track: #e1e0d9;
+  --fa-wp-series: #2a78d6;
+  /* #2a78d6 as 10.9px text on #fcfcfb is 4.30:1, under WCAG's 4.5:1 (axe,
+     /beans/, 2026-10-14). Fills and outlines keep it; text takes 4.80:1. */
+  --fa-wp-series-text: #2470cc;
+  --fa-wp-critical-text: #d03b3b;
+  /* 5.18, 5.77 and 5.75:1 on #fcfcfb; muted 5.28 (#898781 was 3.50). */
+  --fa-wp-good-text: #0a7d0a;
+  --fa-wp-warning-text: #8a5a00;
+  --fa-wp-serious-text: #a8461c;
+  --fa-wp-muted: #6b6a65;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-fa-scheme="dark"]) .fa-workplan {
+    --fa-wp-surface: #fcfcfb;
+    --fa-wp-ink: #0b0b0b;
+    --fa-wp-ink-2: #52514e;
+    --fa-wp-border: rgba(11, 11, 11, 0.10);
+    --fa-wp-track: #e1e0d9;
+    --fa-wp-series: #2a78d6;
+    --fa-wp-series-text: #2470cc;
+    --fa-wp-critical-text: #d03b3b;
+    --fa-wp-good-text: #0a7d0a;
+    --fa-wp-warning-text: #8a5a00;
+    --fa-wp-serious-text: #a8461c;
+    --fa-wp-muted: #6b6a65;
+  }
+}
+
+.fa-workplan-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem;
+}
+
+/* Above the breakpoint the two panels are NOT equal: the counts are five short
+   numbers and the findings are sentences. An `auto-fit` split gave each half
+   the row and set the findings in a 17rem column, where a one-line finding ran
+   to six lines. Measured on the rendered page — which is why the page gets
+   rendered. */
+@media (min-width: 60rem) {
+  .fa-workplan-board { grid-template-columns: minmax(13rem, 0.7fr) 2fr; }
+}
+
+/* The chart spans the row: its labels are epic titles and a half-width column
+   clamps every one of them to two lines of ellipsis. */
+.fa-workplan-panel--wide { grid-column: 1 / -1; }
+
+.fa-workplan-panel {
+  background: var(--fa-wp-surface);
+  border: 1px solid var(--fa-wp-border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem 1rem;
+  color: var(--fa-wp-ink);
+}
+
+.fa-workplan-panel-title {
+  font-size: var(--fa-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--fa-wp-muted);
+  margin: 0 0 0.6rem;
+}
+.fa-workplan-panel-title + * + .fa-workplan-panel-title { margin-top: 1.1rem; }
+
+/* ── Counts ─────────────────────────────────────────────────────────────
+   Numbers, not a four-bar chart restating the same four numbers. */
+
+.fa-workplan-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.4rem;
+  margin: 0;
+}
+
+.fa-workplan-count { display: flex; flex-direction: column-reverse; }
+
+.fa-workplan-count-value {
+  margin: 0;
+  font-size: var(--fa-text-lg);
+  font-weight: 600;
+  line-height: 1.15;
+  /* Text ink, never a series colour: a count is a number, not a mark. */
+  color: var(--fa-wp-ink);
+  font-variant-numeric: tabular-nums;
+}
+.fa-workplan-count.is-hero .fa-workplan-count-value { font-size: var(--fa-text-2xl); }
+
+.fa-workplan-count-label {
+  font-size: var(--fa-text-xs);
+  color: var(--fa-wp-ink-2);
+}
+
+/* ── The bar chart ──────────────────────────────────────────────────────
+   Horizontal because the categories are epic titles. One series, so no
+   legend: the caption names it. Every row carries its label and its value as
+   text, which is what makes the chart its own table view. */
+
+.fa-workplan-chart { margin: 0; }
+
+.fa-workplan-chart-title {
+  font-size: var(--fa-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--fa-wp-muted);
+  margin: 0 0 0.7rem;
+}
+
+.fa-workplan-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.fa-workplan-bar-row {
+  display: block;
+  margin: 0;
+}
+
+.fa-workplan-bar-label {
+  font-size: var(--fa-text-xs);
+  color: var(--fa-wp-ink-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.fa-workplan-bar-track {
+  background: var(--fa-wp-track);
+  border-radius: 4px;
+  height: 0.85rem;
+  overflow: hidden;
+}
+
+.fa-workplan-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--fa-wp-series);
+  /* Rounded on the free end only: the bar is anchored to its baseline and a
+     rounded start would read as floating off it. */
+  border-radius: 0 4px 4px 0;
+}
+
+.fa-workplan-bar-value {
+  font-size: var(--fa-text-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--fa-wp-ink);
+}
+
+/* ── Findings ───────────────────────────────────────────────────────────
+   Icon, word, sentence. The colour is the third channel, never the first. */
+
+.fa-workplan-findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.fa-workplan-finding {
+  display: grid;
+  /* minmax(0, …): a bare `1fr` track will not shrink below its longest word,
+     so a long bean title pushed the beans dashboard to 401px at a 390px
+     viewport once vhqq surfaced 59 blocked-without-expiry rows. */
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
+  font-size: var(--fa-text-sm);
+  line-height: 1.45;
+}
+
+.fa-workplan-finding-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: var(--fa-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.fa-workplan-icon { width: 1rem; height: 1rem; flex: none; }
+
+.fa-workplan-finding.is-good .fa-workplan-finding-badge { color: var(--fa-wp-good-text); }
+.fa-workplan-finding.is-warning .fa-workplan-finding-badge { color: var(--fa-wp-warning-text); }
+.fa-workplan-finding.is-serious .fa-workplan-finding-badge { color: var(--fa-wp-serious-text); }
+.fa-workplan-finding.is-critical .fa-workplan-finding-badge { color: var(--fa-wp-critical-text); }
+
+/* The sentence stays in text ink. A finding's words are read; its colour is
+   glanced at, and a paragraph in status colour is neither. */
+.fa-workplan-finding-text { color: var(--fa-wp-ink-2); overflow-wrap: anywhere; }
+
+/* ── Links ──────────────────────────────────────────────────────────────
+   Identity by UNDERLINE, in text ink, never by hue.
+
+   A link colour here would be a sixth colour to validate against this
+   surface, and it would sit inside sentences whose only other colour is a
+   RESERVED status hue — so a blue bean id beside an amber NO EXPIRY badge
+   would read as a fourth severity. Underline also survives forced-colors,
+   greyscale print and a colour-blind reader, which a hue does not.
+
+   A reference that could not be resolved renders as plain text with no
+   underline, which is the visible difference between "follow this" and "this
+   points somewhere I could not reach". */
+.fa-workplan-ref {
+  color: var(--fa-wp-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
+.fa-workplan-ref:hover { text-decoration-thickness: 2px; }
+
+/* The pencil. A published page cannot write back to the repository, so the
+   honest control is the one that takes you where writing happens — the same
+   argument `.fa-node-edit` makes on every other content object here. */
+.fa-workplan-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  box-sizing: border-box;
+  vertical-align: -0.15em;
+  color: var(--fa-wp-muted);
+  text-decoration: none;
+}
+.fa-workplan-edit:hover { color: var(--fa-wp-ink); }
+.fa-workplan-edit .fa-workplan-icon { width: 0.85rem; height: 0.85rem; }
+
+/* One shape for every action on this board — the epic link, the scope button
+   and the clear button — because they are the same kind of thing to a reader
+   even though two are buttons and one is an anchor. */
+.fa-workplan-action {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--fa-wp-border);
+  border-radius: 0.25rem;
+  background: none;
+  color: var(--fa-wp-ink);
+  font: inherit;
+  font-size: var(--fa-text-xs);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+.fa-workplan-action:hover { background: var(--fa-wp-track); }
+.fa-workplan-action:focus-visible {
+  outline: 2px solid var(--fa-wp-series);
+  outline-offset: 1px;
+}
+
+.fa-workplan-bean-list { margin: 0; padding: 0; list-style: none; }
+.fa-workplan-bean-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.12rem 0;
+  font-size: var(--fa-text-xs);
+}
+/* A status word, never a status colour alone — the reserved-status rule: it
+   ships with a label, and here the label IS the mark. */
+.fa-workplan-bean-status {
+  flex: 0 0 auto;
+  min-width: 5.2rem;
+  font-size: var(--fa-text-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--fa-wp-ink-2);
+}
+.fa-workplan-bean-status.is-in-progress { color: var(--fa-wp-series-text); }
+.fa-workplan-bean-blocked {
+  flex: 0 0 auto;
+  font-size: var(--fa-text-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--fa-wp-warning-text);
+}
+/* A blocker's id inside the badge (bean `vhqq`): ids are case-sensitive, so
+   the badge's uppercase does not apply to them. */
+.fa-workplan-block-edge {
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--fa-font-mono);
+}
+a.fa-workplan-block-edge { color: inherit; text-decoration: underline; text-underline-offset: 0.15em; }
+.fa-workplan-block-edge.is-dangling { font-style: italic; }
+.fa-workplan-bean-link { color: var(--fa-wp-ink); }
+a.fa-workplan-bean-link { text-decoration: underline; text-underline-offset: 0.15em; }
+.fa-workplan-bean-empty { margin: 0; font-size: var(--fa-text-xs); color: var(--fa-wp-ink-2); }
+
+/* The scoped row stays visible among the others rather than replacing them,
+   so the way back is never further than the bar you came from.
+   SELECTION IS NOT THE SAME INK AS HOVER: the first draft gave both the same
+   background, so the row you had chosen and the row your pointer happened to
+   rest on were indistinguishable. Hover stays a wash; selection adds an
+   accent rule in the series colour and is announced with aria-current. */
+
+/* ONE ROW, ABOVE THE PANELS. */
+.fa-workplan-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  grid-column: 1 / -1;
+  margin-bottom: 0.2rem;
+  font-size: var(--fa-text-sm);
+}
+.fa-workplan-filter-label { color: var(--fa-wp-ink-2); }
+.fa-workplan-filter-value { color: var(--fa-wp-ink); font-weight: 600; }
+
+/* Type filter bar — pill buttons for filtering by bean type */
+.fa-workplan-type-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  grid-column: 1 / -1;
+  margin-bottom: 0.5rem;
+}
+.fa-workplan-type-btn {
+  font: inherit;
+  font-size: var(--fa-text-xs);
+  font-weight: 500;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--fa-wp-track, rgba(255,255,255,0.15));
+  border-radius: 1rem;
+  background: transparent;
+  color: var(--fa-wp-ink-2);
+  cursor: pointer;
+  text-transform: capitalize;
+  line-height: 1.4;
+}
+.fa-workplan-type-btn:hover {
+  background: var(--fa-wp-track, rgba(255,255,255,0.08));
+  color: var(--fa-wp-ink);
+}
+/* The selected chip INVERTS: ink ground, surface lettering. It read
+   `var(--fa-wp-bg, #0d0d0d)`, a property nothing defines, so the fallback
+   painted near-black text on the near-black ink of the light scheme and the
+   active chip showed as a blank black pill. The surface token is defined in
+   both schemes, so the inversion now holds in each by construction. */
+.fa-workplan-type-btn.is-active {
+  background: var(--fa-wp-ink);
+  color: var(--fa-wp-surface);
+  border-color: var(--fa-wp-ink);
+  font-weight: 600;
+}
+.fa-workplan-type-btn:focus-visible {
+  outline: 2px solid var(--fa-wp-ink);
+  outline-offset: 2px;
+}
+
+/* Search within the beans (#2418). A full-width row under the type chips,
+   with a visible label: a placeholder is not a label. Inks are the panel's
+   own tokens, so it holds in both schemes. */
+.fa-workplan-search {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.fa-workplan-search label {
+  font-size: var(--fa-text-sm);
+  font-weight: 600;
+  color: var(--fa-wp-ink);
+}
+.fa-workplan-search-input {
+  flex: 1 1 16rem;
+  min-height: 2.25rem;
+  font: inherit;
+  font-size: var(--fa-text-sm);
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--fa-wp-ink-2);
+  border-radius: 6px;
+  background: var(--fa-wp-surface);
+  color: var(--fa-wp-ink);
+}
+.fa-workplan-search-input::placeholder { color: var(--fa-wp-ink-2); opacity: 1; }
+.fa-workplan-search-input:focus-visible {
+  outline: 2px solid var(--fa-wp-ink);
+  outline-offset: 2px;
+}
+.fa-workplan-results .fa-workplan-bean-list { list-style: none; margin: 0.5rem 0 0; padding: 0; }
+/* Each result is a link a reader is expected to click, so it meets the 24px
+   target floor (WCAG 2.2 2.5.8) — rows of 15px text did not, measured. */
+.fa-workplan-results .fa-workplan-bean-row { padding: 0.15rem 0; }
+.fa-workplan-results .fa-workplan-bean-link {
+  display: inline-block;
+  min-height: 24px;
+  line-height: 24px;
+}
+.fa-workplan-bean-id {
+  font-size: var(--fa-text-xs);
+  color: var(--fa-wp-ink-2);
+  margin-right: 0.4rem;
+}
+
+/* When this page was built, from which commit, and how far main has moved
+   since. Muted ink: it qualifies every number below rather than being one. */
+.fa-workplan-stamp {
+  font-size: var(--fa-text-xs);
+  color: var(--fa-wp-ink-2);
+  margin: 0 0 1rem;
+}
+.fa-workplan-stamp code { font-size: 0.95em; }
+
+.fa-workplan-empty,
+.fa-workplan-fallback {
+  font-size: var(--fa-text-sm);
+  color: var(--fa-wp-ink-2);
+  margin: 0;
+}
+
+/* Forced colours: the status hues are gone and the icon and the word are all
+   that is left, which is exactly what they were there for. */
+@media (forced-colors: active) {
+  .fa-workplan-panel { border-color: CanvasText; }
+  .fa-workplan-bar-fill { background: Highlight; }
+  .fa-workplan-finding-badge { color: CanvasText; }
+}
+
+@media (max-width: 40rem) {
+  .fa-workplan-finding {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+  .fa-workplan-bar-label {
+    -webkit-line-clamp: 5;
+  }
+}
+
+/* ── Milestone bars ─────────────────────────────────────────────────────
+   A PART-TO-WHOLE bar: 100% means every bean beneath the milestone is
+   closed. The label is a button that opens that goal in the tree below,
+   with the bean's file one small link beside it.
+
+   The counts sit beside the percentage because the share is bean-weighted
+   and the counts are what a reader can reconcile against the bar. */
+
+.fa-workplan-bar-row--progress {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "label value"
+    "track track"
+    "note  note"
+    "spark spark";
+  align-items: baseline;
+  gap: 0.2rem 0.6rem;
+  padding: 0.35rem 0 0.5rem;
+}
+
+.fa-workplan-bar-row--progress .fa-workplan-bar-label-wrap { grid-area: label; }
+button.fa-workplan-bar-label {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--fa-text-sm);
+  color: var(--fa-wp-ink);
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+button.fa-workplan-bar-label:focus-visible { outline: 2px solid var(--fa-wp-series); outline-offset: 1px; }
+.fa-workplan-bar-file {
+  font-size: var(--fa-text-xs); color: var(--fa-wp-ink-2);
+  display: inline-flex; align-items: center; min-height: 24px; min-width: 24px;
+}
+.fa-workplan-bar-row--progress .fa-workplan-bar-track { grid-area: track; }
+.fa-workplan-bar-row--progress .fa-workplan-bar-value { grid-area: value; }
+.fa-workplan-bar-row--progress .fa-workplan-bar-note { grid-area: note; }
+.fa-workplan-bar-row--progress .fa-workplan-bar-burndown { grid-area: spark; }
+
+/* The burn-down line (bean hf2q slice 4): open beans beneath a goal per day. */
+.fa-workplan-burndown { display: block; max-width: 100%; height: auto; overflow: visible; }
+.fa-workplan-burndown-line { fill: none; stroke: var(--fa-wp-series); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+.fa-workplan-burndown-dot { fill: var(--fa-wp-series); }
+
+.fa-workplan-bar-note {
+  font-size: var(--fa-text-xs);
+  color: var(--fa-wp-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The coverage denominator, under the list rather than in a footnote: three
+   shares with no denominator invite the reading that they describe the whole
+   work plan. */
+.fa-workplan-chart-note {
+  font-size: var(--fa-text-xs);
+  line-height: 1.5;
+  color: var(--fa-wp-muted);
+  margin: 0.75rem 0 0;
+  max-width: 62ch;
+}
+
+/* ── The work-plan tree: goal → epic → feature → story ─────────────────
+   Native <details>, so open/closed, keyboard and screen-reader behaviour are
+   the browser's own. Indentation by nesting, one rule on the left per level,
+   so depth reads without counting pixels. */
+.fa-workplan-tree-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+.fa-workplan-tree-closed { font-size: var(--fa-text-xs); color: var(--fa-wp-ink-2); cursor: pointer; }
+.fa-workplan-tree-closed input { width: 1rem; height: 1rem; vertical-align: -0.15em; }
+.fa-workplan-tree { list-style: none; margin: 0; padding: 0 0 0 1.1rem; }
+.fa-workplan-tree.is-root { padding-left: 0; margin-top: 0.5rem; }
+.fa-workplan-tree .fa-workplan-tree { border-left: 1px solid var(--fa-wp-border); margin-left: 0.45rem; }
+.fa-workplan-tree-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.45rem;
+  min-height: 1.5rem;
+  padding: 0.1rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: var(--fa-text-sm);
+}
+.fa-workplan-tree-row.is-leaf { padding-left: 1.2rem; }
+summary.fa-workplan-tree-row { cursor: pointer; list-style: none; }
+summary.fa-workplan-tree-row::-webkit-details-marker { display: none; }
+/* The caret is a mark AND a position: closed ▸, open ▾. A branch's caret is
+   its disclosure button, 24px square (WCAG 2.2 2.5.8). */
+summary.fa-workplan-tree-row::before,
+.fa-workplan-tree-toggle::before {
+  content: "\25B8";
+  color: var(--fa-wp-muted);
+}
+summary.fa-workplan-tree-row::before { flex: 0 0 0.9rem; }
+details[open] > summary.fa-workplan-tree-row::before,
+.fa-workplan-tree-toggle[aria-expanded="true"]::before { content: "\25BE"; }
+.fa-workplan-tree-toggle {
+  flex: 0 0 auto;
+  width: 24px; height: 24px;
+  margin: 0 -0.2rem 0 -0.3rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  align-self: center;
+}
+summary.fa-workplan-tree-row:hover,
+.fa-workplan-tree-toggle:hover { background: var(--fa-wp-track); }
+summary.fa-workplan-tree-row:focus-visible,
+.fa-workplan-tree-toggle:focus-visible { outline: 2px solid var(--fa-wp-series); outline-offset: 1px; }
+.fa-workplan-tree-type {
+  flex: 0 0 auto;
+  min-width: 4.6rem;
+  font-size: var(--fa-text-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--fa-wp-muted);
+}
+.fa-workplan-tree-type.is-milestone,
+.fa-workplan-tree-type.is-epic { color: var(--fa-wp-ink); font-weight: 600; }
+.fa-workplan-tree-row .fa-workplan-bean-status { min-width: 5.2rem; }
+/* The title takes the slack, so the count and the button stay on its line
+   instead of wrapping under the type column. */
+.fa-workplan-tree-row .fa-workplan-bean-link {
+  flex: 1 1 16rem; min-width: 0;
+  /* WCAG 2.5.8: a 24px target, as the results list gives its links. */
+  display: inline-flex; align-items: center; min-height: 24px;
+}
+.fa-workplan-tree-count { font-size: var(--fa-text-xs); color: var(--fa-wp-ink-2); white-space: nowrap; }
+.fa-workplan-tree-focus { font-size: var(--fa-text-2xs); padding: 0.05rem 0.4rem; min-height: 24px; min-width: 24px; }
+/* A filter's match is marked by weight and a rule, not by colour alone. */
+.fa-workplan-tree-row.is-match { box-shadow: inset 3px 0 0 var(--fa-wp-series); }
+.fa-workplan-tree-row.is-match .fa-workplan-bean-link { font-weight: 600; }
+.fa-workplan-tree-branch.is-loose > summary { color: var(--fa-wp-ink-2); font-style: italic; }
+@media (max-width: 40rem) {
+  .fa-workplan-tree-type, .fa-workplan-tree-row .fa-workplan-bean-status { min-width: 0; }
+  .fa-workplan-tree { padding-left: 0.7rem; }
+}
+
+/* A work plan's marker (work item folio-assistant-exrp): an epic or milestone
+   that names the process it runs. Quiet, so the tree still reads as a tree. */
+.fa-workplan-plan {
+  /* Its own line under the title, after the counts, so the row's right-hand
+     column (counts, "Only this") stays where the other rows have it. */
+  flex: 1 0 100%;
+  order: 99;
+  padding-left: 1.6rem;
+  font-size: var(--fa-text-xs);
+  color: var(--fa-wp-muted);
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
+.fa-workplan-plan-label {
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+.fa-workplan-plan code {
+  font-size: inherit;
+}
+.fa-workplan-plan-proposal-link {
+  color: inherit;
+}
+.fa-workplan-plan-items {
+  margin-left: 0.5rem;
+  font-size: inherit;
+}
