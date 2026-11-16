@@ -40,11 +40,11 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-NAMESPACE = "https://litlfred.github.io/smart-trust/archimate"
+NAMESPACE = "https://worldhealthorganization.github.io/smart-trust/archimate"
 SOURCE = "WHO SMART Trust (litlfred/smart-trust): the GDHCN trust network, the home page's figure"
 MODEL_NAME = "WHO SMART Trust"
 FIXED_TIME = (2026, 1, 1, 0, 0, 0)
-IG = "https://litlfred.github.io/smart-trust/"
+IG = "https://worldhealthorganization.github.io/smart-trust/"
 ANCHOR = IG + "artifact/ActorDefinition-TrustNetworkAnchor.html"
 PARTICIPANT = IG + "artifact/ActorDefinition-TrustNetworkParticipant.html"
 
