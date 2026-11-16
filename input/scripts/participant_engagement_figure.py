@@ -63,6 +63,8 @@ PAD = 12
 GAP = 10
 COL_W = 176
 LINE = 17
+# The width of a status mark (● or ○) and its space before a name.
+MARK_W = 13
 HEAD_H = 34
 
 
@@ -170,8 +172,9 @@ def render(data: dict, rows: list[dict]) -> str:
             out.append(f'<rect x="{x}" y="{y}" width="{pw}" height="{h}" fill="#FFFFFF" stroke="{HEAD_FILL}" stroke-width="1.2"/>')
             head_lines = text_lines(f"{REGION_TITLES[region]} ({len(entries)})", int(pw / 7.6))
             hy = y + (20 if len(head_lines) == 1 else 13)
+            # Absolute x and y per line, so a translation can re-wrap the heading (cat-harness-tools svg-label-po).
             head_text = "".join(
-                f'<tspan x="{x + pw / 2:.0f}" dy="{0 if i == 0 else 14}">{escape(ln)}</tspan>' for i, ln in enumerate(head_lines)
+                f'<tspan x="{x + pw / 2:.0f}" y="{hy + 14 * i}">{escape(ln)}</tspan>' for i, ln in enumerate(head_lines)
             )
             out.append(
                 f'<a href="CodeSystem-WHORegionalOffices.html#WHORegionalOffices-{region}"><title>{escape(REGION_TITLES[region])} ({region})</title>'
@@ -185,13 +188,16 @@ def render(data: dict, rows: list[dict]) -> str:
                 for e in entries[c * per_col:(c + 1) * per_col]:
                     st = STATUS[e["status"]]
                     lines = text_lines(e["name"], 26)
-                    tspans = "".join(
-                        f'<tspan x="{x + 8 + c * cw:.0f}" dy="{0 if i == 0 else LINE}">{escape((st["mark"] if i == 0 else "   ") + ln)}</tspan>'
-                        for i, ln in enumerate(lines)
-                    )
+                    # The mark and the name apart, the name one label with a line per tspan, so a
+                    # translation replaces the whole name and re-wraps it within its column.
+                    nx = x + 8 + c * cw + MARK_W
+                    tspans = "".join(f'<tspan x="{nx:.0f}" y="{ty + i * LINE}">{escape(ln)}</tspan>' for i, ln in enumerate(lines))
+                    mark = st["mark"].strip()
                     t = (
-                        f'<text y="{ty}" font-size="12" font-weight="{st["weight"]}" fill="{st["fill"]}">'
-                        f'<title>{escape(e["name"])} ({e["code"]}): {escape(st["label"])}</title>{tspans}</text>'
+                        f'<g font-size="12" font-weight="{st["weight"]}" fill="{st["fill"]}">'
+                        f'<title>{escape(e["name"])} ({e["code"]}): {escape(st["label"])}</title>'
+                        + (f'<text x="{x + 8 + c * cw:.0f}" y="{ty}">{escape(mark)}</text>' if mark else "")
+                        + f'<text data-label-width="{cw - MARK_W - 20:.0f}" data-label-grow="down" data-label-fit="shrink">{tspans}</text></g>'
                     )
                     if e["link"]:
                         t = f'<a href="Organization-GDHCNParticipant-{e["code"]}.html">{t}</a>'
