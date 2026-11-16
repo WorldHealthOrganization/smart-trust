@@ -29,7 +29,7 @@ DEFAULT_BRANCH = "main"
 # replaces the certificate's locality name, so the DEV value set names the
 # country the journeys use. Both are ISO 3166-1 user-assigned codes.
 FICTIONAL_COUNTRIES = {
-    "XXK": "Onesa",      # the family's home country (certificate locality: Rengo)
+    "XXU": "Onesa",      # the family's home country (certificate locality: Geneva)
     "XXR": "Taifafeki",  # the country visited (certificate locality: Mumbai)
 }
 
