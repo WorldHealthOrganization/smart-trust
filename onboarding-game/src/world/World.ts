@@ -9,7 +9,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {
-  C, add, backend, barrier, cat, dashboard, gateway, glowMat, ministry, ministrySign, operations, plot, repos, secretariat, std, territory, tree,
+  C, add, backend, barrier, cat, dashboard, gateway, glowMat, juggle, ministry, ministrySign, operations, plot, repos, secretariat, std, territory, tree,
 } from './models';
 import { Bot } from './Bot';
 
@@ -61,6 +61,9 @@ export class World {
   onPlaceClick: ((id: PlaceId) => void) | null = null;
   onCatClick: ((id: string) => void) | null = null;
   private cats = new Map<THREE.Object3D, string>();
+  /** The bandit cat, who juggles stolen fish (slowly; held still for readers who ask for reduced motion). */
+  private bandit: THREE.Object3D | null = null;
+  private reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   constructor(el: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -415,6 +418,7 @@ export class World {
       c.position.set(x, y, z); c.rotation.y = ry;
       this.scene.add(c);
       this.cats.set(c, id);
+      if (id === 'country') this.bandit = c;
     }
   }
 
@@ -493,6 +497,7 @@ export class World {
     }
     this.parcels = this.parcels.filter(p => p.update(dt));
     this.bot.update(now, dt);
+    if (this.bandit && !this.reducedMotion) juggle(this.bandit, now);
     if (this.fly) {
       const f = this.fly;
       f.u = Math.min(f.u + dt / f.dur, 1);

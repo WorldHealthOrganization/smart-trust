@@ -24,7 +24,9 @@
 <figcaption>Trust Network</figcaption>
 
 </figure></div>
-    
+
+To try onboarding hands-on, play [*Join the Network*](https://worldhealthorganization.github.io/smart-trust/en/cat-harness/apps/onboarding-game/), a simulation in which a sample country onboards to the GDHCN one choice at a time, following the [onboarding processes](https://worldhealthorganization.github.io/smart-trust/concepts_onboarding_process_full.html).
+
 #### Background &amp; Purpose
 <a name="Background"> </a>
     
