@@ -98,13 +98,24 @@ def person(cx, top, h, faded=False):
 
 
 def anchor(cx, top, h):
-    """The trust anchor: a standing person with a tablet and a speech bubble with a tick."""
+    """The trust anchor: a standing person checking the trust list on a clipboard, and a speech bubble with a tick."""
     k = h / 120
+    bx, by, bw, bh = cx - 6 * k, top + 36 * k, 27 * k, 36 * k
+    rows = "".join(
+        f'<path d="M{bx + 4 * k:.1f} {by + (12 + 8 * i) * k:.1f} l{2 * k:.1f} {2.2 * k:.1f} l{3.6 * k:.1f} {-4.4 * k:.1f}" fill="none" stroke="{GREEN}" stroke-width="{1.7 * k:.1f}" stroke-linecap="round" stroke-linejoin="round"/>'
+        f'<line x1="{bx + 12 * k:.1f}" y1="{by + (11.5 + 8 * i) * k:.1f}" x2="{bx + bw - 4 * k:.1f}" y2="{by + (11.5 + 8 * i) * k:.1f}" stroke="{INK}" stroke-width="{1.5 * k:.1f}" stroke-linecap="round"/>'
+        for i in range(3))
     p = (f'<g fill="{INK}"><circle cx="{cx:.1f}" cy="{top + 14 * k:.1f}" r="{12 * k:.1f}"/>'
          f'<rect x="{cx - 17 * k:.1f}" y="{top + 30 * k:.1f}" width="{34 * k:.1f}" height="{48 * k:.1f}" rx="{8 * k:.1f}"/>'
          f'<rect x="{cx - 14 * k:.1f}" y="{top + 76 * k:.1f}" width="{11 * k:.1f}" height="{44 * k:.1f}"/>'
          f'<rect x="{cx + 3 * k:.1f}" y="{top + 76 * k:.1f}" width="{11 * k:.1f}" height="{44 * k:.1f}"/></g>'
-         f'<rect x="{cx - 4 * k:.1f}" y="{top + 42 * k:.1f}" width="{22 * k:.1f}" height="{28 * k:.1f}" rx="{2 * k:.1f}" fill="#fff" stroke="{INK}" stroke-width="{2.5 * k:.1f}"/>'
+         # The clipboard: a board with a clip, three ticked rows (the keys checked against the trust list).
+         f'<rect x="{bx:.1f}" y="{by:.1f}" width="{bw:.1f}" height="{bh:.1f}" rx="{2.5 * k:.1f}" fill="#fff" stroke="{INK}" stroke-width="{2.2 * k:.1f}"/>'
+         f'<rect x="{bx + bw / 2 - 5 * k:.1f}" y="{by - 3.5 * k:.1f}" width="{10 * k:.1f}" height="{7 * k:.1f}" rx="{1.8 * k:.1f}" fill="{INK}"/>'
+         f'{rows}'
+         # The hands holding it: one at each lower corner.
+         f'<g fill="{INK}"><circle cx="{bx + 1 * k:.1f}" cy="{by + bh - 6 * k:.1f}" r="{4 * k:.1f}"/>'
+         f'<circle cx="{bx + bw - 1 * k:.1f}" cy="{by + bh - 6 * k:.1f}" r="{4 * k:.1f}"/></g>'
          f'<g transform="translate({cx + 20 * k:.1f} {top - 6 * k:.1f})">'
          f'<path d="M0 0 h{28 * k:.1f} v{20 * k:.1f} h{-16 * k:.1f} l{-8 * k:.1f} {7 * k:.1f} v{-7 * k:.1f} h{-4 * k:.1f} z" fill="{INK}"/>'
          f'<path d="M{6 * k:.1f} {10 * k:.1f} l{5 * k:.1f} {5 * k:.1f} l{10 * k:.1f} {-10 * k:.1f}" fill="none" stroke="#fff" stroke-width="{3 * k:.1f}"/></g>')
@@ -132,12 +143,16 @@ def document(cx, cy, h):
             f'{lines}{key(cx + 34 * k, cy - 18 * k, 10 * k)}')
 
 
-def label(cx, y, text, size=15, bold=True, width=18, color=INK, italic=False, anchor_="middle"):
-    out = ""
-    for i, line in enumerate(textwrap.wrap(text, width) or [""]):
-        out += (f'<text x="{cx:.1f}" y="{y + i * size * 1.2:.1f}" font-size="{size}"'
-                f'{" font-weight=\"700\"" if bold else ""}{" font-style=\"italic\"" if italic else ""} text-anchor="{anchor_}" fill="{color}">{esc(line)}</text>')
-    return out
+def label(cx, y, text, size=15, bold=True, width=18, color=INK, italic=False, anchor_="middle", grow="down"):
+    """One label as one <text>, a <tspan> per line, so a translation can treat it as one string and re-wrap it.
+
+    `data-label-width` and `data-label-grow` tell that re-wrap how wide the
+    label may run and which way it may grow: away from what it labels.
+    """
+    lines = textwrap.wrap(text, width) or [""]
+    spans = "".join(f'<tspan x="{cx:.1f}" y="{y + i * size * 1.2:.1f}">{esc(line)}</tspan>' for i, line in enumerate(lines))
+    return (f'<text font-size="{size}"{" font-weight=\"700\"" if bold else ""}{" font-style=\"italic\"" if italic else ""} '
+            f'text-anchor="{anchor_}" fill="{color}" data-label-width="{width * size * 0.6:.0f}" data-label-grow="{grow}">{spans}</text>')
 
 
 def link(el, body):
@@ -202,7 +217,7 @@ def draw():
         x2, y2 = edge_point(B, A["x"] + A["w"] / 2, A["y"] + A["h"] / 2, 14)
         parts.append(arrow(x1, y1, x2, y2, both))
         if name and not name.startswith("signed document"):
-            parts.append(label((x1 + x2) / 2, min(y1, y2) - 30, name, size=17, bold=True, italic=True, width=30))
+            parts.append(label((x1 + x2) / 2, min(y1, y2) - 30, name, size=17, bold=True, italic=True, width=30, grow="up"))
     # Everything else.
     for bid, b in boxes.items():
         el = b["el"]

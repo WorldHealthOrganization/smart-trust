@@ -12,6 +12,12 @@
  *
  * - `input/pagecontent/*.md`         → `translations/<locale>/pagecontent/<page>.pot`
  * - `input/business-processes/*.bpmn` → `translations/<locale>/processes/<diagram>.pot`
+ * - `input/includes/*.{html,svg}`    → `translations/<locale>/includes/<file>.pot`: a
+ *   computable figure's words, labels and tooltips (`extractInclude`), which
+ *   fhir-harness puts into each translated page's copy of the include
+ * - the rail's own words (`railChromePotEntries`) → `translations/<locale>/navbar.pot`;
+ *   its group and page labels come from `menu/menu.po` (fhir-harness
+ *   `ig-menu-translations.ts pot`), which the rail also reads
  *
  * Not here: FHIR resources (FHIR's own designation/translation mechanism, as
  * CodeSystem supplements), the glossary (`glossary:pot`), and `library/`, a
@@ -26,6 +32,8 @@ import { basename, dirname, join, relative, resolve } from "node:path";
 
 import { extractMarkdown, formatPot, potWithoutTimestamp } from "../../cat-harness-tools/pipeline/pot-extract.ts";
 import { extractBpmn } from "../../cat-harness-tools/pipeline/bpmn-translate.ts";
+import { extractInclude, INCLUDE_EXT_RE, includeCatalogue } from "../../cat-harness-tools/pipeline/include-po.ts";
+import { NAVBAR_CATALOGUE, railChromePotEntries } from "../../cat-harness-tools/scripts/lib/navbar-strings.ts";
 
 const ROOT = resolve(import.meta.dir, "..", "..");
 /** Target locales: the six UN languages less the source, `en`. */
@@ -38,6 +46,12 @@ for (const f of readdirSync(join(ROOT, "input/pagecontent")).filter((n) => n.end
 for (const f of readdirSync(join(ROOT, "input/business-processes")).filter((n) => n.endsWith(".bpmn")).sort()) {
   sources.push({ src: `input/business-processes/${f}`, tpl: `processes/${basename(f, ".bpmn")}.pot`, extract: extractBpmn, project: basename(f, ".bpmn") });
 }
+
+for (const f of readdirSync(join(ROOT, "input/includes")).filter((n) => INCLUDE_EXT_RE.test(n)).sort()) {
+  sources.push({ src: `input/includes/${f}`, tpl: `${includeCatalogue(f)}.pot`, extract: extractInclude, project: f });
+}
+
+sources.push({ src: "cat-harness-tools/scripts/lib/navbar-strings.ts", tpl: `${NAVBAR_CATALOGUE}.pot`, extract: () => railChromePotEntries(), project: "navbar" });
 
 const check = process.argv.includes("--check");
 let bad = 0;
