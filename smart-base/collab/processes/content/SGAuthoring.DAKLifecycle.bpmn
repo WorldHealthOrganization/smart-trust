@@ -1,0 +1,1513 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  id="Definitions_DAKLifecycle"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="SMART Guidelines Authoring"
+                  exporterVersion="0.1.0">
+
+  <!-- =================================================================== -->
+  <!-- COLLABORATION: DAK Authoring and SMART Guideline Publication        -->
+  <!-- Based on: WHO SMART IG Starter Kit v1.0.0                           -->
+  <!-- =================================================================== -->
+  <bpmn:collaboration id="Collaboration_DAKLifecycle">
+    <bpmn:participant id="Participant_ProgrammeManager" name="Programme Manager" processRef="Process_Planning"/>
+    <bpmn:participant id="Participant_BusinessAnalyst" name="Business Analyst" processRef="Process_L2Authoring"/>
+    <bpmn:participant id="Participant_ClinicalSME" name="Clinical SME" processRef="Process_ClinicalReview"/>
+    <bpmn:participant id="Participant_FHIRModeller" name="FHIR Modeller" processRef="Process_L3Authoring"/>
+    <bpmn:participant id="Participant_Terminologist" name="Terminologist" processRef="Process_Terminology"/>
+    <bpmn:participant id="Participant_QCReviewer" name="QC Reviewer" processRef="Process_QualityControl"/>
+    <bpmn:participant id="Participant_PublicationManager" name="Publication Manager" processRef="Process_Publication"/>
+    <bpmn:participant id="Participant_Translator" name="Translator" processRef="Process_Translation"/>
+
+    <!-- Message flows between participants -->
+    <bpmn:messageFlow id="MF_PM_BA" sourceRef="Task_AssignWork" targetRef="Task_ReviewL1"/>
+    <bpmn:messageFlow id="MF_BA_SME" sourceRef="Task_DraftDAKComponents" targetRef="Task_ValidateClinical"/>
+    <bpmn:messageFlow id="MF_SME_BA" sourceRef="Task_ProvideFeedback" targetRef="Task_IncorporateFeedback"/>
+    <bpmn:messageFlow id="MF_BA_FM" sourceRef="Task_FinalizeL2" targetRef="Task_VerifyL2Input"/>
+    <bpmn:messageFlow id="MF_FM_TM" sourceRef="Task_AuthorTerminology" targetRef="Task_ReviewTermBindings"/>
+    <bpmn:messageFlow id="MF_FM_QC" sourceRef="Task_RunBuild" targetRef="Task_ReviewQA"/>
+    <bpmn:messageFlow id="MF_QC_FM" sourceRef="Task_ReportIssues" targetRef="Task_FixIssues"/>
+    <bpmn:messageFlow id="MF_QC_PUB" sourceRef="Task_ApprovePublication" targetRef="Task_PrepareRelease"/>
+    <bpmn:messageFlow id="MF_FM_TR" sourceRef="Task_CompleteL3" targetRef="Task_TranslateContent"/>
+    <bpmn:messageFlow id="MF_TR_QC" sourceRef="Task_CompleteTranslation" targetRef="Task_ReviewTranslatedContent"/>
+  </bpmn:collaboration>
+
+  <!-- =================================================================== -->
+  <!-- PHASE 1: PLANNING (Programme Manager)                                -->
+  <!-- =================================================================== -->
+  <bpmn:process id="Process_Planning" name="Phase 1: Planning" isExecutable="false">
+    <bpmn:documentation>Plans a DAK: scope, team, method, sources, roadmap and consultations, then starts the sprint cycle.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_Planning">
+      <bpmn:lane id="Lane_Planning" name="Programme Manager">
+        <bpmn:documentation>Fixes the DAK's scope, team (RACI) and source documents once; its last task starts the sprint cycle the Business Analyst pool picks up. Nothing here is revisited per sprint.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="programme-manager"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_Planning</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Scoping</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FormTeam</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_EstablishProcess</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_GatherDocs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PlanTimeline</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PlanConsultations</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AssignWork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Planning</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Planning" name="DAK Development Initiated">
+      <bpmn:outgoing>Flow_P1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_Scoping" name="Define DAK scope, purpose, and target audience">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-plan" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_P1</bpmn:incoming>
+      <bpmn:outgoing>Flow_P2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_FormTeam" name="Form DAK development team and define RASCI matrix">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="raci" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_P2</bpmn:incoming>
+      <bpmn:outgoing>Flow_P3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_EstablishProcess" name="Establish development process (Agile/Scrum) and tooling">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="methodology-adoption" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_P3</bpmn:incoming>
+      <bpmn:outgoing>Flow_P4</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_GatherDocs" name="Gather source documents (guidelines, registers, policies)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="dak-l1-library" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_P4</bpmn:incoming>
+      <bpmn:outgoing>Flow_P5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_PlanTimeline" name="Draft project roadmap, backlog, and sprint cadence">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="release-epic-planning" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_P5</bpmn:incoming>
+      <bpmn:outgoing>Flow_P6</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_PlanConsultations" name="Plan SME consultation schedule and format">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-plan" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_P6</bpmn:incoming>
+      <bpmn:outgoing>Flow_P7</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AssignWork" name="Assign work and begin sprint cycle">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_P7</bpmn:incoming>
+      <bpmn:outgoing>Flow_P8</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Planning" name="Planning Complete">
+      <bpmn:incoming>Flow_P8</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_P1" sourceRef="Start_Planning" targetRef="Task_Scoping"/>
+    <bpmn:sequenceFlow id="Flow_P2" sourceRef="Task_Scoping" targetRef="Task_FormTeam"/>
+    <bpmn:sequenceFlow id="Flow_P3" sourceRef="Task_FormTeam" targetRef="Task_EstablishProcess"/>
+    <bpmn:sequenceFlow id="Flow_P4" sourceRef="Task_EstablishProcess" targetRef="Task_GatherDocs"/>
+    <bpmn:sequenceFlow id="Flow_P5" sourceRef="Task_GatherDocs" targetRef="Task_PlanTimeline"/>
+    <bpmn:sequenceFlow id="Flow_P6" sourceRef="Task_PlanTimeline" targetRef="Task_PlanConsultations"/>
+    <bpmn:sequenceFlow id="Flow_P7" sourceRef="Task_PlanConsultations" targetRef="Task_AssignWork"/>
+    <bpmn:sequenceFlow id="Flow_P8" sourceRef="Task_AssignWork" targetRef="End_Planning"/>
+  </bpmn:process>
+
+  <!-- =================================================================== -->
+  <!-- PHASE 2a: L2 DAK AUTHORING (Business Analyst)                       -->
+  <!-- Iterative sprint cycle: Fill → Validate → Incorporate               -->
+  <!-- =================================================================== -->
+  <bpmn:process id="Process_L2Authoring" name="Phase 2a: L2 DAK Authoring" isExecutable="false">
+    <bpmn:documentation>Authors the L2 DAK components sprint by sprint, from the L1 sources to a DAK ready for L3.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_L2Authoring">
+      <bpmn:lane id="Lane_L2Authoring" name="Business Analyst">
+        <bpmn:documentation>Also incorporates clinical feedback. Data-entry forms are drawn here as wireframes (wireframe-design-review), so the L3 Questionnaire is derived from a reviewed design.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="business-analyst"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_L2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewL1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_IdentifyInterventions</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthorPersonas</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthorScenarios</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthorBPMN</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>SubProcess_PerBP</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DetailWorkflow</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DefineDataElements</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DevelopDecisionLogic</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DevelopSchedulingLogic</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ListIndicators</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DefineRequirements</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DraftDAKComponents</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_IncorporateFeedback</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_MoreSprints</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FinalizeL2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_L2</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_L2" name="Sprint Begins">
+      <bpmn:outgoing>Flow_L2_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_ReviewL1" name="Review L1 source documents for current sprint scope">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="dak-l1-library" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L2_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_L2_2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_IdentifyInterventions" name="Identify interventions and recommendations (Component 1)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="recommendation-extraction" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L2_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_L2_3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AuthorPersonas" name="Author generic personas (Component 2)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l2-dak-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L2_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_L2_4</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AuthorScenarios" name="Author user scenarios (Component 3)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l2-dak-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L2_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_L2_5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AuthorBPMN" name="Author BPMN business processes (Component 4)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="bpmn-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L2_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_L2_6</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:subProcess id="SubProcess_PerBP" name="For each business process">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l2-dak-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L2_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_L2_7</bpmn:outgoing>
+
+      <bpmn:task id="Task_DetailWorkflow" name="Draft detailed workflow annotations">
+        <bpmn:extensionElements>
+          <bootstrap.processes:skill ref="bpmn-authoring" />
+        </bpmn:extensionElements>
+      </bpmn:task>
+      <bpmn:task id="Task_DefineDataElements" name="Define core data elements (Component 5)">
+        <bpmn:extensionElements>
+          <bootstrap.processes:skill ref="l2-dak-authoring" />
+          <bootstrap.processes:skill ref="wireframe-design-review" />
+        </bpmn:extensionElements>
+      </bpmn:task>
+      <bpmn:task id="Task_DevelopDecisionLogic" name="Develop decision-support logic (Component 6)">
+        <bpmn:extensionElements>
+          <bootstrap.processes:skill ref="dmn-authoring" />
+        </bpmn:extensionElements>
+      </bpmn:task>
+      <bpmn:task id="Task_DevelopSchedulingLogic" name="Develop scheduling logic (Component 7)">
+        <bpmn:extensionElements>
+          <bootstrap.processes:skill ref="dmn-authoring" />
+        </bpmn:extensionElements>
+      </bpmn:task>
+      <bpmn:task id="Task_ListIndicators" name="List indicators and metrics (Component 8)">
+        <bpmn:extensionElements>
+          <bootstrap.processes:skill ref="l2-dak-authoring" />
+        </bpmn:extensionElements>
+      </bpmn:task>
+      <bpmn:task id="Task_DefineRequirements" name="Define functional/non-functional requirements (Component 9)">
+        <bpmn:extensionElements>
+          <bootstrap.processes:skill ref="l2-dak-authoring" />
+        </bpmn:extensionElements>
+      </bpmn:task>
+    </bpmn:subProcess>
+
+    <bpmn:task id="Task_DraftDAKComponents" name="Streamline and cross-check all DAK components">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-validate" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L2_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_L2_8</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Feedback loop -->
+    <bpmn:task id="Task_IncorporateFeedback" name="Incorporate SME feedback into DAK components">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l2-dak-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L2_8</bpmn:incoming>
+      <bpmn:incoming>Flow_L2_Loop</bpmn:incoming>
+      <bpmn:outgoing>Flow_L2_9</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_MoreSprints" name="More sprints needed?">
+      <bpmn:incoming>Flow_L2_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_L2_Loop</bpmn:outgoing>
+      <bpmn:outgoing>Flow_L2_10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_FinalizeL2" name="Finalize L2 DAK for L3 authoring">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-validate" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L2_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_L2_End</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_L2" name="L2 DAK Complete">
+      <bpmn:incoming>Flow_L2_End</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_L2_1" sourceRef="Start_L2" targetRef="Task_ReviewL1"/>
+    <bpmn:sequenceFlow id="Flow_L2_2" sourceRef="Task_ReviewL1" targetRef="Task_IdentifyInterventions"/>
+    <bpmn:sequenceFlow id="Flow_L2_3" sourceRef="Task_IdentifyInterventions" targetRef="Task_AuthorPersonas"/>
+    <bpmn:sequenceFlow id="Flow_L2_4" sourceRef="Task_AuthorPersonas" targetRef="Task_AuthorScenarios"/>
+    <bpmn:sequenceFlow id="Flow_L2_5" sourceRef="Task_AuthorScenarios" targetRef="Task_AuthorBPMN"/>
+    <bpmn:sequenceFlow id="Flow_L2_6" sourceRef="Task_AuthorBPMN" targetRef="SubProcess_PerBP"/>
+    <bpmn:sequenceFlow id="Flow_L2_7" sourceRef="SubProcess_PerBP" targetRef="Task_DraftDAKComponents"/>
+    <bpmn:sequenceFlow id="Flow_L2_8" sourceRef="Task_DraftDAKComponents" targetRef="Task_IncorporateFeedback"/>
+    <bpmn:sequenceFlow id="Flow_L2_9" sourceRef="Task_IncorporateFeedback" targetRef="GW_MoreSprints"/>
+    <bpmn:sequenceFlow id="Flow_L2_Loop" name="Yes - next sprint" sourceRef="GW_MoreSprints" targetRef="Task_IncorporateFeedback"/>
+    <bpmn:sequenceFlow id="Flow_L2_10" name="No - L2 finalized" sourceRef="GW_MoreSprints" targetRef="Task_FinalizeL2"/>
+    <bpmn:sequenceFlow id="Flow_L2_End" sourceRef="Task_FinalizeL2" targetRef="End_L2"/>
+  </bpmn:process>
+
+  <!-- =================================================================== -->
+  <!-- CLINICAL REVIEW (Clinical SME)                                       -->
+  <!-- =================================================================== -->
+  <bpmn:process id="Process_ClinicalReview" name="Clinical Review" isExecutable="false">
+    <bpmn:documentation>Validates the DAK components against the L1 recommendations and field practice, and returns clinical feedback.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_ClinicalReview">
+      <bpmn:lane id="Lane_ClinicalReview" name="Clinical SME">
+        <bpmn:documentation>Its feedback is QA on the sprint's output, not a gate: authoring continues during review.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="clinical-sme"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_ClinReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ValidateClinical</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_GroundTruth</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ProvideFeedback</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_ClinReview</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_ClinReview" name="DAK Components Ready for Review">
+      <bpmn:outgoing>Flow_CR1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_ValidateClinical" name="Validate DAK components against L1 recommendations">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_CR1</bpmn:incoming>
+      <bpmn:outgoing>Flow_CR2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_GroundTruth" name="Ground-truth with field practice (country visits/interviews)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-feedback" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_CR2</bpmn:incoming>
+      <bpmn:outgoing>Flow_CR3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_ProvideFeedback" name="Provide clinical feedback and identify gaps">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-feedback" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_CR3</bpmn:incoming>
+      <bpmn:outgoing>Flow_CR4</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_ClinReview" name="Clinical Review Complete">
+      <bpmn:incoming>Flow_CR4</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_CR1" sourceRef="Start_ClinReview" targetRef="Task_ValidateClinical"/>
+    <bpmn:sequenceFlow id="Flow_CR2" sourceRef="Task_ValidateClinical" targetRef="Task_GroundTruth"/>
+    <bpmn:sequenceFlow id="Flow_CR3" sourceRef="Task_GroundTruth" targetRef="Task_ProvideFeedback"/>
+    <bpmn:sequenceFlow id="Flow_CR4" sourceRef="Task_ProvideFeedback" targetRef="End_ClinReview"/>
+  </bpmn:process>
+
+  <!-- =================================================================== -->
+  <!-- PHASE 2b: L3 FHIR AUTHORING (FHIR Modeller)                         -->
+  <!-- =================================================================== -->
+  <bpmn:process id="Process_L3Authoring" name="Phase 2b: L3 FHIR Authoring" isExecutable="false">
+    <bpmn:documentation>Turns the L2 DAK into L3 FHIR artefacts and builds the IG until its QA issues are resolved.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_L3Authoring">
+      <bpmn:lane id="Lane_L3Authoring" name="FHIR Modeller">
+        <bpmn:documentation>Works in the recommended order and also fixes the QA issues the QC reviewer sends back.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="fhir-modeller"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_L3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_VerifyL2Input</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SetupIG</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthorLogicalModels</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthorProfiles</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthorQuestionnaires</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthorTerminology</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthorCQL</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthorPlanDefs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthorActors</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthorRemainingL3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RunBuild</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FixIssues</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_L3Done</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CompleteL3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_L3</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_L3" name="L2 DAK Available">
+      <bpmn:outgoing>Flow_L3_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_VerifyL2Input" name="Verify L2 input availability and consistency">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L3_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_SetupIG" name="Set up IG repository from template">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="smart-guideline-create" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L3_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AuthorLogicalModels" name="Author logical models from L2 data dictionary">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L3_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_4</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AuthorProfiles" name="Author FHIR profiles">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L3_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AuthorQuestionnaires" name="Author questionnaires and structure maps">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L3_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_6</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AuthorTerminology" name="Author CodeSystems, ValueSets, ConceptMaps">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L3_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_7</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AuthorCQL" name="Author CQL (decision logic, scheduling, indicators)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L3_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_8</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AuthorPlanDefs" name="Author PlanDefinitions (processes, decision tables)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L3_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_9</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AuthorActors" name="Author ActorDefinitions (reuse Commons)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L3_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_10</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AuthorRemainingL3" name="Author Measures, Requirements, Scenarios, Tests">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L3_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_11</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_RunBuild" name="Run IG Publisher build">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-build-pipeline" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L3_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_12</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_FixIssues" name="Fix QA issues from review">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L3_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_13</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_L3Done" name="All issues resolved?">
+      <bpmn:incoming>Flow_L3_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_FixLoop</bpmn:outgoing>
+      <bpmn:outgoing>Flow_L3_14</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_CompleteL3" name="L3 authoring complete - ready for review">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_L3_14</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_End</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_L3" name="L3 Complete">
+      <bpmn:incoming>Flow_L3_End</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_L3_1" sourceRef="Start_L3" targetRef="Task_VerifyL2Input"/>
+    <bpmn:sequenceFlow id="Flow_L3_2" sourceRef="Task_VerifyL2Input" targetRef="Task_SetupIG"/>
+    <bpmn:sequenceFlow id="Flow_L3_3" sourceRef="Task_SetupIG" targetRef="Task_AuthorLogicalModels"/>
+    <bpmn:sequenceFlow id="Flow_L3_4" sourceRef="Task_AuthorLogicalModels" targetRef="Task_AuthorProfiles"/>
+    <bpmn:sequenceFlow id="Flow_L3_5" sourceRef="Task_AuthorProfiles" targetRef="Task_AuthorQuestionnaires"/>
+    <bpmn:sequenceFlow id="Flow_L3_6" sourceRef="Task_AuthorQuestionnaires" targetRef="Task_AuthorTerminology"/>
+    <bpmn:sequenceFlow id="Flow_L3_7" sourceRef="Task_AuthorTerminology" targetRef="Task_AuthorCQL"/>
+    <bpmn:sequenceFlow id="Flow_L3_8" sourceRef="Task_AuthorCQL" targetRef="Task_AuthorPlanDefs"/>
+    <bpmn:sequenceFlow id="Flow_L3_9" sourceRef="Task_AuthorPlanDefs" targetRef="Task_AuthorActors"/>
+    <bpmn:sequenceFlow id="Flow_L3_10" sourceRef="Task_AuthorActors" targetRef="Task_AuthorRemainingL3"/>
+    <bpmn:sequenceFlow id="Flow_L3_11" sourceRef="Task_AuthorRemainingL3" targetRef="Task_RunBuild"/>
+    <bpmn:sequenceFlow id="Flow_L3_12" sourceRef="Task_RunBuild" targetRef="Task_FixIssues"/>
+    <bpmn:sequenceFlow id="Flow_L3_13" sourceRef="Task_FixIssues" targetRef="GW_L3Done"/>
+    <bpmn:sequenceFlow id="Flow_L3_FixLoop" name="No - fix and rebuild" sourceRef="GW_L3Done" targetRef="Task_RunBuild"/>
+    <bpmn:sequenceFlow id="Flow_L3_14" name="Yes" sourceRef="GW_L3Done" targetRef="Task_CompleteL3"/>
+    <bpmn:sequenceFlow id="Flow_L3_End" sourceRef="Task_CompleteL3" targetRef="End_L3"/>
+  </bpmn:process>
+
+  <!-- =================================================================== -->
+  <!-- TERMINOLOGY (Terminologist)                                          -->
+  <!-- =================================================================== -->
+  <bpmn:process id="Process_Terminology" name="Terminology Management" isExecutable="false">
+    <bpmn:documentation>Reviews terminology bindings and maps concepts to WHO Commons and to ICD-11, SNOMED CT and LOINC.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_Terminology">
+      <bpmn:lane id="Lane_Terminology" name="Terminologist">
+        <bpmn:documentation>Works alongside L3 authoring and returns its mappings to the FHIR modeller's pool.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="terminologist"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_Term</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewTermBindings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MapToCommons</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MapToStandards</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OnboardConcepts</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Term</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Term" name="Terminology Review Requested">
+      <bpmn:outgoing>Flow_T1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_ReviewTermBindings" name="Review terminology bindings and code systems">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="terminology-management" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_T1</bpmn:incoming>
+      <bpmn:outgoing>Flow_T2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_MapToCommons" name="Map concepts to WHO Commons dictionary">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="terminology-management" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_T2</bpmn:incoming>
+      <bpmn:outgoing>Flow_T3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_MapToStandards" name="Map to ICD-11, SNOMED CT, LOINC">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="terminology-management" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_T3</bpmn:incoming>
+      <bpmn:outgoing>Flow_T4</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_OnboardConcepts" name="Onboard new concepts to Commons (governance)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="vocabulary-authority" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_T4</bpmn:incoming>
+      <bpmn:outgoing>Flow_T5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Term" name="Terminology Complete">
+      <bpmn:incoming>Flow_T5</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_T1" sourceRef="Start_Term" targetRef="Task_ReviewTermBindings"/>
+    <bpmn:sequenceFlow id="Flow_T2" sourceRef="Task_ReviewTermBindings" targetRef="Task_MapToCommons"/>
+    <bpmn:sequenceFlow id="Flow_T3" sourceRef="Task_MapToCommons" targetRef="Task_MapToStandards"/>
+    <bpmn:sequenceFlow id="Flow_T4" sourceRef="Task_MapToStandards" targetRef="Task_OnboardConcepts"/>
+    <bpmn:sequenceFlow id="Flow_T5" sourceRef="Task_OnboardConcepts" targetRef="End_Term"/>
+  </bpmn:process>
+
+  <!-- =================================================================== -->
+  <!-- QUALITY CONTROL (QC Reviewer)                                        -->
+  <!-- =================================================================== -->
+  <bpmn:process id="Process_QualityControl" name="Phase 3: Quality Control" isExecutable="false">
+    <bpmn:documentation>Reviews the built IG against the QA report and the L1-L4 checklist, and approves it for publication or returns issues.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_QualityControl">
+      <bpmn:lane id="Lane_QualityControl" name="QC Reviewer">
+        <bpmn:documentation>Returns issues to the FHIR modeller or approves the IG for the publication manager; also reviews the translations.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="qc-reviewer"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_QC</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewQA</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewChecklistL1L2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewChecklistL3L4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ValidateConformance</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TestFunctionality</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_QCPass</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReportIssues</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ApprovePublication</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewTranslatedContent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_QC</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_QC" name="IG Build Available">
+      <bpmn:outgoing>Flow_QC1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_ReviewQA" name="Review IG Publisher QA report (qa.html)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-reports" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_QC1</bpmn:incoming>
+      <bpmn:outgoing>Flow_QC2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_ReviewChecklistL1L2" name="Review L1 and L2 checklist items">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_QC2</bpmn:incoming>
+      <bpmn:outgoing>Flow_QC3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_ReviewChecklistL3L4" name="Review L3 and L4 checklist items">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_QC3</bpmn:incoming>
+      <bpmn:outgoing>Flow_QC4</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_ValidateConformance" name="Validate artifact conformance (CRMI profiles)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="fhir-validation" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_QC4</bpmn:incoming>
+      <bpmn:outgoing>Flow_QC5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_TestFunctionality" name="Test L3 functionality (StructureMaps, CQL, Measures)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-test" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_QC5</bpmn:incoming>
+      <bpmn:outgoing>Flow_QC6</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_QCPass" name="Publication ready?">
+      <bpmn:incoming>Flow_QC6</bpmn:incoming>
+      <bpmn:outgoing>Flow_QC_Fail</bpmn:outgoing>
+      <bpmn:outgoing>Flow_QC_Pass</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_ReportIssues" name="Report issues to author for resolution">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-feedback" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_QC_Fail</bpmn:incoming>
+      <bpmn:outgoing>Flow_QC7</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_ApprovePublication" name="Approve IG for publication">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-publish" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_QC_Pass</bpmn:incoming>
+      <bpmn:outgoing>Flow_QC8</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_ReviewTranslatedContent" name="Review translated content for completeness">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_QC8</bpmn:incoming>
+      <bpmn:outgoing>Flow_QC9</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_QC" name="QC Complete">
+      <bpmn:incoming>Flow_QC7</bpmn:incoming>
+      <bpmn:incoming>Flow_QC9</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_QC1" sourceRef="Start_QC" targetRef="Task_ReviewQA"/>
+    <bpmn:sequenceFlow id="Flow_QC2" sourceRef="Task_ReviewQA" targetRef="Task_ReviewChecklistL1L2"/>
+    <bpmn:sequenceFlow id="Flow_QC3" sourceRef="Task_ReviewChecklistL1L2" targetRef="Task_ReviewChecklistL3L4"/>
+    <bpmn:sequenceFlow id="Flow_QC4" sourceRef="Task_ReviewChecklistL3L4" targetRef="Task_ValidateConformance"/>
+    <bpmn:sequenceFlow id="Flow_QC5" sourceRef="Task_ValidateConformance" targetRef="Task_TestFunctionality"/>
+    <bpmn:sequenceFlow id="Flow_QC6" sourceRef="Task_TestFunctionality" targetRef="GW_QCPass"/>
+    <bpmn:sequenceFlow id="Flow_QC_Fail" name="No - issues found" sourceRef="GW_QCPass" targetRef="Task_ReportIssues"/>
+    <bpmn:sequenceFlow id="Flow_QC_Pass" name="Yes - approved" sourceRef="GW_QCPass" targetRef="Task_ApprovePublication"/>
+    <bpmn:sequenceFlow id="Flow_QC7" sourceRef="Task_ReportIssues" targetRef="End_QC"/>
+    <bpmn:sequenceFlow id="Flow_QC8" sourceRef="Task_ApprovePublication" targetRef="Task_ReviewTranslatedContent"/>
+    <bpmn:sequenceFlow id="Flow_QC9" sourceRef="Task_ReviewTranslatedContent" targetRef="End_QC"/>
+  </bpmn:process>
+
+  <!-- =================================================================== -->
+  <!-- PHASE 4: PUBLICATION (Publication Manager)                           -->
+  <!-- =================================================================== -->
+  <bpmn:process id="Process_Publication" name="Phase 4: Publication" isExecutable="false">
+    <bpmn:documentation>Releases an approved IG: version, publication request, final build, tag, and the hand-over to smart.who.int.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_Publication">
+      <bpmn:lane id="Lane_Publication" name="Publication Manager">
+        <bpmn:documentation>Releases an IG the QC reviewer approved, verifies the automated publication, then resets main to draft.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="publication-manager"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_Pub</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PrepareRelease</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CreateReleaseBranch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UpdateIGStatus</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CreatePubRequest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FinalBuild</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CreateReleaseTag</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_VerifyAutomation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RequestWHOUpdate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ResetToDraft</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Pub</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Pub" name="QC Approval Received">
+      <bpmn:outgoing>Flow_Pub1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_PrepareRelease" name="Review changes and determine version number">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="package-release" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Pub1</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pub2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_CreateReleaseBranch" name="Optionally create release-candidate branch">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="package-release" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Pub2</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pub3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_UpdateIGStatus" name="Update IG status to active, set version, date">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Pub3</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pub4</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_CreatePubRequest" name="Create publication-request.json">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Pub4</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pub5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_FinalBuild" name="Run final IG Publisher build and verify">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Pub5</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pub6</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_CreateReleaseTag" name="Create GitHub release and tag (vX.Y.Z)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="package-release" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Pub6</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pub7</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_VerifyAutomation" name="Verify automated publication workflow succeeded">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="publish-verification" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Pub7</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pub8</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_RequestWHOUpdate" name="Request WHO team to update smart.who.int">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="instance-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Pub8</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pub9</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_ResetToDraft" name="Reset main branch to draft, update version">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="package-release" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Pub9</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pub10</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Pub" name="Publication Complete">
+      <bpmn:incoming>Flow_Pub10</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_Pub1" sourceRef="Start_Pub" targetRef="Task_PrepareRelease"/>
+    <bpmn:sequenceFlow id="Flow_Pub2" sourceRef="Task_PrepareRelease" targetRef="Task_CreateReleaseBranch"/>
+    <bpmn:sequenceFlow id="Flow_Pub3" sourceRef="Task_CreateReleaseBranch" targetRef="Task_UpdateIGStatus"/>
+    <bpmn:sequenceFlow id="Flow_Pub4" sourceRef="Task_UpdateIGStatus" targetRef="Task_CreatePubRequest"/>
+    <bpmn:sequenceFlow id="Flow_Pub5" sourceRef="Task_CreatePubRequest" targetRef="Task_FinalBuild"/>
+    <bpmn:sequenceFlow id="Flow_Pub6" sourceRef="Task_FinalBuild" targetRef="Task_CreateReleaseTag"/>
+    <bpmn:sequenceFlow id="Flow_Pub7" sourceRef="Task_CreateReleaseTag" targetRef="Task_VerifyAutomation"/>
+    <bpmn:sequenceFlow id="Flow_Pub8" sourceRef="Task_VerifyAutomation" targetRef="Task_RequestWHOUpdate"/>
+    <bpmn:sequenceFlow id="Flow_Pub9" sourceRef="Task_RequestWHOUpdate" targetRef="Task_ResetToDraft"/>
+    <bpmn:sequenceFlow id="Flow_Pub10" sourceRef="Task_ResetToDraft" targetRef="End_Pub"/>
+  </bpmn:process>
+
+  <!-- =================================================================== -->
+  <!-- TRANSLATION (Translator)                                             -->
+  <!-- =================================================================== -->
+  <bpmn:process id="Process_Translation" name="Translation" isExecutable="false">
+    <bpmn:documentation>Translates the IG narrative, resource metadata and examples into the UN languages and submits them for review.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_Translation">
+      <bpmn:lane id="Lane_Translation" name="Translator">
+        <bpmn:documentation>Works alongside quality control and submits translations to the QC reviewer.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="translator"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_Trans</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TranslateContent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TranslateExamples</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CompleteTranslation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Trans</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Trans" name="L3 Content Ready">
+      <bpmn:outgoing>Flow_Tr1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_TranslateContent" name="Translate narrative and resource metadata">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Tr1</bpmn:incoming>
+      <bpmn:outgoing>Flow_Tr2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_TranslateExamples" name="Create example resources per UN language">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Tr2</bpmn:incoming>
+      <bpmn:outgoing>Flow_Tr3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_CompleteTranslation" name="Submit translations for review">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Tr3</bpmn:incoming>
+      <bpmn:outgoing>Flow_Tr4</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Trans" name="Translation Complete">
+      <bpmn:incoming>Flow_Tr4</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_Tr1" sourceRef="Start_Trans" targetRef="Task_TranslateContent"/>
+    <bpmn:sequenceFlow id="Flow_Tr2" sourceRef="Task_TranslateContent" targetRef="Task_TranslateExamples"/>
+    <bpmn:sequenceFlow id="Flow_Tr3" sourceRef="Task_TranslateExamples" targetRef="Task_CompleteTranslation"/>
+    <bpmn:sequenceFlow id="Flow_Tr4" sourceRef="Task_CompleteTranslation" targetRef="End_Trans"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_DAKLifecycle">
+      <bpmndi:BPMNShape id="Shape_Participant_ProgrammeManager" bpmnElement="Participant_ProgrammeManager" isHorizontal="true">
+        <dc:Bounds x="0" y="0" width="3640" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Planning" bpmnElement="Lane_Planning" isHorizontal="true">
+        <dc:Bounds x="30" y="0" width="3610" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Participant_BusinessAnalyst" bpmnElement="Participant_BusinessAnalyst" isHorizontal="true">
+        <dc:Bounds x="0" y="180" width="3640" height="270" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_L2Authoring" bpmnElement="Lane_L2Authoring" isHorizontal="true">
+        <dc:Bounds x="30" y="180" width="3610" height="270" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Participant_ClinicalSME" bpmnElement="Participant_ClinicalSME" isHorizontal="true">
+        <dc:Bounds x="0" y="480" width="3640" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_ClinicalReview" bpmnElement="Lane_ClinicalReview" isHorizontal="true">
+        <dc:Bounds x="30" y="480" width="3610" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Participant_FHIRModeller" bpmnElement="Participant_FHIRModeller" isHorizontal="true">
+        <dc:Bounds x="0" y="670" width="3640" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_L3Authoring" bpmnElement="Lane_L3Authoring" isHorizontal="true">
+        <dc:Bounds x="30" y="670" width="3610" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Participant_Terminologist" bpmnElement="Participant_Terminologist" isHorizontal="true">
+        <dc:Bounds x="0" y="870" width="3640" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Terminology" bpmnElement="Lane_Terminology" isHorizontal="true">
+        <dc:Bounds x="30" y="870" width="3610" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Participant_Translator" bpmnElement="Participant_Translator" isHorizontal="true">
+        <dc:Bounds x="0" y="1050" width="3640" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Translation" bpmnElement="Lane_Translation" isHorizontal="true">
+        <dc:Bounds x="30" y="1050" width="3610" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Participant_QCReviewer" bpmnElement="Participant_QCReviewer" isHorizontal="true">
+        <dc:Bounds x="0" y="1260" width="3640" height="255" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_QualityControl" bpmnElement="Lane_QualityControl" isHorizontal="true">
+        <dc:Bounds x="30" y="1260" width="3610" height="255" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Participant_PublicationManager" bpmnElement="Participant_PublicationManager" isHorizontal="true">
+        <dc:Bounds x="0" y="1555" width="3640" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Publication" bpmnElement="Lane_Publication" isHorizontal="true">
+        <dc:Bounds x="30" y="1555" width="3610" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Planning" bpmnElement="Start_Planning">
+        <dc:Bounds x="117" y="57" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="75" y="99" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Scoping" bpmnElement="Task_Scoping">
+        <dc:Bounds x="240" y="35" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_FormTeam" bpmnElement="Task_FormTeam">
+        <dc:Bounds x="410" y="35" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_EstablishProcess" bpmnElement="Task_EstablishProcess">
+        <dc:Bounds x="580" y="35" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_GatherDocs" bpmnElement="Task_GatherDocs">
+        <dc:Bounds x="750" y="35" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_PlanTimeline" bpmnElement="Task_PlanTimeline">
+        <dc:Bounds x="920" y="35" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_PlanConsultations" bpmnElement="Task_PlanConsultations">
+        <dc:Bounds x="1090" y="35" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AssignWork" bpmnElement="Task_AssignWork">
+        <dc:Bounds x="1260" y="35" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Planning" bpmnElement="End_Planning">
+        <dc:Bounds x="1477" y="57" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1435" y="99" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_L2" bpmnElement="Start_L2">
+        <dc:Bounds x="1137" y="297" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1095" y="339" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReviewL1" bpmnElement="Task_ReviewL1">
+        <dc:Bounds x="1260" y="275" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_IdentifyInterventions" bpmnElement="Task_IdentifyInterventions">
+        <dc:Bounds x="1430" y="275" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AuthorPersonas" bpmnElement="Task_AuthorPersonas">
+        <dc:Bounds x="1600" y="275" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AuthorScenarios" bpmnElement="Task_AuthorScenarios">
+        <dc:Bounds x="1770" y="275" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AuthorBPMN" bpmnElement="Task_AuthorBPMN">
+        <dc:Bounds x="1940" y="275" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_SubProcess_PerBP" bpmnElement="SubProcess_PerBP" isExpanded="true">
+        <dc:Bounds x="2095" y="195" width="500" height="225" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_DetailWorkflow" bpmnElement="Task_DetailWorkflow">
+        <dc:Bounds x="2110" y="225" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_DefineDataElements" bpmnElement="Task_DefineDataElements">
+        <dc:Bounds x="2280" y="225" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_DevelopDecisionLogic" bpmnElement="Task_DevelopDecisionLogic">
+        <dc:Bounds x="2450" y="225" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_DevelopSchedulingLogic" bpmnElement="Task_DevelopSchedulingLogic">
+        <dc:Bounds x="2110" y="325" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ListIndicators" bpmnElement="Task_ListIndicators">
+        <dc:Bounds x="2280" y="325" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_DefineRequirements" bpmnElement="Task_DefineRequirements">
+        <dc:Bounds x="2450" y="325" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_DraftDAKComponents" bpmnElement="Task_DraftDAKComponents">
+        <dc:Bounds x="2620" y="275" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_IncorporateFeedback" bpmnElement="Task_IncorporateFeedback">
+        <dc:Bounds x="2960" y="275" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_MoreSprints" bpmnElement="GW_MoreSprints">
+        <dc:Bounds x="3170" y="290" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="3135" y="346" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_FinalizeL2" bpmnElement="Task_FinalizeL2">
+        <dc:Bounds x="3300" y="275" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_L2" bpmnElement="End_L2">
+        <dc:Bounds x="3517" y="297" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="3475" y="339" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_ClinReview" bpmnElement="Start_ClinReview">
+        <dc:Bounds x="2497" y="537" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2455" y="579" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ValidateClinical" bpmnElement="Task_ValidateClinical">
+        <dc:Bounds x="2620" y="515" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_GroundTruth" bpmnElement="Task_GroundTruth">
+        <dc:Bounds x="2790" y="515" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ProvideFeedback" bpmnElement="Task_ProvideFeedback">
+        <dc:Bounds x="2960" y="515" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_ClinReview" bpmnElement="End_ClinReview">
+        <dc:Bounds x="3177" y="537" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="3135" y="579" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_L3" bpmnElement="Start_L3">
+        <dc:Bounds x="117" y="747" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="75" y="789" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_VerifyL2Input" bpmnElement="Task_VerifyL2Input">
+        <dc:Bounds x="240" y="725" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_SetupIG" bpmnElement="Task_SetupIG">
+        <dc:Bounds x="410" y="725" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AuthorLogicalModels" bpmnElement="Task_AuthorLogicalModels">
+        <dc:Bounds x="580" y="725" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AuthorProfiles" bpmnElement="Task_AuthorProfiles">
+        <dc:Bounds x="750" y="725" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AuthorQuestionnaires" bpmnElement="Task_AuthorQuestionnaires">
+        <dc:Bounds x="920" y="725" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AuthorTerminology" bpmnElement="Task_AuthorTerminology">
+        <dc:Bounds x="1090" y="725" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AuthorCQL" bpmnElement="Task_AuthorCQL">
+        <dc:Bounds x="1260" y="725" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AuthorPlanDefs" bpmnElement="Task_AuthorPlanDefs">
+        <dc:Bounds x="1430" y="725" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AuthorActors" bpmnElement="Task_AuthorActors">
+        <dc:Bounds x="1600" y="725" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AuthorRemainingL3" bpmnElement="Task_AuthorRemainingL3">
+        <dc:Bounds x="1770" y="725" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RunBuild" bpmnElement="Task_RunBuild">
+        <dc:Bounds x="1940" y="725" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_FixIssues" bpmnElement="Task_FixIssues">
+        <dc:Bounds x="2110" y="725" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_L3Done" bpmnElement="GW_L3Done">
+        <dc:Bounds x="2320" y="740" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2285" y="796" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_CompleteL3" bpmnElement="Task_CompleteL3">
+        <dc:Bounds x="2450" y="725" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_L3" bpmnElement="End_L3">
+        <dc:Bounds x="2667" y="747" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2625" y="789" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Term" bpmnElement="Start_Term">
+        <dc:Bounds x="967" y="927" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="925" y="969" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReviewTermBindings" bpmnElement="Task_ReviewTermBindings">
+        <dc:Bounds x="1090" y="905" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_MapToCommons" bpmnElement="Task_MapToCommons">
+        <dc:Bounds x="1260" y="905" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_MapToStandards" bpmnElement="Task_MapToStandards">
+        <dc:Bounds x="1430" y="905" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_OnboardConcepts" bpmnElement="Task_OnboardConcepts">
+        <dc:Bounds x="1600" y="905" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Term" bpmnElement="End_Term">
+        <dc:Bounds x="1817" y="927" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1775" y="969" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_QC" bpmnElement="Start_QC">
+        <dc:Bounds x="1817" y="1422" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1775" y="1464" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReviewQA" bpmnElement="Task_ReviewQA">
+        <dc:Bounds x="1940" y="1400" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReviewChecklistL1L2" bpmnElement="Task_ReviewChecklistL1L2">
+        <dc:Bounds x="2110" y="1400" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReviewChecklistL3L4" bpmnElement="Task_ReviewChecklistL3L4">
+        <dc:Bounds x="2280" y="1400" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ValidateConformance" bpmnElement="Task_ValidateConformance">
+        <dc:Bounds x="2450" y="1400" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_TestFunctionality" bpmnElement="Task_TestFunctionality">
+        <dc:Bounds x="2620" y="1400" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_QCPass" bpmnElement="GW_QCPass">
+        <dc:Bounds x="2830" y="1415" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2795" y="1471" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReportIssues" bpmnElement="Task_ReportIssues">
+        <dc:Bounds x="2960" y="1280" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ApprovePublication" bpmnElement="Task_ApprovePublication">
+        <dc:Bounds x="2960" y="1400" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReviewTranslatedContent" bpmnElement="Task_ReviewTranslatedContent">
+        <dc:Bounds x="3130" y="1400" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_QC" bpmnElement="End_QC">
+        <dc:Bounds x="3177" y="1302" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="3165" y="1268" width="60" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Pub" bpmnElement="Start_Pub">
+        <dc:Bounds x="1817" y="1612" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1775" y="1654" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_PrepareRelease" bpmnElement="Task_PrepareRelease">
+        <dc:Bounds x="1940" y="1590" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_CreateReleaseBranch" bpmnElement="Task_CreateReleaseBranch">
+        <dc:Bounds x="2110" y="1590" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_UpdateIGStatus" bpmnElement="Task_UpdateIGStatus">
+        <dc:Bounds x="2280" y="1590" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_CreatePubRequest" bpmnElement="Task_CreatePubRequest">
+        <dc:Bounds x="2450" y="1590" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_FinalBuild" bpmnElement="Task_FinalBuild">
+        <dc:Bounds x="2620" y="1590" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_CreateReleaseTag" bpmnElement="Task_CreateReleaseTag">
+        <dc:Bounds x="2790" y="1590" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_VerifyAutomation" bpmnElement="Task_VerifyAutomation">
+        <dc:Bounds x="2960" y="1590" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RequestWHOUpdate" bpmnElement="Task_RequestWHOUpdate">
+        <dc:Bounds x="3130" y="1590" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ResetToDraft" bpmnElement="Task_ResetToDraft">
+        <dc:Bounds x="3300" y="1590" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Pub" bpmnElement="End_Pub">
+        <dc:Bounds x="3517" y="1612" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="3475" y="1654" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Trans" bpmnElement="Start_Trans">
+        <dc:Bounds x="2327" y="1107" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2285" y="1149" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_TranslateContent" bpmnElement="Task_TranslateContent">
+        <dc:Bounds x="2450" y="1085" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_TranslateExamples" bpmnElement="Task_TranslateExamples">
+        <dc:Bounds x="2620" y="1085" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_CompleteTranslation" bpmnElement="Task_CompleteTranslation">
+        <dc:Bounds x="2790" y="1085" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Trans" bpmnElement="End_Trans">
+        <dc:Bounds x="3007" y="1107" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2965" y="1149" width="120" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_MF_PM_BA" bpmnElement="MF_PM_BA">
+        <di:waypoint x="1325" y="115" />
+        <di:waypoint x="1325" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_MF_BA_SME" bpmnElement="MF_BA_SME">
+        <di:waypoint x="2685" y="355" />
+        <di:waypoint x="2685" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_MF_SME_BA" bpmnElement="MF_SME_BA">
+        <di:waypoint x="3025" y="515" />
+        <di:waypoint x="3025" y="355" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_MF_BA_FM" bpmnElement="MF_BA_FM">
+        <di:waypoint x="3365" y="355" />
+        <di:waypoint x="3365" y="650" />
+        <di:waypoint x="305" y="650" />
+        <di:waypoint x="305" y="725" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_MF_FM_TM" bpmnElement="MF_FM_TM">
+        <di:waypoint x="1155" y="805" />
+        <di:waypoint x="1155" y="905" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_MF_FM_QC" bpmnElement="MF_FM_QC">
+        <di:waypoint x="2005" y="805" />
+        <di:waypoint x="2005" y="1400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_MF_QC_FM" bpmnElement="MF_QC_FM">
+        <di:waypoint x="3025" y="1280" />
+        <di:waypoint x="3025" y="1240" />
+        <di:waypoint x="2175" y="1240" />
+        <di:waypoint x="2175" y="805" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_MF_QC_PUB" bpmnElement="MF_QC_PUB">
+        <di:waypoint x="3025" y="1480" />
+        <di:waypoint x="3025" y="1535" />
+        <di:waypoint x="2005" y="1535" />
+        <di:waypoint x="2005" y="1590" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_MF_FM_TR" bpmnElement="MF_FM_TR">
+        <di:waypoint x="2515" y="805" />
+        <di:waypoint x="2515" y="1085" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_MF_TR_QC" bpmnElement="MF_TR_QC">
+        <di:waypoint x="2855" y="1165" />
+        <di:waypoint x="2855" y="1220" />
+        <di:waypoint x="3243" y="1220" />
+        <di:waypoint x="3243" y="1400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_P1" bpmnElement="Flow_P1">
+        <di:waypoint x="153" y="75" />
+        <di:waypoint x="240" y="75" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_P2" bpmnElement="Flow_P2">
+        <di:waypoint x="370" y="75" />
+        <di:waypoint x="410" y="75" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_P3" bpmnElement="Flow_P3">
+        <di:waypoint x="540" y="75" />
+        <di:waypoint x="580" y="75" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_P4" bpmnElement="Flow_P4">
+        <di:waypoint x="710" y="75" />
+        <di:waypoint x="750" y="75" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_P5" bpmnElement="Flow_P5">
+        <di:waypoint x="880" y="75" />
+        <di:waypoint x="920" y="75" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_P6" bpmnElement="Flow_P6">
+        <di:waypoint x="1050" y="75" />
+        <di:waypoint x="1090" y="75" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_P7" bpmnElement="Flow_P7">
+        <di:waypoint x="1220" y="75" />
+        <di:waypoint x="1260" y="75" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_P8" bpmnElement="Flow_P8">
+        <di:waypoint x="1390" y="75" />
+        <di:waypoint x="1477" y="75" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L2_1" bpmnElement="Flow_L2_1">
+        <di:waypoint x="1173" y="315" />
+        <di:waypoint x="1260" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L2_2" bpmnElement="Flow_L2_2">
+        <di:waypoint x="1390" y="315" />
+        <di:waypoint x="1430" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L2_3" bpmnElement="Flow_L2_3">
+        <di:waypoint x="1560" y="315" />
+        <di:waypoint x="1600" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L2_4" bpmnElement="Flow_L2_4">
+        <di:waypoint x="1730" y="315" />
+        <di:waypoint x="1770" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L2_5" bpmnElement="Flow_L2_5">
+        <di:waypoint x="1900" y="315" />
+        <di:waypoint x="1940" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L2_6" bpmnElement="Flow_L2_6">
+        <di:waypoint x="2070" y="315" />
+        <di:waypoint x="2095" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L2_7" bpmnElement="Flow_L2_7">
+        <di:waypoint x="2595" y="315" />
+        <di:waypoint x="2620" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L2_8" bpmnElement="Flow_L2_8">
+        <di:waypoint x="2750" y="315" />
+        <di:waypoint x="2960" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L2_9" bpmnElement="Flow_L2_9">
+        <di:waypoint x="3090" y="315" />
+        <di:waypoint x="3170" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L2_Loop" bpmnElement="Flow_L2_Loop">
+        <di:waypoint x="3195" y="290" />
+        <di:waypoint x="3195" y="210" />
+        <di:waypoint x="3025" y="210" />
+        <di:waypoint x="3025" y="275" />
+        <bpmndi:BPMNLabel><dc:Bounds x="3033" y="192" width="90" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L2_10" bpmnElement="Flow_L2_10">
+        <di:waypoint x="3220" y="315" />
+        <di:waypoint x="3300" y="315" />
+        <bpmndi:BPMNLabel><dc:Bounds x="3203" y="281" width="90" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L2_End" bpmnElement="Flow_L2_End">
+        <di:waypoint x="3430" y="315" />
+        <di:waypoint x="3517" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_CR1" bpmnElement="Flow_CR1">
+        <di:waypoint x="2533" y="555" />
+        <di:waypoint x="2620" y="555" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_CR2" bpmnElement="Flow_CR2">
+        <di:waypoint x="2750" y="555" />
+        <di:waypoint x="2790" y="555" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_CR3" bpmnElement="Flow_CR3">
+        <di:waypoint x="2920" y="555" />
+        <di:waypoint x="2960" y="555" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_CR4" bpmnElement="Flow_CR4">
+        <di:waypoint x="3090" y="555" />
+        <di:waypoint x="3177" y="555" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_1" bpmnElement="Flow_L3_1">
+        <di:waypoint x="153" y="765" />
+        <di:waypoint x="240" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_2" bpmnElement="Flow_L3_2">
+        <di:waypoint x="370" y="765" />
+        <di:waypoint x="410" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_3" bpmnElement="Flow_L3_3">
+        <di:waypoint x="540" y="765" />
+        <di:waypoint x="580" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_4" bpmnElement="Flow_L3_4">
+        <di:waypoint x="710" y="765" />
+        <di:waypoint x="750" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_5" bpmnElement="Flow_L3_5">
+        <di:waypoint x="880" y="765" />
+        <di:waypoint x="920" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_6" bpmnElement="Flow_L3_6">
+        <di:waypoint x="1050" y="765" />
+        <di:waypoint x="1090" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_7" bpmnElement="Flow_L3_7">
+        <di:waypoint x="1220" y="765" />
+        <di:waypoint x="1260" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_8" bpmnElement="Flow_L3_8">
+        <di:waypoint x="1390" y="765" />
+        <di:waypoint x="1430" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_9" bpmnElement="Flow_L3_9">
+        <di:waypoint x="1560" y="765" />
+        <di:waypoint x="1600" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_10" bpmnElement="Flow_L3_10">
+        <di:waypoint x="1730" y="765" />
+        <di:waypoint x="1770" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_11" bpmnElement="Flow_L3_11">
+        <di:waypoint x="1900" y="765" />
+        <di:waypoint x="1940" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_12" bpmnElement="Flow_L3_12">
+        <di:waypoint x="2070" y="765" />
+        <di:waypoint x="2110" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_13" bpmnElement="Flow_L3_13">
+        <di:waypoint x="2240" y="765" />
+        <di:waypoint x="2320" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_FixLoop" bpmnElement="Flow_L3_FixLoop">
+        <di:waypoint x="2345" y="740" />
+        <di:waypoint x="2345" y="698" />
+        <di:waypoint x="2005" y="698" />
+        <di:waypoint x="2005" y="725" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2013" y="680" width="110" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_14" bpmnElement="Flow_L3_14">
+        <di:waypoint x="2370" y="765" />
+        <di:waypoint x="2450" y="765" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2378" y="745" width="20" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_L3_End" bpmnElement="Flow_L3_End">
+        <di:waypoint x="2580" y="765" />
+        <di:waypoint x="2667" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T1" bpmnElement="Flow_T1">
+        <di:waypoint x="1003" y="945" />
+        <di:waypoint x="1090" y="945" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T2" bpmnElement="Flow_T2">
+        <di:waypoint x="1220" y="945" />
+        <di:waypoint x="1260" y="945" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T3" bpmnElement="Flow_T3">
+        <di:waypoint x="1390" y="945" />
+        <di:waypoint x="1430" y="945" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T4" bpmnElement="Flow_T4">
+        <di:waypoint x="1560" y="945" />
+        <di:waypoint x="1600" y="945" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_T5" bpmnElement="Flow_T5">
+        <di:waypoint x="1730" y="945" />
+        <di:waypoint x="1817" y="945" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_QC1" bpmnElement="Flow_QC1">
+        <di:waypoint x="1853" y="1440" />
+        <di:waypoint x="1940" y="1440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_QC2" bpmnElement="Flow_QC2">
+        <di:waypoint x="2070" y="1440" />
+        <di:waypoint x="2110" y="1440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_QC3" bpmnElement="Flow_QC3">
+        <di:waypoint x="2240" y="1440" />
+        <di:waypoint x="2280" y="1440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_QC4" bpmnElement="Flow_QC4">
+        <di:waypoint x="2410" y="1440" />
+        <di:waypoint x="2450" y="1440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_QC5" bpmnElement="Flow_QC5">
+        <di:waypoint x="2580" y="1440" />
+        <di:waypoint x="2620" y="1440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_QC6" bpmnElement="Flow_QC6">
+        <di:waypoint x="2750" y="1440" />
+        <di:waypoint x="2830" y="1440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_QC_Fail" bpmnElement="Flow_QC_Fail">
+        <di:waypoint x="2855" y="1415" />
+        <di:waypoint x="2855" y="1320" />
+        <di:waypoint x="2960" y="1320" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2861" y="1302" width="90" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_QC_Pass" bpmnElement="Flow_QC_Pass">
+        <di:waypoint x="2880" y="1440" />
+        <di:waypoint x="2960" y="1440" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2863" y="1406" width="90" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_QC7" bpmnElement="Flow_QC7">
+        <di:waypoint x="3090" y="1320" />
+        <di:waypoint x="3177" y="1320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_QC8" bpmnElement="Flow_QC8">
+        <di:waypoint x="3090" y="1440" />
+        <di:waypoint x="3130" y="1440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_QC9" bpmnElement="Flow_QC9">
+        <di:waypoint x="3195" y="1400" />
+        <di:waypoint x="3195" y="1338" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Pub1" bpmnElement="Flow_Pub1">
+        <di:waypoint x="1853" y="1630" />
+        <di:waypoint x="1940" y="1630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Pub2" bpmnElement="Flow_Pub2">
+        <di:waypoint x="2070" y="1630" />
+        <di:waypoint x="2110" y="1630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Pub3" bpmnElement="Flow_Pub3">
+        <di:waypoint x="2240" y="1630" />
+        <di:waypoint x="2280" y="1630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Pub4" bpmnElement="Flow_Pub4">
+        <di:waypoint x="2410" y="1630" />
+        <di:waypoint x="2450" y="1630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Pub5" bpmnElement="Flow_Pub5">
+        <di:waypoint x="2580" y="1630" />
+        <di:waypoint x="2620" y="1630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Pub6" bpmnElement="Flow_Pub6">
+        <di:waypoint x="2750" y="1630" />
+        <di:waypoint x="2790" y="1630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Pub7" bpmnElement="Flow_Pub7">
+        <di:waypoint x="2920" y="1630" />
+        <di:waypoint x="2960" y="1630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Pub8" bpmnElement="Flow_Pub8">
+        <di:waypoint x="3090" y="1630" />
+        <di:waypoint x="3130" y="1630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Pub9" bpmnElement="Flow_Pub9">
+        <di:waypoint x="3260" y="1630" />
+        <di:waypoint x="3300" y="1630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Pub10" bpmnElement="Flow_Pub10">
+        <di:waypoint x="3430" y="1630" />
+        <di:waypoint x="3517" y="1630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Tr1" bpmnElement="Flow_Tr1">
+        <di:waypoint x="2363" y="1125" />
+        <di:waypoint x="2450" y="1125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Tr2" bpmnElement="Flow_Tr2">
+        <di:waypoint x="2580" y="1125" />
+        <di:waypoint x="2620" y="1125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Tr3" bpmnElement="Flow_Tr3">
+        <di:waypoint x="2750" y="1125" />
+        <di:waypoint x="2790" y="1125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Tr4" bpmnElement="Flow_Tr4">
+        <di:waypoint x="2920" y="1125" />
+        <di:waypoint x="3007" y="1125" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

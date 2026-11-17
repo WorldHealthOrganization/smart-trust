@@ -1,0 +1,96 @@
+name: Release NPM Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.1.0)'
+        required: true
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          package-manager-cache: false
+          node-version: 22
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@litlfred'
+
+      - name: Determine version and tag
+        id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          VERSION="$INPUT_VERSION"
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "version<<$EOF" >> "$GITHUB_OUTPUT"
+          echo "$VERSION" >> "$GITHUB_OUTPUT"
+          echo "$EOF" >> "$GITHUB_OUTPUT"
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "tag<<$EOF" >> "$GITHUB_OUTPUT"
+          echo "v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "$EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build package tarball
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          bun pm pack
+          ls -la *.tgz
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "@litlfred/folio-assistant-core v${{ steps.version.outputs.version }}"
+          body: |
+            ## @litlfred/folio-assistant-core v${{ steps.version.outputs.version }}
+
+            Core content schemas, block kinds, and document adapter for Folio.
+
+            ### Install from GitHub Packages
+
+            ```bash
+            bun add @litlfred/folio-assistant-core@${{ steps.version.outputs.version }}
+            ```
+          files: |
+            *.tgz
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+
+      - name: Publish to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm publish --registry=https://npm.pkg.github.com
+        continue-on-error: true
+
+      - name: Publish to npm registry (optional)
+        if: env.NPM_TOKEN != ''
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm publish --registry=https://registry.npmjs.org --access public
+        continue-on-error: true

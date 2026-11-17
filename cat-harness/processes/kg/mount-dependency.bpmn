@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                   xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_MountDependency"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="author" name="Author"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Remote-mount a harness and its dependency closure.
+
+       No git submodules, ever; no `.deps/`. A remote
+       mount is a DECLARED DIRECTORY with a remote source pinned to a
+       40-character SHA. The defaults (which directories, where) live in the
+       harness's own declaration; a downstream may override them by id,
+       never by path; the closure is resolved transitively; code arrives
+       through the mounted code directories.
+
+       Executed by `bun run cat mount:remote` (and by `state:mount`, which the
+       session-start hook runs). Checked offline by `mount:remote:check`.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:process id="Process_MountDependency" name="Remote-mount a dependency" isExecutable="false">
+    <bpmn:documentation>Laying a harness — and every layer it needs — down from another repository at a pinned commit, as declared directories, with a lock that says exactly what arrived.
+
+You are in this process whenever a folio or harness needs a layer it does not hold: a downstream folio built on a content layer above this harness, a separated layer whose foundation lives elsewhere. The downstream names the harness, its repository and a 40-character pin as a `source.remote` layer in its root `index.config.json` (legacy: `remoteMounts` on its declaration, never both); everything else is read from the harness's own declaration at that pin.
+
+Every layer reached ends in one of three states — mounted, missing, could-not-determine — and the third is never reported as the first. The skill is `remote-mount`.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_MountDependency">
+      <bpmn:lane id="Lane_Author" name="Downstream author" partitionElementRef="author">
+        <bpmn:documentation>A person decides WHICH harness and WHICH pin, and whether to override a default. Nothing below chooses a pin: a branch name is refused, and so is an abbreviated SHA.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_LayerNeeded</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DeclareMount</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pipeline" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Mechanical from the declaration on: the same declaration mounts the same bytes in every container, and only an override by id changes where or what.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ResolveClosure</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MountInstances</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_WriteLock</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RenderAgentSurface</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CheckAgainstLock</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_State</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Mounted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Reported</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_LayerNeeded" name="A layer this&#10;checkout does not hold"/>
+
+    <bpmn:task id="Task_DeclareMount" name="Declare the mount:&#10;harness, repository, pin">
+      <bpmn:documentation>
+        A layer `{ name, source: { remote: { repository, ref } } }` in the
+        downstream's root `index.config.json`, written through
+        `writeDeclaredMounts`. A folio with no index still reads `remoteMounts`
+        on its declaration; both at once is refused. `ref` is a full
+        40-character commit. Overrides, if any, are keyed by layer name and
+        then by directory id — never by path. The index itself is the
+        index-config skill's.
+        Decide first whether you want a remote mount at all: reading another
+        graph without holding its code is a SUBSCRIPTION, not a mount.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="remote-mount"/><bootstrap.processes:skill ref="index-config"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Task_ResolveClosure" name="Resolve the closure&#10;at the pin">
+      <bpmn:documentation>
+        Fetch the pinned tree (shallow, blobless). Read the harness's declaration
+        from it; for each `needs` name, find that layer in the same tree, else
+        follow a GITLINK at that tree as a pin into its own repository. A need
+        found in neither is missing; one the downstream already holds is local.
+        Paths and directories come from `mountDefaults` unless overridden.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="remote-mount"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Task_MountInstances" name="Mount each layer&#10;at its declared path">
+      <bpmn:documentation>
+        Sparse checkout of the declaration and the chosen directories, copied to
+        the mount path (by default the layer's home path, so relative imports
+        and sibling discovery hold). Never onto tracked bytes; never onto a
+        directory no lock says this mount made; never over edits to a previous
+        mount — those are left untouched and reported. A replay of the lock
+        tries the index's layers cache ref first (`refs/cat/layers/&lt;key&gt;`,
+        then `refs/cat/layers/main`): one shallow fetch, every byte verified
+        against the lock, and any layer that does not verify is fetched from its
+        own repository.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="remote-mount"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Task_WriteLock" name="Write the lock">
+      <bpmn:documentation>
+        `index.lock.json` beside the downstream's `index.config.json` (the
+        legacy `&lt;instance&gt;.mount-lock.json` is still read, and is renamed
+        onto the new name when rewritten; both present is an error): the
+        pins it was written for, each layer's repository, SHA and how the pin
+        was found, each directory's tree digest — and what was NOT mounted, with
+        why, so an offline check cannot read a gap as clean. Whoever writes the
+        lock writes its layers cache ref (`layers:publish`, which refuses unless
+        every mount hashes to the lock); on main, the index's workflow does it.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="remote-mount"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Task_RenderAgentSurface" name="Re-render the&#10;agent surface">
+      <bpmn:documentation>
+        When the lock changed, the layers an agent's skills and memory are
+        generated from changed with it. `mount:remote` re-runs the generators
+        of what an agent actually reads — `skill:commands` (`.claude/commands/`)
+        and `agent-memory` (`.claude/agent-memory/` and the `.agents/` copies)
+        — from the checkout root, and a generator that fails fails the run.
+        A re-pin commit therefore carries the new layers AND the surface
+        rendered from them, because new layers shipped without their
+        rendered surface fail the agent-memory tests.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="remote-mount"/><bootstrap.processes:skill ref="agent-memory"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Task_CheckAgainstLock" name="Check disk against&#10;lock against declaration">
+      <bpmn:documentation>
+        `mount:remote:check`, with no network: the lock's pins are the
+        declaration's, and every locked directory is on disk and hashes to its
+        digest. Could-not-determine outranks missing, which outranks mounted.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="remote-mount"/><bootstrap.processes:skill ref="ci-health"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_State" name="Every layer&#10;mounted or local?">
+      <bpmn:documentation>Read off the check's aggregate state. `skipped` and `local` are answers; `missing` and `could-not-determine` are not.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_Mounted" name="The closure is on disk,&#10;pinned and locked"/>
+    <bpmn:endEvent id="End_Reported" name="Reported loudly:&#10;missing / could not determine"/>
+
+    <bpmn:sequenceFlow id="F_D1" sourceRef="Start_LayerNeeded" targetRef="Task_DeclareMount"/>
+    <bpmn:sequenceFlow id="F_D2" sourceRef="Task_DeclareMount" targetRef="Task_ResolveClosure"/>
+    <bpmn:sequenceFlow id="F_D3" sourceRef="Task_ResolveClosure" targetRef="Task_MountInstances"/>
+    <bpmn:sequenceFlow id="F_D4" sourceRef="Task_MountInstances" targetRef="Task_WriteLock"/>
+    <bpmn:sequenceFlow id="F_D5" sourceRef="Task_WriteLock" targetRef="Task_RenderAgentSurface"/>
+    <bpmn:sequenceFlow id="F_D5b" sourceRef="Task_RenderAgentSurface" targetRef="Task_CheckAgainstLock"/>
+    <bpmn:sequenceFlow id="F_D6" sourceRef="Task_CheckAgainstLock" targetRef="GW_State"/>
+    <bpmn:sequenceFlow id="F_D7" name="yes" sourceRef="GW_State" targetRef="End_Mounted"/>
+    <bpmn:sequenceFlow id="F_D8" name="no" sourceRef="GW_State" targetRef="End_Reported"/>
+
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_MountDependency">
+    <bpmndi:BPMNPlane id="Plane_MountDependency" bpmnElement="Process_MountDependency">
+      <bpmndi:BPMNShape id="S_Lane_Author" bpmnElement="Lane_Author" isHorizontal="true">
+        <dc:Bounds x="160" y="40" width="1240" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Lane_Pipeline" bpmnElement="Lane_Pipeline" isHorizontal="true">
+        <dc:Bounds x="160" y="260" width="1240" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Start_LayerNeeded" bpmnElement="Start_LayerNeeded">
+        <dc:Bounds x="216" y="122" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="196" y="163" width="80" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_DeclareMount" bpmnElement="Task_DeclareMount">
+        <dc:Bounds x="292" y="80" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_ResolveClosure" bpmnElement="Task_ResolveClosure">
+        <dc:Bounds x="292" y="290" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_MountInstances" bpmnElement="Task_MountInstances">
+        <dc:Bounds x="452" y="290" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_WriteLock" bpmnElement="Task_WriteLock">
+        <dc:Bounds x="612" y="290" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_RenderAgentSurface" bpmnElement="Task_RenderAgentSurface">
+        <dc:Bounds x="772" y="290" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_CheckAgainstLock" bpmnElement="Task_CheckAgainstLock">
+        <dc:Bounds x="932" y="290" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_GW_State" bpmnElement="GW_State" isMarkerVisible="true">
+        <dc:Bounds x="1092" y="325" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1060" y="264" width="114" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_End_Mounted" bpmnElement="End_Mounted">
+        <dc:Bounds x="1197" y="332" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1240" y="323" width="150" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_End_Reported" bpmnElement="End_Reported">
+        <dc:Bounds x="1197" y="422" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1240" y="413" width="150" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="E_F_D1" bpmnElement="F_D1">
+        <di:waypoint x="252" y="140" />
+        <di:waypoint x="292" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_D2" bpmnElement="F_D2">
+        <di:waypoint x="352" y="200" />
+        <di:waypoint x="352" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_D3" bpmnElement="F_D3">
+        <di:waypoint x="412" y="350" />
+        <di:waypoint x="452" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_D4" bpmnElement="F_D4">
+        <di:waypoint x="572" y="350" />
+        <di:waypoint x="612" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_D5" bpmnElement="F_D5">
+        <di:waypoint x="732" y="350" />
+        <di:waypoint x="772" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_D5b" bpmnElement="F_D5b">
+        <di:waypoint x="892" y="350" />
+        <di:waypoint x="932" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_D6" bpmnElement="F_D6">
+        <di:waypoint x="1052" y="350" />
+        <di:waypoint x="1092" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_D7" bpmnElement="F_D7">
+        <di:waypoint x="1142" y="350" />
+        <di:waypoint x="1197" y="350" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1152" y="330" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_D8" bpmnElement="F_D8">
+        <di:waypoint x="1117" y="375" />
+        <di:waypoint x="1117" y="440" />
+        <di:waypoint x="1197" y="440" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1122" y="395" width="25" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

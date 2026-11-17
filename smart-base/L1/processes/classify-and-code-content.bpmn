@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  smart-base — classify and code L1/L2 content, review L1 exclusions, and
+  adjudicate candidate terminology codings and glossary terms.
+
+  Source of truth: this file. The picture beside it (classify-and-code-content.svg) is drawn by
+  `bun run cat render:bpmn`;
+  never hand-edit it.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_ClassifyAndCodeContent"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+
+  <bpmn:resource id="authoring-agent" name="Authoring agent" />
+  <bpmn:resource id="l1-extraction-reviewer" name="L1 extraction reviewer" />
+  <bpmn:resource id="terminologist" name="Terminologist / ontologist reviewer" />
+
+  <bpmn:collaboration id="Collaboration_ClassifyAndCodeContent">
+    <bpmn:participant id="Participant_ClassifyAndCodeContent" name="Classify and code content — reuse-first lookup, L1 exclusion sign-off, and terminologist/ontologist review" processRef="Process_ClassifyAndCodeContent" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_ClassifyAndCodeContent" name="Classify and code content" isExecutable="false">
+    <bpmn:documentation>Classifies and codes L1 extracted statements (recommendations, implementation practices, remarks, proposed coverage exclusions) and L2 DAK slots (personas, business processes, guideline domains, conditions, interventions, medicines, GRADE ratings), following the terminology-coding methodology and the classify-and-code-content skill. The authoring agent runs terminology-lookup down the four-rung reuse-first ladder, records provenance (declared, context, inferred) and candidate status, and stages the result. A person in the l1-extraction-reviewer lane signs or rejects each exclusion proposed in exclusions.proposed.json against the printed page (sections/page-NNN.md). A person in the terminologist / ontologist lane then adjudicates the candidate codings, SKOS match precision (exactMatch vs closeMatch) and any Rung 4 local glossary candidates.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_ClassifyAndCodeContent_LaneSet">
+      <bpmn:lane id="Lane_Agent" name="Authoring agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Identifies classifiable slots and normative sentences, runs terminology-lookup down the reuse-first ladder, records link provenance and candidate status, and stages codings and proposed exclusions for human review. Never signs an exclusion or approves its own candidate term.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_ContentReady</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Rework</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_IdentifySlots</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LookupAndCode</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_StageForReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_HasExclusions</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_ExtractionReviewer" name="L1 extraction reviewer (person)" partitionElementRef="l1-extraction-reviewer">
+        <bpmn:documentation>A person in the l1-extraction-reviewer role. Reads each sentence proposed for exclusion in its printed-page context and signs the exclusion (signedOffBy) or rejects it, so no normative guidance is silently dropped.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ReviewExclusions</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ExclusionVerdict</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Terminologist" name="Terminologist / ontologist reviewer (person)" partitionElementRef="terminologist">
+        <bpmn:documentation>A person in the terminologist role, equipped with ontologist, glossary-terms, terminology-management and classify-and-code-content. Reviews the staged classifications and codings and records the verdict.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ReviewCodings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TerminologistVerdict</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_ClassifiedAndCoded</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_ContentReady" name="L1 extraction or L2 component ready to classify and code">
+      <bpmn:documentation>An L1 source has been extracted into candidate statements and exclusions, or an L2 DAK component (personas, user scenarios, business processes, data dictionary, decision tables) needs classification and coding.</bpmn:documentation>
+      <bpmn:outgoing>C01</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:exclusiveGateway id="Gateway_Rework" name="">
+      <bpmn:documentation>Merge only: the first pass and any rework requested by either reviewer enter here.</bpmn:documentation>
+      <bpmn:incoming>C01</bpmn:incoming>
+      <bpmn:incoming>C09</bpmn:incoming>
+      <bpmn:incoming>C12</bpmn:incoming>
+      <bpmn:outgoing>C02</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_IdentifySlots" name="Identify slots and proposed exclusions">
+      <bpmn:documentation>Enumerate the classifiable slots in the L1 statements or L2 component (condition, intervention, persona, medicine, domain, business-process, recommendation-strength, recommendation-direction, evidence-certainty) and any proposed L1 coverage exclusions in exclusions.proposed.json naming l1-extraction-reviewer as signerRole.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="classify-and-code-content" />
+        <bootstrap.processes:skill ref="recommendation-extraction" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C02</bpmn:incoming>
+      <bpmn:outgoing>C03</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_LookupAndCode" name="Run reuse-first lookup and record candidates">
+      <bpmn:documentation>Run the terminology-lookup Tool down the four reuse-first rungs of the terminology-coding methodology: (1) target guide vocabulary, (2) smart-base generic personas, GRADE code lists and guideline-domain glossary, (3) external WHO-FIC/ILO standards (ICD-11, ICHI/CDHIv2, ISCO-08, ATC), (4) local glossary candidate (status: candidate, source: extracted), or could-not-determine for business-process with its WARNING line.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="classify-and-code-content" />
+        <bootstrap.processes:skill ref="recommendation-scenarios" />
+        <bootstrap.processes:skill ref="glossary-terms" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C03</bpmn:incoming>
+      <bpmn:outgoing>C04</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_StageForReview" name="Stage codings, warnings and exclusions for review">
+      <bpmn:documentation>Write the candidate codings, provenance bases, warnings report and any unsigned exclusions.proposed.json entries, and request review with deep links to the staged pages and the printed page sections.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="staging-review" />
+        <bootstrap.processes:skill ref="interaction-modality" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C04</bpmn:incoming>
+      <bpmn:outgoing>C05</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Gateway_HasExclusions" name="Proposed exclusions?">
+      <bpmn:documentation>Unsigned entries in exclusions.proposed.json go to the l1-extraction-reviewer first, so exclusions are verified against the printed page before coding sign-off; otherwise straight to terminologist/ontologist review.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="Branches on whether exclusions.proposed.json holds unsigned proposed exclusions for this source; when present, a person in l1-extraction-reviewer must judge them against the printed page." />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C05</bpmn:incoming>
+      <bpmn:outgoing>C06</bpmn:outgoing>
+      <bpmn:outgoing>C07</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="Task_ReviewExclusions" name="Check exclusions against page and sign">
+      <bpmn:documentation>Open library/&lt;doc_id&gt;/sections/page-NNN.md beside exclusions.proposed.json. Read each candidate sentence on the printed page, check that the proposed reason (background-fact, manufacturer-statement, editorial, research-question, duplicate-of) holds without dropping normative guidance, and sign the exclusion (signedOffBy) or reject it with a reason.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="classify-and-code-content" />
+        <bootstrap.processes:skill ref="recommendation-extraction" />
+        <bootstrap.processes:skill ref="content-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C06</bpmn:incoming>
+      <bpmn:outgoing>C08</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_ExclusionVerdict" name="Exclusions signed?">
+      <bpmn:documentation>All signed: on to terminologist/ontologist review. Any rejected as normative: back to the authoring agent to re-curate the sentence as an L1 node.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="A person acting as l1-extraction-reviewer reads the printed page context of each proposed exclusion and judges whether the sentence is genuinely non-normative." />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C08</bpmn:incoming>
+      <bpmn:outgoing>C09</bpmn:outgoing>
+      <bpmn:outgoing>C10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="Task_ReviewCodings" name="Adjudicate slot codings and glossary candidates">
+      <bpmn:documentation>Review each slot's classification and code against the terminology-coding methodology: the authoritative scheme for the slot, the reuse-first rung, skos:exactMatch vs skos:closeMatch precision (ontologist), and any Rung 4 glossary candidates (promote valid ones from candidate to authored per glossary-terms, or replace them with an existing code).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="classify-and-code-content" />
+        <bootstrap.processes:skill ref="ontologist" />
+        <bootstrap.processes:skill ref="glossary-terms" />
+        <bootstrap.processes:skill ref="terminology-management" />
+        <bootstrap.processes:skill ref="content-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C07</bpmn:incoming>
+      <bpmn:incoming>C10</bpmn:incoming>
+      <bpmn:outgoing>C11</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_TerminologistVerdict" name="Coding verdict?">
+      <bpmn:documentation>approve marks candidate links reviewed and promotes approved glossary candidates to authored; request-changes returns the mappings or glossary candidates to the authoring agent with findings.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="A human terminologist judges whether each code and SKOS mapping predicate represents the clinical or public-health concept in context." />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C11</bpmn:incoming>
+      <bpmn:outgoing>C12</bpmn:outgoing>
+      <bpmn:outgoing>C13</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_ClassifiedAndCoded" name="Content classified, coded and signed off">
+      <bpmn:documentation>All L1 coverage exclusions are signed by l1-extraction-reviewer, slot codings are marked reviewed, and approved local glossary terms are promoted to authored.</bpmn:documentation>
+      <bpmn:incoming>C13</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="C01" sourceRef="Start_ContentReady" targetRef="Gateway_Rework" />
+    <bpmn:sequenceFlow id="C02" sourceRef="Gateway_Rework" targetRef="Task_IdentifySlots" />
+    <bpmn:sequenceFlow id="C03" sourceRef="Task_IdentifySlots" targetRef="Task_LookupAndCode" />
+    <bpmn:sequenceFlow id="C04" sourceRef="Task_LookupAndCode" targetRef="Task_StageForReview" />
+    <bpmn:sequenceFlow id="C05" sourceRef="Task_StageForReview" targetRef="Gateway_HasExclusions" />
+    <bpmn:sequenceFlow id="C06" name="yes" sourceRef="Gateway_HasExclusions" targetRef="Task_ReviewExclusions" />
+    <bpmn:sequenceFlow id="C07" name="no" sourceRef="Gateway_HasExclusions" targetRef="Task_ReviewCodings" />
+    <bpmn:sequenceFlow id="C08" sourceRef="Task_ReviewExclusions" targetRef="Gateway_ExclusionVerdict" />
+    <bpmn:sequenceFlow id="C09" name="reject-exclusion" sourceRef="Gateway_ExclusionVerdict" targetRef="Gateway_Rework" />
+    <bpmn:sequenceFlow id="C10" name="signed" sourceRef="Gateway_ExclusionVerdict" targetRef="Task_ReviewCodings" />
+    <bpmn:sequenceFlow id="C11" sourceRef="Task_ReviewCodings" targetRef="Gateway_TerminologistVerdict" />
+    <bpmn:sequenceFlow id="C12" name="request-changes" sourceRef="Gateway_TerminologistVerdict" targetRef="Gateway_Rework" />
+    <bpmn:sequenceFlow id="C13" name="approve" sourceRef="Gateway_TerminologistVerdict" targetRef="End_ClassifiedAndCoded" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ClassifyAndCodeContent">
+    <bpmndi:BPMNPlane id="BPMNPlane_ClassifyAndCodeContent" bpmnElement="Collaboration_ClassifyAndCodeContent">
+      <bpmndi:BPMNShape id="Participant_ClassifyAndCodeContent_di" bpmnElement="Participant_ClassifyAndCodeContent" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1600" height="690" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Agent_di" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1570" height="230" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_ExtractionReviewer_di" bpmnElement="Lane_ExtractionReviewer" isHorizontal="true">
+        <dc:Bounds x="190" y="310" width="1570" height="230" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Terminologist_di" bpmnElement="Lane_Terminologist" isHorizontal="true">
+        <dc:Bounds x="190" y="540" width="1570" height="230" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Start_ContentReady_di" bpmnElement="Start_ContentReady">
+        <dc:Bounds x="252" y="177" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="225" y="218" width="90" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Gateway_Rework_di" bpmnElement="Gateway_Rework" isMarkerVisible="true">
+        <dc:Bounds x="335" y="170" width="50" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_IdentifySlots_di" bpmnElement="Task_IdentifySlots">
+        <dc:Bounds x="430" y="155" width="160" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_LookupAndCode_di" bpmnElement="Task_LookupAndCode">
+        <dc:Bounds x="640" y="155" width="160" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_StageForReview_di" bpmnElement="Task_StageForReview">
+        <dc:Bounds x="850" y="155" width="160" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Gateway_HasExclusions_di" bpmnElement="Gateway_HasExclusions" isMarkerVisible="true">
+        <dc:Bounds x="1065" y="170" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1050" y="136" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_ReviewExclusions_di" bpmnElement="Task_ReviewExclusions">
+        <dc:Bounds x="1010" y="385" width="160" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Gateway_ExclusionVerdict_di" bpmnElement="Gateway_ExclusionVerdict" isMarkerVisible="true">
+        <dc:Bounds x="1235" y="400" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1295" y="412" width="75" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_ReviewCodings_di" bpmnElement="Task_ReviewCodings">
+        <dc:Bounds x="1180" y="615" width="170" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Gateway_TerminologistVerdict_di" bpmnElement="Gateway_TerminologistVerdict" isMarkerVisible="true">
+        <dc:Bounds x="1415" y="630" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1400" y="686" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="End_ClassifiedAndCoded_di" bpmnElement="End_ClassifiedAndCoded">
+        <dc:Bounds x="1572" y="637" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1540" y="680" width="100" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="C01_di" bpmnElement="C01">
+        <di:waypoint x="288" y="195" />
+        <di:waypoint x="335" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C02_di" bpmnElement="C02">
+        <di:waypoint x="385" y="195" />
+        <di:waypoint x="430" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C03_di" bpmnElement="C03">
+        <di:waypoint x="590" y="195" />
+        <di:waypoint x="640" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C04_di" bpmnElement="C04">
+        <di:waypoint x="800" y="195" />
+        <di:waypoint x="850" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C05_di" bpmnElement="C05">
+        <di:waypoint x="1010" y="195" />
+        <di:waypoint x="1065" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C06_di" bpmnElement="C06">
+        <di:waypoint x="1090" y="220" />
+        <di:waypoint x="1090" y="385" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1098" y="275" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C07_di" bpmnElement="C07">
+        <di:waypoint x="1115" y="195" />
+        <di:waypoint x="1150" y="195" />
+        <di:waypoint x="1150" y="655" />
+        <di:waypoint x="1180" y="655" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1125" y="177" width="16" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C08_di" bpmnElement="C08">
+        <di:waypoint x="1170" y="425" />
+        <di:waypoint x="1235" y="425" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C09_di" bpmnElement="C09">
+        <di:waypoint x="1260" y="400" />
+        <di:waypoint x="1260" y="115" />
+        <di:waypoint x="360" y="115" />
+        <di:waypoint x="360" y="170" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="820" y="97" width="85" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C10_di" bpmnElement="C10">
+        <di:waypoint x="1260" y="450" />
+        <di:waypoint x="1260" y="615" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1268" y="520" width="36" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C11_di" bpmnElement="C11">
+        <di:waypoint x="1350" y="655" />
+        <di:waypoint x="1415" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C12_di" bpmnElement="C12">
+        <di:waypoint x="1440" y="630" />
+        <di:waypoint x="1440" y="100" />
+        <di:waypoint x="360" y="100" />
+        <di:waypoint x="360" y="170" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1335" y="82" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C13_di" bpmnElement="C13">
+        <di:waypoint x="1465" y="655" />
+        <di:waypoint x="1572" y="655" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1495" y="637" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "Declared in place?" — GW_Declared in graph-detanglement.bpmn.
+
+  Stage 1 of the practice. The sub-graph is declared WHERE IT ALREADY SITS —
+  still inside the repository, still connected, nothing moved. Declaring is
+  cheap and extracting is expensive, which is the point.
+
+  Facts, all already produced by tools that exist:
+
+    declarationPresent  `<name>.json` (or a nested declaration) carries an
+                        entry for the sub-graph, with its `graphs[]` kinds
+    pathsResolve        every declared path exists — `check:harness-dirs`
+    readable            the declaration PARSED
+
+  THE THIRD STATE IS FIRST, and it is the reason this is a table. An
+  unreadable declaration is not "not yet declared": one says the work has not
+  started, the other says nobody can tell. Bean `dh4f` is a clean run over an
+  empty set; a declared-but-absent directory is the same defect wearing a
+  declaration, which is why `pathsResolve` is an input rather than an
+  assumption.
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_SubgraphDeclaredGate"
+             name="Sub-graph declared gate"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_SubgraphDeclaredGate" name="Declared in place?">
+    <decisionTable id="Table_SubgraphDeclaredGate" hitPolicy="FIRST">
+      <input id="In_Readable" label="declaration parsed">
+        <inputExpression id="Expr_Readable" typeRef="boolean">
+          <text>readable</text>
+        </inputExpression>
+      </input>
+      <input id="In_Declared" label="entry present for the sub-graph">
+        <inputExpression id="Expr_Declared" typeRef="boolean">
+          <text>declarationPresent</text>
+        </inputExpression>
+      </input>
+      <input id="In_PathsResolve" label="every declared path exists">
+        <inputExpression id="Expr_PathsResolve" typeRef="boolean">
+          <text>pathsResolve</text>
+        </inputExpression>
+      </input>
+      <output id="Out_DeclaredGate" name="outcome" typeRef="string" />
+
+      <rule id="Rule_Unreadable">
+        <description>Could not determine. NOT "not yet" — a malformed declaration is a fault, and answering it with the convention would report a guess as an answer.</description>
+        <inputEntry id="IE_Unreadable_1"><text>false</text></inputEntry>
+        <inputEntry id="IE_Unreadable_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Unreadable_3"><text>-</text></inputEntry>
+        <outputEntry id="OE_Unreadable"><text>"unknown"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Undeclared">
+        <description>Nothing declares the sub-graph, so there is nothing to detangle toward.</description>
+        <inputEntry id="IE_Undeclared_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Undeclared_2"><text>false</text></inputEntry>
+        <inputEntry id="IE_Undeclared_3"><text>-</text></inputEntry>
+        <outputEntry id="OE_Undeclared"><text>"not yet"</text></outputEntry>
+      </rule>
+      <rule id="Rule_DeclaredAbsent">
+        <description>Declared but a path does not exist — bean `dh4f`: a consumer scans nothing and reports a clean run over it.</description>
+        <inputEntry id="IE_DeclaredAbsent_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_DeclaredAbsent_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_DeclaredAbsent_3"><text>false</text></inputEntry>
+        <outputEntry id="OE_DeclaredAbsent"><text>"not yet"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Declared">
+        <description>Declared in place and every path resolves. Stage 1 measures done.</description>
+        <inputEntry id="IE_Declared_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Declared_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Declared_3"><text>-</text></inputEntry>
+        <outputEntry id="OE_Declared"><text>"declared"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

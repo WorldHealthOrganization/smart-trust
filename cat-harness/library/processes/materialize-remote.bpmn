@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_MaterializeRemote" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="corpus" name="Corpus"/>
+  <bpmn:resource id="ingestion-agent" name="Ingestion engine"/>
+  <bpmn:resource id="user" name="User"/>
+  <bpmn:collaboration id="Collaboration_Process_MaterializeRemote">
+    <bpmn:participant id="Participant_Process_MaterializeRemote" name="Materialize remote content: the shared subprocess" processRef="Process_MaterializeRemote"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_MaterializeRemote" name="Materialize remote content: the shared subprocess" isExecutable="false">
+    <bpmn:documentation>One process, called wherever remote content is landed locally: a large remote collection with no restrictions known in context may be materialized locally, size permitting, and bootstrapping a harness is the same shape.
+
+Two callers today and they are genuinely the same shape: sample-import.bpmn landing three items out of an ~0.7 TB catalogue, and bootstrap fetching a harness. upstream-pins.json is half of the second one's refresh and names itself neither.
+
+STRICT, and the five gates are why. Each is a decision a person makes and none is answerable from a file, so a gate that only warned would be a gate nobody fails.
+
+The three states (referenced / materialized / unknown) and the five gates are schemas/materialization.ts in folio-assistant-core. Nothing here restates them.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_MaterializeRemote">
+      <bpmn:lane id="Lane_0" name="Contributor (human or agent)" partitionElementRef="user">
+        <bpmn:documentation>One task, asked first for a reason: working vs. archival is not just an input to the five gates that follow, it changes what three of them MEAN — an archival copy is the only one that can discharge source loss, and a process that gated before asking this would be judging a copy against obligations it did not yet know applied.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_Asked</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Purpose</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_1" name="Ingestion engine (agent, runs unattended)" partitionElementRef="ingestion-agent">
+        <bpmn:documentation>Runs the five gates in a fixed order and reaches Task_Fetch only after Gateway_Gates finds none of them refused. Before the first gate it resolves the request against the source DESCRIPTOR (Task_Enumerate), because the size being gated is the closure's, not the request's — size, restrictions, copyright, retention, source loss — so this lane's job is not one decision but five independent ones, each of which can send the process to Task_StayRef on its own. It does not get to average them: `unknown` on any single gate is enough to keep the node `referenced` rather than `materialized`.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Enumerate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Size</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AnswerGates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Gates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Fetch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Declare</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Done</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_StayRef</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Refused</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Asked" name="Remote content wanted">
+      <bpmn:documentation>The only entry point. The caller supplies a URI and a PURPOSE — working or archival — and nothing else is assumed.</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Purpose" name="Declare the purpose: working or archival">
+      <bpmn:documentation>working or archival, and it is asked FIRST because three of the five gates mean different things under each. An archival copy keeps the original bytes, never expires, requires fixity, and is the only thing that discharges sourceLoss; a working copy keeps derived content and discharges none of that. A process that gated first and asked afterwards would be judging a copy whose obligations it did not yet know.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_Enumerate" name="Enumerate the source descriptor">
+      <bpmn:documentation>Resolve the request against the source's descriptor (one per corpus, in the declared sources/ of the layer that owns it, e.g. who-iris/sources/), read against cat-harness/schemas/library/source-descriptor.ts BEFORE any gate. Three things come from it and none may be guessed. (1) Which subset strategies the source supports — supportsSubset(). (2) Whether a subset stands on its own: when subsetIsSelfContained is false (mathlib), the request is closed over its dependencies here, and every gate after this one is asked about the CLOSURE, because a subset that omits what its members depend on is not a smaller corpus, it is one that does not build. (3) What enumerating the whole costs — enumerationCost(), which is undefined when the descriptor has no measured denominator; SIZE then refuses rather than estimates. A source with no descriptor is not an error here: it is an unknown, and SIZE refuses on it. The descriptor is CALLED here rather than restated.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Size" name="Size the take and the whole">
+      <bpmn:documentation>What is being taken, and what the whole collection would cost. REFUSES when it cannot tell: 'three items' with no denominator is not a size answer. 0.7 TB is the measured reason the IRIS import is by reference.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_AnswerGates" name="Answer the other four gates">
+      <bpmn:documentation>Restrictions, copyright, retention and source loss, each answered permitted, refused or unknown. They are four answers to one decision, and Gateway_Gates reads them with size through decisions/materialization-gate.dmn.
+
+RESTRICTIONS. 'No restrictions known in context' is a STATE, not a green light. GateVerdict is three-valued for this reason alone, and `unknown` is never rendered as `permitted`.
+
+COPYRIGHT. What the licence permits for THIS bitstream, and separately whether it permits the derivation. LICENSE-CONTENT.md exists in this repository and the ingestion pipeline does not read it.
+
+RETENTION. A copy with no expiry cannot be told from an abandoned one — the same argument bean-blocking makes about a block with no expiry. An ARCHIVAL copy is the exception and it is a specification rather than an omission: freshness() reports it `permanent`, not `no-expiry`.
+
+SOURCE LOSS. Not hypothetical. The one IRIS record this repository holds carries a handle on iris.wpro.who.int, a regional instance merged into the global one. Only an ARCHIVAL copy of the original bytes discharges this; a working copy cannot, because the derived sections are not the publication.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_Gates" name="All five answered, none refused?">
+      <bpmn:documentation>Computed by decisions/materialization-gate.dmn (hit policy FIRST) over the five verdicts: size, restrictions, copyright, retention and source loss. Have all five gates been answered, with none refusing? `yes` fetches the copy and records its fixity; `no, or unknown` leaves the source `referenced` and records why. An unanswered gate counts as a refusal.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:decision ref="decisions/materialization-gate.dmn#Decision_MaterializationGate"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Fetch" name="Fetch, and record fixity">
+      <bpmn:documentation>Fetch, then record sha256 and byte count. Fixity is REQUIRED for an archival copy: an archive that cannot demonstrate it is unchanged is a copy, and it cannot be re-fetched to check, because the thing it would be re-fetched from is what it exists to survive. The data already exists — every structure.json carries sha256 and bytes, and nothing reads them as fixity.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Declare" name="Declare the node materialized">
+      <bpmn:documentation>The node's state moves from `referenced` to `materialized`, carrying purpose, localPath, gates and (archival) fixity. There is NO default state: a node that has not said is invalid, because 'the author did not say' and 'the author said they could not tell' are different facts.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_Declare">
+        <bpmn:targetRef>DSR_corpus</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Done" name="Local copy exists, with its five answers">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_StayRef" name="Leave it referenced, record why">
+      <bpmn:documentation>A refusal is not a failure of the process — it is the process working. The node stays `referenced`, which means the graph still knows it exists and where, and the refusing gate's basis is recorded so the next caller does not re-litigate it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_StayRef">
+        <bpmn:targetRef>DSR_corpus</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Refused" name="Not materialized, and the graph says why">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_Asked" targetRef="Task_Purpose"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Purpose" targetRef="Task_Enumerate"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_Enumerate" targetRef="Task_Size"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_Size" targetRef="Task_AnswerGates"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_AnswerGates" targetRef="Gateway_Gates"/>
+    <bpmn:sequenceFlow id="Flow_Yes" sourceRef="Gateway_Gates" targetRef="Task_Fetch" name="yes"/>
+    <bpmn:sequenceFlow id="Flow_No" sourceRef="Gateway_Gates" targetRef="Task_StayRef" name="no, or unknown"/>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_Fetch" targetRef="Task_Declare"/>
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_Declare" targetRef="EndEvent_Done"/>
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Task_StayRef" targetRef="EndEvent_Refused"/>
+    <bpmn:dataStoreReference id="DSR_corpus" name="Corpus" dataStoreRef="corpus"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_MaterializeRemote">
+    <bpmndi:BPMNPlane id="Plane_Process_MaterializeRemote" bpmnElement="Collaboration_Process_MaterializeRemote">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_MaterializeRemote" bpmnElement="Participant_Process_MaterializeRemote" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="1218" height="500"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_0" bpmnElement="Lane_0" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="1188" height="150"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_1" bpmnElement="Lane_1" isHorizontal="true">
+        <dc:Bounds x="90" y="210" width="1188" height="350"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_StartEvent_Asked" bpmnElement="StartEvent_Asked">
+        <dc:Bounds x="140" y="117" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="121" y="157" width="76" height="60"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Purpose" bpmnElement="Task_Purpose">
+        <dc:Bounds x="220" y="75" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Enumerate" bpmnElement="Task_Enumerate">
+        <dc:Bounds x="220" y="265" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Size" bpmnElement="Task_Size">
+        <dc:Bounds x="390" y="265" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AnswerGates" bpmnElement="Task_AnswerGates">
+        <dc:Bounds x="560" y="265" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_Gates" bpmnElement="Gateway_Gates" isMarkerVisible="true">
+        <dc:Bounds x="735" y="300" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="700" y="225" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Fetch" bpmnElement="Task_Fetch">
+        <dc:Bounds x="840" y="265" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Declare" bpmnElement="Task_Declare">
+        <dc:Bounds x="1010" y="425" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndEvent_Done" bpmnElement="EndEvent_Done">
+        <dc:Bounds x="1182" y="467" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1140" y="507" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_StayRef" bpmnElement="Task_StayRef">
+        <dc:Bounds x="700" y="425" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndEvent_Refused" bpmnElement="EndEvent_Refused">
+        <dc:Bounds x="600" y="467" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="476" y="449" width="120" height="72" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="176" y="135"/>
+        <di:waypoint x="220" y="135"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_2" bpmnElement="Flow_2">
+        <di:waypoint x="280" y="195"/>
+        <di:waypoint x="280" y="265"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_3" bpmnElement="Flow_3">
+        <di:waypoint x="340" y="325"/>
+        <di:waypoint x="390" y="325"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_4" bpmnElement="Flow_4">
+        <di:waypoint x="510" y="325"/>
+        <di:waypoint x="560" y="325"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_5" bpmnElement="Flow_5">
+        <di:waypoint x="680" y="325"/>
+        <di:waypoint x="735" y="325"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Yes" bpmnElement="Flow_Yes">
+        <di:waypoint x="785" y="325"/>
+        <di:waypoint x="840" y="325"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_No" bpmnElement="Flow_No">
+        <di:waypoint x="760" y="350"/>
+        <di:waypoint x="760" y="425"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="765.5" y="386" width="180" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_6" bpmnElement="Flow_6">
+        <di:waypoint x="960" y="325"/>
+        <di:waypoint x="1070" y="325"/>
+        <di:waypoint x="1070" y="425"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_7" bpmnElement="Flow_7">
+        <di:waypoint x="1130" y="485"/>
+        <di:waypoint x="1182" y="485"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_8" bpmnElement="Flow_8">
+        <di:waypoint x="700" y="485"/>
+        <di:waypoint x="636" y="485"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_DSR_corpus" bpmnElement="DSR_corpus"><dc:Bounds x="890" y="600" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="944" y="616" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_Declare" bpmnElement="DOA_Task_Declare"><di:waypoint x="1070" y="545"/><di:waypoint x="1070" y="575"/><di:waypoint x="915" y="575"/><di:waypoint x="915" y="600"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_StayRef" bpmnElement="DOA_Task_StayRef"><di:waypoint x="760" y="545"/><di:waypoint x="760" y="575"/><di:waypoint x="915" y="575"/><di:waypoint x="915" y="600"/></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

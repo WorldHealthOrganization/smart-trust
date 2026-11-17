@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                   xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_CRDM_Requirements" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="business-analyst" name="Business analyst"/>
+  <bpmn:resource id="stakeholder" name="Stakeholder"/>
+  <bpmn:collaboration id="Collaboration_Process_CRDM_Requirements">
+    <bpmn:participant id="Participant_Process_CRDM_Requirements" name="CRDM Phases 2–4 — BPA and requirements" processRef="Process_CRDM_Requirements"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_CRDM_Requirements" name="CRDM Phases 2–4 — BPA and requirements" isExecutable="false">
+    <bpmn:documentation>Map the current workflow, then define the requirements and the impact they carry, and loop until approved. Same shape as Phase 1 and for the same reason: an unapproved requirement is a proposal.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_CRDM_Requirements">
+      <bpmn:lane id="Lane_BA" name="BA / Feature Requestor" partitionElementRef="business-analyst">
+        <bpmn:documentation>The one checkpoint between the agent's comparison and the stakeholders' sign-off: BA_ReviewReqs is where someone who can read the impact analysis on its own technical terms vouches for it, because Lane_Stakeholders reviews only at defined checkpoints and needs the requirement already in a form they can approve without re-deriving it.</bpmn:documentation>
+        <bpmn:flowNodeRef>BA_ReviewReqs</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Owns Phases 2 through 4a end to end, but the revise loop (GW_Reqs' 'revise' branch) re-enters at A_DefineReqs rather than back at A_MapWorkflow — so mapping the current workflow is this lane's one-time fact-finding, done once per phase run, while defining requirements and comparing options is what gets redone against BA feedback until Lane_Stakeholders approves. When a requirement changes a rendered surface, this lane also designs it before anything is built: GW_RenderedSurface sends it to Call_Wireframe, where the agent is the Designer of Process_WireframeDesignReview and posts its candidates for the BA to choose from. The call sits here rather than in Lane_BA because drawing and checking the candidates is the agent's work; the BA's part is the choice, made at BA_ReviewReqs.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Process_CRDM_Requirements</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_MapWorkflow</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_DefineReqs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_RenderedSurface</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Wireframe</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_CompareOptions</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Reqs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Process_CRDM_Requirements</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Stakeholders" name="Stakeholders" partitionElementRef="stakeholder">
+        <bpmn:documentation>The verdict GW_Reqs reads to decide between ending the phase and sending A_DefineReqs around again — a narrower approval than crdm-close.bpmn's final feature sign-off, since what is being approved here is the REQUIREMENT model itself, not that the delivered feature satisfies it.</bpmn:documentation>
+        <bpmn:flowNodeRef>S_ApproveReqs</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Process_CRDM_Requirements" name="Phase begins"/>
+    <bpmn:task id="A_MapWorkflow" name="Phase 2: Map current
+workflow (BPA)">
+      <bpmn:documentation>Business-process analysis here means reading the
+existing diagrams under processes/ and drawing the gap, so the skill
+that implements this step is the BPMN one.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bpmn-authoring"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_DefineReqs" name="Phases 3–4: Define
+requirements + impact">
+      <bpmn:documentation>Two skills, because this step is two things: the
+requirements come from the CRDM process, the impact half is a question about
+the entities and relations the change touches, which is what data modelling
+answers; a folio-content skill such as `content-graph` is not one this
+harness diagram can bind. </bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="crdm-requirements-workflow"/>
+        <bootstrap.processes:skill ref="data-modelling"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_RenderedSurface" name="Does a requirement change a rendered surface (page, visualiser, navbar, form, app screen)?">
+      <bpmn:documentation>Answered from the requirements A_DefineReqs just wrote: does any of them change what a person sees — a page, a visualiser, the navbar, a form, an app screen? `yes` designs that surface before anything is built; `no` goes straight to comparing options. Asked again on every revise loop, because a revised requirement can add or remove a rendered surface.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_Wireframe" name="Wireframe candidates&#10;(web + mobile)" calledElement="Process_WireframeDesignReview">
+      <bpmn:documentation>Design use of wireframe-design-review, before implementation: a written design intent, at least two mid-fidelity candidates each with a web and a mobile layout, the mechanical checks, and a blind review. The candidates are committed as assets of the request's proposal, under docs/proposals/&lt;slug&gt;/wireframes/ beside docs/proposals/&lt;slug&gt;.md, on the feature branch so feature-staging publishes them, and shown where the requester will look, chosen from context — the conversation, the issue the request came from, the pull request, or several of these — each place carrying the same staging deep links and screenshots (feedback-deep-links, point 5: where it goes is a judgement). The requester or BA is the human reviewer and chooses one at BA_ReviewReqs. A wireframe is part of the design process for adjudication (methodologies/wiregen.md).
+
+The candidates ARE the options A_CompareOptions lays out, so this merges into it rather than producing a second comparison.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="wireframe-design-review"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:task id="A_CompareOptions" name="Phase 4a: Compare
+the viable options">
+      <bpmn:documentation>Phase 4 often ends with a CHOICE rather than a plan,
+and this is the step that hands it over. Per option: what it does, its pro, its
+con, what it changes DOWNSTREAM, and how reversible it is — laid out where the
+rows can be read against each other, then one recommendation and a stated
+default.
+
+A step of its own rather than a line inside A_DefineReqs, because it has a
+different output and a different reader: the impact analysis is for the record,
+the comparison is the thing the BA answers from. Folding it in is how it gets
+skipped — the analysis feels finished, so the options go over as a list of
+names.
+
+When Call_Wireframe ran, its wireframe candidates are among the options: one row per candidate, with a link to its web and mobile screenshots.
+
+Skipped legitimately when the analysis yields ONE viable approach. Do not
+manufacture alternatives to fill a table.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="decision-comparison"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="BA_ReviewReqs" name="Review requirements
+and impact analysis">
+      <bpmn:documentation>The BA reviews the formal requirements and the
+impact analysis the agent produced. When a requirement changes a rendered
+surface, the BA (or the requester) also reviews the wireframe candidates, web
+and mobile, shown wherever the requester will look (the conversation, the
+issue, the pull request, or several) with staging deep links and screenshots,
+and chooses one before implementation starts. The agent records
+the choice; it never makes it.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-requirements-workflow"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="S_ApproveReqs" name="Approve
+requirements">
+      <bpmn:documentation>Stakeholders approve the requirements and impact analysis on the issue, or send them back for revision. Only their approval moves the work to sign-off; an agent never records an approval on a person's behalf.</bpmn:documentation>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Reqs" name="BA approves?">
+      <bpmn:documentation>The BA's answer to the requirements and impact. `revise` goes back to defining them; `yes` completes the phase.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Process_CRDM_Requirements" name="Phase complete"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Requirements_1" sourceRef="Start_Process_CRDM_Requirements" targetRef="A_MapWorkflow"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Requirements_2" sourceRef="A_MapWorkflow" targetRef="A_DefineReqs"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Requirements_3" sourceRef="A_DefineReqs" targetRef="GW_RenderedSurface"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Requirements_3w" name="yes" sourceRef="GW_RenderedSurface" targetRef="Call_Wireframe"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Requirements_3x" sourceRef="Call_Wireframe" targetRef="A_CompareOptions"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Requirements_3n" name="no" sourceRef="GW_RenderedSurface" targetRef="A_CompareOptions"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Requirements_3b" sourceRef="A_CompareOptions" targetRef="BA_ReviewReqs"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Requirements_4" sourceRef="BA_ReviewReqs" targetRef="S_ApproveReqs"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Requirements_5" sourceRef="S_ApproveReqs" targetRef="GW_Reqs"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Requirements_6" name="revise" sourceRef="GW_Reqs" targetRef="A_DefineReqs"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Requirements_7" name="yes" sourceRef="GW_Reqs" targetRef="End_Process_CRDM_Requirements"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_CRDM_Requirements">
+    <bpmndi:BPMNPlane id="Plane_Process_CRDM_Requirements" bpmnElement="Collaboration_Process_CRDM_Requirements">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_CRDM_Requirements" bpmnElement="Participant_Process_CRDM_Requirements" isHorizontal="true">
+        <dc:Bounds x="160" y="50" width="1380" height="590" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_BA_Process_CRDM_Requirements" bpmnElement="Lane_BA" isHorizontal="true">
+        <dc:Bounds x="190" y="50" width="1350" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent_Process_CRDM_Requirements" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="220" width="1350" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Stakeholders_Process_CRDM_Requirements" bpmnElement="Lane_Stakeholders" isHorizontal="true">
+        <dc:Bounds x="190" y="460" width="1350" height="180" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Process_CRDM_Requirements" bpmnElement="Start_Process_CRDM_Requirements">
+        <dc:Bounds x="240" y="322" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="226" y="363" width="64" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_MapWorkflow" bpmnElement="A_MapWorkflow">
+        <dc:Bounds x="302" y="280" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_DefineReqs" bpmnElement="A_DefineReqs">
+        <dc:Bounds x="462" y="280" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_RenderedSurface" bpmnElement="GW_RenderedSurface" isMarkerVisible="true">
+        <dc:Bounds x="622" y="315" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="588" y="226" width="140" height="80" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Wireframe" bpmnElement="Call_Wireframe">
+        <dc:Bounds x="742" y="280" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_CompareOptions" bpmnElement="A_CompareOptions">
+        <dc:Bounds x="902" y="280" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_BA_ReviewReqs" bpmnElement="BA_ReviewReqs">
+        <dc:Bounds x="1062" y="75" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_S_ApproveReqs" bpmnElement="S_ApproveReqs">
+        <dc:Bounds x="1222" y="490" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Reqs" bpmnElement="GW_Reqs" isMarkerVisible="true">
+        <dc:Bounds x="1382" y="315" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1362" y="272" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Process_CRDM_Requirements" bpmnElement="End_Process_CRDM_Requirements">
+        <dc:Bounds x="1472" y="322" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1460" y="363" width="60" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Requirements_1" bpmnElement="SF_Process_CRDM_Requirements_1">
+        <di:waypoint x="276" y="340" />
+        <di:waypoint x="302" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Requirements_2" bpmnElement="SF_Process_CRDM_Requirements_2">
+        <di:waypoint x="422" y="340" />
+        <di:waypoint x="462" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Requirements_3" bpmnElement="SF_Process_CRDM_Requirements_3">
+        <di:waypoint x="582" y="340" />
+        <di:waypoint x="622" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Requirements_3w" bpmnElement="SF_Process_CRDM_Requirements_3w">
+        <di:waypoint x="672" y="340" />
+        <di:waypoint x="742" y="340" />
+        <bpmndi:BPMNLabel><dc:Bounds x="690" y="318" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Requirements_3x" bpmnElement="SF_Process_CRDM_Requirements_3x">
+        <di:waypoint x="862" y="340" />
+        <di:waypoint x="902" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Requirements_3n" bpmnElement="SF_Process_CRDM_Requirements_3n">
+        <di:waypoint x="647" y="365" />
+        <di:waypoint x="647" y="430" />
+        <di:waypoint x="962" y="430" />
+        <di:waypoint x="962" y="400" />
+        <bpmndi:BPMNLabel><dc:Bounds x="652" y="394" width="25" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Requirements_3b" bpmnElement="SF_Process_CRDM_Requirements_3b">
+        <di:waypoint x="1022" y="340" />
+        <di:waypoint x="1042" y="340" />
+        <di:waypoint x="1042" y="135" />
+        <di:waypoint x="1062" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Requirements_4" bpmnElement="SF_Process_CRDM_Requirements_4">
+        <di:waypoint x="1182" y="135" />
+        <di:waypoint x="1202" y="135" />
+        <di:waypoint x="1202" y="550" />
+        <di:waypoint x="1222" y="550" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Requirements_5" bpmnElement="SF_Process_CRDM_Requirements_5">
+        <di:waypoint x="1342" y="550" />
+        <di:waypoint x="1362" y="550" />
+        <di:waypoint x="1362" y="340" />
+        <di:waypoint x="1382" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Requirements_6" bpmnElement="SF_Process_CRDM_Requirements_6">
+        <di:waypoint x="1407" y="365" />
+        <di:waypoint x="1407" y="625" />
+        <di:waypoint x="522" y="625" />
+        <di:waypoint x="522" y="400" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1412" y="590" width="55" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Requirements_7" bpmnElement="SF_Process_CRDM_Requirements_7">
+        <di:waypoint x="1432" y="340" />
+        <di:waypoint x="1472" y="340" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1437" y="318" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
