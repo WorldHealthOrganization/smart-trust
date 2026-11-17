@@ -1,0 +1,93 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "kg-graph-export",
+    "title": "Knowledge-graph export",
+    "description": "Dump this layer's knowledge graph — skills, BPMN activities and their lanes, roles, actors, directories — to one JSON-LD document for publication. The export is data; something else draws it.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat kg:export"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "baseUrl",
+          "schema": {
+            "$type": "Url"
+          },
+          "description": "Publication base the node IRIs are minted against; a preview passes its own.",
+          "required": false,
+          "arg": {
+            "flag": "--base-url"
+          }
+        },
+        {
+          "name": "out",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Where to write; defaults to `_kg/<stub>.jsonld`, which is build output and gitignored.",
+          "required": false,
+          "arg": {
+            "flag": "--out"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "graph",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The written JSON-LD document."
+        },
+        {
+          "name": "problems",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Sources that could not be read, counted rather than silently omitted."
+        }
+      ]
+    },
+    "satisfies": [
+      "kg-export",
+      "bootstrap-graph-emission",
+      "bootstrap-graph-publication"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/io/inputs/0",
+      "comment": "The script reads `KG_BASE_URL` when the flag is absent, and falls\nback to `harness.json`'s `canonicalUrl`. Declared as the flag\nbecause that is the arm a caller controls; the other two are\ndefaults, not inputs."
+    },
+    {
+      "at": "/io/inputs/1",
+      "comment": "input-site: inert #5eaba3b5 — prose naming the directory, in a message or a description"
+    },
+    {
+      "at": "/io/outputs/1",
+      "comment": "A source that cannot be read is reported and counted, never\ndropped — the script's own three-state rule, and it belongs in the\ncontract rather than only in its header. An export that quietly\nomits half a corpus looks well-formed to a consumer, which is bean\n`dh4f`."
+    },
+    {
+      "at": "/satisfies",
+      "comment": "Bean `n350`: the Tool that publishes bootstrap's graph, so it also\nsatisfies the two skills that govern that graph. They live in\n`bootstrap/skills/`; `check-tools` resolves them across layers."
+    },
+    {
+      "at": "/requires",
+      "comment": "Not an alternative to its siblings, and `deriveAlternatives` agrees:\nthe four sharing this skill are COMPLEMENTARY steps — export, then\npublish, then serve — with different I/O, not four ways to do one\nthing. A rule keyed on \"shares a skill\" alone would pair them."
+    },
+    {
+      "at": "",
+      "comment": "── The export itself, which five nodes claimed and none performed ────\n\n`kg-export` was already `satisfies`-covered FIVE times over —\n`pages-publish`, `serve-rendering` and the three schema carriers below —\nand not one of them runs an export. `pages-publish` publishes a built\ndirectory; `serve-rendering` serves one; the carriers regenerate JSON\nSchemas through `kg:schema`. The command that builds the graph rendering\nin the first place, `bun run cat kg:export`, was reachable from no node.\n\nThat is worth a comment rather than a silent addition, because\n`check:tools` reported this skill as covered throughout and was right to:\ncoverage is a relation between a Tool and a SKILL, and a skill can be\nsatisfied by neighbours of its mechanism. Found 2026-09-20 while working\nbean `d308`, whose whole premise is that code with no node is invisible\neven when its skill looks served. This node is that premise's first\ninstance in the graph rather than in a bean."
+    }
+  ]
+}

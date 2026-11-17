@@ -1,0 +1,62 @@
+---
+doc_id: 10665-67518
+doc_title: "Caracteristiques d' activité et de stabilité des vaccines antivarioliques utilisés dans les programmes d' éradication de la variole en Afrique de l' ouest et du centre-ouest / par A. Bernstein et M.Z. Bierly"
+section_id: page-010
+section_title: "Page 10"
+pages: 10-10
+pdf_page: 10
+source_pdf: 10665-67518.pdf
+source_sha256: 7c3395c0b0559fe6
+text_source: ocr
+granularity: page
+---
+wHo/SE/72.49
+Page 10
+
+TABLEAU 7,
+
+TITRAGE DU VACCIN DE REFERENCE ET DE LA PREPARATION
+INTERNATIONALE DE REFERENCE SUR MCA ET SUR CULTURE CELLULAIRE RSC
+
+Vaccin de référence
+
+Titre MCA Titre CMK
+
+Rapport des titres
+
+l U.i
+
+8,0 V-inf./m1 log 10 10Ts 0/1 RSC/MCA
+Préparation interna-
+tionale de référence 8,3 7,4 -0,9
+Vaccin de référence 8,4 8,8 +0,4
+Vaccin de référence
+de Wyeth 7,9 8,2 +0,3
+
+TABLEAU 8.
+
+ETUDE DE LA STABILITE DU VACCIN pryvat® RECONSTITUE
+
+Titrages MCA log, U.inf./ml
+Durée de stockage * Vaccin de référence
+(semaines) 0 Conditions de stockage
+A B C D
+(e) 8,4 8,2
+4 8,4 8,3 8,4 8,5 8,3
+8 8,4 8,2 8,3 8,4 8,3
+12 8,2 8,2 8,2 8,4 8,3
+16 8,2 8,1 8,2 8,4 8,2
+
+*
+Conditions de stockage
+
+À 2-8°C seulement
+
+B 2-8°C et 2 expositions de L heure à
+C 2-8°C et expositions de 20 min à 25°
+D Entre 10 et 20°C seulement.
+
+DryvaD - Vaccin antivariolique lyophilisé
+
+25°C par semaine
+C, 5 jours par semaine

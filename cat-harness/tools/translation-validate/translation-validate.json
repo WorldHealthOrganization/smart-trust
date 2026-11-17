@@ -1,0 +1,75 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "translation-validate",
+    "title": "Validate a translation",
+    "description": "Check a .po against its .pot — every msgid present, none obsolete, placeholders preserved.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "mcp": {
+        "tool": "translation_validate"
+      },
+      "inProcess": {
+        "module": "src/tools/translation.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "pot_file",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "po_file",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "required": true,
+          "arg": {
+            "positional": 1
+          }
+        },
+        {
+          "name": "source",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Also check the .pot is current for this source.",
+          "required": false,
+          "arg": {
+            "flag": "--source"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "findings",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "Missing, obsolete and malformed entries."
+        }
+      ]
+    },
+    "satisfies": [
+      "translation-manager"
+    ],
+    "requires": {
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/satisfies",
+      "comment": "NOT `content-validate`: that edge was here and `check:tools` now\nrefuses it. The skill's contract requires `targetPath` — it validates\na folio's content — while this validates a .po against its .pot. Two\nthings called validation are not one skill."
+    }
+  ]
+}

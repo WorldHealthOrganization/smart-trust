@@ -1,0 +1,83 @@
+# Cancel the runs of a pull request that is closed or merged, as ONE reusable
+# workflow every layer calls (owner, 2026-10-30, approved "Both" on the card
+# "Add auto-cancel and post-merge main QA to every layer's CI?").
+#
+# A PR's checks run for an hour or more. Merged or closed, its queued and
+# running workflow runs used to go on to the end and hold runners that the
+# open PRs and main were waiting for. On `pull_request: closed` this lists
+# every queued or in-progress run on the PR's head branch, from the PR's head
+# repository, and cancels it, all workflows, not only the checks. Its own run
+# is skipped. Runs on the default branch are never touched. Neither is any
+# run the close itself started (created at or after the PR's `closed_at`):
+# a workflow that cleans up on `closed`, such as folio-assistant's
+# feature-staging `cleanup` of a PR's preview, must run to the end.
+#
+# Safe on `pull_request`: nothing is checked out, so no code of the PR runs,
+# and the branch name reaches the API as a parameter, never as shell text.
+# A fork's PR gets a read-only token and cancels nothing; it is reported.
+#
+# A caller is one small file:
+#
+#   on: { pull_request: { types: [closed] } }
+#   permissions: { actions: write }
+#   jobs:
+#     cancel:
+#       uses: litlfred/cat-harness-tools/.github/workflows/layer-cancel-on-close.yml@main
+
+name: Cancel the runs of a closed PR
+
+on:
+  workflow_call: {}
+
+permissions:
+  actions: write
+
+jobs:
+  cancel:
+    name: Cancel the closed PR's queued and running runs
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: write
+    steps:
+      - name: Cancel every queued or in-progress run on the head branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          PR: ${{ github.event.pull_request.number }}
+          CLOSED_AT: ${{ github.event.pull_request.closed_at }}
+          MERGED: ${{ github.event.pull_request.merged }}
+        run: |
+          set -uo pipefail
+          if [ "$HEAD_REPO" = "$REPO" ] && [ "$HEAD_REF" = "$DEFAULT_BRANCH" ]; then
+            echo "the head branch is the default branch: nothing is cancelled"
+            exit 0
+          fi
+          ids=""
+          for status in requested queued pending waiting in_progress; do
+            got="$(gh api -X GET "repos/$REPO/actions/runs" --paginate \
+              -f branch="$HEAD_REF" -f status="$status" -F per_page=100 \
+              --jq '.workflow_runs[] | select(.head_repository.full_name == env.HEAD_REPO) | select(.id != (env.GITHUB_RUN_ID | tonumber)) | select(env.CLOSED_AT == "" or .created_at < env.CLOSED_AT) | "\(.id) \(.name)"')" \
+              || { echo "::warning::could not list the $status runs of $HEAD_REF"; continue; }
+            [ -n "$got" ] && ids="$ids$got"$'\n'
+          done
+          ids="$(printf '%s' "$ids" | sed '/^$/d' | sort -u)"
+          state=closed; [ "$MERGED" = "true" ] && state=merged
+          if [ -z "$ids" ]; then
+            echo "PR #$PR ($state): no queued or running run on $HEAD_REF" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "### PR #$PR ($state): runs on \`$HEAD_REF\` cancelled" >> "$GITHUB_STEP_SUMMARY"
+          while read -r id name; do
+            if gh api -X POST "repos/$REPO/actions/runs/$id/cancel" --silent; then
+              echo "cancelled $id ($name)"
+              echo "- $id: $name" >> "$GITHUB_STEP_SUMMARY"
+            else
+              # 409: it finished meanwhile. 403: a fork's read-only token.
+              echo "::warning::could not cancel run $id ($name)"
+            fi
+          done <<< "$ids"

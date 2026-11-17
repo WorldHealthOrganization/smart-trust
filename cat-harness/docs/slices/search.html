@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script data-folio-saved-scheme>try{var s=localStorage.getItem("fa-color-scheme");if(s==="light"||s==="dark")document.documentElement.setAttribute("data-fa-scheme",s)}catch(e){}</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slice search</title>
+<!--
+  Full-text search over ANY per-slice SQLite file (bean `q8ar`; contract in
+  skills/kg/kg-core/kg-export.md §"Per-slice SQLite"): `search.html?slice=beans`,
+  `?slice=todos`, `?slice=library`, `?slice=kg`. With no `slice`, it lists the
+  slices `assets/slices/index.json` says were built.
+
+  ONE page that takes the slice as a parameter, not a page per slice. Every
+  per-slice fact the page needs — the query, the column a typed query degrades
+  to, what a payload is and how to show it — is in the slice's MANIFEST, which
+  the builder writes from the same definition that built the tables. A page per
+  slice would be a second copy of those facts for each slice, free to drift from
+  the schema it queries; this page has no slice-specific code to drift.
+
+  A page of its own, not a panel on the dashboard: it downloads a multi-MB
+  database and must never do that on a page that did not ask. Plain HTML with no
+  Liquid, so it serves identically from Jekyll's output and from
+  `cat-harness/docs/` as it is, which lets a browser test run against the checkout.
+-->
+<meta name="fa-slices" content="../assets/slices/">
+<meta name="fa-payload-base" content="../payload/sha256/">
+<style>
+:root { --sv-bg: #0d0d0d; --sv-ink: #ffffff; --sv-ink-2: #c3c2b7; --sv-line: rgba(255,255,255,0.12); }
+:root[data-fa-scheme="light"] { --sv-bg: #f9f9f7; --sv-ink: #0b0b0b; --sv-ink-2: #52514e; --sv-line: rgba(11,11,11,0.12); }
+@media (prefers-color-scheme: light) { :root:not([data-fa-scheme="dark"]) { --sv-bg: #f9f9f7; --sv-ink: #0b0b0b; --sv-ink-2: #52514e; --sv-line: rgba(11,11,11,0.12); } }
+body {
+  margin: 0; padding: 1.5rem clamp(1rem, 4vw, 3rem) 4rem;
+  background: var(--sv-bg); color: var(--sv-ink);
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 68rem; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin: 0 0 0.25rem; }
+a { color: inherit; text-decoration: underline; text-underline-offset: 0.15em; }
+nav { margin: 0 0 1rem; font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; }
+nav a[aria-current] { font-weight: 700; text-decoration: none; }
+.sub, .state { color: var(--sv-ink-2); font-size: 0.9rem; margin: 0 0 1rem; }
+label { display: block; font-weight: 600; margin-bottom: 0.3rem; }
+input[type=search] {
+  width: 100%; box-sizing: border-box; font: inherit; padding: 0.55rem 0.75rem;
+  border: 1px solid var(--sv-line); border-radius: 6px; background: transparent; color: inherit;
+}
+ol { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: 0.5rem; }
+li { border: 1px solid var(--sv-line); border-radius: 8px; padding: 0.6rem 0.9rem; overflow-wrap: anywhere; }
+li button {
+  all: unset; cursor: pointer; font-weight: 600; text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+li button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.meta, .snippet { color: var(--sv-ink-2); font-size: 0.8rem; }
+.snippet { margin-top: 0.2rem; }
+pre { white-space: pre-wrap; font-size: 0.85rem; margin: 0.6rem 0 0; color: var(--sv-ink-2); }
+.err { color: #e66767; }
+</style>
+</head>
+<body>
+<main>
+<h1 id="h">Slice search</h1>
+<nav id="slices" aria-label="Slices"></nav>
+<p class="sub" id="sub">Full-text search run in your browser against a SQLite file. Text is indexed but not
+stored; a result's body is fetched only when you open it. Use quotes for a phrase.</p>
+<p class="state" id="state" role="status" aria-live="polite">Opening…</p>
+<label for="q" id="ql">Search</label>
+<input type="search" id="q" autocomplete="off" disabled>
+<ol id="out" aria-label="Matches"></ol>
+</main>
+<script type="module">
+import { openSlice } from "../assets/js/slice-sqlite.js";
+
+const meta = (n) => document.querySelector(`meta[name="${n}"]`).content;
+const SLICES = new URL(meta("fa-slices"), location.href);
+const PAYLOAD = new URL(meta("fa-payload-base"), location.href);
+const state = document.getElementById("state");
+const q = document.getElementById("q");
+const out = document.getElementById("out");
+const nav = document.getElementById("slices");
+
+function el(tag, props = {}, ...kids) {
+  const n = document.createElement(tag);
+  Object.assign(n, props);
+  for (const k of kids) n.append(k);
+  return n;
+}
+
+/** User text → an FTS5 query: a quoted phrase is kept, every other word is quoted and the last one is a prefix. */
+function ftsQuery(text) {
+  const parts = [];
+  const re = /"([^"]+)"|(\S+)/g;
+  let m;
+  while ((m = re.exec(text))) parts.push(`"${(m[1] || m[2]).replace(/"/g, "")}"`);
+  if (parts.length && !/"\s*$/.test(text)) parts[parts.length - 1] += "*";
+  return parts.join(" ");
+}
+
+// The slice name is a URL parameter, so it is checked against a name pattern
+// before it becomes part of a path. Everything else comes from the manifest.
+const wanted = new URLSearchParams(location.search).get("slice");
+const name = wanted && /^[a-z][a-z0-9-]{0,40}$/.test(wanted) ? wanted : null;
+
+let index = null;
+try {
+  const r = await fetch(new URL("index.json", SLICES), { cache: "no-store" });
+  if (r.ok) index = await r.json();
+} catch { /* the list is a convenience; a slice still opens without it */ }
+for (const s of index?.slices ?? []) {
+  const a = el("a", { href: `?slice=${encodeURIComponent(s.slice)}`, textContent: s.slice, title: s.title });
+  if (s.slice === name) a.setAttribute("aria-current", "page");
+  nav.append(a);
+}
+
+let slice = null;
+let search = null;
+
+async function run(text) {
+  const t = text.trim();
+  if (!t) return { how: "none", rows: [] };
+  const fts = slice.info.manifest.fts5.table;
+  try {
+    const rows = await slice.query(
+      `${search.select} JOIN ${fts} f ON f.rowid = ${search.alias}.rowid WHERE ${fts} MATCH ? ORDER BY bm25(${fts}) LIMIT 50`,
+      [ftsQuery(t)],
+    );
+    return { how: "fts5", rows };
+  } catch (e) {
+    // FTS5 syntax a reader typed by accident: degrade to a title match rather than fail.
+    const rows = await slice.query(`${search.select} WHERE ${search.like} LIKE ? ORDER BY 1 LIMIT 50`, [`%${t}%`]);
+    return { how: "like", rows, why: String(e.message || e) };
+  }
+}
+
+/** A payload as text to show, by what the manifest says the payload is. */
+function showPayload(kind, text, row) {
+  if (kind === "library-entry") {
+    const entry = JSON.parse(text);
+    const b = (entry.blocks || []).find((x) => x.id === row.part);
+    if (!b) return "This block is not in the entry it points at.";
+    const body = [b.content, b.summary && b.summary.text].filter(Boolean).join("\n\n");
+    return body || "No text is published for this block.";
+  }
+  return text.replace(/^---\n[\s\S]*?\n---\n?/, "").trim();
+}
+
+async function openBody(li, row) {
+  if (li.querySelector("pre")) return;
+  const pre = el("pre", { textContent: "Fetching…" });
+  li.append(pre);
+  if (!row.payload) {
+    pre.textContent = "This row carries no payload; everything the slice holds about it is shown above.";
+    return;
+  }
+  try {
+    const r = await fetch(new URL(row.payload, PAYLOAD));
+    if (!r.ok) throw new Error(`payload answered ${r.status}`);
+    pre.textContent = showPayload(search.body, await r.text(), row);
+  } catch (e) {
+    pre.textContent = `Could not fetch this body (${e.message}).`;
+    pre.className = "err";
+  }
+}
+
+/** One row's identity across searches: a library row is a block (`part`) of an entry (`key`). */
+const rowId = (row) => `${row.key}\u0000${row.part ?? ""}`;
+
+function render(result) {
+  // A body the reader opened survives a redraw that still lists its row. The
+  // search box is debounced, so a redraw can land just after a click; rebuilding
+  // that item would throw the open body away mid-fetch.
+  const open = new Map(
+    [...out.children].filter((li) => li.querySelector("pre") && li.dataset.row).map((li) => [li.dataset.row, li]),
+  );
+  out.replaceChildren(
+    ...result.rows.map((row) => {
+      const kept = open.get(rowId(row));
+      if (kept) return kept;
+      const li = el("li");
+      li.dataset.row = rowId(row);
+      const btn = el("button", { type: "button", textContent: row.title });
+      btn.addEventListener("click", () => openBody(li, row));
+      li.append(btn, el("div", { className: "meta", textContent: row.meta }));
+      if (row.snippet) li.append(el("div", { className: "snippet", textContent: row.snippet }));
+      return li;
+    }),
+  );
+}
+
+let baseline = "";
+if (!name) {
+  state.textContent = index?.slices?.length
+    ? "Choose a slice above."
+    : "No slice is published here, so there is nothing to search.";
+  document.documentElement.dataset.sliceReady = "none";
+} else {
+  try {
+    slice = await openSlice(new URL(`${name}.sqlite3.json`, SLICES).href);
+    const i = slice.info;
+    search = i.manifest.search;
+    document.title = `${search.title} — search`;
+    document.getElementById("h").textContent = search.title;
+    document.getElementById("ql").textContent = `Search ${search.noun}s`;
+    q.placeholder = search.placeholder;
+    out.setAttribute("aria-label", `Matching ${search.noun}s`);
+    const n = i.manifest.rows[i.manifest.fts5.rowsOf];
+    baseline = `${n} ${search.noun}s · ${(i.manifest.bytes / 1e6).toFixed(2)} MB · ` +
+      `${i.mode === "opfs-sahpool" ? "stored in this browser (OPFS)" : "in memory — not stored" + (i.opfsError ? ` (${i.opfsError})` : "")}` +
+      ` · ${i.downloaded ? "downloaded" : "no download"} · ready in ${i.ms} ms` +
+      (i.contentAddressed ? "" : " · an older fixed-path build, still verified by sha256");
+    state.textContent = baseline;
+    q.disabled = false;
+    q.focus();
+    window.__sliceSearch = async (text) => { const r = await run(text); render(r); return { mode: slice.mode, info: i, ...r }; };
+    document.documentElement.dataset.sliceReady = slice.mode;
+  } catch (e) {
+    // A load that FAILS says so, rather than showing an empty result list.
+    state.textContent = `The ${name} slice could not be opened: ${e.message}`;
+    state.className = "state err";
+    // Which failure, for a test or a reader's devtools: a manifest/database
+    // mismatch (bean `wixl`) is not the same fault as a network or WASM one.
+    document.documentElement.dataset.sliceError = e.name === "SliceIntegrityError" ? "integrity" : "other";
+    document.documentElement.dataset.sliceReady = "failed";
+  }
+}
+
+let timer = 0;
+q.addEventListener("input", () => {
+  clearTimeout(timer);
+  timer = setTimeout(async () => {
+    const r = await run(q.value);
+    render(r);
+    state.textContent = q.value.trim()
+      ? `${r.rows.length} match${r.rows.length === 1 ? "" : "es"} (${r.how === "fts5" ? "full-text" : "title match — " + r.why}).`
+      : baseline;
+  }, 150);
+});
+</script>
+</body>
+</html>

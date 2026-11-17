@@ -1,0 +1,69 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "ci-feature-staging",
+    "title": "Build and publish a branch preview",
+    "description": "Dispatch the index's `feature-staging.yml`: build a branch's site and publish it at `branches/<branch>/` on gh-pages. Started with the standard GitHub CLI; the run is watched with `gh run watch`.",
+    "install": {
+      "cli": "gh"
+    },
+    "invoke": {
+      "shell": "gh workflow run feature-staging.yml"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "repo",
+          "schema": {
+            "$type": "RepoFullName"
+          },
+          "description": "The repository whose workflow is run. Default: the current one.",
+          "required": false,
+          "arg": {
+            "flag": "--repo"
+          }
+        },
+        {
+          "name": "ref",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "The branch to run it on. Default: the default branch.",
+          "required": false,
+          "arg": {
+            "flag": "--ref"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "run",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The dispatched run; its outcome is read with `gh run watch` or `gh run view`."
+        }
+      ]
+    },
+    "satisfies": [
+      "feature-staging"
+    ],
+    "selection": {
+      "when": "Running the `feature-staging.yml` workflow on demand instead of waiting for its trigger, or finding which workflow a CI step belongs to.",
+      "limits": "Needs a token that may dispatch workflows (actions: write) on the repository.",
+      "cost": "A full CI run on GitHub's runners."
+    },
+    "requires": {
+      "runtime": [
+        "gh"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "The workflow runs on GitHub; with no host there is nothing to dispatch. The scripts it runs can still be run locally by their own keys."
+      }
+    ]
+  }
+}

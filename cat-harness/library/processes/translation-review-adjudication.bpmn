@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_TranslationReviewAdjudication" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="translation-adjudicator" name="Translation adjudicator"/>
+  <bpmn:resource id="editor" name="Editor"/>
+
+  <bpmn:collaboration id="Collaboration_TranslationReviewAdjudication">
+    <bpmn:participant id="Participant_TranslationReviewAdjudication" name="Translation review and adjudication" processRef="Process_TranslationReviewAdjudication"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_TranslationReviewAdjudication" name="Translation review and adjudication" isExecutable="false">
+    <bpmn:documentation>A person's verdict on a machine translation, carried from the review page to the record. Candidate translations come from any engine; a reviewer accepts what is there, or flags a mistranslation and picks a candidate or writes their own; the verdict travels as a GitHub issue; a workflow checks it and opens a pull request; a maintainer merges it.
+
+You are in this process when a catalogue has a translation nobody has adjudicated: a `machine`, `flagged` or `stale` cell on the review page. `translation-workflow` produces the machine translation and `human-translation-workflow` makes a locale official; this process sits between them and does neither. What it records is that ONE catalogue was read by ONE person who could be held to it, against the exact bytes they saw.
+
+Two rules hold throughout. Candidates are never a barrier to having a translation: an empty `msgstr` gets the first candidate, marked fuzzy, so the page always has something to show. And a suggestion is a person's text that nobody else has reviewed: it enters the catalogue fuzzy, flagging it for review, never accepting it. Locale sign-off (`X-Folio-Official`, the locale's `status.json`) is a separate, deliberate act that this process never performs.
+
+GitHub is one Tool here, not the process: the issue is the carrier of the verdict and the pull request the carrier of the record. Another forge carrying the same `translation-adjudication/v1` record would be another Tool satisfying the same skill.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_TranslationReviewAdjudication">
+      <bpmn:lane id="Lane_TRA_Pipeline" name="Automated pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Two fixed programs and no judgement: the candidate engines and the page generator before the review, the adjudication workflow after it. Every refusal on the right of this lane is the workflow declining to guess, and each says why on the issue. It never merges and never signs a locale off.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_TRA</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TRA_Candidates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TRA_Empty</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TRA_SeedFuzzy</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TRA_Seeded</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TRA_ReviewPage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TRA_Once</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_TRA_AlreadyRecorded</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TRA_Plan</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TRA_Determined</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_TRA_CouldNotDetermine</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TRA_Author</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TRA_Hash</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TRA_Refuse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_TRA_NotRecorded</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TRA_Write</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TRA_OpenPR</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_TRA_Reviewer" name="Reviewer (adjudicator)" partitionElementRef="translation-adjudicator">
+        <bpmn:documentation>The only lane that judges a translation. The person who files the issue IS the adjudicator: their GitHub login is the only identity the record carries, and nothing they type in the body can name anyone else. Choosing a candidate is a judgement too, so the candidate's source is recorded with the verdict.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_TRA_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TRA_Verdict</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TRA_Choose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TRA_FileIssue</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_TRA_Maintainer" name="Maintainer" partitionElementRef="editor">
+        <bpmn:documentation>Accepts the record into the repository, or does not. The maintainer judges whether the PR records what the issue asked, not the translation itself: that was the reviewer's verdict, and merging does not re-make it. A PR opened by the workflow starts no other workflows, so the layer's checks run once the maintainer pushes to it or re-opens it.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_TRA_Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TRA_Merged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_TRA_Closed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TRA_PerCatalogue</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_TRA_Reviewed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_TRA_Flagged</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <!-- ══════ BEFORE THE REVIEW ═════════════════════════════════ -->
+
+    <bpmn:startEvent id="Start_TRA" name="A catalogue needs&#10;a translation">
+      <bpmn:documentation>A locale's `.po` catalogue has strings with no translation, or a translation no person has adjudicated.</bpmn:documentation>
+      <bpmn:outgoing>Flow_TRA_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="Task_TRA_Candidates" name="Produce candidate&#10;translations (any engine)">
+      <bpmn:documentation>One or more candidate sources write alternatives per string to `translations/&lt;locale&gt;/&lt;catalogue&gt;.candidates.json` (`translation-candidates/v1`), each candidate carrying its source: an agent model, an open machine-translation model, a web service, or a person. The engines are interchangeable behind one skill, `translation-candidate-source`: whichever runs, the same sidecar comes out. Writers append; a candidate is never a verdict.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-candidate-source"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TRA_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_TRA_Empty" name="Any msgstr empty?">
+      <bpmn:documentation>Per string: does the `.po` have no translation for a string the engine just gave candidates for? `Yes` seeds it. `No` leaves the `.po` alone: an existing translation is not replaced by a candidate, only offered beside it.</bpmn:documentation>
+      <bpmn:incoming>Flow_TRA_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_EmptyYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TRA_EmptyNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_TRA_SeedFuzzy" name="Write the first candidate&#10;as a fuzzy msgstr">
+      <bpmn:documentation>Candidates are never a barrier to having a translation. The first candidate becomes the `msgstr`, marked `#, fuzzy`: the page shows it, the status page counts it as needing review, and it stays the default until a person adjudicates the catalogue.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-candidate-source"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TRA_EmptyYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_TRA_Seeded" name="">
+      <bpmn:documentation>Joins the two branches: with or without seeding, the catalogue now goes on the page.</bpmn:documentation>
+      <bpmn:incoming>Flow_TRA_3</bpmn:incoming>
+      <bpmn:incoming>Flow_TRA_EmptyNo</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_TRA_ReviewPage" name="Build the&#10;review page">
+      <bpmn:documentation>`translation:status` writes `review.html` beside the status page, with `assets/translation-status/review.json`: every catalogue × locale, its state (`machine`, `flagged`, `reviewed`, `stale`, `official`), the candidates per string, and the hash of the catalogue's bytes. That hash is what the verdict is pinned to.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-adjudication"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TRA_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <!-- ══════ THE REVIEW ═══════════════════════════════════════ -->
+
+    <bpmn:userTask id="Task_TRA_Review" name="Read the catalogue&#10;on the review page">
+      <bpmn:documentation>The reviewer opens the review page and reads one catalogue's strings against their source, with the candidates beside each.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-adjudication"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TRA_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_6</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_TRA_Verdict" name="Acceptable?">
+      <bpmn:documentation>Per catalogue, the reviewer's verdict. `Acceptable`: the translation as it stands. `Mistranslation`: one or more strings are wrong, and the reviewer says what they should be.</bpmn:documentation>
+      <bpmn:incoming>Flow_TRA_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_Acceptable</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TRA_Mistranslation</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="Task_TRA_Choose" name="Pick a candidate&#10;or write your own">
+      <bpmn:documentation>For each wrong string: pick one of the candidates (its source is recorded with the suggestion) or type the text. The suggestion carries the text the reviewer saw (`current`), so a catalogue that changed under them is caught.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-adjudication"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TRA_Mistranslation</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_7</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task_TRA_FileIssue" name="File the adjudication&#10;issue">
+      <bpmn:documentation>Submit opens GitHub's new-issue form prefilled with a readable summary and a `translation-adjudication/v1` JSON block, labelled `translation-adjudication` and titled `[translation review] …`. When the record is too long for a URL the page copies the body for pasting instead. Filing it is the act of adjudicating.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-adjudication"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TRA_Acceptable</bpmn:incoming>
+      <bpmn:incoming>Flow_TRA_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_8</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <!-- ══════ THE WORKFLOW ═════════════════════════════════════ -->
+
+    <bpmn:exclusiveGateway id="Gateway_TRA_Once" name="Already recorded&#10;for this issue?">
+      <bpmn:documentation>The workflow runs for an issue that is labelled or titled as an adjudication, and once per issue: `Yes` when the issue's branch already exists, and nothing more is done.</bpmn:documentation>
+      <bpmn:incoming>Flow_TRA_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_OnceYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TRA_OnceNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_TRA_AlreadyRecorded" name="Already recorded">
+      <bpmn:incoming>Flow_TRA_OnceYes</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:serviceTask id="Task_TRA_Plan" name="Plan the records&#10;(translation:adjudicate)">
+      <bpmn:documentation>`translation:adjudicate` reads the `issues` event GitHub wrote, never the body from a shell variable: the body is untrusted and is only parsed as JSON. It decides every write before making any, and refuses rather than guesses.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-adjudication"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TRA_OnceNo</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_9</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_TRA_Determined" name="Event and declaration&#10;readable?">
+      <bpmn:documentation>`No` when there is no event file, the event carries no issue with an author, or the layer has no declaration to resolve its translations directory from. That is "could not determine" (exit 2): the run fails, and it is never read as "nothing to record".</bpmn:documentation>
+      <bpmn:incoming>Flow_TRA_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_DetNo</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TRA_DetYes</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_TRA_CouldNotDetermine" name="Could not determine&#10;(the run fails)">
+      <bpmn:incoming>Flow_TRA_DetNo</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:exclusiveGateway id="Gateway_TRA_Author" name="Author an owner, member&#10;or collaborator?">
+      <bpmn:documentation>Read from the event's `author_association`, never from the body. `No`: nothing is recorded, and the comment says a maintainer can file the same review under their own name. A record that does not parse, or that names another repository or another translations directory, is refused at this point too.</bpmn:documentation>
+      <bpmn:incoming>Flow_TRA_DetYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_AuthorNo</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TRA_AuthorYes</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:exclusiveGateway id="Gateway_TRA_Hash" name="Any catalogue&#10;unchanged?">
+      <bpmn:documentation>Per item: is the catalogue's hash today the one the page showed, does its path stay inside the translations directory, and is every suggestion's `current` text still what the catalogue says? An item that fails is refused with its reason (reload the page and review it again). `No` when every item is refused; `Yes` when at least one survives, and the refusals are reported beside what was recorded.</bpmn:documentation>
+      <bpmn:incoming>Flow_TRA_AuthorYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_HashNo</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TRA_HashYes</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_TRA_Refuse" name="Comment why nothing&#10;was recorded">
+      <bpmn:documentation>Every refusal, with its reason, as a comment on the issue (exit 3). No pull request is opened. A refusal is never a partial record dressed as a whole one; a new review is a new issue and a new instance of this process.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-adjudication"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TRA_AuthorNo</bpmn:incoming>
+      <bpmn:incoming>Flow_TRA_HashNo</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_10</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="End_TRA_NotRecorded" name="Not recorded">
+      <bpmn:incoming>Flow_TRA_10</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:serviceTask id="Task_TRA_Write" name="Write the records">
+      <bpmn:documentation>Acceptable: the catalogue's translation node gets `signedOffBy` / `signedOffAt`. Mistranslation: each suggestion replaces its `msgstr`, marked `#, fuzzy`. Either way an entry is appended to the catalogue's `translation-qa` attestation (criterion `human-adjudication`) naming the issue and the hash the person saw; the attestation is append-only and checked against `qa-attestations/v1` before it is written. The PO header `X-Folio-Official` and the locale's `status.json` are never touched.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-adjudication"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TRA_HashYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_11</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_TRA_OpenPR" name="Open a ready PR&#10;and comment">
+      <bpmn:documentation>Commit on `translation-adjudication/issue-&lt;n&gt;`, authored by the issue's author, open a ready pull request that names the issue, and comment the summary on the issue: what was recorded and what was refused.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-adjudication"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TRA_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_12</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <!-- ══════ THE MERGE ════════════════════════════════════════ -->
+
+    <bpmn:userTask id="Task_TRA_Merge" name="Review the PR;&#10;merge or close">
+      <bpmn:documentation>The maintainer checks that the PR writes down what the issue decided and nothing else, lets the layer's checks run, and merges or closes it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-adjudication"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TRA_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_13</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_TRA_Merged" name="Merged?">
+      <bpmn:documentation>`No`: the PR is closed and nothing is recorded; the issue stays as the account of what was asked. `Yes`: the records are in the repository.</bpmn:documentation>
+      <bpmn:incoming>Flow_TRA_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_MergedNo</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TRA_MergedYes</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_TRA_Closed" name="Closed, not recorded">
+      <bpmn:incoming>Flow_TRA_MergedNo</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:exclusiveGateway id="Gateway_TRA_PerCatalogue" name="Verdict?">
+      <bpmn:documentation>Decided once for each catalogue the merged PR records, by that catalogue's verdict: `Accepted` when it was found acceptable, `Suggestion applied` when its suggestions went in. One issue can carry several catalogues, so one merge can end in both, a catalogue at a time.</bpmn:documentation>
+      <bpmn:incoming>Flow_TRA_MergedYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_TRA_Accepted</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TRA_Suggested</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_TRA_Reviewed" name="Catalogue reviewed&#10;(not official)">
+      <bpmn:documentation>The review page shows the catalogue `reviewed`, and `stale` once its bytes change. It is still not official: locale sign-off is `human-translation-workflow`'s `Task_Signoff`, a separate act by the translation coordinator.</bpmn:documentation>
+      <bpmn:incoming>Flow_TRA_Accepted</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:endEvent id="End_TRA_Flagged" name="Catalogue flagged&#10;for review">
+      <bpmn:documentation>The suggestions are in the catalogue, fuzzy, so the catalogue needs review again: a person's text is not reviewed by being written. The next review is a new instance of this process.</bpmn:documentation>
+      <bpmn:incoming>Flow_TRA_Suggested</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_TRA_1" sourceRef="Start_TRA" targetRef="Task_TRA_Candidates"/>
+    <bpmn:sequenceFlow id="Flow_TRA_2" sourceRef="Task_TRA_Candidates" targetRef="Gateway_TRA_Empty"/>
+    <bpmn:sequenceFlow id="Flow_TRA_EmptyYes" name="Yes" sourceRef="Gateway_TRA_Empty" targetRef="Task_TRA_SeedFuzzy"/>
+    <bpmn:sequenceFlow id="Flow_TRA_EmptyNo" name="No" sourceRef="Gateway_TRA_Empty" targetRef="Gateway_TRA_Seeded"/>
+    <bpmn:sequenceFlow id="Flow_TRA_3" sourceRef="Task_TRA_SeedFuzzy" targetRef="Gateway_TRA_Seeded"/>
+    <bpmn:sequenceFlow id="Flow_TRA_4" sourceRef="Gateway_TRA_Seeded" targetRef="Task_TRA_ReviewPage"/>
+    <bpmn:sequenceFlow id="Flow_TRA_5" sourceRef="Task_TRA_ReviewPage" targetRef="Task_TRA_Review"/>
+    <bpmn:sequenceFlow id="Flow_TRA_6" sourceRef="Task_TRA_Review" targetRef="Gateway_TRA_Verdict"/>
+    <bpmn:sequenceFlow id="Flow_TRA_Acceptable" name="Acceptable" sourceRef="Gateway_TRA_Verdict" targetRef="Task_TRA_FileIssue"/>
+    <bpmn:sequenceFlow id="Flow_TRA_Mistranslation" name="Mistranslation" sourceRef="Gateway_TRA_Verdict" targetRef="Task_TRA_Choose"/>
+    <bpmn:sequenceFlow id="Flow_TRA_7" sourceRef="Task_TRA_Choose" targetRef="Task_TRA_FileIssue"/>
+    <bpmn:sequenceFlow id="Flow_TRA_8" sourceRef="Task_TRA_FileIssue" targetRef="Gateway_TRA_Once"/>
+    <bpmn:sequenceFlow id="Flow_TRA_OnceYes" name="Yes" sourceRef="Gateway_TRA_Once" targetRef="End_TRA_AlreadyRecorded"/>
+    <bpmn:sequenceFlow id="Flow_TRA_OnceNo" name="No" sourceRef="Gateway_TRA_Once" targetRef="Task_TRA_Plan"/>
+    <bpmn:sequenceFlow id="Flow_TRA_9" sourceRef="Task_TRA_Plan" targetRef="Gateway_TRA_Determined"/>
+    <bpmn:sequenceFlow id="Flow_TRA_DetNo" name="No" sourceRef="Gateway_TRA_Determined" targetRef="End_TRA_CouldNotDetermine"/>
+    <bpmn:sequenceFlow id="Flow_TRA_DetYes" name="Yes" sourceRef="Gateway_TRA_Determined" targetRef="Gateway_TRA_Author"/>
+    <bpmn:sequenceFlow id="Flow_TRA_AuthorNo" name="No" sourceRef="Gateway_TRA_Author" targetRef="Task_TRA_Refuse"/>
+    <bpmn:sequenceFlow id="Flow_TRA_AuthorYes" name="Yes" sourceRef="Gateway_TRA_Author" targetRef="Gateway_TRA_Hash"/>
+    <bpmn:sequenceFlow id="Flow_TRA_HashNo" name="No" sourceRef="Gateway_TRA_Hash" targetRef="Task_TRA_Refuse"/>
+    <bpmn:sequenceFlow id="Flow_TRA_HashYes" name="Yes" sourceRef="Gateway_TRA_Hash" targetRef="Task_TRA_Write"/>
+    <bpmn:sequenceFlow id="Flow_TRA_10" sourceRef="Task_TRA_Refuse" targetRef="End_TRA_NotRecorded"/>
+    <bpmn:sequenceFlow id="Flow_TRA_11" sourceRef="Task_TRA_Write" targetRef="Task_TRA_OpenPR"/>
+    <bpmn:sequenceFlow id="Flow_TRA_12" sourceRef="Task_TRA_OpenPR" targetRef="Task_TRA_Merge"/>
+    <bpmn:sequenceFlow id="Flow_TRA_13" sourceRef="Task_TRA_Merge" targetRef="Gateway_TRA_Merged"/>
+    <bpmn:sequenceFlow id="Flow_TRA_MergedNo" name="No" sourceRef="Gateway_TRA_Merged" targetRef="End_TRA_Closed"/>
+    <bpmn:sequenceFlow id="Flow_TRA_MergedYes" name="Yes" sourceRef="Gateway_TRA_Merged" targetRef="Gateway_TRA_PerCatalogue"/>
+    <bpmn:sequenceFlow id="Flow_TRA_Accepted" name="Accepted" sourceRef="Gateway_TRA_PerCatalogue" targetRef="End_TRA_Reviewed"/>
+    <bpmn:sequenceFlow id="Flow_TRA_Suggested" name="Suggestion applied" sourceRef="Gateway_TRA_PerCatalogue" targetRef="End_TRA_Flagged"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_TranslationReviewAdjudication">
+    <bpmndi:BPMNPlane id="Plane_TranslationReviewAdjudication" bpmnElement="Collaboration_TranslationReviewAdjudication">
+      <bpmndi:BPMNShape id="Participant_TranslationReviewAdjudication_di" bpmnElement="Participant_TranslationReviewAdjudication" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="2640" height="700"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_TRA_Pipeline_di" bpmnElement="Lane_TRA_Pipeline" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="2610" height="260"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_TRA_Reviewer_di" bpmnElement="Lane_TRA_Reviewer" isHorizontal="true">
+        <dc:Bounds x="190" y="340" width="2610" height="220"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_TRA_Maintainer_di" bpmnElement="Lane_TRA_Maintainer" isHorizontal="true">
+        <dc:Bounds x="190" y="560" width="2610" height="220"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Start_TRA_di" bpmnElement="Start_TRA">
+        <dc:Bounds x="232" y="172" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="208" y="213" width="84" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TRA_Candidates_di" bpmnElement="Task_TRA_Candidates">
+        <dc:Bounds x="300" y="150" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TRA_Empty_di" bpmnElement="Gateway_TRA_Empty" isMarkerVisible="true">
+        <dc:Bounds x="460" y="165" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="440" y="222" width="90" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TRA_SeedFuzzy_di" bpmnElement="Task_TRA_SeedFuzzy">
+        <dc:Bounds x="540" y="92" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TRA_Seeded_di" bpmnElement="Gateway_TRA_Seeded" isMarkerVisible="true">
+        <dc:Bounds x="700" y="165" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TRA_ReviewPage_di" bpmnElement="Task_TRA_ReviewPage">
+        <dc:Bounds x="780" y="150" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_TRA_Review_di" bpmnElement="Task_TRA_Review">
+        <dc:Bounds x="780" y="410" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TRA_Verdict_di" bpmnElement="Gateway_TRA_Verdict" isMarkerVisible="true">
+        <dc:Bounds x="940" y="425" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="925" y="400" width="80" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TRA_Choose_di" bpmnElement="Task_TRA_Choose">
+        <dc:Bounds x="1030" y="470" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TRA_FileIssue_di" bpmnElement="Task_TRA_FileIssue">
+        <dc:Bounds x="1180" y="410" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Gateway_TRA_Once_di" bpmnElement="Gateway_TRA_Once" isMarkerVisible="true">
+        <dc:Bounds x="1330" y="165" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1305" y="222" width="100" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_TRA_AlreadyRecorded_di" bpmnElement="End_TRA_AlreadyRecorded">
+        <dc:Bounds x="1337" y="95" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1385" y="104" width="100" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TRA_Plan_di" bpmnElement="Task_TRA_Plan">
+        <dc:Bounds x="1420" y="150" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TRA_Determined_di" bpmnElement="Gateway_TRA_Determined" isMarkerVisible="true">
+        <dc:Bounds x="1600" y="165" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1545" y="222" width="120" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_TRA_CouldNotDetermine_di" bpmnElement="End_TRA_CouldNotDetermine">
+        <dc:Bounds x="1607" y="95" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1650" y="96" width="120" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TRA_Author_di" bpmnElement="Gateway_TRA_Author" isMarkerVisible="true">
+        <dc:Bounds x="1720" y="165" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1670" y="128" width="130" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TRA_Hash_di" bpmnElement="Gateway_TRA_Hash" isMarkerVisible="true">
+        <dc:Bounds x="1860" y="165" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1800" y="128" width="90" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TRA_Refuse_di" bpmnElement="Task_TRA_Refuse">
+        <dc:Bounds x="1980" y="245" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_TRA_NotRecorded_di" bpmnElement="End_TRA_NotRecorded">
+        <dc:Bounds x="2140" y="267" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="2125" y="308" width="70" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TRA_Write_di" bpmnElement="Task_TRA_Write">
+        <dc:Bounds x="1980" y="150" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TRA_OpenPR_di" bpmnElement="Task_TRA_OpenPR">
+        <dc:Bounds x="2240" y="150" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_TRA_Merge_di" bpmnElement="Task_TRA_Merge">
+        <dc:Bounds x="2240" y="630" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TRA_Merged_di" bpmnElement="Gateway_TRA_Merged" isMarkerVisible="true">
+        <dc:Bounds x="2530" y="645" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="2530" y="620" width="50" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_TRA_Closed_di" bpmnElement="End_TRA_Closed">
+        <dc:Bounds x="2537" y="725" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="2270" y="734" width="120" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TRA_PerCatalogue_di" bpmnElement="Gateway_TRA_PerCatalogue" isMarkerVisible="true">
+        <dc:Bounds x="2660" y="645" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="2560" y="700" width="100" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_TRA_Reviewed_di" bpmnElement="End_TRA_Reviewed">
+        <dc:Bounds x="2717" y="582" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="2550" y="572" width="105" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_TRA_Flagged_di" bpmnElement="End_TRA_Flagged">
+        <dc:Bounds x="2717" y="730" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="2590" y="740" width="100" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Flow_TRA_1_di" bpmnElement="Flow_TRA_1">
+        <di:waypoint x="268" y="190"/><di:waypoint x="300" y="190"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_2_di" bpmnElement="Flow_TRA_2">
+        <di:waypoint x="420" y="190"/><di:waypoint x="460" y="190"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_EmptyYes_di" bpmnElement="Flow_TRA_EmptyYes">
+        <di:waypoint x="485" y="165"/><di:waypoint x="485" y="132"/><di:waypoint x="540" y="132"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="492" y="140" width="24" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_EmptyNo_di" bpmnElement="Flow_TRA_EmptyNo">
+        <di:waypoint x="510" y="190"/><di:waypoint x="700" y="190"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="590" y="193" width="20" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_3_di" bpmnElement="Flow_TRA_3">
+        <di:waypoint x="660" y="132"/><di:waypoint x="725" y="132"/><di:waypoint x="725" y="165"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_4_di" bpmnElement="Flow_TRA_4">
+        <di:waypoint x="750" y="190"/><di:waypoint x="780" y="190"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_5_di" bpmnElement="Flow_TRA_5">
+        <di:waypoint x="840" y="230"/><di:waypoint x="840" y="410"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_6_di" bpmnElement="Flow_TRA_6">
+        <di:waypoint x="900" y="450"/><di:waypoint x="940" y="450"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_Acceptable_di" bpmnElement="Flow_TRA_Acceptable">
+        <di:waypoint x="990" y="450"/><di:waypoint x="1180" y="450"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1050" y="430" width="60" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_Mistranslation_di" bpmnElement="Flow_TRA_Mistranslation">
+        <di:waypoint x="965" y="475"/><di:waypoint x="965" y="510"/><di:waypoint x="1030" y="510"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="890" y="514" width="80" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_7_di" bpmnElement="Flow_TRA_7">
+        <di:waypoint x="1150" y="510"/><di:waypoint x="1240" y="510"/><di:waypoint x="1240" y="490"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_8_di" bpmnElement="Flow_TRA_8">
+        <di:waypoint x="1300" y="450"/><di:waypoint x="1355" y="450"/><di:waypoint x="1355" y="215"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_OnceYes_di" bpmnElement="Flow_TRA_OnceYes">
+        <di:waypoint x="1355" y="165"/><di:waypoint x="1355" y="131"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1330" y="140" width="24" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_OnceNo_di" bpmnElement="Flow_TRA_OnceNo">
+        <di:waypoint x="1380" y="190"/><di:waypoint x="1420" y="190"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1388" y="170" width="20" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_9_di" bpmnElement="Flow_TRA_9">
+        <di:waypoint x="1540" y="190"/><di:waypoint x="1600" y="190"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_DetNo_di" bpmnElement="Flow_TRA_DetNo">
+        <di:waypoint x="1625" y="165"/><di:waypoint x="1625" y="131"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1600" y="140" width="20" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_DetYes_di" bpmnElement="Flow_TRA_DetYes">
+        <di:waypoint x="1650" y="190"/><di:waypoint x="1720" y="190"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1660" y="193" width="24" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_AuthorNo_di" bpmnElement="Flow_TRA_AuthorNo">
+        <di:waypoint x="1745" y="215"/><di:waypoint x="1745" y="305"/><di:waypoint x="1980" y="305"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1752" y="285" width="20" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_AuthorYes_di" bpmnElement="Flow_TRA_AuthorYes">
+        <di:waypoint x="1770" y="190"/><di:waypoint x="1860" y="190"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1780" y="193" width="24" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_HashNo_di" bpmnElement="Flow_TRA_HashNo">
+        <di:waypoint x="1885" y="215"/><di:waypoint x="1885" y="265"/><di:waypoint x="1980" y="265"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1892" y="240" width="20" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_HashYes_di" bpmnElement="Flow_TRA_HashYes">
+        <di:waypoint x="1910" y="190"/><di:waypoint x="1980" y="190"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1918" y="170" width="24" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_10_di" bpmnElement="Flow_TRA_10">
+        <di:waypoint x="2100" y="285"/><di:waypoint x="2140" y="285"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_11_di" bpmnElement="Flow_TRA_11">
+        <di:waypoint x="2100" y="190"/><di:waypoint x="2240" y="190"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_12_di" bpmnElement="Flow_TRA_12">
+        <di:waypoint x="2300" y="230"/><di:waypoint x="2300" y="630"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_13_di" bpmnElement="Flow_TRA_13">
+        <di:waypoint x="2360" y="670"/><di:waypoint x="2530" y="670"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_MergedNo_di" bpmnElement="Flow_TRA_MergedNo">
+        <di:waypoint x="2555" y="695"/><di:waypoint x="2555" y="725"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="2560" y="700" width="20" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_MergedYes_di" bpmnElement="Flow_TRA_MergedYes">
+        <di:waypoint x="2580" y="670"/><di:waypoint x="2660" y="670"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_Accepted_di" bpmnElement="Flow_TRA_Accepted">
+        <di:waypoint x="2685" y="645"/><di:waypoint x="2685" y="600"/><di:waypoint x="2717" y="600"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TRA_Suggested_di" bpmnElement="Flow_TRA_Suggested">
+        <di:waypoint x="2685" y="695"/><di:waypoint x="2685" y="748"/><di:waypoint x="2717" y="748"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

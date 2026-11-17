@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_PrChecksPresent" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:collaboration id="Collaboration_Process_PrChecksPresent">
+    <bpmn:participant id="Participant_Process_PrChecksPresent" name="Which open pull requests have no CI run on their head?" processRef="Process_PrChecksPresent"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_PrChecksPresent" name="Which open pull requests have no CI run on their head?" isExecutable="false">
+    <bpmn:documentation>Find the open pull requests whose head has no CI run, past an age gate, and say so on one tracking issue and once per head on the pull request. A PULL REQUEST WITH ZERO CHECKS IS INVISIBLE PRECISELY BECAUSE NOBODY IS LOOKING. Bean `3pqn`. `check:head-has-run` answers this for one commit when somebody remembers to ask; this is the half that asks when nobody does, which is the only placement that addresses the defect rather than the symptom.
+
+MEASURED 2026-09-20 over the six open pull requests here: TWO had no run of any kind on their head, both updated minutes earlier. A third of the open set, with nothing to merge on.
+
+THE 15-MINUTE AGE GATE IS THE DIFFERENCE BETWEEN USEFUL AND IGNORED. A head pushed thirty seconds ago legitimately has no run yet, and a sweep that reports those is one nobody reads — this bean's own failure, reproduced by its fix. A younger head is NOT JUDGED rather than called clean, which is the third state again.
+
+ONLY `unknown` FAILS THE JOB. A finding records itself and the workflow stays GREEN, the same inversion as `ci-health`: the repository speaks through the tracking issue, while a sweep that could not look turns red. And a sweep blind on one pull request has not cleared the others, so ONE unreadable answer makes the whole run unknown — never a partial clean.
+
+TWO CHANNELS, ON THE OWNER'S INSTRUCTION, AND THEY BEHAVE DIFFERENTLY. The tracking issue is EDITED IN PLACE, never appended to. The per-PR comment is posted ONCE PER (PULL REQUEST, HEAD SHA), keyed by a marker in the body: hourly comments without that key would put twenty-four notifications a day on one unchanged pull request, which is how a warning gets muted.
+
+The verdict is reported through the shared `tracked-watch` process (Process_TrackedWatch), with the label `pr-no-checks`. Its three ends say what happened: unknown (job red, issue untouched), clean (issue closed), or found (issue opened or edited, job green).</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_PrChecksPresent">
+      <bpmn:lane id="Lane_Ci" name="Scheduled log sweep" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Three exit states, and the job's own colour tracks none of them the way a reader would expect: a finding is fully recorded — issue tracked, PR commented — and the job still ends GREEN, because the finding is the repository's problem to see in the tracking issue, not this lane's to fail on. Only UNKNOWN turns the job itself RED, and one unreadable PR is enough to fail the whole sweep — this lane never reports a partial clean.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Sweep</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Sweep</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Watch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Found</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Done</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Comment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Recorded</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Sweep" name="Hourly (:37), or on dispatch">
+      <bpmn:outgoing>Flow_0</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_Sweep" name="Ask whether each open PR head has a run">
+      <bpmn:documentation>Run check:prs-have-runs --min-age-minutes 15, writing the report file first. A head younger than 15 minutes legitimately has no run yet and is skipped. Exit 0 clean, 1 findings, 2 could not determine; an exit 1 with no report file is a crash and is treated as could-not-determine.
+
+Where its verdict comes from: Asked of the `verdict` output of the `Sweep` step in .github/workflows/pr-checks-present.yml, which runs `check:prs-have-runs --min-age-minutes 15`. Exit 0 is clean, 1 findings, 2 could not determine; an exit 1 with no report file is a crash and is reclassified as could-not-determine, as is any other code. `no` is verdict == 'unknown': 'Refuse to report success on an unchecked repository' runs `exit 1` and the tracking issue is left untouched. `yes` is verdict != 'unknown', the guard on ensuring the `pr-no-checks` label.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ci-health"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0</bpmn:incoming>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_Watch" name="Report the verdict on the tracking issue" calledElement="Process_TrackedWatch">
+      <bpmn:documentation>Runs the shared tracking watch with the label `pr-no-checks`. Asked of the same `verdict`. `none` is verdict == 'clean': every open PR's head older than 15 minutes has a run, and the tracking issue is closed. `one or more` is verdict == 'findings': the one tracking issue is opened or edited in place, and the workflow also comments once on each affected pull request. Clean here means every open pull request's head now has a CI run. The body is the sweep's report.</bpmn:documentation>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+
+      <bpmn:ioSpecification id="Call_Watch_IO">
+        <bpmn:dataInput id="Call_Watch_label" name="label"/>
+        <bpmn:inputSet id="Call_Watch_In"><bpmn:dataInputRefs>Call_Watch_label</bpmn:dataInputRefs></bpmn:inputSet>
+        <bpmn:outputSet id="Call_Watch_Out"/>
+      </bpmn:ioSpecification>
+      <bpmn:dataInputAssociation id="Call_Watch_label_Value">
+        <bpmn:targetRef>Call_Watch_label</bpmn:targetRef>
+        <bpmn:assignment id="Call_Watch_label_Assign">
+          <bpmn:from xsi:type="bpmn:tFormalExpression">pr-no-checks</bpmn:from>
+          <bpmn:to xsi:type="bpmn:tFormalExpression">Call_Watch_label</bpmn:to>
+        </bpmn:assignment>
+      </bpmn:dataInputAssociation>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Found" name="Any head with no run?">
+      <bpmn:documentation>Reads which end the tracking watch reached. `yes` is its `Found` end: the workflow also comments once on each affected pull request. `no` is either other end: clean, or unknown (the job is already red and nothing more is written).</bpmn:documentation>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Done" name="Every head has a run, or could not tell">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_Comment" name="Comment once per PR and head">
+      <bpmn:documentation>Comment on each affected open PR once per (PR, head sha): a hidden marker carrying the sha is checked first, so a re-run on the same head stays silent and a new push can be reported again. A PR that is no longer open is skipped.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ci-health"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Recorded" name="Recorded: job stays green">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0" sourceRef="Start_Sweep" targetRef="Task_Sweep"/>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Task_Sweep" targetRef="Call_Watch"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Call_Watch" targetRef="GW_Found"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="GW_Found" targetRef="Task_Comment" name="yes"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="GW_Found" targetRef="End_Done" name="no"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_Comment" targetRef="End_Recorded"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_PrChecksPresent">
+    <bpmndi:BPMNPlane id="Plane_Process_PrChecksPresent" bpmnElement="Collaboration_Process_PrChecksPresent">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_PrChecksPresent" bpmnElement="Participant_Process_PrChecksPresent" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="896" height="360"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Ci" bpmnElement="Lane_Ci" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="866" height="360"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Sweep" bpmnElement="Start_Sweep">
+        <dc:Bounds x="130" y="182" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="105" y="222" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Sweep" bpmnElement="Task_Sweep">
+        <dc:Bounds x="230" y="140" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Watch" bpmnElement="Call_Watch">
+        <dc:Bounds x="410" y="140" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Found" bpmnElement="GW_Found" isMarkerVisible="true">
+        <dc:Bounds x="590" y="175" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="555" y="120" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Done" bpmnElement="End_Done">
+        <dc:Bounds x="690" y="332" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="730" y="330" width="130" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Comment" bpmnElement="Task_Comment">
+        <dc:Bounds x="690" y="140" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Recorded" bpmnElement="End_Recorded">
+        <dc:Bounds x="860" y="182" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="825" y="222" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_0" bpmnElement="Flow_0">
+        <di:waypoint x="166" y="200"/>
+        <di:waypoint x="230" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="350" y="200"/>
+        <di:waypoint x="410" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_2" bpmnElement="Flow_2">
+        <di:waypoint x="530" y="200"/>
+        <di:waypoint x="590" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_3" bpmnElement="Flow_3">
+        <di:waypoint x="640" y="200"/>
+        <di:waypoint x="690" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_4" bpmnElement="Flow_4">
+        <di:waypoint x="615" y="225"/>
+        <di:waypoint x="615" y="350"/>
+        <di:waypoint x="690" y="350"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_5" bpmnElement="Flow_5">
+        <di:waypoint x="810" y="200"/>
+        <di:waypoint x="860" y="200"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

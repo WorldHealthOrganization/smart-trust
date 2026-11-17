@@ -1,0 +1,131 @@
+---
+doc_id: 10665-270157
+doc_title: "Acceptability of routine HIV counselling and testing, and HIV seroprevalence in Ugandan hospitals"
+section_id: page-001
+section_title: "Page 1"
+pages: 1-1
+pdf_page: 1
+source_pdf: 10665-270157.pdf
+source_sha256: 8d92e149775a034a
+text_source: ocr
+granularity: page
+---
+Acceptability of routine HIV counselling and testing, and HIV
+seroprevalence in Ugandan hospitals
+
+Rhoda K Wanyenze,’ Cecilia Nawavvu,? Alice S Namale, Bernard Mayanja,* Rebecca Bunnell,” Betty Abang,”
+Gideon Amanyire,? Nelson K Sewankambo? & Moses R Kamya?
+
+Objective Mulago and Mbarara hospitals are large tertiary hospitals in Uganda with a high HIV/AIDS burden. Until recently, HIV
+testing was available only upon request and payment. From November 2004, routine free HIV testing and counselling has been
+offered to improve testing coverage and the clinical management of patients. All patients in participating units who had not
+previously tested HIV-positive were offered HIV testing. Family members of patients seen at the hospitals were also offered testing.
+Methods Data collected at the 25 participating wards and clinics between 1 November 2004 and 28 February 2006 were analysed
+to determine the uptake rate of testing and the HIV seroprevalence among patients and their family members.
+
+Findings Of the 51 642 patients offered HIV testing, 50 649 (98%) accepted. In those who had not previously tested HIV-positive,
+the overall HIV prevalence was 25%, with 81% being tested for the first time. The highest prevalence was found in medical
+inpatients (35%) and the lowest, in surgical inpatients (12%). The prevalence of HIV was 28% in the 39 037 patients who had
+never been tested before and 9% in those who had previously tested negative. Of the 10 439 family members offered testing,
+9720 (93%) accepted. The prevalence in family members was 20%. Among 1213 couples tested, 224 (19%) had a discordant HIV
+status.
+
+Conclusion In two large Ugandan hospitals, routine HIV testing and counselling was highly acceptable and identified many
+
+previously undiagnosed HIV infections and HIV-discordant partnerships among patients and their family members.
+
+Bulletin of the World Health Organization 2008;86:302-309.
+
+Une traduction en francais de ce résumé figure a la fin de larticle. Al final del articulo se facta una traduccion al espariol, a8) mig) JalS\ yall Als § Lee! Bg) Ay jal doe jl
+
+Introduction
+
+Both counselling and testing are key
+components of HIV prevention and care
+programmes.’ Through HIV counsel-
+ling and testing (HCT), uninfected
+individuals can take steps to avoid
+becoming infected, while infected indi-
+viduals can avoid transmission to sexual
+partners or children.2> Moreover, HCT
+is the first step in referral to care and
+support services.” It has also become
+important for preventing mother-to-
+child transmission and increasing access
+to HIV/AIDS care, including antiretro-
+viral therapy (ART).*° Even with limited
+availability of ART, early diagnosis of
+HIV and access to basic preventive care,
+including co-trimoxazole, can slow pro-
+gression to AIDS.'°"' Providing HCT
+for family members of HIV-positive
+patients can identify other HIV-infected
+individuals in their households, facilitate
+partner disclosure and testing, identify
+HIV-discordant couples, and support
+
+care and medication adherence in HIV-
+infected individuals.!? Worldwide, it
+is estimated that over 90% of HIV-
+infected individuals are still unaware of
+their status.!*! In Uganda, 15% of the
+general population has received HCT,
+while more than 70% would like to be
+tested.'¢
+
+Hospitals in high-prevalence set-
+tings are crowded with HIV/AIDS
+patients,'”'? though the majority only
+learn about their infection late in the
+disease course, if ever.?°*4 A survey at
+Mulago hospital in Uganda found that
+half of medical inpatients with HIV-
+related diagnoses left hospital without
+HCT*
+
+It has been proposed that offering
+HCT routinely in health-care set-
+tings will increase access to care.°7!5!7
+Routine HCT is initiated by health-
+care providers and offers testing to all
+patients irrespective of their presenting
+illness. This approach differs from vol-
+untary counselling and testing, which
+
+is client-initiated. The guidelines on
+provider-initiated HCT at health-care
+facilities, released by WHO in May
+2007, recommend that testing should
+be part of standard medical care for
+all patients during widespread HIV
+epidemics.”° The United States Centers
+for Disease Control and Prevention
+(CDC) also revised HCT guidelines to
+recommend routine screening for HIV
+infection in health-care settings for
+individuals aged 13-64 years.?”7 When
+Botswana introduced routine opt-out
+HCT, HIV testing and interventions to
+prevent mother-to-child transmission
+both increased.** The revised Ugandan
+HCT policy recommends routine HCT
+in health-care facilities, including ante-
+natal clinics.””
+
+We implemented routine HCT
+at Mulago and Mbarara hospitals in
+Uganda, assessed testing uptake, and
+estimated HIV seroprevalence among
+patients and their family members.
+
+@ Mulago—Mbarara Teaching Hospitals’ Joint AIDS Program (MJAP), Kampala, Uganda.
+> Centers for Disease Control and Prevention—Uganda, Entebbe, Uganda
+Correspondence to Rhoda K Wanyenze (e-mail: rwanyenze@hotmail.com).
+
+doi:10.2471/BLT.07.042580
+
+(Submitted: 3 April 2007 — Revised version received: 20 October 2007 — Accepted: 12 December 2007 — Published online: 19 February 2008)
+
+302
+
+Bulletin of the World Health Organization | Apri 2008, 86 (4)

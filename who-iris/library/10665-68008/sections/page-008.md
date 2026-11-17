@@ -1,0 +1,40 @@
+---
+doc_id: 10665-68008
+doc_title: "Country report : country, Upper Volta"
+section_id: page-008
+section_title: "Page 8"
+pages: 8-8
+pdf_page: 8
+source_pdf: 10665-68008.pdf
+source_sha256: 8a26dce3fc1e94c0
+text_source: ocr
+granularity: page
+---
+PAYS HAUTE
+
+VOLTA
+
+COUNTRY
+
+TABLEAU 3, CAS DE VARIOLE PAR AGE ET PAR SEXE
+TABLE 3. SMALLPOX CASES BY AGE AND SEX
+
+Age Age/Sexe
+Mois inconnu
+0-4 5-14 15-44 45+ Total
+Month Unknown
+M F M F M F M F Age/Sex
+1968 1 5 4 4 1 1 0 16
+0
+0
+fe)
+1 6 3 2 1 0 13
+0
+0
+1 0 1
+5 4 4 1 2 3 1 20
+0)
+15 8 6 il 1 ie) 41
+©
+1969 0
+0

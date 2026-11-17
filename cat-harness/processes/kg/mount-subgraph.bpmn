@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                   xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_MountSubgraph"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Mount a declared subgraph — ONE process for every content source.
+
+       A subgraph declares where it gets its content; mounting a directory
+       and mounting a branch are the same pattern, and other kinds may
+       follow.
+
+       So there is no "mount a branch" process beside a "read a directory"
+       one. Every step that reads or writes a declared subgraph starts here:
+       resolve the source ONCE (declaration, then the layer config's
+       override by id), then branch on its KIND. A kind this diagram has no
+       flow for is refused rather than read as a directory.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:process id="Process_MountSubgraph" name="Mount a declared subgraph" isExecutable="false">
+    <bpmn:documentation>Making a declared subgraph's content available at its declared path, whatever its content source.
+
+You are in this process whenever a step is about to read or write the contents of a declared subgraph — beans, todos, fsh-guts, or any directory a declaration names. The source is resolved once, by `declaredSubgraph` (`schemas/kg/harness-config.ts`) through `resolveSubgraphSource` (`schemas/kg/subgraph-source.ts`): the layer config's `subgraphSources` override by id, then the entry's `source`, then a legacy `storage`, then the `directory` default.
+
+The gateway is on the source KIND, and its flows are the only places the kinds differ. A `directory` subgraph is already where its path says, and writing it is an ordinary commit. A `branch` subgraph is mounted from the declared branch's tip into its path, and written back by splicing onto the tip without force. A `remote` subgraph is another repository's tree at a pinned commit, laid down by `Process_MountDependency` and read-only here. An `npm` subgraph is an npm package or tarball retrieved via `kg-retrieve-npm` or `npm`. A kind with no flow here is refused.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_MountSubgraph">
+      <bpmn:lane id="Lane_MountPipeline" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Mechanical: every decision on this lane is read off the resolved source, so the same declaration mounts the same way in every container, and an override in the layer config is the only thing that changes it.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_SubgraphWanted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ResolveSource</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_SourceKind</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UseCheckoutPath</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MountBranchTip</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MountRemotePin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RetrieveNpmPackage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RefuseUnknownKind</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Mounted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Refused</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_SubgraphWanted" name="A step needs a&#10;declared subgraph"/>
+
+    <bpmn:task id="Task_ResolveSource" name="Resolve the subgraph's&#10;content source">
+      <bpmn:documentation>
+        `declaredSubgraph(start, id)`: the declaring layer, the entry, and the
+        resolved source with `declaredIn` saying which layer answered. Never read
+        `source` off the declaration directly — the config override and the
+        legacy `storage` field are folded in by the resolver and nowhere else.
+        A contradiction (both `source` and `storage`; a `qa` subgraph keyed by
+        tip) throws here, before anything is mounted.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="sub-kg-lifecycle"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_SourceKind" name="Which source kind?">
+      <bpmn:documentation>The resolved source's `kind`: `directory`, `branch`, `remote`, `npm`, or a kind this diagram has no flow for.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_UseCheckoutPath" name="Use the checkout path&#10;in place">
+      <bpmn:documentation>
+        A `directory` source IS its declared path. Nothing is mounted; a write is
+        an ordinary commit on the working branch, which is why `branch-store
+        push` answers "commit through git" for it rather than pushing anything.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="sub-kg-lifecycle"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Task_MountBranchTip" name="Mount the branch tip&#10;at the declared path">
+      <bpmn:documentation>
+        A `branch` source keyed by `tip`: `branch-store mount --id &lt;dir-id&gt;`
+        writes the tip's files at the declared path, so every reader finds the
+        directory where it always was; `push` splices edits back onto the tip,
+        never forcing, and a same-file race is a conflict. The branch's NAME is
+        the declaring directory's `storage` (or `source`) — a branch no
+        declaration names is refused rather than guessed. A `commit`-keyed branch is read
+        per commit through its own store (`qa-store`), not mounted.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="sub-kg-lifecycle"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Task_MountRemotePin" name="Mount the remote tree&#10;at its pin">
+      <bpmn:documentation>
+        A `remote` source: another repository's tree at a full
+        40-character commit. `bun run cat mount:remote` lays it down at the declared
+        path and locks its tree digest; it is never written back, because the
+        bytes are somebody else's at somebody else's pin. Usually reached
+        through a `source.remote` layer in the root `index.config.json`
+        (legacy: `remoteMounts`), which expands a whole harness and its closure —
+        `Process_MountDependency`.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="remote-mount"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Task_RetrieveNpmPackage" name="Retrieve the npm package&#10;or tarball">
+      <bpmn:documentation>
+        An `npm` source (`schemas/kg/subgraph-source.ts`, `npm-kg-distribution`): an
+        npm package specifier or tarball path (`.tgz`). `kg-retrieve-npm` or `npm`
+        fetches and unpacks the package contents into the declared path.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="npm-kg-distribution"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Task_RefuseUnknownKind" name="Refuse: no flow for&#10;this source kind">
+      <bpmn:documentation>
+        A kind added to the union (a graph database, say) before this diagram
+        and the mount tool learn it. Refused with its own exit code — reading it
+        as a directory would scan an empty path and report it clean.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="sub-kg-lifecycle"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Join"/>
+
+    <bpmn:endEvent id="End_Mounted" name="Subgraph content&#10;at its declared path"/>
+    <bpmn:endEvent id="End_Refused" name="Refused, with&#10;the reason"/>
+
+    <bpmn:sequenceFlow id="F_M1" sourceRef="Start_SubgraphWanted" targetRef="Task_ResolveSource"/>
+    <bpmn:sequenceFlow id="F_M2" sourceRef="Task_ResolveSource" targetRef="GW_SourceKind"/>
+    <bpmn:sequenceFlow id="F_M3" name="directory" sourceRef="GW_SourceKind" targetRef="Task_UseCheckoutPath"/>
+    <bpmn:sequenceFlow id="F_M4" name="branch" sourceRef="GW_SourceKind" targetRef="Task_MountBranchTip"/>
+    <bpmn:sequenceFlow id="F_M5" name="any other kind" sourceRef="GW_SourceKind" targetRef="Task_RefuseUnknownKind"/>
+    <bpmn:sequenceFlow id="F_M6" sourceRef="Task_UseCheckoutPath" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow id="F_M7" sourceRef="Task_MountBranchTip" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow id="F_M8" sourceRef="GW_Join" targetRef="End_Mounted"/>
+    <bpmn:sequenceFlow id="F_M9" sourceRef="Task_RefuseUnknownKind" targetRef="End_Refused"/>
+    <bpmn:sequenceFlow id="F_M10" name="remote" sourceRef="GW_SourceKind" targetRef="Task_MountRemotePin"/>
+    <bpmn:sequenceFlow id="F_M11" sourceRef="Task_MountRemotePin" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow id="F_M12" name="npm" sourceRef="GW_SourceKind" targetRef="Task_RetrieveNpmPackage"/>
+    <bpmn:sequenceFlow id="F_M13" sourceRef="Task_RetrieveNpmPackage" targetRef="GW_Join"/>
+
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_MountSubgraph">
+    <bpmndi:BPMNPlane id="Plane_MountSubgraph" bpmnElement="Process_MountSubgraph">
+      <bpmndi:BPMNShape id="Shape_Lane_MountPipeline" bpmnElement="Lane_MountPipeline" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="880" height="720" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_SubgraphWanted" bpmnElement="Start_SubgraphWanted">
+        <dc:Bounds x="206" y="402" width="36" height="36" />
+      
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="195" y="310" width="140" height="36" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ResolveSource" bpmnElement="Task_ResolveSource">
+        <dc:Bounds x="270" y="360" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_SourceKind" bpmnElement="GW_SourceKind" isMarkerVisible="true">
+        <dc:Bounds x="470" y="395" width="50" height="50" />
+      
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="400" y="350" width="65" height="58" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_UseCheckoutPath" bpmnElement="Task_UseCheckoutPath">
+        <dc:Bounds x="610" y="80" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_MountBranchTip" bpmnElement="Task_MountBranchTip">
+        <dc:Bounds x="610" y="220" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_MountRemotePin" bpmnElement="Task_MountRemotePin">
+        <dc:Bounds x="610" y="360" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RetrieveNpmPackage" bpmnElement="Task_RetrieveNpmPackage">
+        <dc:Bounds x="610" y="500" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RefuseUnknownKind" bpmnElement="Task_RefuseUnknownKind">
+        <dc:Bounds x="610" y="640" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Join" bpmnElement="GW_Join" isMarkerVisible="true">
+        <dc:Bounds x="815" y="325" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Mounted" bpmnElement="End_Mounted">
+        <dc:Bounds x="915" y="332" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="890" y="375" width="90" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Refused" bpmnElement="End_Refused">
+        <dc:Bounds x="915" y="682" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="890" y="620" width="90" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_F_M1" bpmnElement="F_M1">
+        <di:waypoint x="242" y="420" />
+        <di:waypoint x="270" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_M2" bpmnElement="F_M2">
+        <di:waypoint x="390" y="420" />
+        <di:waypoint x="470" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_M3" bpmnElement="F_M3">
+        <di:waypoint x="495" y="395" />
+        <di:waypoint x="495" y="140" />
+        <di:waypoint x="610" y="140" />
+        <bpmndi:BPMNLabel><dc:Bounds x="505" y="116" width="80" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_M4" bpmnElement="F_M4">
+        <di:waypoint x="510" y="395" />
+        <di:waypoint x="510" y="280" />
+        <di:waypoint x="610" y="280" />
+        <bpmndi:BPMNLabel><dc:Bounds x="520" y="256" width="70" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_M10" bpmnElement="F_M10">
+        <di:waypoint x="520" y="420" />
+        <di:waypoint x="610" y="420" />
+        <bpmndi:BPMNLabel><dc:Bounds x="528" y="396" width="70" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_M12" bpmnElement="F_M12">
+        <di:waypoint x="510" y="445" />
+        <di:waypoint x="510" y="560" />
+        <di:waypoint x="610" y="560" />
+        <bpmndi:BPMNLabel><dc:Bounds x="520" y="536" width="50" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_M5" bpmnElement="F_M5">
+        <di:waypoint x="495" y="445" />
+        <di:waypoint x="495" y="700" />
+        <di:waypoint x="610" y="700" />
+        <bpmndi:BPMNLabel><dc:Bounds x="505" y="676" width="100" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_M6" bpmnElement="F_M6">
+        <di:waypoint x="730" y="140" />
+        <di:waypoint x="840" y="140" />
+        <di:waypoint x="840" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_M7" bpmnElement="F_M7">
+        <di:waypoint x="730" y="280" />
+        <di:waypoint x="775" y="280" />
+        <di:waypoint x="775" y="340" />
+        <di:waypoint x="815" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_M11" bpmnElement="F_M11">
+        <di:waypoint x="730" y="420" />
+        <di:waypoint x="775" y="420" />
+        <di:waypoint x="775" y="360" />
+        <di:waypoint x="815" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_M13" bpmnElement="F_M13">
+        <di:waypoint x="730" y="560" />
+        <di:waypoint x="840" y="560" />
+        <di:waypoint x="840" y="375" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_M8" bpmnElement="F_M8">
+        <di:waypoint x="865" y="350" />
+        <di:waypoint x="915" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_M9" bpmnElement="F_M9">
+        <di:waypoint x="730" y="700" />
+        <di:waypoint x="915" y="700" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

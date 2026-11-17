@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bibliography QA</title>
+  <style>
+    /* ── Theme ──────────────────────────────────────────── */
+    :root { --ease: cubic-bezier(0.4,0,0.2,1); }
+    [data-theme="dark"] {
+      --bg:#0e0e12; --bg-s:#16161c; --bg-r:#1e1e26; --bg-c:#12121a;
+      --fg:#c8c8d0; --fg-d:#70707c; --fg-b:#eeeef4;
+      --ac:#7ca8e6; --ac-d:#4a6a9a;
+      --grn:#7ce6a4; --yel:#e6c87c; --red:#e67c7c; --ora:#e6a47c;
+      --brd:#2a2a34;
+    }
+    [data-theme="light"] {
+      --bg:#fafafa; --bg-s:#ffffff; --bg-r:#f0f0f4; --bg-c:#f5f5fa;
+      --fg:#2c2c34; --fg-d:#888894; --fg-b:#111118;
+      --ac:#2a6bc4; --ac-d:#6a9ad4;
+      --grn:#1a8a44; --yel:#9a7a20; --red:#c44a4a; --ora:#b07030;
+      --brd:#d8d8e0;
+    }
+
+    /* ── Base ───────────────────────────────────────────── */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      font-size: 14px; line-height: 1.5;
+      min-height: 100vh; padding: 0;
+    }
+    a { color: var(--ac); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Top bar ────────────────────────────────────────── */
+    .top-bar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg-s); border-bottom: 1px solid var(--brd);
+      display: flex; align-items: center; gap: 1rem;
+      padding: .5rem 1.5rem; height: 44px;
+    }
+    .top-bar h1 {
+      font-size: .95rem; font-weight: 600; color: var(--fg-b);
+      white-space: nowrap;
+    }
+    .top-bar .spacer { flex: 1; }
+    .top-bar .meta {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .65rem; color: var(--fg-d);
+    }
+    .top-bar button {
+      background: var(--bg-r); border: 1px solid var(--brd);
+      color: var(--fg-d); font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .6rem; padding: .2rem .6rem; border-radius: 3px;
+      cursor: pointer; transition: all .15s;
+    }
+    .top-bar button:hover { color: var(--fg-b); border-color: var(--ac-d); }
+
+    /* ── Summary cards ──────────────────────────────────── */
+    .summary {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: .6rem; padding: 1rem 1.5rem;
+    }
+    .card {
+      background: var(--bg-s); border: 1px solid var(--brd);
+      border-radius: 6px; padding: .8rem; text-align: center;
+    }
+    .card .num { font-size: 1.6rem; font-weight: 600; }
+    .card .lbl {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .6rem; color: var(--fg-d); margin-top: .15rem;
+    }
+    .card.green .num { color: var(--grn); }
+    .card.yellow .num { color: var(--yel); }
+    .card.red .num { color: var(--red); }
+    .card.blue .num { color: var(--ac); }
+
+    /* ── Controls bar ───────────────────────────────────── */
+    .controls {
+      display: flex; gap: .5rem; padding: .5rem 1.5rem;
+      align-items: center; flex-wrap: wrap;
+    }
+    .controls input[type="text"] {
+      flex: 1; min-width: 200px;
+      background: var(--bg-s); border: 1px solid var(--brd);
+      color: var(--fg); padding: .35rem .6rem; border-radius: 4px;
+      font-size: .8rem; font-family: inherit;
+    }
+    .controls input:focus { outline: none; border-color: var(--ac); }
+    .filter-btn {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .6rem; padding: .25rem .6rem; border-radius: 3px;
+      border: 1px solid var(--brd); background: var(--bg-r);
+      color: var(--fg-d); cursor: pointer; transition: all .15s;
+    }
+    .filter-btn:hover { color: var(--fg-b); }
+    .filter-btn.active { color: var(--ac); border-color: var(--ac); }
+
+    /* ── Reference list ─────────────────────────────────── */
+    .ref-list { padding: 0 1.5rem 2rem; }
+
+    .ref-card {
+      background: var(--bg-s); border: 1px solid var(--brd);
+      border-radius: 6px; margin-bottom: .8rem;
+      transition: border-color .15s;
+    }
+    .ref-card:hover { border-color: var(--ac-d); }
+    .ref-card.expanded { border-color: var(--ac); }
+
+    .ref-header {
+      display: grid;
+      grid-template-columns: 50px 1fr auto;
+      align-items: start; gap: .8rem;
+      padding: .8rem 1rem; cursor: pointer;
+    }
+    .ref-score {
+      width: 42px; height: 42px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 1rem;
+      border: 2px solid var(--brd); flex-shrink: 0;
+    }
+    .ref-score.s5 { color: var(--grn); border-color: var(--grn); }
+    .ref-score.s4 { color: var(--grn); border-color: var(--grn); opacity: .8; }
+    .ref-score.s3 { color: var(--yel); border-color: var(--yel); }
+    .ref-score.s2 { color: var(--ora); border-color: var(--ora); }
+    .ref-score.s1,.ref-score.s0 { color: var(--red); border-color: var(--red); }
+
+    .ref-info { min-width: 0; }
+    .ref-id {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .7rem; color: var(--ac); font-weight: 500;
+    }
+    .ref-title {
+      font-size: .9rem; color: var(--fg-b); margin-top: .15rem;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .ref-authors {
+      font-size: .75rem; color: var(--fg-d); margin-top: .1rem;
+    }
+    .ref-venue {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .6rem; color: var(--fg-d); margin-top: .1rem;
+    }
+
+    .ref-tags {
+      display: flex; gap: .3rem; flex-wrap: wrap;
+      justify-content: flex-end; align-self: center;
+    }
+    .tag {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .55rem; padding: .15rem .4rem;
+      border-radius: 3px; white-space: nowrap;
+      border: 1px solid var(--brd); background: var(--bg-r);
+    }
+    .tag.pass { color: var(--grn); border-color: var(--grn); background: transparent; }
+    .tag.fail { color: var(--red); border-color: var(--red); background: transparent; }
+    .tag.warn { color: var(--yel); border-color: var(--yel); background: transparent; }
+    .tag.unchecked { color: var(--fg-d); }
+
+    /* ── Expanded detail panel ──────────────────────────── */
+    .ref-detail {
+      display: none; padding: 0 1rem 1rem;
+      border-top: 1px solid var(--brd);
+    }
+    .ref-card.expanded .ref-detail { display: block; }
+
+    .detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: .8rem; margin-top: .8rem;
+    }
+    @media (max-width: 800px) { .detail-grid { grid-template-columns: 1fr; } }
+
+    .detail-section h3 {
+      font-size: .7rem; text-transform: uppercase;
+      letter-spacing: .05em; color: var(--fg-d);
+      margin-bottom: .4rem;
+    }
+
+    .tag-detail {
+      display: flex; align-items: center; gap: .4rem;
+      padding: .3rem 0; font-size: .75rem;
+      border-bottom: 1px solid var(--bg-r);
+    }
+    .tag-detail:last-child { border-bottom: none; }
+    .tag-icon {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .tag-icon.pass { background: var(--grn); }
+    .tag-icon.fail { background: var(--red); }
+    .tag-icon.warn { background: var(--yel); }
+    .tag-icon.unchecked { background: var(--fg-d); opacity: .4; }
+    .tag-label { font-weight: 500; color: var(--fg-b); min-width: 110px; }
+    .tag-detail-text { color: var(--fg-d); font-size: .7rem; }
+
+    .cite-list {
+      list-style: none; font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .65rem;
+    }
+    .cite-list li { padding: .15rem 0; color: var(--fg-d); }
+
+    .meta-row {
+      display: flex; gap: .4rem; padding: .2rem 0;
+      font-size: .75rem; align-items: baseline;
+    }
+    .meta-key {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .65rem; color: var(--fg-d); min-width: 60px;
+    }
+    .meta-val { color: var(--fg); word-break: break-all; }
+
+    /* ── Image gallery ──────────────────────────────────── */
+    .img-gallery {
+      display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .5rem;
+    }
+    .img-gallery img {
+      max-width: 300px; max-height: 200px;
+      border: 1px solid var(--brd); border-radius: 4px;
+      cursor: pointer; transition: transform .15s;
+    }
+    .img-gallery img:hover { transform: scale(1.02); }
+    .img-empty {
+      font-size: .7rem; color: var(--fg-d); font-style: italic;
+      padding: .5rem 0;
+    }
+
+    /* ── Lightbox ───────────────────────────────────────── */
+    .lightbox {
+      display: none; position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,.85); align-items: center;
+      justify-content: center; cursor: pointer;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+      max-width: 90vw; max-height: 90vh;
+      border-radius: 6px; box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    }
+
+    /* ── Loading / error ────────────────────────────────── */
+    .loading { text-align: center; padding: 4rem; color: var(--fg-d); }
+    .error { text-align: center; padding: 4rem; color: var(--red); }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <h1>📚 Bibliography QA</h1>
+    <div class="spacer"></div>
+    <span class="meta" id="gen-time"></span>
+    <button id="theme-btn" onclick="toggleTheme()">light</button>
+    <button onclick="loadData()">↻ reload</button>
+  </div>
+
+  <div id="summary" class="summary"></div>
+  <div class="controls">
+    <input type="text" id="search" placeholder="Search by id, title, author...">
+    <button class="filter-btn active" data-filter="all">all</button>
+    <button class="filter-btn" data-filter="fail">⚠ issues</button>
+    <button class="filter-btn" data-filter="pass">✓ clean</button>
+    <button class="filter-btn" data-filter="uncited">uncited</button>
+    <button class="filter-btn" data-filter="no-url">no URL</button>
+    <button class="filter-btn" data-filter="no-img">no image</button>
+  </div>
+
+  <div id="ref-list" class="ref-list">
+    <div class="loading">Loading bib-qa.json …</div>
+  </div>
+
+  <div class="lightbox" id="lightbox" onclick="this.classList.remove('open')">
+    <img id="lb-img" src="" alt="Screenshot">
+  </div>
+
+  <script>
+    // ── State ───────────────────────────────────────────
+    let data = null;
+    let activeFilter = "all";
+    let searchQuery = "";
+
+    // ── Theme toggle ────────────────────────────────────
+    function toggleTheme() {
+      const el = document.documentElement;
+      const next = el.dataset.theme === "dark" ? "light" : "dark";
+      el.dataset.theme = next;
+      document.getElementById("theme-btn").textContent = next === "dark" ? "light" : "dark";
+    }
+
+    // ── Load data ───────────────────────────────────────
+    async function loadData() {
+      const list = document.getElementById("ref-list");
+      list.innerHTML = '<div class="loading">Loading bib-qa.json …</div>';
+
+      try {
+        // Try relative path first, then common locations
+        let resp = await fetch("bib-qa.json");
+        if (!resp.ok) resp = await fetch("../bib-qa.json");
+        if (!resp.ok) resp = await fetch("/api/bib-qa");
+        if (!resp.ok) throw new Error(`Failed to load bib-qa.json (${resp.status})`);
+
+        data = await resp.json();
+        document.getElementById("gen-time").textContent = `Generated: ${new Date(data.generated).toLocaleString()}`;
+        renderSummary();
+        renderList();
+      } catch (e) {
+        list.innerHTML = `<div class="error">
+          <p>Could not load bibliography QA data.</p>
+          <p style="font-size:.8rem;margin-top:.5rem">Run: <code>cd content && bun run pipeline/bib-qa.ts</code></p>
+          <p style="font-size:.7rem;margin-top:.3rem;color:var(--fg-d)">Then place <code>bib-qa.json</code> alongside this HTML file, or serve via API.</p>
+          <p style="font-size:.65rem;margin-top:.5rem;color:var(--fg-d)">${esc(e.message)}</p>
+        </div>`;
+      }
+    }
+
+    // ── Render summary cards ────────────────────────────
+    function renderSummary() {
+      if (!data) return;
+      const s = data.summary;
+      const total = data.totalRefs;
+      const clean = data.entries.filter(e => e.score >= 4).length;
+      const issues = data.entries.filter(e => e.score <= 2).length;
+
+      document.getElementById("summary").innerHTML = `
+        <div class="card blue"><div class="num">${total}</div><div class="lbl">references</div></div>
+        <div class="card green"><div class="num">${clean}</div><div class="lbl">score ≥ 4</div></div>
+        <div class="card yellow"><div class="num">${total - clean - issues}</div><div class="lbl">score 3</div></div>
+        <div class="card red"><div class="num">${issues}</div><div class="lbl">score ≤ 2</div></div>
+        <div class="card"><div class="num">${s.pass}</div><div class="lbl">pass tags</div></div>
+        <div class="card"><div class="num">${s.warn + s.fail}</div><div class="lbl">issue tags</div></div>
+      `;
+    }
+
+    // ── Filter logic ────────────────────────────────────
+    function filterEntries() {
+      if (!data) return [];
+      let entries = data.entries;
+
+      // Apply category filter
+      switch (activeFilter) {
+        case "fail":
+          entries = entries.filter(e => e.score <= 3);
+          break;
+        case "pass":
+          entries = entries.filter(e => e.score >= 4);
+          break;
+        case "uncited":
+          entries = entries.filter(e => e.citedIn.length === 0);
+          break;
+        case "no-url":
+          entries = entries.filter(e => !e.url);
+          break;
+        case "no-img":
+          entries = entries.filter(e => e.images.length === 0);
+          break;
+      }
+
+      // Apply text search
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        entries = entries.filter(e =>
+          e.id.toLowerCase().includes(q) ||
+          e.title.toLowerCase().includes(q) ||
+          e.authors.toLowerCase().includes(q) ||
+          (e.journal || "").toLowerCase().includes(q)
+        );
+      }
+
+      return entries;
+    }
+
+    // ── Render reference list ───────────────────────────
+    function renderList() {
+      const list = document.getElementById("ref-list");
+      const entries = filterEntries();
+
+      if (entries.length === 0) {
+        list.innerHTML = '<div class="loading">No references match the current filters.</div>';
+        return;
+      }
+
+      list.innerHTML = entries.map(e => `
+        <div class="ref-card" id="ref-${esc(e.id)}">
+          <div class="ref-header" onclick="toggleExpand('${esc(e.id)}')">
+            <div class="ref-score s${e.score}">${e.score}</div>
+            <div class="ref-info">
+              <div class="ref-id">${esc(e.id)}</div>
+              <div class="ref-title">${esc(e.title)}</div>
+              <div class="ref-authors">${esc(e.authors)}, ${esc(e.year)}</div>
+              ${e.journal ? `<div class="ref-venue">${esc(e.journal)}${e.doi ? ' · doi:' + esc(e.doi) : ''}</div>` : ''}
+            </div>
+            <div class="ref-tags">
+              ${e.tags.map(t => `<span class="tag ${t.status}" title="${esc(t.detail || '')}">${t.status === 'pass' ? '✓' : t.status === 'fail' ? '✗' : t.status === 'warn' ? '!' : '?'} ${esc(t.label)}</span>`).join('')}
+            </div>
+          </div>
+          <div class="ref-detail">
+            <div class="detail-grid">
+              <div class="detail-section">
+                <h3>QA Tags</h3>
+                ${e.tags.map(t => `
+                  <div class="tag-detail">
+                    <div class="tag-icon ${t.status}"></div>
+                    <span class="tag-label">${esc(t.label)}</span>
+                    <span class="tag-detail-text">${esc(t.detail || '—')}</span>
+                  </div>
+                `).join('')}
+
+                <h3 style="margin-top:.8rem">Metadata</h3>
+                <div class="meta-row"><span class="meta-key">type</span><span class="meta-val">${esc(e.type)}</span></div>
+                ${e.url ? `<div class="meta-row"><span class="meta-key">URL</span><span class="meta-val"><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.url)}</a></span></div>` : ''}
+                ${e.doi ? `<div class="meta-row"><span class="meta-key">DOI</span><span class="meta-val"><a href="https://doi.org/${esc(e.doi)}" target="_blank" rel="noopener">${esc(e.doi)}</a></span></div>` : ''}
+              </div>
+
+              <div class="detail-section">
+                <h3>Citations (${e.citedIn.length})</h3>
+                ${e.citedIn.length > 0
+                  ? `<ul class="cite-list">${e.citedIn.map(c => `<li>${esc(c)}</li>`).join('')}</ul>`
+                  : '<div class="img-empty">Not cited in any file</div>'}
+
+                <h3 style="margin-top:.8rem">Screenshots (${e.images.length})</h3>
+                ${e.images.length > 0
+                  ? `<div class="img-gallery">${e.images.map(img => `<img src="${esc(img)}" alt="${esc(e.id)}" onclick="event.stopPropagation(); openLightbox('${esc(img)}')">`).join('')}</div>`
+                  : '<div class="img-empty">No screenshots. Add images to content/bib-qa-images/' + esc(e.id) + '.png</div>'}
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ── Expand/collapse ─────────────────────────────────
+    function toggleExpand(id) {
+      const card = document.getElementById("ref-" + id);
+      if (card) card.classList.toggle("expanded");
+    }
+
+    // ── Lightbox ────────────────────────────────────────
+    function openLightbox(src) {
+      document.getElementById("lb-img").src = src;
+      document.getElementById("lightbox").classList.add("open");
+    }
+
+    // ── Escape HTML ─────────────────────────────────────
+    function esc(s) {
+      if (!s) return "";
+      return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    // ── Wire up controls ────────────────────────────────
+    document.getElementById("search").addEventListener("input", (e) => {
+      searchQuery = e.target.value;
+      renderList();
+    });
+
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeFilter = btn.dataset.filter;
+        document.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b === btn));
+        renderList();
+      });
+    });
+
+    // ── Keyboard shortcut: Escape closes lightbox ──────
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        document.getElementById("lightbox").classList.remove("open");
+      }
+    });
+
+    // ── Init ────────────────────────────────────────────
+    loadData();
+  </script>
+</body>
+</html>

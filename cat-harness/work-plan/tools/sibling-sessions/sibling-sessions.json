@@ -1,0 +1,71 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "sibling-sessions",
+    "title": "Sibling sessions in a window",
+    "description": "List the Claude Code sessions that have committed to this repository in a time window, from the `Claude-Session:` trailer on commits across ALL branches — with each one's commit count, first and last commit, latest subject, and the branches containing its tip. The session API cannot see a sibling session, so the trailer is the only durable session identity here and a session's state is INFERRED from its branch; whether a session is still running is not knowable from a checkout and is deliberately not reported.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat sessions",
+      "inProcess": {
+        "module": "scripts/sibling-sessions.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "since",
+          "schema": {
+            "$type": "TimeWindow"
+          },
+          "description": "The window: `4h`, `2d`, `1w`, or an ISO date. Defaults to one day.",
+          "required": false,
+          "arg": {
+            "flag": "--since"
+          }
+        },
+        {
+          "name": "json",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Emit the sweep as JSON rather than the report.",
+          "required": false,
+          "arg": {
+            "flag": "--json"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "One entry per session, most recently active first, plus the number of commits examined and how many carried no trailer. A window with NO commits exits non-zero rather than reporting 'no siblings' — a sweep over nothing has not found anything."
+        },
+        {
+          "name": "result",
+          "schema": {
+            "$type": "SessionSweep"
+          },
+          "description": "With --json, the sweep as one `SessionSweep` record: the sessions, the commits examined and how many carried no trailer. Programs read this; people read `report`."
+        }
+      ]
+    },
+    "satisfies": [
+      "bean-coordination"
+    ],
+    "requires": {
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "The Tool node for the sibling-session sweep.\n\nBean `ab3n`. Its Done-when is specific about the form: *\"a one-command sweep\nexists (**a Tool node, not prose**) that lists sessions in a window by\ntrailer, with branch tips and first/last commit\"*. The distinction is not\nbureaucratic. Prose describing how to grep a trailer is a procedure every\nsession re-derives slightly differently; the counts then disagree and\nnobody can tell which sweep was wrong — which is how the eight sibling\nsessions of 2026-09-20 went uncounted while three separate sessions looked\nfor them.\n\nIts own file rather than a row in `mcp.ts`, because that module is\nexplicit about what it holds: the twenty tools this layer *already\nserves over MCP*, regenerable from `bun run cat mcp:capture`. This one is\nhand-authored and is not served, so mixing it in would blur exactly the\ndistinction that module's header draws.\n\n@module tools/sessions"
+    }
+  ]
+}

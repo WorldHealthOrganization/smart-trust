@@ -1,0 +1,114 @@
+---
+doc_id: 10665-47547
+doc_title: "HIV : to test or not to test?"
+section_id: page-002
+section_title: "Page 2"
+pages: 2-2
+pdf_page: 2
+source_pdf: 10665-47547.pdf
+source_sha256: 69fd2e6e3ac140b3
+text_source: ocr
+granularity: page
+---
+person and may be either voluntary or
+involuntary. I use the term “screening” to
+talk about testing samples of blood to
+provide information about the spread of
+HIV within a population.
+
+In the United Kingdom we have just
+approved anonymous prevalence screening.
+This will mean doing more than 100 000
+tests each year for the foreseeable future on
+samples of blood. There will be no question
+of obtaining individual consent but, because
+the blood is anonymous at the time of the
+laboratory examination, there is no
+possibility of linking the result to an
+individual person and thus no possibility of
+harm. The benefit to society is that it will
+give us—by age, sex and geographical
+region—information about how HIV is
+spreading within our community.
+
+The screening programme is totally separate
+from the provision of tests for individuals
+who are worried, or whose doctors are
+worried on their behalf, that they may be
+HIV positive and where the result must be
+established and linked to the individual. It is
+clear that such tests should be done only
+with specific consent of the individual: there
+is the possibility of great social or financial
+harm and he or she must appreciate what is
+involved in order to give consent.
+
+T hope it is helpful to separate the two
+activities: in the case of anonymous
+screening, where there is no possibility of
+harm to the individual but the certitude of
+great gain to the community, we believe we
+can do the tests without consent; on the
+other hand, where results are identifiable the
+test should be done only with the specific
+consent of the individual.
+
+Mr Justice Kirby: I think no one could
+have any moral or ethical qualms-about
+anonymous testing of samples of blood. But
+
+World Heaith Forum Vol. 10
+
+1989
+
+HIV—to test or not to test?
+
+that’s not what the community means when
+talking about “mandatory testing”. What is
+meant is either mandatory testing of the
+whole of the population or of particular
+groups. In many countries the latter has
+already been implemented, but I am not
+sure that any country has yet implemented
+the former.
+
+I think it is very important to keep in mind
+the economics of morality —that is to say,
+not only the moral quality of decisions but
+also that decisions cost money to implement.
+The recent United States law on mandatory
+testing of particular groups (for example,
+applicants for marriage licences) has now
+come into force in a number of States. A
+review showed that it cost US$ 228 000 to
+detect an HIV-positive applicant; it also
+revealed that in the State in question
+applications for marriage licences fell by
+25%. So when we consider the laws or
+policies that are introduced to provide for
+mandatory testing of, say, prisoners (who are
+a vulnerable group), we have got to ask,
+what are were going to do with the figures
+when we get them? When we think about
+mandatory testing of marriage licence
+applicants, we have to ask ourselves, is this
+going to be effective? What are we going to
+do about the very small number of positive
+applicants that we find? And—above all—is
+it money well spent or would that money be
+better spent on education? Are we going to
+prevent HIV-positive applicants from
+getting married or are we simply going to
+require that each such partner give informed
+consent?
+
+As to testing the whole population, we have
+to keep in mind the enormous cost of such a
+measure and also the fact that the results
+would never be entirely accurate. The test
+for the antibodies would not detect the
+virus; moreover, a person might “pass” one
+day and “fail” the next. So it’s not a very
+effective way to spend the health dollar. I
+
+423

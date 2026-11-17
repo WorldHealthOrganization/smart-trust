@@ -1,0 +1,73 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "kg-validate",
+    "title": "Validate a node in the graph",
+    "description": "Check one file against the schema for its graph typology. ONE tool for every schema: the kind is resolved from the declared directory that holds the file.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat kg:validate"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "path",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The node to check. Its graph typology is resolved from the declared directory that contains it.",
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "lenient",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Accept partial coverage knowingly: downgrade could-not-determine from an error to a warning.",
+          "required": false,
+          "arg": {
+            "flag": "--lenient"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "One line per file — valid, invalid with the failing paths, or could-not-determine with the reason. Exit 0 valid, 1 invalid or undetermined, 2 misuse."
+        }
+      ]
+    },
+    "satisfies": [
+      "kg-navigation"
+    ],
+    "selection": {
+      "when": "Whenever a node's shape matters and you are not in this repository's CI: `tools/` is an INHERITED declaration and `.github/workflows/` is not, so a downstream layer gets this and none of the CI gates.",
+      "limits": "It can only check a kind that declares a validator; a node of any other kind comes back UNDETERMINED and it exits non-zero saying so. `bun run cat check:kind-validators` reports the coverage.",
+      "cost": "One module import per kind. Nothing to install, no network."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/io/outputs",
+      "comment": "`Text`, not a bespoke verdict type: the tool's answer is the exit\ncode plus one line per file, and minting a type for \"three states\nand a reason\" would be a vocabulary entry with one user."
+    },
+    {
+      "at": "/satisfies",
+      "comment": "The FIRST tool bound to this skill. Measured 2026-09-20: of ten Tool\nnodes, none validated anything and none named `kg-navigation`, while\n199 Zod schemas sat unreachable from the graph (bean `3lbz`)."
+    }
+  ]
+}

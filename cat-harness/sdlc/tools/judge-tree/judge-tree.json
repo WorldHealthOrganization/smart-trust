@@ -1,0 +1,166 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "judge-tree",
+    "title": "Judge a tree and record the verdict by digest",
+    "description": "Run the layer PR-check gates and tests on a composed tree (head) and on its base, or reuse a stored verdict whose digest is the base tree's, compare them with the layer-pr-checks compare scripts, and write a verdict record: {treeDigest, runner {kind agent|github-actions|local, id}, startedAt, finishedAt, gates [{name, exit, seconds, skipped?}], tests {total, failed, new}, verdict green|red|unknown}. With a token it publishes the verdict as the commit status `judge-tree`; `check` answers whether any runner judged a digest green; `sample` re-runs a seeded few gates of a record.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat judge:tree judge"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "lock",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The index.lock.json whose fixity digests name every layer but the caller.",
+          "required": true,
+          "arg": {
+            "flag": "--lock"
+          }
+        },
+        {
+          "name": "caller",
+          "schema": {
+            "$type": "RepoFullName"
+          },
+          "description": "The caller as owner/name (or its lock layer): the entry replaced by its PR tree. Every runner must name it the same way.",
+          "required": true,
+          "arg": {
+            "flag": "--caller"
+          }
+        },
+        {
+          "name": "caller-dir",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The caller's git checkout; its HEAD^{tree} (or --sha's) is the PR tree.",
+          "required": false,
+          "arg": {
+            "flag": "--caller-dir"
+          }
+        },
+        {
+          "name": "sha",
+          "schema": {
+            "$type": "CommitSha"
+          },
+          "description": "The head commit: whose tree is read from --caller-dir, and where the status is published.",
+          "required": false,
+          "arg": {
+            "flag": "--sha"
+          }
+        },
+        {
+          "name": "root",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The mounted index with the caller swapped in, where run-gates.py runs.",
+          "required": false,
+          "arg": {
+            "flag": "--root"
+          }
+        },
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "InstanceId"
+          },
+          "description": "The own layer(s) run-gates.py judges; repeatable.",
+          "required": false,
+          "arg": {
+            "flag": "--instance"
+          }
+        },
+        {
+          "name": "base-verdict",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A stored verdict record standing in for the base run; refused unless its treeDigest is the base tree's (--base-tree).",
+          "required": false,
+          "arg": {
+            "flag": "--base-verdict"
+          }
+        },
+        {
+          "name": "base-root",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A mounted base tree to run the gates on instead.",
+          "required": false,
+          "arg": {
+            "flag": "--base-root"
+          }
+        },
+        {
+          "name": "test-path",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "What `bun test` runs on each side; none means no tests.",
+          "required": false,
+          "arg": {
+            "flag": "--test-path"
+          }
+        },
+        {
+          "name": "publish",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Post the commit status `judge-tree` when GITHUB_TOKEN/GH_TOKEN is set; without one, the record file is the verdict.",
+          "required": false,
+          "arg": {
+            "flag": "--publish"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "record",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The verdict record, `<records-dir>/<treeDigest>.json` unless --out names it; valid against the tools layer's `schemas/verdict-record.schema.json`. Three exit codes: 0 green, 1 red, 2 COULD NOT DETERMINE (no judging scripts, a stored base verdict for another tree, a compare script that crashed, or no gate ran). 2 is never green, and neither is a verdict for another digest."
+        }
+      ]
+    },
+    "satisfies": [
+      "platform-gates",
+      "prepare-merge"
+    ],
+    "selection": {
+      "when": "When a PR's tree must be judged and any runner can do it: an agent before pushing, a developer locally, or CI. Then `verdict-check.yml` passes the PR on the published verdict instead of re-running ~300 gates per side.",
+      "limits": "The digest trusts the lock's fixity digests for every layer but the caller, so a run that takes lower layers at main instead of the lock judges a tree the digest does not name. A verdict answers only for its exact digest: a change to the judging scripts is a new digest and needs a new verdict.",
+      "cost": "That of layer-pr-checks for one side, or two when no stored base verdict exists: gates dominate (minutes to tens of minutes). `digest` and `check` are one hash and at most one HTTP request."
+    },
+    "requires": {
+      "runtime": [
+        "bun",
+        "python3",
+        "git"
+      ],
+      "network": false
+    },
+    "remedies": [
+      {
+        "host": "api.github.com",
+        "none": "Publishing and `check` against statuses need the API; without it the record file is the verdict and `check --records-dir` reads records instead."
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "── Judge a tree once, on any runner, and say so by digest ─────────────\n\nOwner, 2026-10-16: \"github should be one Tool of\nseveral\". `gates` RUNS the checks in one checkout; this judges a whole\ncomposed TREE head-against-base and leaves a verdict record anyone can\nfind again by the tree's digest. The digest is the index lock's fixity\ndigests (each layer's declaration sha256 and directory treeDigests,\nas mount-from-lock checks them), the caller's entry replaced by its PR\ntree (`git rev-parse HEAD^{tree}`), and the judging-scripts version. Same\nbytes, same digest, whichever runner computed it: an agent container, a\nlocal machine, or GitHub Actions. GitHub is where a verdict is PUBLISHED\n(the commit status `judge-tree`), not where it must be reached.\n\nThe implementation is the tools layer's `scripts/judge-tree.ts`; the\nrecord's shape is its `schemas/verdict-record.schema.json`\n(`cat-harness-verdict-record/v1`)."
+    }
+  ]
+}
