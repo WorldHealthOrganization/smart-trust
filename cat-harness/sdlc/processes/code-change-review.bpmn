@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+ xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_CodeChangeReview"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="0.1.0">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="code-reviewer" name="Code reviewer"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       A change to the PLATFORM, from claimed work item to merged.
+
+       Bean `folio-assistant-haya` step 2, issue #363. The audit in
+       `fsh-guts/proposals/sdlc-process-audit.md` found that
+       `content-change-review.bpmn` models this exact loop at 22
+       activities, with a CI/CD lane — for CONTENT. There was no
+       code-change sibling, which is why the audit scored INTEGRATION and
+       VERIFICATION as unowned: not for want of vocabulary, roles or
+       skills, but because the one diagram that draws them takes a
+       content change as its subject.
+
+       This is that sibling. It CALLS the subprocesses that already exist
+       rather than restating them — `prepare-merge`, `watch`,
+       `review-code` — because a second description of a process is a
+       second thing free to disagree with the first.
+
+       DELIBERATELY NO DEPLOYMENT LANE. The audit's row 7 is the one row
+       whose activities differ per topology, so it waits on the axes
+       being not merely agreed but exercised. Everything here is
+       topology-independent: an agent commits, gates run, a reviewer
+       reads, a branch merges, wherever it is deployed afterwards.
+       Owner's default on #363, 2026-09-19.
+       ═══════════════════════════════════════════════════════════════ -->
+
+  <bpmn:collaboration id="Collaboration_CodeChangeReview">
+    <bpmn:participant id="Participant_CodeChangeReview" name="Platform change — claim to merge" processRef="Process_CodeChangeReview" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_CodeChangeReview" name="Code change and review" isExecutable="false">
+    <bpmn:documentation>Getting a change to the PLATFORM from "this is needed" to merged: claim the work, branch and announce it, make the change, prove it against the platform's own gates, and carry it through review to a merge somebody else is not left holding.
+
+You are in this process for a change to folio-assistant itself. `content-change-review` is the same shape for a folio's content, and the acceptance differs: here a code reviewer judges the engineering, there a review committee judges the editorial.
+
+The loop back through "root-cause the failure" is the point of drawing this at all. Red CI is not a state you report and leave; it is a state you re-enter the process from. The same is true of a review that is not clear.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- STRICT, and declared rather than defaulted. `process-model.ts`
+           treats an absent policy as strict, so 16 of the 33 diagrams here
+           are strict because nobody typed the attribute (bean
+           `folio-assistant-30hn`). This one says so on purpose: the steps
+           it gates are the ones agents skip under time pressure —
+           running the gates, and opening the PR at the first commit. -->
+      <cat-harness.processes:policy enforcement="strict" />
+      <!-- Capture ON. This process ends in a write to `main`, so what ran
+           before that write is exactly the audit question. Same reasoning
+           as `content-lifecycle`. -->
+      <cat-harness.processes:log capture="on" />
+      <!-- PROCESS-SCOPED CONVENTION (bean `3190`). Every step in this diagram
+           writes or reviews code, so the comment convention holds throughout
+           and is bound once here rather than restated on nine activities.
+           Bound at the PROCESS rather than globally on purpose: an agent
+           adjudicating a translation is not in this diagram and does not get
+           it, which is the whole distinction — "absent binding means NO
+           conventions, not all of them". -->
+      <cat-harness.processes:convention ref="comment-why-not-what" />
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_CodeChangeReview">
+      <bpmn:lane id="Lane_Agent" name="Authoring agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>The `no-clean-run-over-an-empty-set` convention is bound at this lane specifically because this is the one lane that writes checks — Lane_Pipeline runs them and Lane_Reviewer reads someone else's, so a check with nothing to assert over is this lane's failure mode to guard against, nobody else's. Every activity that is not mechanical execution (Lane_Pipeline) or an outside judgement (Lane_Reviewer) sits here, including both loop-backs — a red gate returns to Task_Implement through Task_Diagnose, and review findings return to it through Task_AddressReview — so this lane never hands work off without also owning what comes back.</bpmn:documentation>
+        <!-- Bound EXPLICITLY rather than by lane name. `roles.json` matches a
+             lane to a role by its name, and that role already carries five
+             aliases because five diagrams each named this lane differently —
+             the alias list is the problem accumulating, not the solution. This
+             diagram's own near-miss makes the case: "CI/CD pipeline" below
+             differs from the declared "CI/CD Pipeline" by one capital letter,
+             which no reader would catch and the audit did. -->
+        <bpmn:extensionElements>
+          <!-- LANE-SCOPED (bean `3190`), and the scope is the point. This lane
+               writes the checks; the reviewer and the pipeline lanes below do
+               not, so binding it here rather than on the process says who the
+               rule is for. `workflow_next` reports the scope beside the ref so
+               an agent can tell "every step in this process" from "this lane
+               only" — two different claims that a flat list would merge. -->
+          <cat-harness.processes:convention ref="no-clean-run-over-an-empty-set"/>
+        </bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_Change</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ClaimBean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_BeanYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_BeanNotYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BranchAndAnnounce</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Implement</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RunGates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CommitAndOpenPR</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_CIGreen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Diagnose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_ReviewClear</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AddressReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PrepareMerge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CloseBean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ArchiveBean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Merged</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pipeline" name="CI/CD pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Exists as a separate lane for one reason: what it tests — the merge of head into base — is not a claim the Agent lane could make about its own tree, so GW_CIGreen has to be fed by an independent run rather than by the agent reporting its own gates as done.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_RunCI</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Reviewer" name="Code reviewer" partitionElementRef="code-reviewer">
+        <bpmn:documentation>Its verdict, not the agent's own account of the diff, is what GW_ReviewClear reads: a finding routes the change back through Task_AddressReview to Task_Implement, and only a clear routes it forward to Task_PrepareMerge, so this lane alone determines which of those two paths a change takes.</bpmn:documentation>
+        <!-- This one DOES match by name, and is still bound explicitly: a
+             binding that works by coincidence of wording is one rename from
+             silently unbinding. -->
+        <bpmn:flowNodeRef>Task_Review</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <!-- ═══ Agent lane ═══ -->
+
+    <bpmn:startEvent id="Start_Change" name="A platform change is needed">
+      <bpmn:outgoing>f1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:callActivity id="Task_ClaimBean" name="Open the bean" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Process_BeanOpen: check before you create, find out whose the bean is, and claim it — or leave it alone when it is someone else's. The one place a claim is drawn (bean m8gz, owner 2026-10-24); the gateway after this reads which end it reached.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+          <bpmn:incoming>f1</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_1</bpmn:outgoing>
+    </bpmn:callActivity>
+
+    <bpmn:task id="Task_BranchAndAnnounce" name="Branch, and announce it">
+      <bpmn:documentation>
+        Announce the branch WHEN IT IS CREATED, not when the work is done.
+        The gap between one agent's view of an issue and everyone else's is
+        what this closes.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="issue-working"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f2</bpmn:incoming>
+      <bpmn:outgoing>f3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_Implement" name="Make the change">
+      <bpmn:documentation>
+        The loop's only open-ended step. Everything around it is procedure;
+        this is the work.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="continual-progress"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f3</bpmn:incoming>
+      <bpmn:incoming>f11</bpmn:incoming>
+      <bpmn:incoming>f14</bpmn:incoming>
+      <bpmn:outgoing>f4</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_RunGates" name="Run the platform's own gates">
+      <bpmn:documentation>
+        Before pushing, not after CI says so. `bun test` passing is NOT the
+        gates passing: measured 2026-09-19, a green unit suite sat beside a
+        `tsc` failure and a missing `@graphNode` tag, and the second broke
+        a QA sidecar comparison as well — one cause, two symptoms, and an
+        agent running only the tests would have pushed all three.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <!-- This activity carried a `<cat-harness.processes:no-skill>` exemption when the
+             diagram landed: the SDLC audit had found that nothing told an
+             agent to run the platform's own gates, and the exemption WAS
+             the Verification phase being unowned, recorded rather than
+             papered over. Bean `folio-assistant-n60j` closed it. -->
+        <bootstrap.processes:skill ref="platform-gates"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f4</bpmn:incoming>
+      <bpmn:outgoing>f5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_CommitAndOpenPR" name="Commit, push, open the PR">
+      <bpmn:documentation>
+        The PR opens at the FIRST commit, even on a stub, and permission is
+        never asked for it. Holding a green PR back for someone to look at
+        is not caution — it is a blocked reviewer. A change to a rendered
+        surface carries a before/after preview in the PR body
+        (skill before-after-preview).
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="continual-progress"/>
+        <bootstrap.processes:skill ref="before-after-preview"/>
+        <bootstrap.processes:skill ref="staging-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>f5</bpmn:incoming>
+      <bpmn:outgoing>f6</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_CIGreen" name="CI green?">
+      <bpmn:documentation>Answered by the gates run against the merge of head into base. `green` goes to review; `red` goes to root-causing the failure first, since a red change is never waiting on review.</bpmn:documentation>
+      <bpmn:incoming>f7</bpmn:incoming>
+      <bpmn:outgoing>f8</bpmn:outgoing>
+      <bpmn:outgoing>f9</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_Diagnose" name="Root-cause the failure">
+      <bpmn:documentation>
+        "Flake" is not a root cause. A red PR is work now, whatever its
+        review state — only a green, mergeable head waits on reviewers.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ci-health"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f9</bpmn:incoming>
+      <bpmn:outgoing>f11</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_ReviewClear" name="Review clear?">
+      <bpmn:documentation>The reviewer's result. `findings` go back to be addressed; `clear` goes to preparing the merge and watching it through.</bpmn:documentation>
+      <bpmn:incoming>f12</bpmn:incoming>
+      <bpmn:outgoing>f13</bpmn:outgoing>
+      <bpmn:outgoing>f15</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_AddressReview" name="Address the review">
+      <bpmn:documentation>
+        Every finding is answered — implemented, or replied to with why
+        not. A design question does not excuse skipping the nits in the
+        same review.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <!-- `watch`, NOT `code-node-review`. That skill's own front matter
+             says `roles: [code-reviewer, admin]` — it is the reviewer's
+             instrument, and binding it here would have the agent reviewing
+             its own change. What the agent needs is the follow-through
+             discipline: answer every finding or say why not, and keep the PR
+             moving until it is merged or closed. -->
+        <bootstrap.processes:skill ref="watch"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f13</bpmn:incoming>
+      <bpmn:outgoing>f14</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:callActivity id="Task_PrepareMerge" name="Prepare the merge, and watch it through" calledElement="Process_MergeBase">
+      <bpmn:documentation>
+        `prepare-merge` brings the base in, re-runs the gates and pushes —
+        it does NOT merge. Bringing the base in IS `merge-base.bpmn`
+        (`bun run cat merge:main`): conflicts a declared pattern covers are
+        resolved and proved by the gate set; anything else aborts the merge
+        and comes back to the agent (bean `y7b3`, #1707). `watch` follows the PR until it is merged or
+        closed, because webhooks do not reliably deliver CI success or a
+        merge-conflict transition.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="prepare-merge"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f15</bpmn:incoming>
+      <bpmn:outgoing>f16</bpmn:outgoing>
+    </bpmn:callActivity>
+
+    <bpmn:task id="Task_CloseBean" name="Record what was done">
+      <bpmn:documentation>
+        A closed work item is read later by somebody deciding whether to
+        reopen the subject, so "completed" with nothing behind it cannot be
+        audited. An ISSUE is never closed on the agent's own say-so.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f16</bpmn:incoming>
+      <bpmn:outgoing>f17</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:callActivity id="Task_ArchiveBean" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>Process_BeanClose: end the bean in a state that says why — complete and archive it, scrap it with its reasons and archive it, or record the blocker and hand it back. The one place resolve and archive are drawn (bean m8gz, owner 2026-10-24); placed straight before the end so the engine's resolve sees nothing left but the archive step.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+          <bpmn:incoming>f17</bpmn:incoming>
+          <bpmn:outgoing>f18</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_Merged" name="Merged">
+      <bpmn:incoming>f18</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <!-- ═══ Pipeline lane ═══ -->
+
+    <bpmn:task id="Task_RunCI" name="Run the gates against the merge of head into base">
+      <bpmn:documentation>
+        CI tests the MERGE, not the branch. That is why a locally green
+        tree can go red here: the agent's tree and the merge result are
+        different trees, and the difference is invisible from a checkout.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="A mechanical actor runs this — GitHub Actions executes the workflow. There is no instruction body for an agent to follow, and a skill here would describe somebody else's behaviour."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f6</bpmn:incoming>
+      <bpmn:outgoing>f7</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- ═══ Reviewer lane ═══ -->
+
+    <bpmn:task id="Task_Review" name="Review the change">
+      <bpmn:documentation>
+        A human or an agent acting AS reviewer. Nothing is a reviewer;
+        somebody acts as one for the duration of this lane. For a rendered
+        change the reviewer reads the agent's before/after preview rather
+        than building one. On agent-touched changes, an adversarial code review
+        evaluates against the RED FLAG taxonomy and writes a committed verdict.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="code-node-review"/>
+        <bootstrap.processes:skill ref="adversarial-code-review"/>
+        <bootstrap.processes:skill ref="staging-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>f8</bpmn:incoming>
+      <bpmn:outgoing>f12</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- ═══ Sequence flows ═══ -->
+    <bpmn:exclusiveGateway id="GW_BeanYours" name="Bean claimed?">
+      <bpmn:documentation>Reads which end Process_BeanOpen reached. `claimed`: the bean is in progress and this process works it. `not yours`: a sibling session or a human holds it, nothing was written to it, and this process stops here rather than work a bean it does not own (bean-coordination).</bpmn:documentation>
+      <bpmn:outgoing>f2</bpmn:outgoing>
+      <bpmn:incoming>SF_Bean_1</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_2</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_BeanNotYours" name="Not yours —&#10;left alone">
+      <bpmn:documentation>Someone else holds the bean; this run stops without touching it.</bpmn:documentation>
+      <bpmn:incoming>SF_Bean_2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="f1"  sourceRef="Start_Change"          targetRef="Task_ClaimBean" />
+    <bpmn:sequenceFlow id="f2" name="claimed"  sourceRef="GW_BeanYours"        targetRef="Task_BranchAndAnnounce" />
+    <bpmn:sequenceFlow id="f3"  sourceRef="Task_BranchAndAnnounce" targetRef="Task_Implement" />
+    <bpmn:sequenceFlow id="f4"  sourceRef="Task_Implement"        targetRef="Task_RunGates" />
+    <bpmn:sequenceFlow id="f5"  sourceRef="Task_RunGates"         targetRef="Task_CommitAndOpenPR" />
+    <bpmn:sequenceFlow id="f6"  sourceRef="Task_CommitAndOpenPR"  targetRef="Task_RunCI" />
+    <bpmn:sequenceFlow id="f7"  sourceRef="Task_RunCI"            targetRef="GW_CIGreen" />
+    <bpmn:sequenceFlow id="f8"  name="green"     sourceRef="GW_CIGreen"     targetRef="Task_Review" />
+    <bpmn:sequenceFlow id="f9"  name="red"       sourceRef="GW_CIGreen"     targetRef="Task_Diagnose" />
+    <bpmn:sequenceFlow id="f11" sourceRef="Task_Diagnose"         targetRef="Task_Implement" />
+    <bpmn:sequenceFlow id="f12" sourceRef="Task_Review"           targetRef="GW_ReviewClear" />
+    <bpmn:sequenceFlow id="f13" name="findings"  sourceRef="GW_ReviewClear" targetRef="Task_AddressReview" />
+    <bpmn:sequenceFlow id="f14" sourceRef="Task_AddressReview"    targetRef="Task_Implement" />
+    <bpmn:sequenceFlow id="f15" name="clear"     sourceRef="GW_ReviewClear" targetRef="Task_PrepareMerge" />
+    <bpmn:sequenceFlow id="f16" sourceRef="Task_PrepareMerge"     targetRef="Task_CloseBean" />
+    <bpmn:sequenceFlow id="f17" sourceRef="Task_CloseBean"        targetRef="Task_ArchiveBean" />
+    <bpmn:sequenceFlow id="f18" sourceRef="Task_ArchiveBean" targetRef="End_Merged"/>
+    <bpmn:sequenceFlow id="SF_Bean_1" sourceRef="Task_ClaimBean" targetRef="GW_BeanYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_2" name="not yours" sourceRef="GW_BeanYours" targetRef="End_BeanNotYours"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_CodeChangeReview">
+    <bpmndi:BPMNPlane id="Plane_CodeChangeReview" bpmnElement="Collaboration_CodeChangeReview">
+      <bpmndi:BPMNShape id="Shape_Participant_CodeChangeReview" bpmnElement="Participant_CodeChangeReview" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1390" height="850" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Reviewer" bpmnElement="Lane_Reviewer" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1360" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Pipeline" bpmnElement="Lane_Pipeline" isHorizontal="true">
+        <dc:Bounds x="190" y="230" width="1360" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="380" width="1360" height="550" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Change" bpmnElement="Start_Change">
+        <dc:Bounds x="236" y="462" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="505" width="70" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ClaimBean" bpmnElement="Task_ClaimBean">
+        <dc:Bounds x="302" y="420" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_BeanYours_di" bpmnElement="GW_BeanYours" isMarkerVisible="true">
+        <dc:Bounds x="452" y="455" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="437" y="413" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_BeanNotYours_di" bpmnElement="End_BeanNotYours">
+        <dc:Bounds x="459" y="622" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="437" y="662" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_BranchAndAnnounce" bpmnElement="Task_BranchAndAnnounce">
+        <dc:Bounds x="572" y="420" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Implement" bpmnElement="Task_Implement">
+        <dc:Bounds x="722" y="420" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RunGates" bpmnElement="Task_RunGates">
+        <dc:Bounds x="872" y="420" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_CommitAndOpenPR" bpmnElement="Task_CommitAndOpenPR">
+        <dc:Bounds x="1022" y="420" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RunCI" bpmnElement="Task_RunCI">
+        <dc:Bounds x="1022" y="245" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_CIGreen" bpmnElement="GW_CIGreen" isMarkerVisible="true">
+        <dc:Bounds x="1182" y="455" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1212" y="425" width="80" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Review" bpmnElement="Task_Review">
+        <dc:Bounds x="1272" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_ReviewClear" bpmnElement="GW_ReviewClear" isMarkerVisible="true">
+        <dc:Bounds x="1407" y="455" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1340" y="405" width="85" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Diagnose" bpmnElement="Task_Diagnose">
+        <dc:Bounds x="1147" y="580" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AddressReview" bpmnElement="Task_AddressReview">
+        <dc:Bounds x="1372" y="580" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_PrepareMerge" bpmnElement="Task_PrepareMerge">
+        <dc:Bounds x="240" y="780" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_CloseBean" bpmnElement="Task_CloseBean">
+        <dc:Bounds x="390" y="780" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ArchiveBean" bpmnElement="Task_ArchiveBean">
+        <dc:Bounds x="540" y="780" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Merged" bpmnElement="End_Merged">
+        <dc:Bounds x="690" y="822" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="683" y="866" width="50" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_f1" bpmnElement="f1">
+        <di:waypoint x="272" y="480" />
+        <di:waypoint x="302" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_1_di" bpmnElement="SF_Bean_1">
+        <di:waypoint x="422" y="480" />
+        <di:waypoint x="452" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f2" bpmnElement="f2">
+        <di:waypoint x="502" y="480" />
+        <di:waypoint x="572" y="480" />
+        <bpmndi:BPMNLabel><dc:Bounds x="507" y="457" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_2_di" bpmnElement="SF_Bean_2">
+        <di:waypoint x="477" y="505" />
+        <di:waypoint x="477" y="622" />
+        <bpmndi:BPMNLabel><dc:Bounds x="482" y="545" width="70" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f3" bpmnElement="f3">
+        <di:waypoint x="692" y="480" />
+        <di:waypoint x="722" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f4" bpmnElement="f4">
+        <di:waypoint x="842" y="480" />
+        <di:waypoint x="872" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f5" bpmnElement="f5">
+        <di:waypoint x="992" y="480" />
+        <di:waypoint x="1022" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f6" bpmnElement="f6">
+        <di:waypoint x="1082" y="420" />
+        <di:waypoint x="1082" y="365" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f7" bpmnElement="f7">
+        <di:waypoint x="1142" y="305" />
+        <di:waypoint x="1207" y="305" />
+        <di:waypoint x="1207" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f8" bpmnElement="f8">
+        <di:waypoint x="1232" y="480" />
+        <di:waypoint x="1332" y="480" />
+        <di:waypoint x="1332" y="215" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1250" y="485" width="50" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f9" bpmnElement="f9">
+        <di:waypoint x="1207" y="505" />
+        <di:waypoint x="1207" y="580" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1212" y="525" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f11" bpmnElement="f11">
+        <di:waypoint x="1147" y="640" />
+        <di:waypoint x="802" y="640" />
+        <di:waypoint x="802" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f12" bpmnElement="f12">
+        <di:waypoint x="1392" y="155" />
+        <di:waypoint x="1432" y="155" />
+        <di:waypoint x="1432" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f13" bpmnElement="f13">
+        <di:waypoint x="1432" y="505" />
+        <di:waypoint x="1432" y="580" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1437" y="525" width="65" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f14" bpmnElement="f14">
+        <di:waypoint x="1432" y="700" />
+        <di:waypoint x="1432" y="725" />
+        <di:waypoint x="752" y="725" />
+        <di:waypoint x="752" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f15" bpmnElement="f15">
+        <di:waypoint x="1457" y="480" />
+        <di:waypoint x="1522" y="480" />
+        <di:waypoint x="1522" y="750" />
+        <di:waypoint x="300" y="750" />
+        <di:waypoint x="300" y="780" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1465" y="457" width="45" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f16" bpmnElement="f16">
+        <di:waypoint x="360" y="840" />
+        <di:waypoint x="390" y="840" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f17" bpmnElement="f17">
+        <di:waypoint x="510" y="840" />
+        <di:waypoint x="540" y="840" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f18" bpmnElement="f18">
+        <di:waypoint x="660" y="840" />
+        <di:waypoint x="690" y="840" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

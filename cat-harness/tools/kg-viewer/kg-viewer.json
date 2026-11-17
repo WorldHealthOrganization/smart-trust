@@ -1,0 +1,72 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "kg-viewer",
+    "title": "Knowledge graph viewer",
+    "description": "Render the layer's published knowledge graph as one page: facets by kind and sub-graph, search, a node's properties, its edges and back-links, and the graph's own gaps — reading the JSON-LD document at the site root rather than carrying a copy.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat kg:viewer"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Fail if a page is stale, instead of writing.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        },
+        {
+          "name": "site",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A site being built: write the pages at their declared route under it instead of under the harness's own site directory. A repository's own site build passes it (the tools layer's `visualiser-writers.ts`), since its harness docs are a pinned mount.",
+          "required": false,
+          "arg": {
+            "flag": "--site"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "pages",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The viewer pages, under the published site directory."
+        }
+      ]
+    },
+    "satisfies": [
+      "graph-rendering"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    },
+    "renders": [
+      "cat-harness",
+      "skills",
+      "scenarios",
+      "processes",
+      "tools",
+      "schemas"
+    ]
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "A viewer generator (`viewerTool` in `../lib.ts` holds the ports every viewer shares).\nIt draws the layer's published graph document, which `kg:export` builds from\nits own skills, scenarios, processes, Tools and schemas — so it renders those kinds."
+    }
+  ]
+}

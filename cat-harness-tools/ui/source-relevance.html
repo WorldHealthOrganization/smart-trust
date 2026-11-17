@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Source relevance</title>
+  <style>
+    /* Theme tokens mirror ui/bib-qa.html so the two dashboards read as one tool. */
+    :root { --ease: cubic-bezier(0.4,0,0.2,1); }
+    [data-theme="dark"] {
+      --bg:#0e0e12; --bg-s:#16161c; --bg-r:#1e1e26; --bg-c:#12121a;
+      --fg:#c8c8d0; --fg-d:#70707c; --fg-b:#eeeef4;
+      --ac:#7ca8e6; --ac-d:#4a6a9a;
+      --grn:#7ce6a4; --yel:#e6c87c; --red:#e67c7c; --ora:#e6a47c;
+      --brd:#2a2a34;
+    }
+    [data-theme="light"] {
+      --bg:#fafafa; --bg-s:#ffffff; --bg-r:#f0f0f4; --bg-c:#f5f5fa;
+      --fg:#2c2c34; --fg-d:#888894; --fg-b:#111118;
+      --ac:#2a6bc4; --ac-d:#6a9ad4;
+      --grn:#1a8a44; --yel:#9a7a20; --red:#c44a4a; --ora:#b07030;
+      --brd:#d8d8e0;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      font-size: 14px; line-height: 1.5; min-height: 100vh;
+    }
+    a { color: var(--ac); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code, .mono { font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace; font-size: .85em; }
+
+    .top-bar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg-s); border-bottom: 1px solid var(--brd);
+      display: flex; align-items: center; gap: 1rem;
+      padding: .5rem 1.5rem; height: 44px;
+    }
+    .top-bar h1 { font-size: .95rem; font-weight: 600; color: var(--fg-b); white-space: nowrap; }
+    .top-bar .spacer { flex: 1; }
+    .top-bar button, select {
+      background: var(--bg-r); color: var(--fg); border: 1px solid var(--brd);
+      border-radius: 5px; padding: .25rem .6rem; font-size: .8rem;
+      font-family: inherit; cursor: pointer;
+    }
+    .top-bar button:hover { border-color: var(--ac-d); }
+
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+
+    /* Summary tiles */
+    .tiles { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.5rem; }
+    .tile {
+      background: var(--bg-s); border: 1px solid var(--brd); border-radius: 8px;
+      padding: .7rem 1rem; min-width: 116px; flex: 1;
+    }
+    .tile .n { font-size: 1.5rem; font-weight: 600; color: var(--fg-b); line-height: 1.1; }
+    .tile .l { font-size: .72rem; color: var(--fg-d); text-transform: uppercase; letter-spacing: .04em; }
+    .tile.warn .n { color: var(--ora); }
+
+    .filters { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: 1rem; }
+    .filters label { font-size: .78rem; color: var(--fg-d); }
+
+    /* Document card */
+    .card {
+      background: var(--bg-s); border: 1px solid var(--brd); border-radius: 8px;
+      padding: 1rem 1.1rem; margin-bottom: .9rem;
+    }
+    .card header { display: flex; align-items: flex-start; gap: .6rem; margin-bottom: .35rem; }
+    .card h2 { font-size: .95rem; font-weight: 600; color: var(--fg-b); flex: 1; }
+    .meta { font-size: .78rem; color: var(--fg-d); margin-bottom: .6rem; }
+    .meta .sep { opacity: .5; margin: 0 .4rem; }
+
+    .badge {
+      font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+      padding: .15rem .45rem; border-radius: 4px; white-space: nowrap;
+      border: 1px solid currentColor;
+    }
+    .v-core { color: var(--grn); }
+    .v-supporting { color: var(--ac); }
+    .v-undetermined { color: var(--yel); }
+    .v-tangential { color: var(--fg-d); }
+    .v-not-relevant { color: var(--fg-d); opacity: .8; }
+    .badge.orphan { color: var(--ora); }
+    .badge.missing { color: var(--red); }
+    .badge.claim { color: var(--yel); }
+    .badge.human { color: var(--grn); }
+
+    .rationale { font-size: .86rem; margin-bottom: .7rem; }
+
+    .section-label {
+      font-size: .7rem; text-transform: uppercase; letter-spacing: .05em;
+      color: var(--fg-d); margin: .7rem 0 .3rem;
+    }
+    ul.results, ul.actions { list-style: none; }
+    ul.results li, ul.actions li {
+      background: var(--bg-c); border-left: 2px solid var(--brd);
+      padding: .45rem .7rem; margin-bottom: .35rem; border-radius: 0 4px 4px 0;
+      font-size: .84rem;
+    }
+    ul.results li .loc { color: var(--ac); font-weight: 600; }
+    ul.results li .use { color: var(--fg-d); display: block; margin-top: .2rem; }
+    ul.actions li { border-left-color: var(--ac-d); }
+    ul.actions li .act {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace; font-size: .78rem;
+      color: var(--grn); font-weight: 500;
+    }
+    ul.actions li .tgt { color: var(--fg-b); }
+    ul.actions li .bean { float: right; font-size: .72rem; color: var(--fg-d); }
+
+    .adjudicate { margin-top: .8rem; display: flex; gap: .5rem; align-items: center; }
+    .adjudicate input {
+      background: var(--bg-r); color: var(--fg); border: 1px solid var(--brd);
+      border-radius: 5px; padding: .25rem .5rem; font: inherit; font-size: .8rem;
+    }
+    .empty { color: var(--fg-d); text-align: center; padding: 3rem 0; }
+    .err { color: var(--red); padding: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <h1>Source relevance</h1>
+    <span class="spacer"></span>
+    <button id="theme">theme</button>
+    <button id="reload">reload</button>
+  </div>
+
+  <div class="wrap">
+    <div class="tiles" id="tiles"></div>
+
+    <div class="filters">
+      <label for="f-verdict">verdict</label>
+      <select id="f-verdict">
+        <option value="">all</option>
+        <option value="core">core</option>
+        <option value="supporting">supporting</option>
+        <option value="undetermined">undetermined</option>
+        <option value="tangential">tangential</option>
+        <option value="not-relevant">not-relevant</option>
+      </select>
+      <label for="f-cited">citation</label>
+      <select id="f-cited">
+        <option value="">all</option>
+        <option value="false">no reference entry</option>
+        <option value="true">has reference entry</option>
+      </select>
+      <label for="f-view">view</label>
+      <select id="f-view">
+        <option value="ledger">triaged</option>
+        <option value="queue">not yet triaged</option>
+      </select>
+    </div>
+
+    <div id="list"></div>
+  </div>
+
+<script>
+// The ledger stores no bibliographic metadata; the API joins title/authors
+// from references.ts at request time. This page renders what it is given and
+// never writes metadata back.
+const $ = (s) => document.querySelector(s);
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
+async function loadSummary() {
+  const r = await fetch("/api/relevance/summary");
+  const s = await r.json();
+  const tiles = [
+    { n: s.total, l: "documents" },
+    { n: s.triaged, l: "triaged" },
+    { n: s.untriaged, l: "to review" },
+    { n: s.orphans, l: "no reference", warn: s.orphans > 0 },
+    { n: s.openActions, l: "open actions" },
+    { n: s.sourceMissing, l: "file missing", warn: s.sourceMissing > 0 },
+  ];
+  $("#tiles").innerHTML = tiles.map((t) =>
+    `<div class="tile${t.warn ? " warn" : ""}"><div class="n">${t.n}</div><div class="l">${esc(t.l)}</div></div>`
+  ).join("");
+}
+
+function renderCard(e) {
+  const rel = e.relevance;
+  const ref = e.reference;
+  const file = e.source?.kind === "upload" ? e.source.file : null;
+  const title = ref?.title ?? (file ? file.replace(/^uploads\//, "") : e.id) ?? "(unidentified)";
+
+  const badges = [];
+  if (rel) badges.push(`<span class="badge v-${esc(rel.verdict)}">${esc(rel.verdict)}</span>`);
+  if (e.orphan) badges.push('<span class="badge orphan">no reference</span>');
+  if (e.sourceMissing) badges.push('<span class="badge missing">file missing</span>');
+  if (rel) {
+    badges.push(rel.human_adjudicated
+      ? '<span class="badge human">adjudicated</span>'
+      : '<span class="badge claim">agent claim</span>');
+  }
+
+  const metaBits = [];
+  if (ref?.authors) metaBits.push(esc(ref.authors));
+  if (ref?.year) metaBits.push(esc(ref.year));
+  if (e.id) metaBits.push(`<code>${esc(e.id)}</code>`);
+  if (file) metaBits.push(`<code>${esc(file)}</code>`);
+  if (ref?.url) metaBits.push(`<a href="${esc(ref.url)}" target="_blank" rel="noopener">source</a>`);
+
+  const results = (rel?.keyResults ?? []).map((k) =>
+    `<li><span class="loc">${esc(k.locator)}</span> — ${esc(k.statement)}
+       <span class="use">${esc(k.useForFolio)}${
+         k.targets?.length ? " → " + k.targets.map((t) => `<code>${esc(t)}</code>`).join(", ") : ""
+       }</span></li>`).join("");
+
+  const actions = (rel?.proposedActions ?? []).map((a) =>
+    `<li>${a.bean ? `<span class="bean">${esc(a.bean)}</span>` : ""}
+       <span class="act">${esc(a.action)}</span>
+       ${a.target ? ` <span class="tgt">${esc(a.target)}</span>` : ""}
+       <div>${esc(a.rationale)}</div></li>`).join("");
+
+  const key = file ?? e.id;
+  return `<div class="card">
+    <header><h2>${esc(title)}</h2>${badges.join(" ")}</header>
+    <div class="meta">${metaBits.join('<span class="sep">·</span>')}</div>
+    ${rel ? `<div class="rationale">${esc(rel.rationale)}</div>` : ""}
+    ${results ? `<div class="section-label">Results this folio could use</div><ul class="results">${results}</ul>` : ""}
+    ${actions ? `<div class="section-label">Options to pursue</div><ul class="actions">${actions}</ul>` : ""}
+    ${rel && !rel.human_adjudicated ? `
+      <div class="adjudicate">
+        <input type="text" placeholder="your name" data-who="${esc(key)}">
+        <button data-accept="${esc(key)}">accept verdict</button>
+      </div>` : ""}
+  </div>`;
+}
+
+async function load() {
+  const view = $("#f-view").value;
+  const params = new URLSearchParams();
+  if (view === "ledger") {
+    if ($("#f-verdict").value) params.set("verdict", $("#f-verdict").value);
+    if ($("#f-cited").value) params.set("cited", $("#f-cited").value);
+  }
+  try {
+    await loadSummary();
+    const r = await fetch(`/api/relevance/${view}?${params}`);
+    const data = await r.json();
+    $("#list").innerHTML = data.entries?.length
+      ? data.entries.map(renderCard).join("")
+      : '<div class="empty">Nothing here.</div>';
+  } catch (err) {
+    $("#list").innerHTML = `<div class="err">${esc(err.message)}</div>`;
+  }
+}
+
+$("#list").addEventListener("click", async (ev) => {
+  const key = ev.target.getAttribute?.("data-accept");
+  if (!key) return;
+  const who = document.querySelector(`input[data-who="${CSS.escape(key)}"]`)?.value?.trim();
+  if (!who) return alert("Enter your name so the adjudication is attributable.");
+  const r = await fetch("/api/relevance/adjudicate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key, who }),
+  });
+  if (!r.ok) return alert(`Failed: ${(await r.json()).error ?? r.status}`);
+  load();
+});
+
+$("#theme").onclick = () => {
+  const el = document.documentElement;
+  el.dataset.theme = el.dataset.theme === "dark" ? "light" : "dark";
+};
+$("#reload").onclick = load;
+for (const id of ["#f-verdict", "#f-cited", "#f-view"]) $(id).onchange = load;
+load();
+</script>
+</body>
+</html>

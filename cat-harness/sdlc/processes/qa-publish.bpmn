@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+ xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_QaPublish"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="0.1.0">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Publishing and keeping QA results on the orphan `qa-reports` branch.
+
+       Arc `3fva`, beans `16ei` (the mechanism) and `d6bw` (this diagram).
+       Owner rulings 2026-10-01: D1 (a) an orphan branch, D3 (a) PR results
+       published under `pr/<n>/<sha>/` and pruned on close.
+
+       TWO ENTRY POINTS, ONE STORE. Publishing is the `qa-publish` job of
+       `code-quality-gates.yml`, reached from that diagram's Task_QaPublish
+       as a call activity. Retention is `qa-reports-prune.yml`, on a
+       schedule. Both write the branch through `scripts/qa-store.ts` and
+       nothing else does — `check:workflows` fails a raw push
+       (`qa-reports-unretried`) — so they are drawn as one process: the
+       question a reader brings ("how does a result get onto, and off, that
+       branch?") has one answer.
+
+       NEVER `-f`. Each writer owns a disjoint key, so the write is a
+       fetch → splice-onto-the-new-tip → `commit-tree -p` → push loop, three
+       attempts, backed off. The server's ref lock is the concurrency
+       primitive, which is what keeps a sibling's entry from being lost.
+
+       NOT A GATE. Nothing here decides whether a change may merge. A red
+       publish is its own red, in its own job, and the gates' verdict is
+       untouched by it.
+       ═══════════════════════════════════════════════════════════════ -->
+
+  <bpmn:collaboration id="Collaboration_QaPublish">
+    <bpmn:participant id="Participant_QaPublish" name="QA results onto, and off, the qa-reports branch" processRef="Process_QaPublish" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_QaPublish" name="Publish and keep QA results on qa-reports" isExecutable="false">
+    <bpmn:documentation>How a run's derived QA results become a durable, commit-keyed record without being committed to main, and how that record is retired.
+
+You are in this process when CI has finished the gates for a push to main or a same-repository pull request (the publish path), or when the daily retention run fires (the prune path). Both are mechanical: nothing here judges a result, and nothing here decides mergeability.
+
+The record it writes is what a later `--against &lt;ref&gt;` reads as a baseline. A publish that did not happen makes that baseline UNKNOWN for every later change, which is why a red publish is still a red to fix even though it blocks nothing. Judgements are never written here: they stay on main in `test/attestations/` (owner ruling D2 (a)).</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- STRICT. The step that would be skipped under pressure is the
+           retry loop — a force-push is one flag away and makes the race
+           disappear by deleting the sibling's entry. -->
+      <cat-harness.processes:policy enforcement="strict" />
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_QaPublish">
+      <bpmn:lane id="Lane_Ci" name="CI/CD Pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Runs both paths as fixed programs. It decides nothing that needs judgement: whether a token can write is read from the event, whether a push was accepted is the push's exit code (never its stderr — spike `3ds9` measured a harmless "push negotiation failed; proceeding anyway"), and what retention removes is `planPrune`'s rule. A PR whose state cannot be read is KEPT: could-not-determine never deletes.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_GatesDone</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DeriveKey</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_CanWrite</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_SkippedFork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BuildEntry</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SpliceAndPush</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Accepted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Backoff</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Published</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_PublishFailed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Start_Daily</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReadPrStates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PlanPrune</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Apply</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_DryRun</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ApplyPrune</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Pruned</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <!-- ── Publish: the `qa-publish` job ─────────────────────────────── -->
+
+    <bpmn:startEvent id="Start_GatesDone" name="Gates finished&#10;(any conclusion)">
+      <bpmn:documentation>`needs: gates` with `always()`: the publish runs whether the gates were green or red, because the evidence of a red commit is evidence too. The gates' result is carried into the manifest.</bpmn:documentation>
+      <bpmn:outgoing>P01</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="Task_DeriveKey" name="Derive the key">
+      <bpmn:documentation>`qa:publish --github` reads the event: a push to main publishes under `main/&lt;sha&gt;/`, a pull request under `pr/&lt;n&gt;/&lt;head-sha&gt;/` — the head that was tested, not the merge ref. It also reads whether the token can write, which the gateway after it routes on. The key is `main/&lt;sha&gt;` or `pr/&lt;n&gt;/&lt;sha&gt;`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-reports" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>P01</bpmn:incoming>
+      <bpmn:outgoing>P02</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_CanWrite" name="Can this token&#10;write?">
+      <bpmn:documentation>A fork PR's token is read-only (spike `3ds9`). That is decided from the event, not by attempting a push and reading the failure, so the skip is a stated outcome rather than a red run that means nothing.</bpmn:documentation>
+      <bpmn:incoming>P02</bpmn:incoming>
+      <bpmn:outgoing>P03</bpmn:outgoing>
+      <bpmn:outgoing>P04</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_SkippedFork" name="Skipped: fork PR&#10;(::notice says why)">
+      <bpmn:documentation>Exits 0 with a `::notice` naming the reason. Stated, never silent and never red. A later `--against` this head reads `miss`, which a gate reports as UNKNOWN.</bpmn:documentation>
+      <bpmn:incoming>P04</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:serviceTask id="Task_BuildEntry" name="Build the entry">
+      <bpmn:documentation>First the working copy is produced (`qa:refresh`, bean `3hk4`): while the checkout still tracks `test/results/`, the commit's own copy is the record and nothing runs; once it does not, every declared QA writer runs into the empty tree, because the gates are in judge mode and wrote nothing a publish could carry. A refresh that leaves a writer failed, a family empty or a file unclaimed is INCOMPLETE: the job goes red and `qa:publish --completeness` refuses, so a partial tree is never stored as the commit's record — the "Not stored" outcome, reached before any push. Then it hashes the working copy of every declared `qa` directory (`&lt;instance&gt;/test/results/**`, byte-identical to the checkout's layout) into a tree through a private index, and writes `manifest.json` (`qa-reports-manifest/v1`): inputs, producers, verdict counts and the gates' result. Identical JSON is the same blob, so an unchanged family costs nothing to store again. Its git objects live in a private bare repository, never in the checkout's own store.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-reports" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>P03</bpmn:incoming>
+      <bpmn:outgoing>P05</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_SpliceAndPush" name="Splice onto the tip&#10;and push (never -f)">
+      <bpmn:documentation>Fetch the branch tip, splice this entry into its tree, `commit-tree -p &lt;tip&gt;`, and push without `-f`, with `pack.useSparse=false` so blobs already on the remote under another key are not resent. Writers own disjoint keys, so splicing onto whatever tip is current loses nobody's entry.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-reports" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>P05</bpmn:incoming>
+      <bpmn:incoming>P09</bpmn:incoming>
+      <bpmn:outgoing>P06</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_Accepted" name="Push accepted?">
+      <bpmn:documentation>Read off the push's exit code, never its stderr. A rejection means a sibling moved the tip first; with attempts left the loop rebuilds on the new tip, and after the third it stops red rather than forcing.</bpmn:documentation>
+      <bpmn:incoming>P06</bpmn:incoming>
+      <bpmn:outgoing>P07</bpmn:outgoing>
+      <bpmn:outgoing>P08</bpmn:outgoing>
+      <bpmn:outgoing>P10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_Backoff" name="Back off">
+      <bpmn:documentation>Wait the same intervals `backoff-sleep.ts` uses, then go round again: fetch the new tip and splice onto it. Three attempts in all.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-reports" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>P08</bpmn:incoming>
+      <bpmn:outgoing>P09</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="End_Published" name="Results stored&#10;under their key">
+      <bpmn:documentation>The commit's record now exists on `qa-reports`; `bun run cat qa:fetch --ref` reads it back and a gate's `--against` can use it as a baseline.</bpmn:documentation>
+      <bpmn:incoming>P07</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:endEvent id="End_PublishFailed" name="Not stored&#10;(job red, gates untouched)">
+      <bpmn:documentation>Three rejections, or a git failure. The `qa-publish` job goes red in its own lane; mergeability is unaffected, but the record for this commit is missing, so it is still a red to fix (`ci-health`).</bpmn:documentation>
+      <bpmn:incoming>P10</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <!-- ── Retention: `qa-reports-prune.yml` ─────────────────────────── -->
+
+    <bpmn:startEvent id="Start_Daily" name="Daily schedule,&#10;or dispatched">
+      <bpmn:documentation>A `schedule` trigger that actually fires — the lake-cache prune it was modelled on is guarded on `push` inside a dispatch-only workflow and has never run. A dispatch is a dry run unless `apply` is ticked.</bpmn:documentation>
+      <bpmn:outgoing>R01</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="Task_ReadPrStates" name="Read every PR's state">
+      <bpmn:documentation>`gh pr list --state all`: number, state and when it closed, so each `pr/&lt;n&gt;/` entry can be judged against its close date. A PR missing from the list is `unknown`, and an unknown is kept.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-reports" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>R01</bpmn:incoming>
+      <bpmn:outgoing>R02</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_PlanPrune" name="Plan the prune">
+      <bpmn:documentation>Keep every `main/&lt;sha&gt;` for 14 days and one per day after that; drop `pr/&lt;n&gt;` 7 days after the PR closed. The rule is `planPrune` in `scripts/qa-store.ts`, pinned by its tests, and the plan is printed whether or not it is applied.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-reports" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>R02</bpmn:incoming>
+      <bpmn:outgoing>R03</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_Apply" name="Apply?">
+      <bpmn:documentation>Yes on the schedule, or on a dispatch with `apply` ticked. Otherwise the run ends having printed the plan — a person looking first is the reason dispatch exists.</bpmn:documentation>
+      <bpmn:incoming>R03</bpmn:incoming>
+      <bpmn:outgoing>R04</bpmn:outgoing>
+      <bpmn:outgoing>R05</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_DryRun" name="Plan printed,&#10;nothing removed">
+      <bpmn:incoming>R04</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:serviceTask id="Task_ApplyPrune" name="Commit a tip without&#10;the pruned entries">
+      <bpmn:documentation>One new commit whose tree lacks the pruned entries, parented on the current tip, through the same fetch → rebuild → push loop as a publish: no `-f`, three attempts. History is not rewritten — truncating it is a deletion of a different order and the owner's call (`deletion-requires-confirmation`), not a scheduled job's.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-reports" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>R05</bpmn:incoming>
+      <bpmn:outgoing>R06</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="End_Pruned" name="Retention applied">
+      <bpmn:incoming>R06</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="P01" sourceRef="Start_GatesDone" targetRef="Task_DeriveKey" />
+    <bpmn:sequenceFlow id="P02" sourceRef="Task_DeriveKey" targetRef="Gateway_CanWrite" />
+    <bpmn:sequenceFlow id="P03" name="yes" sourceRef="Gateway_CanWrite" targetRef="Task_BuildEntry" />
+    <bpmn:sequenceFlow id="P04" name="no: fork PR" sourceRef="Gateway_CanWrite" targetRef="End_SkippedFork" />
+    <bpmn:sequenceFlow id="P05" sourceRef="Task_BuildEntry" targetRef="Task_SpliceAndPush" />
+    <bpmn:sequenceFlow id="P06" sourceRef="Task_SpliceAndPush" targetRef="Gateway_Accepted" />
+    <bpmn:sequenceFlow id="P07" name="accepted" sourceRef="Gateway_Accepted" targetRef="End_Published" />
+    <bpmn:sequenceFlow id="P08" name="rejected,&#10;attempts left" sourceRef="Gateway_Accepted" targetRef="Task_Backoff" />
+    <bpmn:sequenceFlow id="P09" sourceRef="Task_Backoff" targetRef="Task_SpliceAndPush" />
+    <bpmn:sequenceFlow id="P10" name="third rejection,&#10;or git failed" sourceRef="Gateway_Accepted" targetRef="End_PublishFailed" />
+    <bpmn:sequenceFlow id="R01" sourceRef="Start_Daily" targetRef="Task_ReadPrStates" />
+    <bpmn:sequenceFlow id="R02" sourceRef="Task_ReadPrStates" targetRef="Task_PlanPrune" />
+    <bpmn:sequenceFlow id="R03" sourceRef="Task_PlanPrune" targetRef="Gateway_Apply" />
+    <bpmn:sequenceFlow id="R04" name="no: dry run" sourceRef="Gateway_Apply" targetRef="End_DryRun" />
+    <bpmn:sequenceFlow id="R05" name="yes" sourceRef="Gateway_Apply" targetRef="Task_ApplyPrune" />
+    <bpmn:sequenceFlow id="R06" sourceRef="Task_ApplyPrune" targetRef="End_Pruned" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_QaPublish">
+    <bpmndi:BPMNPlane id="Plane_QaPublish" bpmnElement="Collaboration_QaPublish">
+      <bpmndi:BPMNShape id="Shape_Participant_QaPublish" bpmnElement="Participant_QaPublish" isHorizontal="true">
+        <dc:Bounds x="160" y="40" width="1346" height="580" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Ci" bpmnElement="Lane_Ci" isHorizontal="true">
+        <dc:Bounds x="190" y="40" width="1316" height="580" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start_GatesDone" bpmnElement="Start_GatesDone">
+        
+        <dc:Bounds x="250" y="162" width="36" height="36" />
+      <bpmndi:BPMNLabel><dc:Bounds x="222" y="206" width="92" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_DeriveKey" bpmnElement="Task_DeriveKey">
+        <dc:Bounds x="350" y="120" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_CanWrite" bpmnElement="Gateway_CanWrite" isMarkerVisible="true">
+        
+        <dc:Bounds x="571" y="155" width="50" height="50" />
+      <bpmndi:BPMNLabel><dc:Bounds x="546" y="112" width="100" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_SkippedFork" bpmnElement="End_SkippedFork">
+        
+        <dc:Bounds x="693" y="287" width="36" height="36" />
+      <bpmndi:BPMNLabel><dc:Bounds x="656" y="331" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_BuildEntry" bpmnElement="Task_BuildEntry">
+        <dc:Bounds x="691" y="120" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_SpliceAndPush" bpmnElement="Task_SpliceAndPush">
+        <dc:Bounds x="911" y="120" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_Accepted" bpmnElement="Gateway_Accepted" isMarkerVisible="true">
+        
+        <dc:Bounds x="1146" y="155" width="50" height="50" />
+      <bpmndi:BPMNLabel><dc:Bounds x="1200" y="209" width="80" height="36" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Backoff" bpmnElement="Task_Backoff">
+        <dc:Bounds x="911" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Published" bpmnElement="End_Published">
+        
+        <dc:Bounds x="1303" y="162" width="36" height="36" />
+      <bpmndi:BPMNLabel><dc:Bounds x="1276" y="206" width="90" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_PublishFailed" bpmnElement="End_PublishFailed">
+        
+        <dc:Bounds x="1303" y="52" width="36" height="36" />
+      <bpmndi:BPMNLabel><dc:Bounds x="1346" y="52" width="150" height="36" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start_Daily" bpmnElement="Start_Daily">
+        
+        <dc:Bounds x="250" y="452" width="36" height="36" />
+      <bpmndi:BPMNLabel><dc:Bounds x="222" y="496" width="92" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReadPrStates" bpmnElement="Task_ReadPrStates">
+        <dc:Bounds x="356" y="410" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_PlanPrune" bpmnElement="Task_PlanPrune">
+        <dc:Bounds x="561" y="410" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_Apply" bpmnElement="Gateway_Apply" isMarkerVisible="true">
+        
+        <dc:Bounds x="771" y="445" width="50" height="50" />
+      <bpmndi:BPMNLabel><dc:Bounds x="771" y="412" width="50" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_DryRun" bpmnElement="End_DryRun">
+        
+        <dc:Bounds x="908" y="542" width="36" height="36" />
+      <bpmndi:BPMNLabel><dc:Bounds x="948" y="533.5" width="100" height="53" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ApplyPrune" bpmnElement="Task_ApplyPrune">
+        <dc:Bounds x="911" y="410" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Pruned" bpmnElement="End_Pruned">
+        
+        <dc:Bounds x="1303" y="452" width="36" height="36" />
+      <bpmndi:BPMNLabel><dc:Bounds x="1271" y="496" width="100" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_P01" bpmnElement="P01">
+        <di:waypoint x="286" y="180" />
+        <di:waypoint x="350" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_P02" bpmnElement="P02">
+        <di:waypoint x="470" y="180" />
+        <di:waypoint x="571" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_P03" bpmnElement="P03">
+        <di:waypoint x="621" y="180" />
+        <di:waypoint x="691" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_P04" bpmnElement="P04">
+        <di:waypoint x="596" y="205" />
+        <di:waypoint x="596" y="305" />
+        <di:waypoint x="693" y="305" />
+        <bpmndi:BPMNLabel><dc:Bounds x="600" y="246.5" width="90" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_P05" bpmnElement="P05">
+        <di:waypoint x="811" y="180" />
+        <di:waypoint x="911" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_P06" bpmnElement="P06">
+        <di:waypoint x="1031" y="180" />
+        <di:waypoint x="1146" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_P07" bpmnElement="P07">
+        <di:waypoint x="1196" y="180" />
+        <di:waypoint x="1303" y="180" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1204.51" y="186.5" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_P08" bpmnElement="P08">
+        <di:waypoint x="1171" y="205" />
+        <di:waypoint x="1171" y="335" />
+        <di:waypoint x="1031" y="335" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1177" y="250" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_P09" bpmnElement="P09">
+        <di:waypoint x="971" y="275" />
+        <di:waypoint x="971" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_P10" bpmnElement="P10">
+        <di:waypoint x="1171" y="155" />
+        <di:waypoint x="1171" y="70" />
+        <di:waypoint x="1303" y="70" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1062" y="92" width="104" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_R01" bpmnElement="R01">
+        <di:waypoint x="286" y="470" />
+        <di:waypoint x="356" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_R02" bpmnElement="R02">
+        <di:waypoint x="476" y="470" />
+        <di:waypoint x="561" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_R03" bpmnElement="R03">
+        <di:waypoint x="681" y="470" />
+        <di:waypoint x="771" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_R04" bpmnElement="R04">
+        <di:waypoint x="796" y="495" />
+        <di:waypoint x="796" y="560" />
+        <di:waypoint x="908" y="560" />
+        <bpmndi:BPMNLabel><dc:Bounds x="800" y="518.5" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_R05" bpmnElement="R05">
+        <di:waypoint x="821" y="470" />
+        <di:waypoint x="911" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_R06" bpmnElement="R06">
+        <di:waypoint x="1031" y="470" />
+        <di:waypoint x="1303" y="470" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

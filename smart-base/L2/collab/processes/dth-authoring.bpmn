@@ -1,0 +1,1019 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  smart-base — producing a WHO Digital Transformation Handbook (DTH), from
+  sources to publication, in seven stages with recorded milestones.
+
+  Source of truth: this file. The picture beside it (dth-authoring.svg) is drawn by
+  `bun run cat render:bpmn`;
+  never hand-edit it.
+
+  The <bootstrap.processes:skill> extension on an activity names the skill that
+  implements it; <cat-harness.processes:bean> marks a step that writes the
+  shared work plan in beans/.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_DthAuthoring"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+
+  <bpmn:resource id="programme-manager" name="DTH lead (programme manager)" />
+  <bpmn:resource id="work-plan" name="Work plan (beans)" />
+  <bpmn:resource id="librarian" name="Librarian" />
+  <bpmn:resource id="business-analyst" name="Business analyst" />
+  <bpmn:resource id="terminologist" name="Terminologist" />
+  <bpmn:resource id="reviewer" name="Architect group and handbook owners" />
+  <bpmn:resource id="feedback-provider" name="TWG and contributors" />
+  <bpmn:resource id="editor" name="Editor" />
+  <bpmn:resource id="publication-manager" name="Publication manager" />
+
+  <bpmn:collaboration id="Collaboration_DthAuthoring">
+    <bpmn:participant id="Participant_DthAuthoring" name="WHO Digital Transformation Handbook — from sources to publication" processRef="Process_DthAuthoring" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_DthAuthoring" name="DTH authoring" isExecutable="false">
+    <bpmn:documentation>Produces a WHO Digital Transformation Handbook (DTH) from its sources to publication, in seven stages that each end in a recorded milestone: initiate (M0 charter), ingest sources into the library (M1 library frozen), outline and scope (M2 outline agreed), structured drafting (M3 zero draft), working-group feedback (M4), public comment (M5 released, M6 dispositioned), and finalise and publish (M7).
+Milestones are recorded checkpoints, not gates: each is written as a note on the handbook's epic bean (which milestone, when, evidence), so the site can show stage and progress. Review runs beside drafting as QA, as in smart-guideline-end-to-end.bpmn.
+Structured drafting uses the smart-base DAK block kinds for personas, scenarios, processes, decisions, data elements, indicators and requirements, and each track calls Process_L2ComponentEditReview, as l2-dak-authoring.bpmn does. Contributor feedback from the contributor log sheet and from GitHub pc: comments lands in one review store.
+Handbooks ingested from a published WHO PDF (PHC, SC, PC, SFP) enter at stage 1 with their library built and their outline given by the publication; dth-hrh, authored natively, is the pilot. Steps with no platform subprocess are marked as placeholders in their documentation.
+Empirical content (figures, statistics, country examples) stays as cited narrative blocks and never enters formal content.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_DthAuthoring_LaneSet">
+      <bpmn:lane id="Lane_Lead" name="DTH lead (programme manager)" partitionElementRef="programme-manager">
+        <bpmn:documentation>Owns the handbook. Sets its scope and its place in the DIIG once, forms the technical working group (TWG), and records the roles and RACI that every later lane is scoped against.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Requested</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Scope</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Team</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_WorkPlan" name="Work plan (beans)" partitionElementRef="work-plan">
+        <bpmn:documentation>Seeded once from the scope, with one bean per stage and per structured-drafting track, so progress is visible without reading the diagram.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_SeedBeans</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>M0</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Librarian" name="Librarian" partitionElementRef="librarian">
+        <bpmn:documentation>Brings every source into the handbook's library/ as received and frozen: WHO publications through who-iris, TWG outlines and workbooks as uploads. Never edits a source to answer a comment.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Ingest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_L1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Coverage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>M1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Analyst" name="Business analyst" partitionElementRef="business-analyst">
+        <bpmn:documentation>Drafts the outline and the structured content. Every structured track uses a smart-base DAK block kind and calls the shared edit-and-review subprocess.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Scaffold</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Outline</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_PublishStatements</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Intro</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Inventory</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_DraftMerge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_DraftFork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Personas</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Scenarios</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Bpmn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Dmn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Data</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Steps</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Archimate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Glossary</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_DraftJoin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_ReviewFork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Validate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_ReviewJoin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>M3</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Terminologist" name="Terminologist" partitionElementRef="terminologist">
+        <bpmn:documentation>Builds the glossary as a SKOS scheme from the TWG's candidate definitions and links each term to the smart-ra concept it matches or narrows. Never chooses between conflicting definitions; records them as alternatives.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_GlossaryCandidates</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Reviewers" name="Architect group and handbook owners" partitionElementRef="reviewer">
+        <bpmn:documentation>Review the structured content beside drafting, as QA and not as a gate: the architect group for ArchiMate links and new kinds, the owners of each handbook for content shared with theirs.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ArchReview</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Contributors" name="TWG and contributors" partitionElementRef="feedback-provider">
+        <bpmn:documentation>Comment through the contributor log sheet or on GitHub (a pc: line in any issue or PR conversation). Both channels land in one review store.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_OutlineReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>M2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Comments</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PublicComments</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Editor" name="Editor" partitionElementRef="editor">
+        <bpmn:documentation>Imports comments into the review store, groups them into change sets, decides dispositions, and runs editorial and voice QA.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Import</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_WgDone</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>M4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenPublic</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>M5</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Disposition</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>M6</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Qa</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Publisher" name="Publication manager" partitionElementRef="publication-manager">
+        <bpmn:documentation>Publishes the final handbook and, when permitted, hands it to the WHO repository.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Publish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Published</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Requested" name="DTH requested">
+      <bpmn:outgoing>F01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Scope" name="0 · Scope the DTH and place it in the DIIG&#10;[content-plan]">
+      <bpmn:documentation>Name the health-system area, the audience and the DIIG phase the handbook supports, citing the one DIIG phase figure (DIIG section 1.1, Figure 1.1.1). Decide which DTHs and which smart-ra content it builds on.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-plan" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F01</bpmn:incoming>
+      <bpmn:outgoing>F02</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Team" name="Form the TWG; record roles and RACI&#10;[content-plan]">
+      <bpmn:documentation>Record who is involved and in which role. Roles are named by id, never free text, so they can bind BPMN lanes later. There is no RACI kind; the RACI is a table block.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-plan" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F02</bpmn:incoming>
+      <bpmn:outgoing>F03</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:task id="Task_Scaffold" name="Create the DTH repository from the DTH layout&#10;[document-structure]">
+      <bpmn:documentation>Run `bun run smart-base/scripts/dth-init.ts` with --pins-from an existing DTH's index.config.json. It writes the instance declaration (folio, glossary, uploads, beans and todos branches), index.config.json (mounting who-iris, smart-base, the platform layers and smart-ra), package.json scripts for the shared checks, the review sheet sync (--sheet) and the files from templates/dth/ (AGENTS.md, session-start hook, PR checks workflow).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-structure" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F03</bpmn:incoming>
+      <bpmn:outgoing>F04</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_SeedBeans" name="Seed the work plan&#10;[todo-manager]">
+      <bpmn:documentation>One bean per stage and per drafting track, children of the handbook's epic.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F04</bpmn:incoming>
+      <bpmn:outgoing>F05</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="M0" name="Record milestone&#10;M0 · Charter recorded&#10;[todo-manager]">
+      <bpmn:documentation>Milestone: repository, declaration, TWG, roles and RACI exist. Recorded, not enforced.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F05</bpmn:incoming>
+      <bpmn:outgoing>F06</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Ingest" name="1 · Ingest sources into library/&#10;[library-ingestion]">
+      <bpmn:documentation>Every source as received, frozen: WHO publications through who-iris, the TWG outline and workbooks from uploads/.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="library-ingestion" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F06</bpmn:incoming>
+      <bpmn:outgoing>F07</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_L1" name="Extract L1 from WHO publications&#10;[l1-document-ingestion]">
+      <bpmn:documentation>Sections, figures, tables and the L1 knowledge graph for each WHO publication the handbook draws on.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l1-document-ingestion" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F07</bpmn:incoming>
+      <bpmn:outgoing>F08</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Coverage" name="Account for every normative sentence&#10;[l1-coverage]">
+      <bpmn:documentation>Each normative sentence is captured or excluded; exclusions are signed by a person, never by the agent that proposed them.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l1-coverage" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F08</bpmn:incoming>
+      <bpmn:outgoing>F09</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_PublishStatements" name="Publish extracted&#10;statements" calledElement="Process_PublishExtractedStatements">
+      <bpmn:documentation>Statements extracted from the L1 sources (recommendations, requirements, scenario candidates) are published as pages of the handbook and in the shared l1-extraction viewer, each linked to its library entry and section, once coverage has accounted for every normative sentence and before the library is frozen. The sub-process is core's, the same for every content type; smart-base supplies the collector (`l1-statement-lists`) and the handbook only the page look.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="publish-extracted-statements" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F09</bpmn:incoming>
+      <bpmn:outgoing>F09b</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:task id="M1" name="Record milestone&#10;M1 · Library frozen&#10;[todo-manager]">
+      <bpmn:documentation>Milestone: every source in library/, coverage accounted. Recorded, not enforced.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F09b</bpmn:incoming>
+      <bpmn:outgoing>F10</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Outline" name="2 · Outline chapters against the dth kind&#10;[document-structure]">
+      <bpmn:documentation>Map the outline onto the dth document kind's sections and report every required section that is missing. dth-hrh's build_from_outline.py is the only instance; there is no general outline seed. Placeholder: no platform subprocess; done by hand, as for dth-hrh.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-structure" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F10</bpmn:incoming>
+      <bpmn:outgoing>F11</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Intro" name="Draft introduction, audience and DIIG alignment&#10;[document-authoring]">
+      <bpmn:documentation>The three required opening sections of the dth kind: audience and how to use, DIIG and SMART alignment, health programme context.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F11</bpmn:incoming>
+      <bpmn:outgoing>F12</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_GlossaryCandidates" name="Build glossary candidates from the TWG workbook&#10;[terminology-management]">
+      <bpmn:documentation>One SKOS candidate per (concept, source); only a person moves a term to authored.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="terminology-management" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F12</bpmn:incoming>
+      <bpmn:outgoing>F13</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Inventory" name="List processes, roles, decisions and indicators to model&#10;[content-plan]">
+      <bpmn:documentation>The inventory that seeds the structured-drafting tracks: each business process becomes BPMN, each role a structured block, each stated decision rule a DMN table.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-plan" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F13</bpmn:incoming>
+      <bpmn:outgoing>F14</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Task_OutlineReview" name="TWG reviews the outline&#10;[content-feedback]">
+      <bpmn:documentation>First contributor-feedback round, through the contributor log sheet and GitHub.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-feedback" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F14</bpmn:incoming>
+      <bpmn:outgoing>F15</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:task id="M2" name="Record milestone&#10;M2 · Outline agreed&#10;[todo-manager]">
+      <bpmn:documentation>Milestone: the outline's round-1 comments are dispositioned. Recorded, not enforced.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F15</bpmn:incoming>
+      <bpmn:outgoing>F16</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_DraftMerge">
+      <bpmn:incoming>F16</bpmn:incoming>
+      <bpmn:incoming>F44</bpmn:incoming>
+      <bpmn:outgoing>F17</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:parallelGateway id="GW_DraftFork" name="3 · Structured drafting">
+      <bpmn:incoming>F17</bpmn:incoming>
+      <bpmn:outgoing>F18</bpmn:outgoing>
+      <bpmn:outgoing>F19</bpmn:outgoing>
+      <bpmn:outgoing>F20</bpmn:outgoing>
+      <bpmn:outgoing>F21</bpmn:outgoing>
+      <bpmn:outgoing>F22</bpmn:outgoing>
+      <bpmn:outgoing>F23</bpmn:outgoing>
+      <bpmn:outgoing>F24</bpmn:outgoing>
+      <bpmn:outgoing>F25</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:callActivity id="Call_Personas" name="Personas and roles&#10;[l2-dak-authoring]" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>Persona and actor-definition blocks; organisational roles and governance bodies get their own kind once it exists. Calls Process_L2ComponentEditReview.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l2-dak-authoring" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F18</bpmn:incoming>
+      <bpmn:outgoing>F26</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_Scenarios" name="User scenarios&#10;[l2-dak-authoring]" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>User-scenario blocks naming their personas by id. Calls Process_L2ComponentEditReview.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l2-dak-authoring" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F19</bpmn:incoming>
+      <bpmn:outgoing>F27</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_Bpmn" name="Business processes · BPMN&#10;[bpmn-authoring]" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>One BPMN per business process; every lane bound to a persona or role id. Calls Process_L2ComponentEditReview.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="bpmn-authoring" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F20</bpmn:incoming>
+      <bpmn:outgoing>F28</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_Dmn" name="Decision tables · DMN&#10;[dmn-authoring]" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>Only rules the text states. A decision the text names without a rule is recorded as a decision point, not filled in. Calls Process_L2ComponentEditReview.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="dmn-authoring" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F21</bpmn:incoming>
+      <bpmn:outgoing>F29</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_Data" name="Data elements, indicators, requirements&#10;[l2-dak-authoring]" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>data-element, indicator, functional and non-functional requirement blocks, with their fields as data rather than Markdown tables. Calls Process_L2ComponentEditReview.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l2-dak-authoring" />
+        <bootstrap.processes:skill ref="indicator-extraction" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F22</bpmn:incoming>
+      <bpmn:outgoing>F30</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_Steps" name="Planning steps per chapter&#10;[document-authoring]" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>Each chapter's inputs, steps, resources, outputs, risks and mitigations as the shared step table. Calls Process_L2ComponentEditReview.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-authoring" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F23</bpmn:incoming>
+      <bpmn:outgoing>F31</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_Archimate" name="Link to smart-ra ArchiMate&#10;[archimate-models]" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>Every block that names an architecture element links to its smart-ra element or view; new elements go to smart-ra, not the handbook. Placeholder: no platform subprocess; done by hand, as for dth-hrh. Calls Process_L2ComponentEditReview.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="archimate-models" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F24</bpmn:incoming>
+      <bpmn:outgoing>F32</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_Glossary" name="Link glossary to smart-ra SKOS&#10;[terminology-management]" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>Each handbook term is exactMatch, closeMatch or narrower to a smart-ra concept; conflicts are raised as issues on smart-ra. Calls Process_L2ComponentEditReview.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="terminology-management" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F25</bpmn:incoming>
+      <bpmn:outgoing>F33</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:parallelGateway id="GW_DraftJoin">
+      <bpmn:incoming>F26</bpmn:incoming>
+      <bpmn:incoming>F27</bpmn:incoming>
+      <bpmn:incoming>F28</bpmn:incoming>
+      <bpmn:incoming>F29</bpmn:incoming>
+      <bpmn:incoming>F30</bpmn:incoming>
+      <bpmn:incoming>F31</bpmn:incoming>
+      <bpmn:incoming>F32</bpmn:incoming>
+      <bpmn:incoming>F33</bpmn:incoming>
+      <bpmn:outgoing>F34</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:parallelGateway id="GW_ReviewFork">
+      <bpmn:incoming>F34</bpmn:incoming>
+      <bpmn:outgoing>F35</bpmn:outgoing>
+      <bpmn:outgoing>F36</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="Task_Validate" name="Validate the draft&#10;[content-validate]">
+      <bpmn:documentation>Every structured block validates against its kind; required dth sections present; no unlinked architecture names; no empirical claims in formal content.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-validate" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F35</bpmn:incoming>
+      <bpmn:outgoing>F37</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Task_ArchReview" name="Architect group and handbook owners review&#10;[content-review]">
+      <bpmn:documentation>Runs beside validation, as QA. New kinds and shared schemas are reviewed here before they are built.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F36</bpmn:incoming>
+      <bpmn:outgoing>F38</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:parallelGateway id="GW_ReviewJoin">
+      <bpmn:incoming>F37</bpmn:incoming>
+      <bpmn:incoming>F38</bpmn:incoming>
+      <bpmn:outgoing>F39</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="M3" name="Record milestone&#10;M3 · Zero draft&#10;[todo-manager]">
+      <bpmn:documentation>Milestone: every required section drafted and every structured block validates. Recorded, not enforced.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F39</bpmn:incoming>
+      <bpmn:outgoing>F40</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Task_Comments" name="4 · Comment via contributor log sheet or GitHub pc:&#10;[content-feedback]">
+      <bpmn:documentation>The contributor log (Google Sheet) and pc: lines on GitHub issues and PRs.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-feedback" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F40</bpmn:incoming>
+      <bpmn:outgoing>F41</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:task id="Task_Import" name="Import into review/wg-comment and form change sets&#10;[public-comment]">
+      <bpmn:documentation>public-comment import --store review/wg-comment; change sets group comments that change the same text.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="public-comment" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F41</bpmn:incoming>
+      <bpmn:outgoing>F42</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_WgDone" name="All working-group comments dispositioned?">
+      <bpmn:incoming>F42</bpmn:incoming>
+      <bpmn:outgoing>F43</bpmn:outgoing>
+      <bpmn:outgoing>F44</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="M4" name="Record milestone&#10;M4 · Working-group draft&#10;[todo-manager]">
+      <bpmn:documentation>Milestone: all working-group comments dispositioned. Recorded, not enforced.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F43</bpmn:incoming>
+      <bpmn:outgoing>F45</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_OpenPublic" name="5 · Open public comment&#10;[public-comment]">
+      <bpmn:documentation>A separate store, review/public-comment, and the public-comment review sheet.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="public-comment" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F45</bpmn:incoming>
+      <bpmn:outgoing>F46</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="M5" name="Record milestone&#10;M5 · Public draft released&#10;[todo-manager]">
+      <bpmn:documentation>Milestone: the public draft is out for comment.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F46</bpmn:incoming>
+      <bpmn:outgoing>F47</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Task_PublicComments" name="Public comments&#10;[content-feedback]">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-feedback" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F47</bpmn:incoming>
+      <bpmn:outgoing>F48</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:task id="Task_Disposition" name="Disposition comments and apply change sets&#10;[public-comment]">
+      <bpmn:documentation>Changes to structured content go back through its kind's edit-and-review subprocess.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="public-comment" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F48</bpmn:incoming>
+      <bpmn:outgoing>F49</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="M6" name="Record milestone&#10;M6 · Comments dispositioned&#10;[todo-manager]">
+      <bpmn:documentation>Milestone: every public comment dispositioned.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F49</bpmn:incoming>
+      <bpmn:outgoing>F50</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Qa" name="6 · Editorial, voice and translation QA&#10;[quality-control]">
+      <bpmn:documentation>The DTH voice (smart-base skills/voices/who-digital-transformation-handbook), figures and translations.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="quality-control" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F50</bpmn:incoming>
+      <bpmn:outgoing>F51</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Publish" name="Publish the handbook&#10;[document-publishing]">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-publishing" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F51</bpmn:incoming>
+      <bpmn:outgoing>F52</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Published" name="M7 · Final published">
+      <bpmn:incoming>F52</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="F01" sourceRef="Start_Requested" targetRef="Task_Scope" />
+    <bpmn:sequenceFlow id="F02" sourceRef="Task_Scope" targetRef="Task_Team" />
+    <bpmn:sequenceFlow id="F03" sourceRef="Task_Team" targetRef="Task_Scaffold" />
+    <bpmn:sequenceFlow id="F04" sourceRef="Task_Scaffold" targetRef="Task_SeedBeans" />
+    <bpmn:sequenceFlow id="F05" sourceRef="Task_SeedBeans" targetRef="M0" />
+    <bpmn:sequenceFlow id="F06" sourceRef="M0" targetRef="Task_Ingest" />
+    <bpmn:sequenceFlow id="F07" sourceRef="Task_Ingest" targetRef="Task_L1" />
+    <bpmn:sequenceFlow id="F08" sourceRef="Task_L1" targetRef="Task_Coverage" />
+    <bpmn:sequenceFlow id="F09" sourceRef="Task_Coverage" targetRef="Call_PublishStatements" />
+    <bpmn:sequenceFlow id="F09b" sourceRef="Call_PublishStatements" targetRef="M1" />
+    <bpmn:sequenceFlow id="F10" sourceRef="M1" targetRef="Task_Outline" />
+    <bpmn:sequenceFlow id="F11" sourceRef="Task_Outline" targetRef="Task_Intro" />
+    <bpmn:sequenceFlow id="F12" sourceRef="Task_Intro" targetRef="Task_GlossaryCandidates" />
+    <bpmn:sequenceFlow id="F13" sourceRef="Task_GlossaryCandidates" targetRef="Task_Inventory" />
+    <bpmn:sequenceFlow id="F14" sourceRef="Task_Inventory" targetRef="Task_OutlineReview" />
+    <bpmn:sequenceFlow id="F15" sourceRef="Task_OutlineReview" targetRef="M2" />
+    <bpmn:sequenceFlow id="F16" sourceRef="M2" targetRef="GW_DraftMerge" />
+    <bpmn:sequenceFlow id="F17" sourceRef="GW_DraftMerge" targetRef="GW_DraftFork" />
+    <bpmn:sequenceFlow id="F18" sourceRef="GW_DraftFork" targetRef="Call_Personas" />
+    <bpmn:sequenceFlow id="F19" sourceRef="GW_DraftFork" targetRef="Call_Scenarios" />
+    <bpmn:sequenceFlow id="F20" sourceRef="GW_DraftFork" targetRef="Call_Bpmn" />
+    <bpmn:sequenceFlow id="F21" sourceRef="GW_DraftFork" targetRef="Call_Dmn" />
+    <bpmn:sequenceFlow id="F22" sourceRef="GW_DraftFork" targetRef="Call_Data" />
+    <bpmn:sequenceFlow id="F23" sourceRef="GW_DraftFork" targetRef="Call_Steps" />
+    <bpmn:sequenceFlow id="F24" sourceRef="GW_DraftFork" targetRef="Call_Archimate" />
+    <bpmn:sequenceFlow id="F25" sourceRef="GW_DraftFork" targetRef="Call_Glossary" />
+    <bpmn:sequenceFlow id="F26" sourceRef="Call_Personas" targetRef="GW_DraftJoin" />
+    <bpmn:sequenceFlow id="F27" sourceRef="Call_Scenarios" targetRef="GW_DraftJoin" />
+    <bpmn:sequenceFlow id="F28" sourceRef="Call_Bpmn" targetRef="GW_DraftJoin" />
+    <bpmn:sequenceFlow id="F29" sourceRef="Call_Dmn" targetRef="GW_DraftJoin" />
+    <bpmn:sequenceFlow id="F30" sourceRef="Call_Data" targetRef="GW_DraftJoin" />
+    <bpmn:sequenceFlow id="F31" sourceRef="Call_Steps" targetRef="GW_DraftJoin" />
+    <bpmn:sequenceFlow id="F32" sourceRef="Call_Archimate" targetRef="GW_DraftJoin" />
+    <bpmn:sequenceFlow id="F33" sourceRef="Call_Glossary" targetRef="GW_DraftJoin" />
+    <bpmn:sequenceFlow id="F34" sourceRef="GW_DraftJoin" targetRef="GW_ReviewFork" />
+    <bpmn:sequenceFlow id="F35" sourceRef="GW_ReviewFork" targetRef="Task_Validate" />
+    <bpmn:sequenceFlow id="F36" sourceRef="GW_ReviewFork" targetRef="Task_ArchReview" />
+    <bpmn:sequenceFlow id="F37" sourceRef="Task_Validate" targetRef="GW_ReviewJoin" />
+    <bpmn:sequenceFlow id="F38" sourceRef="Task_ArchReview" targetRef="GW_ReviewJoin" />
+    <bpmn:sequenceFlow id="F39" sourceRef="GW_ReviewJoin" targetRef="M3" />
+    <bpmn:sequenceFlow id="F40" sourceRef="M3" targetRef="Task_Comments" />
+    <bpmn:sequenceFlow id="F41" sourceRef="Task_Comments" targetRef="Task_Import" />
+    <bpmn:sequenceFlow id="F42" sourceRef="Task_Import" targetRef="GW_WgDone" />
+    <bpmn:sequenceFlow id="F43" name="yes" sourceRef="GW_WgDone" targetRef="M4" />
+    <bpmn:sequenceFlow id="F44" name="no: revise" sourceRef="GW_WgDone" targetRef="GW_DraftMerge" />
+    <bpmn:sequenceFlow id="F45" sourceRef="M4" targetRef="Task_OpenPublic" />
+    <bpmn:sequenceFlow id="F46" sourceRef="Task_OpenPublic" targetRef="M5" />
+    <bpmn:sequenceFlow id="F47" sourceRef="M5" targetRef="Task_PublicComments" />
+    <bpmn:sequenceFlow id="F48" sourceRef="Task_PublicComments" targetRef="Task_Disposition" />
+    <bpmn:sequenceFlow id="F49" sourceRef="Task_Disposition" targetRef="M6" />
+    <bpmn:sequenceFlow id="F50" sourceRef="M6" targetRef="Task_Qa" />
+    <bpmn:sequenceFlow id="F51" sourceRef="Task_Qa" targetRef="Task_Publish" />
+    <bpmn:sequenceFlow id="F52" sourceRef="Task_Publish" targetRef="End_Published" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_DthAuthoring">
+    <bpmndi:BPMNPlane id="BPMNPlane_DthAuthoring" bpmnElement="Collaboration_DthAuthoring">
+      <bpmndi:BPMNShape id="Participant_DthAuthoring_di" bpmnElement="Participant_DthAuthoring" isHorizontal="true">
+        <dc:Bounds x="0" y="0" width="6780" height="1811.5" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Lead_di" bpmnElement="Lane_Lead" isHorizontal="true">
+        <dc:Bounds x="30" y="0" width="6750" height="165" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_WorkPlan_di" bpmnElement="Lane_WorkPlan" isHorizontal="true">
+        <dc:Bounds x="30" y="165" width="6750" height="115" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Librarian_di" bpmnElement="Lane_Librarian" isHorizontal="true">
+        <dc:Bounds x="30" y="280" width="6750" height="115" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Analyst_di" bpmnElement="Lane_Analyst" isHorizontal="true">
+        <dc:Bounds x="30" y="395" width="6750" height="742.5" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Terminologist_di" bpmnElement="Lane_Terminologist" isHorizontal="true">
+        <dc:Bounds x="30" y="1137.5" width="6750" height="135" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Reviewers_di" bpmnElement="Lane_Reviewers" isHorizontal="true">
+        <dc:Bounds x="30" y="1272.5" width="6750" height="199" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Contributors_di" bpmnElement="Lane_Contributors" isHorizontal="true">
+        <dc:Bounds x="30" y="1471.5" width="6750" height="115" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Editor_di" bpmnElement="Lane_Editor" isHorizontal="true">
+        <dc:Bounds x="30" y="1586.5" width="6750" height="115" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Publisher_di" bpmnElement="Lane_Publisher" isHorizontal="true">
+        <dc:Bounds x="30" y="1701.5" width="6750" height="110" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_Requested_di" bpmnElement="Start_Requested">
+        <dc:Bounds x="162" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="127" y="102" width="106" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Scope_di" bpmnElement="Task_Scope">
+        <dc:Bounds x="255" y="37" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Team_di" bpmnElement="Task_Team">
+        <dc:Bounds x="455" y="37" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Scaffold_di" bpmnElement="Task_Scaffold">
+        <dc:Bounds x="655" y="407" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SeedBeans_di" bpmnElement="Task_SeedBeans">
+        <dc:Bounds x="855" y="188" width="130" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="M0_di" bpmnElement="M0">
+        <dc:Bounds x="1015" y="177" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Ingest_di" bpmnElement="Task_Ingest">
+        <dc:Bounds x="1215" y="303" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_L1_di" bpmnElement="Task_L1">
+        <dc:Bounds x="1415" y="292" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Coverage_di" bpmnElement="Task_Coverage">
+        <dc:Bounds x="1615" y="303" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="M1_di" bpmnElement="M1">
+        <dc:Bounds x="1815" y="303" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Outline_di" bpmnElement="Task_Outline">
+        <dc:Bounds x="2015" y="418" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Intro_di" bpmnElement="Task_Intro">
+        <dc:Bounds x="2215" y="407" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_GlossaryCandidates_di" bpmnElement="Task_GlossaryCandidates">
+        <dc:Bounds x="2415" y="1149.5" width="170" height="111" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Inventory_di" bpmnElement="Task_Inventory">
+        <dc:Bounds x="2615" y="407" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OutlineReview_di" bpmnElement="Task_OutlineReview">
+        <dc:Bounds x="2815" y="1494.5" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="M2_di" bpmnElement="M2">
+        <dc:Bounds x="3015" y="1494.5" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_DraftMerge_di" bpmnElement="GW_DraftMerge" isMarkerVisible="true">
+        <dc:Bounds x="3235" y="740" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_DraftFork_di" bpmnElement="GW_DraftFork">
+        <dc:Bounds x="3395" y="740" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3360" y="794" width="120" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Personas_di" bpmnElement="Call_Personas">
+        <dc:Bounds x="3495" y="418" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Scenarios_di" bpmnElement="Call_Scenarios">
+        <dc:Bounds x="3495" y="508" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Bpmn_di" bpmnElement="Call_Bpmn">
+        <dc:Bounds x="3495" y="598" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Dmn_di" bpmnElement="Call_Dmn">
+        <dc:Bounds x="3495" y="688" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Data_di" bpmnElement="Call_Data">
+        <dc:Bounds x="3495" y="764.5" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Steps_di" bpmnElement="Call_Steps">
+        <dc:Bounds x="3495" y="868" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Archimate_di" bpmnElement="Call_Archimate">
+        <dc:Bounds x="3495" y="958" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Glossary_di" bpmnElement="Call_Glossary">
+        <dc:Bounds x="3495" y="1034.5" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_DraftJoin_di" bpmnElement="GW_DraftJoin">
+        <dc:Bounds x="3715" y="740" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_ReviewFork_di" bpmnElement="GW_ReviewFork">
+        <dc:Bounds x="3875" y="740" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Validate_di" bpmnElement="Task_Validate">
+        <dc:Bounds x="3975" y="418" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ArchReview_di" bpmnElement="Task_ArchReview">
+        <dc:Bounds x="3975" y="1326.5" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_ReviewJoin_di" bpmnElement="GW_ReviewJoin">
+        <dc:Bounds x="4195" y="740" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="M3_di" bpmnElement="M3">
+        <dc:Bounds x="4295" y="418" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Comments_di" bpmnElement="Task_Comments">
+        <dc:Bounds x="4495" y="1483.5" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Import_di" bpmnElement="Task_Import">
+        <dc:Bounds x="4695" y="1598.5" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_WgDone_di" bpmnElement="GW_WgDone" isMarkerVisible="true">
+        <dc:Bounds x="4915" y="1616.5" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4880" y="1560" width="120" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="M4_di" bpmnElement="M4">
+        <dc:Bounds x="5015" y="1598.5" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenPublic_di" bpmnElement="Task_OpenPublic">
+        <dc:Bounds x="5215" y="1609.5" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="M5_di" bpmnElement="M5">
+        <dc:Bounds x="5415" y="1598.5" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PublicComments_di" bpmnElement="Task_PublicComments">
+        <dc:Bounds x="5615" y="1494.5" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Disposition_di" bpmnElement="Task_Disposition">
+        <dc:Bounds x="5815" y="1598.5" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="M6_di" bpmnElement="M6">
+        <dc:Bounds x="6015" y="1598.5" width="170" height="91" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Qa_di" bpmnElement="Task_Qa">
+        <dc:Bounds x="6215" y="1609.5" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Publish_di" bpmnElement="Task_Publish">
+        <dc:Bounds x="6415" y="1724.5" width="170" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Published_di" bpmnElement="End_Published">
+        <dc:Bounds x="6642" y="1738.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6607" y="1778.5" width="106" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F01_di" bpmnElement="F01">
+        <di:waypoint x="198" y="80" />
+        <di:waypoint x="226.5" y="80" />
+        <di:waypoint x="226.5" y="82.5" />
+        <di:waypoint x="255" y="82.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F02_di" bpmnElement="F02">
+        <di:waypoint x="425" y="82.5" />
+        <di:waypoint x="455" y="82.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F03_di" bpmnElement="F03">
+        <di:waypoint x="625" y="82.5" />
+        <di:waypoint x="640" y="82.5" />
+        <di:waypoint x="640" y="452.5" />
+        <di:waypoint x="655" y="452.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F04_di" bpmnElement="F04">
+        <di:waypoint x="825" y="452.5" />
+        <di:waypoint x="840" y="452.5" />
+        <di:waypoint x="840" y="220" />
+        <di:waypoint x="855" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F05_di" bpmnElement="F05">
+        <di:waypoint x="985" y="220" />
+        <di:waypoint x="1000" y="220" />
+        <di:waypoint x="1000" y="222.5" />
+        <di:waypoint x="1015" y="222.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F06_di" bpmnElement="F06">
+        <di:waypoint x="1185" y="222.5" />
+        <di:waypoint x="1200" y="222.5" />
+        <di:waypoint x="1200" y="335" />
+        <di:waypoint x="1215" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F07_di" bpmnElement="F07">
+        <di:waypoint x="1385" y="335" />
+        <di:waypoint x="1400" y="335" />
+        <di:waypoint x="1400" y="337.5" />
+        <di:waypoint x="1415" y="337.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F08_di" bpmnElement="F08">
+        <di:waypoint x="1585" y="337.5" />
+        <di:waypoint x="1600" y="337.5" />
+        <di:waypoint x="1600" y="335" />
+        <di:waypoint x="1615" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Call_PublishStatements_di" bpmnElement="Call_PublishStatements">
+        <dc:Bounds x="1615" y="418" width="170" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F09b_di" bpmnElement="F09b">
+        <di:waypoint x="1785" y="450" />
+        <di:waypoint x="1900" y="450" />
+        <di:waypoint x="1900" y="367" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F09_di" bpmnElement="F09">
+        <di:waypoint x="1700" y="367" />
+        <di:waypoint x="1700" y="418" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F10_di" bpmnElement="F10">
+        <di:waypoint x="1985" y="335" />
+        <di:waypoint x="2000" y="335" />
+        <di:waypoint x="2000" y="450" />
+        <di:waypoint x="2015" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F11_di" bpmnElement="F11">
+        <di:waypoint x="2185" y="450" />
+        <di:waypoint x="2200" y="450" />
+        <di:waypoint x="2200" y="452.5" />
+        <di:waypoint x="2215" y="452.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F12_di" bpmnElement="F12">
+        <di:waypoint x="2385" y="452.5" />
+        <di:waypoint x="2400" y="452.5" />
+        <di:waypoint x="2400" y="1205" />
+        <di:waypoint x="2415" y="1205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F13_di" bpmnElement="F13">
+        <di:waypoint x="2585" y="1205" />
+        <di:waypoint x="2600" y="1205" />
+        <di:waypoint x="2600" y="452.5" />
+        <di:waypoint x="2615" y="452.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F14_di" bpmnElement="F14">
+        <di:waypoint x="2785" y="452.5" />
+        <di:waypoint x="2800" y="452.5" />
+        <di:waypoint x="2800" y="1526.5" />
+        <di:waypoint x="2815" y="1526.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F15_di" bpmnElement="F15">
+        <di:waypoint x="2985" y="1526.5" />
+        <di:waypoint x="3015" y="1526.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F16_di" bpmnElement="F16">
+        <di:waypoint x="3185" y="1526.5" />
+        <di:waypoint x="3210" y="1526.5" />
+        <di:waypoint x="3210" y="765" />
+        <di:waypoint x="3235" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F17_di" bpmnElement="F17">
+        <di:waypoint x="3285" y="765" />
+        <di:waypoint x="3395" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F18_di" bpmnElement="F18">
+        <di:waypoint x="3445" y="765" />
+        <di:waypoint x="3470" y="765" />
+        <di:waypoint x="3470" y="450" />
+        <di:waypoint x="3495" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F19_di" bpmnElement="F19">
+        <di:waypoint x="3445" y="765" />
+        <di:waypoint x="3470" y="765" />
+        <di:waypoint x="3470" y="540" />
+        <di:waypoint x="3495" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F20_di" bpmnElement="F20">
+        <di:waypoint x="3445" y="765" />
+        <di:waypoint x="3470" y="765" />
+        <di:waypoint x="3470" y="630" />
+        <di:waypoint x="3495" y="630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F21_di" bpmnElement="F21">
+        <di:waypoint x="3445" y="765" />
+        <di:waypoint x="3470" y="765" />
+        <di:waypoint x="3470" y="720" />
+        <di:waypoint x="3495" y="720" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F22_di" bpmnElement="F22">
+        <di:waypoint x="3445" y="765" />
+        <di:waypoint x="3470" y="765" />
+        <di:waypoint x="3470" y="810" />
+        <di:waypoint x="3495" y="810" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F23_di" bpmnElement="F23">
+        <di:waypoint x="3445" y="765" />
+        <di:waypoint x="3470" y="765" />
+        <di:waypoint x="3470" y="900" />
+        <di:waypoint x="3495" y="900" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F24_di" bpmnElement="F24">
+        <di:waypoint x="3445" y="765" />
+        <di:waypoint x="3470" y="765" />
+        <di:waypoint x="3470" y="990" />
+        <di:waypoint x="3495" y="990" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F25_di" bpmnElement="F25">
+        <di:waypoint x="3445" y="765" />
+        <di:waypoint x="3470" y="765" />
+        <di:waypoint x="3470" y="1080" />
+        <di:waypoint x="3495" y="1080" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F26_di" bpmnElement="F26">
+        <di:waypoint x="3665" y="450" />
+        <di:waypoint x="3690" y="450" />
+        <di:waypoint x="3690" y="765" />
+        <di:waypoint x="3715" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F27_di" bpmnElement="F27">
+        <di:waypoint x="3665" y="540" />
+        <di:waypoint x="3690" y="540" />
+        <di:waypoint x="3690" y="765" />
+        <di:waypoint x="3715" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F28_di" bpmnElement="F28">
+        <di:waypoint x="3665" y="630" />
+        <di:waypoint x="3690" y="630" />
+        <di:waypoint x="3690" y="765" />
+        <di:waypoint x="3715" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F29_di" bpmnElement="F29">
+        <di:waypoint x="3665" y="720" />
+        <di:waypoint x="3690" y="720" />
+        <di:waypoint x="3690" y="765" />
+        <di:waypoint x="3715" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F30_di" bpmnElement="F30">
+        <di:waypoint x="3665" y="810" />
+        <di:waypoint x="3690" y="810" />
+        <di:waypoint x="3690" y="765" />
+        <di:waypoint x="3715" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F31_di" bpmnElement="F31">
+        <di:waypoint x="3665" y="900" />
+        <di:waypoint x="3690" y="900" />
+        <di:waypoint x="3690" y="765" />
+        <di:waypoint x="3715" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F32_di" bpmnElement="F32">
+        <di:waypoint x="3665" y="990" />
+        <di:waypoint x="3690" y="990" />
+        <di:waypoint x="3690" y="765" />
+        <di:waypoint x="3715" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F33_di" bpmnElement="F33">
+        <di:waypoint x="3665" y="1080" />
+        <di:waypoint x="3690" y="1080" />
+        <di:waypoint x="3690" y="765" />
+        <di:waypoint x="3715" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F34_di" bpmnElement="F34">
+        <di:waypoint x="3765" y="765" />
+        <di:waypoint x="3875" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F35_di" bpmnElement="F35">
+        <di:waypoint x="3925" y="765" />
+        <di:waypoint x="3950" y="765" />
+        <di:waypoint x="3950" y="450" />
+        <di:waypoint x="3975" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F36_di" bpmnElement="F36">
+        <di:waypoint x="3925" y="765" />
+        <di:waypoint x="3950" y="765" />
+        <di:waypoint x="3950" y="1372" />
+        <di:waypoint x="3975" y="1372" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F37_di" bpmnElement="F37">
+        <di:waypoint x="4145" y="450" />
+        <di:waypoint x="4170" y="450" />
+        <di:waypoint x="4170" y="765" />
+        <di:waypoint x="4195" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F38_di" bpmnElement="F38">
+        <di:waypoint x="4145" y="1372" />
+        <di:waypoint x="4170" y="1372" />
+        <di:waypoint x="4170" y="765" />
+        <di:waypoint x="4195" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F39_di" bpmnElement="F39">
+        <di:waypoint x="4245" y="765" />
+        <di:waypoint x="4270" y="765" />
+        <di:waypoint x="4270" y="450" />
+        <di:waypoint x="4295" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F40_di" bpmnElement="F40">
+        <di:waypoint x="4465" y="450" />
+        <di:waypoint x="4480" y="450" />
+        <di:waypoint x="4480" y="1529" />
+        <di:waypoint x="4495" y="1529" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F41_di" bpmnElement="F41">
+        <di:waypoint x="4665" y="1529" />
+        <di:waypoint x="4680" y="1529" />
+        <di:waypoint x="4680" y="1644" />
+        <di:waypoint x="4695" y="1644" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F42_di" bpmnElement="F42">
+        <di:waypoint x="4865" y="1644" />
+        <di:waypoint x="4890" y="1644" />
+        <di:waypoint x="4890" y="1641.5" />
+        <di:waypoint x="4915" y="1641.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F43_di" bpmnElement="F43">
+        <di:waypoint x="4965" y="1641.5" />
+        <di:waypoint x="4990" y="1641.5" />
+        <di:waypoint x="4990" y="1644" />
+        <di:waypoint x="5015" y="1644" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F44_di" bpmnElement="F44">
+        <di:waypoint x="4940" y="1666.5" />
+        <di:waypoint x="4940" y="1804" />
+        <di:waypoint x="3260" y="1804" />
+        <di:waypoint x="3260" y="790" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F45_di" bpmnElement="F45">
+        <di:waypoint x="5185" y="1644" />
+        <di:waypoint x="5200" y="1644" />
+        <di:waypoint x="5200" y="1641.5" />
+        <di:waypoint x="5215" y="1641.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F46_di" bpmnElement="F46">
+        <di:waypoint x="5385" y="1641.5" />
+        <di:waypoint x="5400" y="1641.5" />
+        <di:waypoint x="5400" y="1644" />
+        <di:waypoint x="5415" y="1644" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F47_di" bpmnElement="F47">
+        <di:waypoint x="5585" y="1644" />
+        <di:waypoint x="5600" y="1644" />
+        <di:waypoint x="5600" y="1526.5" />
+        <di:waypoint x="5615" y="1526.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F48_di" bpmnElement="F48">
+        <di:waypoint x="5785" y="1526.5" />
+        <di:waypoint x="5800" y="1526.5" />
+        <di:waypoint x="5800" y="1644" />
+        <di:waypoint x="5815" y="1644" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F49_di" bpmnElement="F49">
+        <di:waypoint x="5985" y="1644" />
+        <di:waypoint x="6015" y="1644" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F50_di" bpmnElement="F50">
+        <di:waypoint x="6185" y="1644" />
+        <di:waypoint x="6200" y="1644" />
+        <di:waypoint x="6200" y="1641.5" />
+        <di:waypoint x="6215" y="1641.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F51_di" bpmnElement="F51">
+        <di:waypoint x="6385" y="1641.5" />
+        <di:waypoint x="6400" y="1641.5" />
+        <di:waypoint x="6400" y="1756.5" />
+        <di:waypoint x="6415" y="1756.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F52_di" bpmnElement="F52">
+        <di:waypoint x="6585" y="1756.5" />
+        <di:waypoint x="6642" y="1756.5" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

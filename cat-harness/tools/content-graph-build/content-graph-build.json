@@ -1,0 +1,75 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "content-graph-build",
+    "title": "Content graph",
+    "description": "Build the content graph under a path and report its edges, separated into the EDITORIAL relation an author maintains and the FORMAL one derived from Lean, never as one number, because a single count lets the formal edges overwrite the editorial signal.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat content:graph"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "targetPath",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Content root to walk; defaults to the folio's `content/`.",
+          "required": false,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "json",
+          "schema": {
+            "$type": "Flag"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--json"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Block count, then edge counts reported separately and never summed: EDITORIAL (`uses[]`, `interprets` — author-maintained) and FORMAL (derived from `lean.ref`). The formal line distinguishes `0` from `cache ABSENT`, so an unavailable formal graph cannot be read as a graph with no formal edges."
+        }
+      ]
+    },
+    "satisfies": [
+      "content-validate"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/io/inputs/0",
+      "comment": "Optional, because the script defaults to `<repo>/content` — and\n`check-tools` matches a contract by PORT NAME rather than by\nrequired-ness, so declaring it optional still satisfies\n`content-validate` honestly instead of overstating the argument."
+    },
+    {
+      "at": "/io/outputs/0",
+      "comment": "STILL one `Text` port, and `Count` existing does not change that —\nwhich is worth saying, because the obvious move once the type landed\nwould be to split this into two numbers.\n\nThe reason was never only the missing type. A SHELL arm returns a\nprinted report, so `editorialEdges: Count` would overstate what the\ninvoke arm hands a caller: it would promise a parsed number where the\nmechanism emits text. A node whose ports describe an API it does not\nhave is the same defect as a `satisfies` edge whose contract it\ncannot receive.\n\nThe EDITORIAL / FORMAL split survives in the description instead,\nand it is the fact that matters: `uses[]` and `interprets` are what\na READER must have read, while the formal graph is machine-derived\nfrom `lean.ref`. A single combined edge count would invite exactly\nthe \"sync uses from the formal graph\" operation that destroys the\nsignal every ordering metric is computed from — `oait` names that as\nthe one rule this group must not break."
+    },
+    {
+      "at": "/satisfies",
+      "comment": "NO input or output offering to populate `uses[]` from the formal graph,\nand that absence is the point rather than an omission — `oait` names it\nas the one rule the group must not break."
+    },
+    {
+      "at": "",
+      "comment": "── Task_Validate, served by TWO Tools that are not alternatives ──────\n\nGroups 6 (`oait`) and 10 (`9x17`) of `d308` both bind `authoring-a-paper ·\nTask_Validate` and both satisfy `content-validate`. Both beans asked for\nan alternative relation and `selection` between them \"since they share a\ntask\", and **that is the inference `deriveAlternatives` refuses**:\nsharing a skill does not make two Tools substitutable, measured across 12\nof this layer's 25 multi-Tool skills. It also needs the same I/O.\n\nThese two are the ordinary case, not the exception. One asks whether the\ncontent GRAPH is well-formed and well-ordered; the other asks whether a\nblock is valid against its schema. A folio runs both, in that order, and\nneither answer substitutes for the other — so pairing them would oblige\n`selection` prose comparing two things that do not compete, and an\nauthor made to write it writes noise. Their I/O differs, so none is\nderived, and both beans were corrected rather than satisfied."
+    }
+  ]
+}

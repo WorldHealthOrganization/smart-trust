@@ -1,0 +1,20 @@
+{%- comment -%}
+The IG Publisher's list of one resource type's artefacts (`list-<types>.xhtml`, `list-simple-<types>.xhtml`), rendered by Jekyll from `site.data.fhir`.
+Laid out as the Publisher lays it out: a `<ul>` with one `<li>` per artefact, its title linked to its page, then —
+unless `include.simple` — its description. Called by the `list-*.xhtml` include `build-ig-site.ts` writes in place of
+the fragment the Publisher would have generated (bean `9hfi`), with `include.type` (the resource type) and
+`include.simple` (present for the simple form). Reads `site.data.fhir.artifact_lists[type]` (`count`, `keys`, already in the Publisher's order) and,
+per key, `site.data.fhir.artifacts[key]` (`link.html`, `elements.description`). Every value, the order and the link
+included, is computed by `artifactVariables`; this file only arranges them. A type the index holds none of is SAID,
+rather than shown as an empty list a reader cannot tell from a broken one.
+{%- endcomment -%}
+{%- assign l = site.data.fhir.artifact_lists[include.type] -%}
+{%- if l and l.count > 0 %}
+<ul class="ig-artifact-list">
+{%- for k in l.keys %}{% assign a = site.data.fhir.artifacts[k] %}
+ <li>{{ a.link.html }}{% unless include.simple %}{% if a.elements.description %} {{ a.elements.description | escape }}{% endif %}{% endunless %}</li>
+{%- endfor %}
+</ul>
+{%- else %}
+<p class="ig-artifact-list-empty">This guide's artefact index holds no {{ include.type }} resources.</p>
+{%- endif %}

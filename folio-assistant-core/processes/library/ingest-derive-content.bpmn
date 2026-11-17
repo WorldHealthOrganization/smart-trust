@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — Ingestion subprocess — derive content from the assets.
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool. The SVG under docs/assets/img/workflows/ is generated from it
+  by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  The <bootstrap.processes:skill> extension on an activity names the folio-assistant skill
+  that implements it; <cat-harness.processes:bean> marks a step that reads or writes the shared
+  work plan in beans/.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_DeriveContent"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="ingestion-agent" name="Ingestion engine"/>
+  <bpmn:collaboration id="Collaboration_DeriveContent">
+    <bpmn:participant id="Participant_DeriveContent" name="Ingestion subprocess — derive content from the assets" processRef="Process_DeriveContent" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_DeriveContent" name="Ingestion subprocess — derive content from the assets" isExecutable="false">
+    <bpmn:documentation>Derive content from an ingested source's assets: the archive, technical metadata, figures and tables, images, audio, tabular data, footnotes and provenance. Every step is an arm of `bun run cat ingest` (cat-harness-tools scripts/ingest-document.ts), so a re-ingest re-derives all of them; none is a step somebody runs by hand afterwards.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_DeriveContent_LaneSet">
+      <bpmn:lane id="Lane_0" name="Ingestion Engine (agent, runs unattended)" partitionElementRef="ingestion-agent">
+        <bpmn:documentation>The only lane in this subprocess, so nothing produced here is checked by a different party before it reaches the L1 graph. Two of these eight tasks (Task_Archive, Task_TechMeta) still say NOT IMPLEMENTED; Task_Provenance's citation of who or what wrote each narrative is what is meant to stand between a generated description and its being treated as source material.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_Assets</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Fan</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Archive</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TechMeta</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Image</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Audio</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Tabular</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FiguresTables</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Footnotes</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Provenance</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Derived</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Assets" name="Assets in hand">
+      <bpmn:outgoing>Flow_d1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:parallelGateway id="Gateway_Fan" name="Per asset kind">
+      <bpmn:incoming>Flow_d1</bpmn:incoming>
+      <bpmn:outgoing>Flow_d2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_d3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_d4</bpmn:outgoing>
+      <bpmn:outgoing>Flow_d5</bpmn:outgoing>
+      <bpmn:outgoing>Flow_d6</bpmn:outgoing>
+      <bpmn:outgoing>Flow_d14</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="Task_Archive" name="Archive → greppable
+contents manifest">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>NOT IMPLEMENTED; see docs/document-ingestion.md. Tar/zip is opaque to every grep in the corpus until its contents are listed as data.</bpmn:documentation>
+      <bpmn:incoming>Flow_d2</bpmn:incoming>
+      <bpmn:outgoing>Flow_d7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_TechMeta" name="File info, sizes, hashes,
+timestamps, mimetype">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>NOT IMPLEMENTED; see docs/document-ingestion.md. Mechanical and cheap; the checksum is what makes a remote asset verifiable.</bpmn:documentation>
+      <bpmn:incoming>Flow_d3</bpmn:incoming>
+      <bpmn:outgoing>Flow_d8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Image" name="Narrative description
+per image, localized">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>Applies equally to an image EXTRACTED FROM A PDF (Task_FiguresTables), not only to an uploaded one. An agent opens every image and vector render and records a verdict in the library's image-verdicts.json: role (figure, logo or decorative), the reason, and a draft description in English plus ar, zh, es, fr and ru, which the apply-image-verdicts.ts arm lays over images.json on every ingest. Images judged figure are kept as WebP, quality 80, at most 1600 px; logos, decorative fragments and page scans are not. Every description stays a draft until a person confirms it with `bun run cat narratives`. Method: skill document-intake, "Figures and captioned tables: describe, keep, transcribe".</bpmn:documentation>
+      <bpmn:incoming>Flow_d15</bpmn:incoming>
+      <bpmn:outgoing>Flow_d9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Audio" name="Transcribe and
+translate audio">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>No Tool yet; the method, and the choice of recogniser, is skill audio-transcription.</bpmn:documentation>
+      <bpmn:incoming>Flow_d5</bpmn:incoming>
+      <bpmn:outgoing>Flow_d10</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Tabular" name="Sheet names, headers,
+shape, narrative">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>Tools tabular-csv and tabular-xlsx, as CSVW (skill tabular-metadata). CSV and spreadsheet: tabs, column and row headers, sizes, and what the dataset is about.</bpmn:documentation>
+      <bpmn:incoming>Flow_d6</bpmn:incoming>
+      <bpmn:outgoing>Flow_d11</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_FiguresTables" name="Extract figures
+and tables">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake"/>
+      </bpmn:extensionElements>
+      <bpmn:documentation>The pdf-images.py, pdf-vector-labels.py and pdf-vector-figures.py arms extract the raster images and the figures drawn as vectors (grouped and rendered). For every table the document's structure declares, an agent reads the rendered page, checks cell text against the text layer, and writes tables/&lt;label&gt;.csv plus tables.csvw.json (folio-tabular-csvw/v1), with a draft description in the six UN languages; pdf-tables.py's grid is a cross-check, not the answer. Owner, 2026-11-11 (who-iris): "actually extract the figures" and "any tables too". Method: skill document-intake, "Figures and captioned tables: describe, keep, transcribe".</bpmn:documentation>
+      <bpmn:incoming>Flow_d4</bpmn:incoming>
+      <bpmn:outgoing>Flow_d15</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Footnotes" name="Footnotes and
+the marks that call them">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l1-document-ingestion"/>
+      </bpmn:extensionElements>
+      <bpmn:documentation>The pdf-footnotes.py arm (owner, 2026-11-11, "also foot notes/marks"): from the page layout, each note at the foot of a page and every superscript mark in the text that calls it, written to footnotes.json (folio-document-footnotes/v1) with the block that holds the page. The section text is not changed. Only a called note is a footnote; uncalled foot-of-page lines and marks with no note are listed, never dropped. OCR'd pages have no fonts and are reported unread. Method: skill l1-document-ingestion, "Footnotes and their marks".</bpmn:documentation>
+      <bpmn:incoming>Flow_d14</bpmn:incoming>
+      <bpmn:outgoing>Flow_d16</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:parallelGateway id="Gateway_Join" name="All kinds done">
+      <bpmn:incoming>Flow_d7</bpmn:incoming>
+      <bpmn:incoming>Flow_d8</bpmn:incoming>
+      <bpmn:incoming>Flow_d9</bpmn:incoming>
+      <bpmn:incoming>Flow_d10</bpmn:incoming>
+      <bpmn:incoming>Flow_d11</bpmn:incoming>
+      <bpmn:incoming>Flow_d16</bpmn:incoming>
+      <bpmn:outgoing>Flow_d12</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="Task_Provenance" name="Cite the author of
+every narrative">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>A generated description is a claim by someone. Record whether a human or an agent wrote it, and for an agent the model version. An uncited narrative is indistinguishable from a transcription of the source.</bpmn:documentation>
+      <bpmn:incoming>Flow_d12</bpmn:incoming>
+      <bpmn:outgoing>Flow_d13</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Derived" name="Derived">
+      <bpmn:incoming>Flow_d13</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_d1" sourceRef="StartEvent_Assets" targetRef="Gateway_Fan" />
+    <bpmn:sequenceFlow id="Flow_d2" sourceRef="Gateway_Fan" targetRef="Task_Archive" />
+    <bpmn:sequenceFlow id="Flow_d3" sourceRef="Gateway_Fan" targetRef="Task_TechMeta" />
+    <bpmn:sequenceFlow id="Flow_d4" sourceRef="Gateway_Fan" targetRef="Task_FiguresTables" />
+    <bpmn:sequenceFlow id="Flow_d15" sourceRef="Task_FiguresTables" targetRef="Task_Image" />
+    <bpmn:sequenceFlow id="Flow_d5" sourceRef="Gateway_Fan" targetRef="Task_Audio" />
+    <bpmn:sequenceFlow id="Flow_d6" sourceRef="Gateway_Fan" targetRef="Task_Tabular" />
+    <bpmn:sequenceFlow id="Flow_d7" sourceRef="Task_Archive" targetRef="Gateway_Join" />
+    <bpmn:sequenceFlow id="Flow_d8" sourceRef="Task_TechMeta" targetRef="Gateway_Join" />
+    <bpmn:sequenceFlow id="Flow_d9" sourceRef="Task_Image" targetRef="Gateway_Join" />
+    <bpmn:sequenceFlow id="Flow_d10" sourceRef="Task_Audio" targetRef="Gateway_Join" />
+    <bpmn:sequenceFlow id="Flow_d11" sourceRef="Task_Tabular" targetRef="Gateway_Join" />
+    <bpmn:sequenceFlow id="Flow_d12" sourceRef="Gateway_Join" targetRef="Task_Provenance" />
+    <bpmn:sequenceFlow id="Flow_d14" sourceRef="Gateway_Fan" targetRef="Task_Footnotes" />
+    <bpmn:sequenceFlow id="Flow_d16" sourceRef="Task_Footnotes" targetRef="Gateway_Join" />
+    <bpmn:sequenceFlow id="Flow_d13" sourceRef="Task_Provenance" targetRef="EndEvent_Derived" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_DeriveContent">
+    <bpmndi:BPMNPlane id="Plane_DeriveContent" bpmnElement="Collaboration_DeriveContent">
+      <bpmndi:BPMNShape id="Participant_DeriveContent_di" bpmnElement="Participant_DeriveContent" isHorizontal="true"><dc:Bounds x="160" y="80" width="1180" height="860" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0_di" bpmnElement="Lane_0" isHorizontal="true"><dc:Bounds x="190" y="80" width="1150" height="860" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Assets_di" bpmnElement="StartEvent_Assets"><dc:Bounds x="277" y="482" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Fan_di" bpmnElement="Gateway_Fan"><dc:Bounds x="380" y="475" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Archive_di" bpmnElement="Task_Archive"><dc:Bounds x="520" y="90" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TechMeta_di" bpmnElement="Task_TechMeta"><dc:Bounds x="520" y="230" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FiguresTables_di" bpmnElement="Task_FiguresTables"><dc:Bounds x="520" y="370" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Audio_di" bpmnElement="Task_Audio"><dc:Bounds x="520" y="510" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Tabular_di" bpmnElement="Task_Tabular"><dc:Bounds x="520" y="650" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Footnotes_di" bpmnElement="Task_Footnotes"><dc:Bounds x="520" y="790" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Image_di" bpmnElement="Task_Image"><dc:Bounds x="720" y="370" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Join_di" bpmnElement="Gateway_Join"><dc:Bounds x="940" y="475" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Provenance_di" bpmnElement="Task_Provenance"><dc:Bounds x="1060" y="440" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Derived_di" bpmnElement="EndEvent_Derived"><dc:Bounds x="1260" y="482" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_d1_di" bpmnElement="Flow_d1"><di:waypoint x="313" y="500" /><di:waypoint x="380" y="500" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d2_di" bpmnElement="Flow_d2"><di:waypoint x="430" y="500" /><di:waypoint x="470" y="500" /><di:waypoint x="470" y="150" /><di:waypoint x="520" y="150" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d3_di" bpmnElement="Flow_d3"><di:waypoint x="430" y="500" /><di:waypoint x="470" y="500" /><di:waypoint x="470" y="290" /><di:waypoint x="520" y="290" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d4_di" bpmnElement="Flow_d4"><di:waypoint x="430" y="500" /><di:waypoint x="470" y="500" /><di:waypoint x="470" y="430" /><di:waypoint x="520" y="430" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d5_di" bpmnElement="Flow_d5"><di:waypoint x="430" y="500" /><di:waypoint x="470" y="500" /><di:waypoint x="470" y="570" /><di:waypoint x="520" y="570" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d6_di" bpmnElement="Flow_d6"><di:waypoint x="430" y="500" /><di:waypoint x="470" y="500" /><di:waypoint x="470" y="710" /><di:waypoint x="520" y="710" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d14_di" bpmnElement="Flow_d14"><di:waypoint x="430" y="500" /><di:waypoint x="470" y="500" /><di:waypoint x="470" y="850" /><di:waypoint x="520" y="850" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d15_di" bpmnElement="Flow_d15"><di:waypoint x="640" y="430" /><di:waypoint x="720" y="430" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d7_di" bpmnElement="Flow_d7"><di:waypoint x="640" y="150" /><di:waypoint x="900" y="150" /><di:waypoint x="900" y="500" /><di:waypoint x="940" y="500" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d8_di" bpmnElement="Flow_d8"><di:waypoint x="640" y="290" /><di:waypoint x="900" y="290" /><di:waypoint x="900" y="500" /><di:waypoint x="940" y="500" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d9_di" bpmnElement="Flow_d9"><di:waypoint x="840" y="430" /><di:waypoint x="900" y="430" /><di:waypoint x="900" y="500" /><di:waypoint x="940" y="500" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d10_di" bpmnElement="Flow_d10"><di:waypoint x="640" y="570" /><di:waypoint x="900" y="570" /><di:waypoint x="900" y="500" /><di:waypoint x="940" y="500" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d11_di" bpmnElement="Flow_d11"><di:waypoint x="640" y="710" /><di:waypoint x="900" y="710" /><di:waypoint x="900" y="500" /><di:waypoint x="940" y="500" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d16_di" bpmnElement="Flow_d16"><di:waypoint x="640" y="850" /><di:waypoint x="900" y="850" /><di:waypoint x="900" y="500" /><di:waypoint x="940" y="500" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d12_di" bpmnElement="Flow_d12"><di:waypoint x="990" y="500" /><di:waypoint x="1060" y="500" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_d13_di" bpmnElement="Flow_d13"><di:waypoint x="1180" y="500" /><di:waypoint x="1260" y="500" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

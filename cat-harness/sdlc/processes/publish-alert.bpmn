@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_PublishAlert" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="publication-manager" name="Publication manager"/>
+  <bpmn:collaboration id="Collaboration_Process_PublishAlert">
+    <bpmn:participant id="Participant_Process_PublishAlert" name="Alert the publication manager" processRef="Process_PublishAlert"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_PublishAlert" name="Alert the publication manager" isExecutable="false">
+    <bpmn:documentation>One alert for every failure after the publish button — an incomplete export, a failed verification, a failed deploy, a lost preview — kept as a single tracking issue for the publication manager and closed by the next clean publish. Owner, 2026-09-23: &quot;there is another alert needed for deployment failure. every step post 'push the publish button' should be same&quot;. So this is ONE alert, called from every failure edge after the publish button — an incomplete export, a verification failure, a failed deploy, a lost preview — and it reaches the role that already owns the release: the publication manager.</bpmn:documentation>
+    <bpmn:extensionElements><cat-harness.processes:policy enforcement="strict"/></bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_PublishAlert">
+      <bpmn:lane id="Lane_Ci" name="CI/CD Pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>The build pipeline, running unattended between the export and the deploy. Raises the one alert, the same way whichever step failed.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Failed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Label</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Open</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Open</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Comment</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_PubMgr" name="Publication manager" partitionElementRef="publication-manager">
+        <bpmn:documentation>The existing publication-manager role: accountable for what is live, and so the one alerted when anything after the publish button fails. A person, because the triage is a judgement about a release.</bpmn:documentation>
+        <bpmn:flowNodeRef>U_Triage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Triaged</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Failed" name="A step after the&#10;publish button failed">
+      <bpmn:outgoing>F_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="A_Label" name="Ensure the&#10;publication-manager label">
+      <bpmn:documentation>The alert is a tracking issue labelled `publication-manager` — the role, not a person, because no actor declares a GitHub account for it. Whoever watches that label is alerted.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:no-skill reason="A mechanical actor runs this — GitHub Actions executes a command in a runner. There is no instruction body an agent could be handed."/></bpmn:extensionElements>
+      <bpmn:incoming>F_1</bpmn:incoming>
+      <bpmn:outgoing>F_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Open" name="An alert already&#10;open?">
+      <bpmn:documentation>Is a publication-manager tracking issue already open? `no` opens one; `yes` comments on it, because each failed publish is a new event the publication manager should be notified of — an edit alone would not notify.</bpmn:documentation>
+      <bpmn:incoming>F_2</bpmn:incoming>
+      <bpmn:outgoing>F_3</bpmn:outgoing>
+      <bpmn:outgoing>F_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="A_Open" name="Open the tracking issue,&#10;naming the failed step">
+      <bpmn:documentation>Open the issue with the step that failed, the run link and — for a verification failure — the verifier report.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:no-skill reason="A mechanical actor runs this — GitHub Actions executes a command in a runner. There is no instruction body an agent could be handed."/></bpmn:extensionElements>
+      <bpmn:incoming>F_3</bpmn:incoming>
+      <bpmn:outgoing>F_5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="A_Comment" name="Comment on the open&#10;issue, naming the step">
+      <bpmn:documentation>Add this failure to the open issue as a comment (which notifies), and refresh the body to the latest state.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:no-skill reason="A mechanical actor runs this — GitHub Actions executes a command in a runner. There is no instruction body an agent could be handed."/></bpmn:extensionElements>
+      <bpmn:incoming>F_4</bpmn:incoming>
+      <bpmn:outgoing>F_6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="U_Triage" calledElement="Process_AskThePerson" name="Triage the failure:&#10;hold or fix forward">
+      <bpmn:documentation>The publication manager reads what failed and decides: hold the release, or fix forward and publish again. Nothing was deployed on a failure before the deploy; a failure after it (the deploy itself, or the previews lost) is live, and says so. The next successful publish closes the issue.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="publish-verification"/></bpmn:extensionElements>
+      <bpmn:incoming>F_5</bpmn:incoming>
+      <bpmn:incoming>F_6</bpmn:incoming>
+      <bpmn:outgoing>F_7</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_Triaged" name="Triaged">
+      <bpmn:incoming>F_7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="F_1" sourceRef="Start_Failed" targetRef="A_Label"/>
+    <bpmn:sequenceFlow id="F_2" sourceRef="A_Label" targetRef="GW_Open"/>
+    <bpmn:sequenceFlow id="F_3" sourceRef="GW_Open" targetRef="A_Open" name="no"/>
+    <bpmn:sequenceFlow id="F_4" sourceRef="GW_Open" targetRef="A_Comment" name="yes"/>
+    <bpmn:sequenceFlow id="F_5" sourceRef="A_Open" targetRef="U_Triage"/>
+    <bpmn:sequenceFlow id="F_6" sourceRef="A_Comment" targetRef="U_Triage"/>
+    <bpmn:sequenceFlow id="F_7" sourceRef="U_Triage" targetRef="End_Triaged"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_PublishAlert">
+    <bpmndi:BPMNPlane id="Plane_Process_PublishAlert" bpmnElement="Collaboration_Process_PublishAlert">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_PublishAlert" bpmnElement="Participant_Process_PublishAlert" isHorizontal="true"><dc:Bounds x="60" y="60" width="1280" height="728" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Ci" bpmnElement="Lane_Ci" isHorizontal="true"><dc:Bounds x="90" y="60" width="1250" height="534" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_PubMgr" bpmnElement="Lane_PubMgr" isHorizontal="true"><dc:Bounds x="90" y="594" width="1250" height="194" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Failed" bpmnElement="Start_Failed"><dc:Bounds x="192" y="309" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="125" y="169" width="140" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Label" bpmnElement="A_Label"><dc:Bounds x="330" y="267" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Open" bpmnElement="GW_Open" isMarkerVisible="true"><dc:Bounds x="595" y="302" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="509.25" y="191.5" width="140" height="36" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Open" bpmnElement="A_Open"><dc:Bounds x="790" y="97" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Comment" bpmnElement="A_Comment"><dc:Bounds x="790" y="437" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_U_Triage" bpmnElement="U_Triage"><dc:Bounds x="970" y="631" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Triaged" bpmnElement="End_Triaged"><dc:Bounds x="1192" y="673" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1115" y="351" width="140" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_F_1" bpmnElement="F_1">
+        <di:waypoint x="228" y="327" />
+        <di:waypoint x="330" y="327" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_2" bpmnElement="F_2">
+        <di:waypoint x="450" y="327" />
+        <di:waypoint x="595" y="327" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_3" bpmnElement="F_3">
+        <di:waypoint x="620" y="302" />
+        <di:waypoint x="620" y="157" />
+        <di:waypoint x="790" y="157" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_4" bpmnElement="F_4">
+        <di:waypoint x="620" y="352" />
+        <di:waypoint x="620" y="497" />
+        <di:waypoint x="790" y="497" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_5" bpmnElement="F_5">
+        <di:waypoint x="910" y="157" />
+        <di:waypoint x="1030" y="157" />
+        <di:waypoint x="1030" y="631" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_6" bpmnElement="F_6">
+        <di:waypoint x="850" y="557" />
+        <di:waypoint x="850" y="691" />
+        <di:waypoint x="970" y="691" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_7" bpmnElement="F_7">
+        <di:waypoint x="1090" y="691" />
+        <di:waypoint x="1192" y="691" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

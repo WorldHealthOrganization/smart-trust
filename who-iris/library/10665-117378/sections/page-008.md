@@ -1,0 +1,87 @@
+---
+doc_id: 10665-117378
+doc_title: "[Pilot study of antiretroviral therapy in Djibouti]"
+section_id: page-008
+section_title: "Page 8"
+pages: 8-8
+pdf_page: 8
+source_pdf: 10665-117378.pdf
+source_sha256: a1da9552b4648697
+text_source: ocr
+granularity: page
+---
+Eastern Mediterranean Health Journal, Vol. 13, No. 6, 2007
+
+1281
+
+600 -
+°
+400 -
+o
+o
+co
+G 200- 02 °6fo : : |
+° Le)
+go
+"8 800 EUX 5 |
+8 og8o8l6e oê o o
+07 o
+2007 nomme Damme TT …—
+T | | |
+0,0 1,0 2,0 30 3
+Lymphocytes totaux
+o CD4 “ Valeurs ajustées
+
+Figure 1 Représentation graphique selon un modèle de régression linéaire de la corrélation
+entre les lymphocytes totaux (LT) et les lymphocytes T CD4 à l'initiation du traitement
+
+antirétroviral
+
+rieur à Djibouti classait la tuberculose en tête
+des affections opportunistes [6]. Les mêmes
+proportions d’affections opportunistes sont
+retrouvées au Gabon [7] au Bénin [8] et en
+Afrique du Sud [9]. En outre, le VIH 1, plus
+transmissible que le VIH 2 et entraînant une
+progression plus rapide vers les stades de
+SIDA-maladie, représente la majorité des
+identifications réalisées contre 95,2 % au
+Bénin [5] et 95,8 % au Sénégal [3].
+
+Un acquis clinique stable et une
+réponse immuno-virologique
+soutenue
+
+L'usage des inhibiteurs de la protéase pré-
+domine au Sénégal [3] et au Bénin [5] par
+rapport à Djibouti. Les inhibiteurs de la
+protéase sont reconnus pour la révolution
+de la thérapie antirétrovirale dans les essais
+cliniques [70,11]. La faible proportion de
+
+leur utilisation s’explique par la précocité
+du traitement et la proportion élevée de tu-
+berculeux empêchant l’association avec
+la rifampicine. Toutefois, cet acquis est à
+conserver par un renforcement de l’obser-
+vance afin d’éviter l’émergence de souches
+résistantes sachant que le développement
+des résistances aux INNTI est très rapide
+[21].
+
+À l'initiation, le poids et l'indice de mas-
+se corporelle médians sont plus faibles que
+ceux des cohortes sénégalaise et béninoise
+[3,51. Toutefois, au moment de l’enquête,
+les niveaux atteints par nos patients sont
+importants. Cette nette amélioration des
+paramètres cliniques s’explique par la prise
+en charge des affections opportunistes mais
+aussi l’hygiène de vie.
+
+À l'inclusion, le taux médian de CD4
+est de 118/mm° contre 117 au Bénin [5]
+
+Yes Ver oui 6e JUS Al ALI 2h ob chu sl G
+
+DE VSNETEN]

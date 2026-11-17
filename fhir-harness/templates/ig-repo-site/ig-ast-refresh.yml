@@ -1,0 +1,60 @@
+# TEMPLATE — refresh an IG repository's FHIR AST cache. Copy to
+# `.github/workflows/ig-ast-refresh.yml` unchanged: it has no placeholders.
+#
+# The steps are fhir-harness's, not this repository's (owner, 2026-10-14:
+# "that should be in fhir-harness then smart-* all use that"): this caller
+# runs `fhir-harness/.github/workflows/ig-ast-refresh.yml`, which builds the IG
+# with the Publisher AST exporter when the cache on
+# `cat/fhir-harness/fhir-ast/<package id>` is not valid for `ref`, and seeds
+# it. Nothing else: the site is published by `site-publish.yml`, from the
+# cache this writes (skill `ig-build-pipeline`, "The AST cache lifecycle").
+#
+# Needs: index.lock.json mounting fhir-harness (as site-publish.yml does).
+#
+# A WHO IG whose ig.ini names `who.template.root#current` adds, under `with:`,
+#   template-repos: who.template.root=WorldHealthOrganization/smart-ig-template
+# so a cold runner seeds the template from its repository (fhir-harness#196).
+#
+# An IG whose own build prepares its inputs before the Publisher runs (an
+# overlay: generated pages, generated resources) passes that command as
+# `pre-export` under `with:` below; the reusable workflow runs it before the
+# AST export and records the AST against the clean commit. Write it in this
+# file, never as a dispatch input. Without one, nothing is run.
+#
+# It runs on every push to main that changes the IG's inputs, and by hand
+# (owner, 2026-11-11: "i want that it publishes once merge to main",
+# litlfred/cat-harness-tools#1879; it replaces the by-hand rule of
+# 2026-10-06). The site publish on the same push waits for it
+# (`site.publishAfter`), so the site is built from the new AST. A push that
+# changes no input leaves the cache valid (`ig-ast.ts` `sameSourceAs`), so
+# nothing runs.
+name: IG AST refresh
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - sushi-config.yaml
+      - ig.ini
+      - "input/**"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "The ref to build (only a commit on the default branch with its inputs seeds the cache)"
+        type: string
+        default: main
+      force:
+        description: "Rebuild even when the cache is valid for the ref"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    uses: litlfred/fhir-harness/.github/workflows/ig-ast-refresh.yml@main
+    with:
+      ref: ${{ inputs.ref || github.sha }}
+      force: ${{ inputs.force || false }}
+      # pre-export: bash <overlay>/scripts/<prepare-inputs>.sh
