@@ -1,0 +1,3 @@
+Sub-indicator 4-01.12
+Existence of advanced nursing roles (Yes/Partial/No)
+Guiding questions: Is there a commonly accepted definition of ‘nurse practitioner’? Is there another commonly accepted definition of other types of nurses working in advanced roles? Are there formal requirements to become a nurse practitioner or other type of advanced-practice nurse in terms of specified training, qualifications, experience, certification/ registration, etc.? Are there ad-hoc/ local methods for nurses being trained “on the job” to acquire specific skills that could lead to their employment in advanced roles?

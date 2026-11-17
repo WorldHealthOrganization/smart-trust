@@ -1,0 +1,76 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "ig-folio-site-workflow",
+    "title": "Build and publish an IG repository's own site with its folio-site.yml workflow",
+    "description": "Dispatch the IG repository's `folio-site.yml` (copied from the IG layer's `ig-repo-site` template): on a runner it composes the harness chrome for THIS layer (`compose-docs --shell --instance`, `gen-navbar-include`), composes the IG at the root of that Jekyll shell (`stage-ig-sites --compose-at-root`), builds it with Jekyll so every IG page wears the theme's side bar, search box and icon row, publishes the layer's served directories, rails any page Jekyll did not lay out (`rail-standalone-pages --foreign-site --instance`), stamps the platform that built it (`folio-build.json`), and on the default branch deploys the whole site to the `gh-pages` root. It reports platform drift against sibling sites and re-dispatches the IGs this one depends on when a token allows.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "gh workflow run folio-site.yml"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "repo",
+          "schema": {
+            "$type": "RepoFullName"
+          },
+          "description": "The IG repository whose workflow to dispatch. Default: the current repository.",
+          "required": false,
+          "arg": {
+            "flag": "-R"
+          }
+        },
+        {
+          "name": "ref",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "The branch to build. Only the default branch deploys; any other builds and reports.",
+          "required": false,
+          "arg": {
+            "flag": "--ref"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "status",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The dispatch, and the run it starts; the site is served once that run and GitHub's Pages deploy have finished."
+        }
+      ]
+    },
+    "satisfies": [
+      "feature-staging",
+      "harness-tiles"
+    ],
+    "selection": {
+      "when": "A pipeline that carries `folio-site.yml` and builds on a runner rather than in the agent's checkout. `stage-local` gives an IG the same site — theme side bar and search, served directories, stamp — from the agent's checkout.",
+      "limits": "Dispatch-only and runner-bound: it needs a runner, the `gh` CLI with a token that may run workflows, and the folio-assistant submodule the template expects. It builds the IG with `stage-ig-sites`, not the IG's own `ghbuild.yml`, and has no plan or dry-run: a run on the default branch deploys. The agent pipeline does not use it.",
+      "cost": "One runner job, 8 to 15 minutes, plus GitHub's Pages deploy."
+    },
+    "requires": {
+      "runtime": [
+        "gh"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "It is a GitHub Actions workflow; it runs on GitHub or not at all. `stage-local` builds an IG's site, with the rail and icon row, in the agent's checkout."
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "The route the owner does not use in the current pipeline, and that is a\nchoice, not a property of the Tool (owner, 2026-10-14: \"But did other\nbuild pipelines? It might be necessary.\"). Measured that day: the DAK IG\ncarries `.github/workflows/folio-site.yml` on its default branch and ran\nit by dispatch on 2026-10-12; two further IG repositories ran it\nthe same day and have since replaced it with `site-publish.yml`\n(stage-local). No workflow calls it: it is dispatch-only, never reusable.\nA node over a workflow, on the `package-release-workflow` precedent: the\nmechanism is the dispatch."
+    }
+  ]
+}

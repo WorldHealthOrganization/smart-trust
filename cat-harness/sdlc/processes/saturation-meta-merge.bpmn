@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_SaturationMetaMerge" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="sibling-session" name="Sibling session"/>
+  <bpmn:resource id="merge-steward" name="Merge steward"/>
+  <bpmn:resource id="user" name="Owner"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:collaboration id="Collaboration_Process_SaturationMetaMerge">
+    <bpmn:participant id="Participant_Process_SaturationMetaMerge" name="Saturation meta-merge: land the ready PRs when the runners are full" processRef="Process_SaturationMetaMerge"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_SaturationMetaMerge" name="Saturation meta-merge: land the ready PRs when the runners are full" isExecutable="false">
+    <bpmn:documentation>Landing a batch while the runners are full: cancel everything queued, pause new work, consolidate all ready PRs on one meta-merge branch, skip CI and rendering, and merge it, holding the swarm siblings until it is done. It repeats across repositories. Skill saturation-meta-merge holds the steps, the safety rules and the record of its first run. This process bypasses merge:guard on purpose, so the owner's card, the PR body and a comment on each member PR are the record.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_Process_SaturationMetaMerge">
+      <bpmn:lane id="Lane_Sibling" name="Sibling session" partitionElementRef="sibling-session">
+        <bpmn:documentation>Every other session with a PR in the queue. It acts once: it stops pushing when the hold arrives and names the head it wants merged, so the steward stacks a branch nobody is still moving. It does not choose what lands; the owner does.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_SibHold</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Steward" name="Merge steward" partitionElementRef="merge-steward">
+        <bpmn:documentation>The merge manager, acting as merge steward for the duration of the drain. It notices the runners are saturated, holds the swarm, dry-runs the meta-merge and asks the owner with every PR named; on a yes it cancels the queued PR runs, builds and lands the meta-merge branch, releases the hold and reports. It never lands anything the owner's card did not name.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Saturated</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Hold</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Ask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Go</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Land</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Done</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Merged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Report</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Landed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Nothing</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Owner" name="Owner" partitionElementRef="user">
+        <bpmn:documentation>The repository owner, the only lane that decides. A meta-merge lands PRs on main without their own CI, so the choice between the offered options is a person's, made on a card that names each PR; a PR the card does not name gets no merge.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Owner</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pipeline" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>The CI system, which runs main's checks once on the merged result. Its verdict is what the steward reports; it is drawn as its own lane because it is a system acting on a fixed program, not a choice anybody makes.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_MainRun</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Saturated" name="Runners saturated">
+      <bpmn:documentation>Called by the merge manager watch when queued runs are 60+ minutes old and nothing has landed, or when the owner says the runners are full.</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_Hold" name="Broadcast the hold to siblings">
+      <bpmn:documentation>Message every sibling that pushes to the repositories involved: what is about to land, and hold pushes, merges and run cancels until done. Ask the coordinator to pass it on to any thread that cannot be reached.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="merge-manager-watcher"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_SibHold" name="Hold, and name the heads to merge">
+      <bpmn:documentation>A sibling that owns a PR in the batch names the head it wants merged.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="saturation-meta-merge"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Ask" name="Dry-run, then ask the owner naming every PR">
+      <bpmn:documentation>Stack the PRs on a meta-merge branch without pushing. Then post the full question (include, leave out with the reason, merge method, per repository), followed by the card: A go, B also the red ones, C dry run only, D cancel.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="ask-the-person"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Task_Owner" name="Choose A, B, C or D">
+      <bpmn:documentation>Only the owner's own tap or words approve the landing. A PR the card does not name gets no merge from it.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:no-skill reason="the owner's own choice on the card; no agent performs it"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gw_Go" name="Go?">
+      <bpmn:documentation>A or B is yes. C or D is no.</bpmn:documentation>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Land" name="Cancel queued PR runs; build, push, merge">
+      <bpmn:documentation>Never cancel a main push run that has started. Build from fresh main with merge commits, skipping conflicts, .github/workflows/ and subscriptions/. Open one PR per repository, merge it with a merge commit, and comment on each member PR with the link.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="saturation-meta-merge"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Done" name="Post done to every held sibling">
+      <bpmn:documentation>Post done with what landed and what is still open, also when nothing was merged. A hold with no done is an outage.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="merge-manager-watcher"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gw_Merged" name="Merged?">
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_MainRun" name="Run main's checks">
+      <bpmn:documentation>The merge starts main's checks. Until tools#1384, a closed PR's run can cancel them, so the steward re-runs a cancelled main run.</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:no-skill reason="CI runs main's checks on the merge; the steward only re-runs a cancelled run, under merge-to-main"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:task id="Task_Report" name="Report what landed and main's verdict">
+      <bpmn:documentation>One message to the owner: what merged, main's verdict per repository, and any open decision. On red, the fix goes to main as its own PR.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="merge-to-main"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Landed" name="Landed and reported">
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Nothing" name="Hold released, nothing merged">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_Saturated" targetRef="Task_Hold"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Hold" targetRef="Task_SibHold"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_SibHold" targetRef="Task_Ask"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_Ask" targetRef="Task_Owner"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_Owner" targetRef="Gw_Go"/>
+    <bpmn:sequenceFlow id="Flow_6" name="Yes" sourceRef="Gw_Go" targetRef="Task_Land"/>
+    <bpmn:sequenceFlow id="Flow_7" name="No" sourceRef="Gw_Go" targetRef="Task_Done"/>
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Task_Land" targetRef="Task_Done"/>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_Done" targetRef="Gw_Merged"/>
+    <bpmn:sequenceFlow id="Flow_10" name="Yes" sourceRef="Gw_Merged" targetRef="Task_MainRun"/>
+    <bpmn:sequenceFlow id="Flow_11" name="No" sourceRef="Gw_Merged" targetRef="End_Nothing"/>
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="Task_MainRun" targetRef="Task_Report"/>
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="Task_Report" targetRef="End_Landed"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_SaturationMetaMerge">
+    <bpmndi:BPMNPlane id="Plane_Process_SaturationMetaMerge" bpmnElement="Collaboration_Process_SaturationMetaMerge">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_SaturationMetaMerge" bpmnElement="Participant_Process_SaturationMetaMerge" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="1290" height="840"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Sibling" bpmnElement="Lane_Sibling" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="1260" height="180"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Steward" bpmnElement="Lane_Steward" isHorizontal="true">
+        <dc:Bounds x="90" y="240" width="1260" height="300"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Owner" bpmnElement="Lane_Owner" isHorizontal="true">
+        <dc:Bounds x="90" y="540" width="1260" height="180"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Pipeline" bpmnElement="Lane_Pipeline" isHorizontal="true">
+        <dc:Bounds x="90" y="720" width="1260" height="180"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Saturated" bpmnElement="Start_Saturated">
+        <dc:Bounds x="187" y="372" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="145" y="412" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Hold" bpmnElement="Task_Hold">
+        <dc:Bounds x="295" y="330" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_SibHold" bpmnElement="Task_SibHold">
+        <dc:Bounds x="295" y="90" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Ask" bpmnElement="Task_Ask">
+        <dc:Bounds x="445" y="330" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Owner" bpmnElement="Task_Owner">
+        <dc:Bounds x="445" y="570" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gw_Go" bpmnElement="Gw_Go" isMarkerVisible="true">
+        <dc:Bounds x="630" y="365" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="595" y="329" width="120" height="30"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Land" bpmnElement="Task_Land">
+        <dc:Bounds x="745" y="410" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Done" bpmnElement="Task_Done">
+        <dc:Bounds x="895" y="330" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gw_Merged" bpmnElement="Gw_Merged" isMarkerVisible="true">
+        <dc:Bounds x="1080" y="365" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1040" y="420" width="62" height="22"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_MainRun" bpmnElement="Task_MainRun">
+        <dc:Bounds x="1195" y="750" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Report" bpmnElement="Task_Report">
+        <dc:Bounds x="1195" y="330" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Landed" bpmnElement="End_Landed">
+        <dc:Bounds x="1237" y="267" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1148" y="262" width="86" height="44"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Nothing" bpmnElement="End_Nothing">
+        <dc:Bounds x="1087" y="267" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="963" y="267" width="120" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="223" y="390"/>
+        <di:waypoint x="295" y="390"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_2" bpmnElement="Flow_2">
+        <di:waypoint x="355" y="330"/>
+        <di:waypoint x="355" y="210"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_3" bpmnElement="Flow_3">
+        <di:waypoint x="415" y="150"/>
+        <di:waypoint x="505" y="150"/>
+        <di:waypoint x="505" y="330"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_4" bpmnElement="Flow_4">
+        <di:waypoint x="505" y="450"/>
+        <di:waypoint x="505" y="570"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_5" bpmnElement="Flow_5"><di:waypoint x="565" y="630"/><di:waypoint x="600" y="630"/><di:waypoint x="600" y="390"/><di:waypoint x="630" y="390"/>
+        </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_6" bpmnElement="Flow_6">
+        <di:waypoint x="655" y="415"/>
+        <di:waypoint x="655" y="470"/>
+        <di:waypoint x="745" y="470"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="665" y="446" width="70" height="20"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_7" bpmnElement="Flow_7">
+        <di:waypoint x="680" y="390"/>
+        <di:waypoint x="895" y="390"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="686" y="366" width="70" height="20"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_8" bpmnElement="Flow_8">
+        <di:waypoint x="865" y="470"/>
+        <di:waypoint x="955" y="470"/>
+        <di:waypoint x="955" y="450"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_9" bpmnElement="Flow_9">
+        <di:waypoint x="1015" y="390"/>
+        <di:waypoint x="1080" y="390"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_10" bpmnElement="Flow_10">
+        <di:waypoint x="1105" y="415"/>
+        <di:waypoint x="1105" y="810"/>
+        <di:waypoint x="1195" y="810"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1115" y="786" width="70" height="20"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_11" bpmnElement="Flow_11">
+        <di:waypoint x="1105" y="365"/>
+        <di:waypoint x="1105" y="303"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1111" y="341" width="70" height="20"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_12" bpmnElement="Flow_12">
+        <di:waypoint x="1255" y="750"/>
+        <di:waypoint x="1255" y="450"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_13" bpmnElement="Flow_13">
+        <di:waypoint x="1255" y="330"/>
+        <di:waypoint x="1255" y="303"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

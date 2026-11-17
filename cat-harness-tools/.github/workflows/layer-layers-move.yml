@@ -1,0 +1,72 @@
+# The layers-cache mover (owner, 2026-11-10, card "B. Branch + small mover").
+#
+# An agent sandbox may push only `claude/` branches, so its
+# `bun run cat layers:publish` leaves the layers commit on
+# `claude/cat-layers/<key>` instead of `refs/cat/layers/<key>`. On a PR that
+# re-pins `index.lock.json`, this job checks that the branch holds THIS lock's
+# layers commit (subject `cat layers <key>`), pushes it to
+# `refs/cat/layers/<key>` and deletes the branch. It builds nothing: the
+# publisher built the commit; the runner only moves a ref. The
+# `layers-ref` gate in layer-pr-checks.yml waits for it.
+#
+# Call it from the index repository (it needs `contents: write`, which the PR
+# checks do not have):
+#
+#   name: Move a sandbox's layers cache ref
+#   on:
+#     pull_request:
+#       types: [opened, synchronize, reopened]
+#       paths: [index.lock.json]
+#   permissions:
+#     contents: write
+#   jobs:
+#     move:
+#       uses: litlfred/cat-harness-tools/.github/workflows/layer-layers-move.yml@<sha> # index.lock.json
+name: Move a sandbox's layers cache ref
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+
+jobs:
+  move:
+    name: Move claude/cat-layers/<key> to refs/cat/layers/<key>
+    # A fork's PR gets a read-only token and no sandbox branch: nothing to move.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 2
+          path: fa
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+      - name: Move the layers commit, if a sandbox left one
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [ -f fa/index.lock.json ] || { echo "no index.lock.json: nothing to move"; exit 0; }
+          base='HEAD^1'
+          git -C fa rev-parse -q --verify 'HEAD^2' >/dev/null || base='HEAD~1'
+          read -r repo sha < <(bun -e '
+            const l = JSON.parse(require("node:fs").readFileSync("fa/index.lock.json", "utf-8"));
+            const i = (l.instances ?? []).find((x) => x.instance === "cat-harness-tools");
+            console.log(i ? `${i.repository} ${i.sha}` : "- -");
+          ')
+          [ "$repo" != "-" ] || { echo "the lock pins no cat-harness-tools: nothing to move"; exit 0; }
+          work="$(mktemp -d)" && git -C "$work" init -q
+          git -C "$work" fetch -q --depth 1 --filter=blob:none "https://github.com/${repo}.git" "$sha"
+          git -C "$work" checkout -q FETCH_HEAD -- scripts/mount-from-lock.ts
+          if ! grep -q -- '--move-layers' "$work/scripts/mount-from-lock.ts"; then
+            echo "::notice::the pinned cat-harness-tools (${sha:0:12}) predates layers:move; nothing to move"
+            exit 0
+          fi
+          # The token, for this one push only: never written to the checkout's config.
+          CAT_LAYERS_URL="https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" \
+            bun "$work/scripts/mount-from-lock.ts" --move-layers --root fa --changed-from "$base" \
+            | sed "s/${GH_TOKEN}/***/g"

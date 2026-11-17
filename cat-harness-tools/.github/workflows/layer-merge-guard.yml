@@ -1,0 +1,191 @@
+# The `merge-guard` commit status on every PR head of a harnessed layer, as ONE
+# reusable workflow (owner, 2026-11-13, card "A. merge-guard required
+# status").
+#
+# It posts the status with the context `merge-guard` (`STATUS_CONTEXT` in
+# `scripts/merge-guard.ts`). The merge manager makes that context a required
+# check on each layer's `main`, so no PR lands until the guard says so.
+#
+# The status posts `success` only when all eight checks of
+# `scripts/merge-guard.ts` pass, run with `--full-tier`:
+#   - the FULL tier is green on the head (a `No new failures` judge concluded
+#     success; the fast tier alone is not enough). Labelling the PR
+#     `release` runs the full tier, and so does `ready-to-merge` in a layer
+#     whose PR checks read the live labels (layer-pr-checks.yml); this
+#     repository's own pr-tests.yml reads only `release`;
+#   - the `ready-to-merge` label is on (check 4), and the PR's own session said
+#     ready (check 3: its `ready: <sha>`, or one the merge manager relays for it);
+#   - and the rest: base is main, not a draft, no unticked box, no open
+#     question to the owner, merges cleanly.
+# An unfinished PR posts `pending`, a defect `failure`, a fact that could not
+# be read `error`.
+#
+# It NEVER merges. Only the merge manager merges (owner, 2026-11-13,
+# cat-harness#1313), with `merge:guard --merge`; this only posts the status
+# that merge must agree with.
+#
+# The guard runs from the CALLER'S DEFAULT BRANCH, never the PR head: the
+# caller is checked out at main (that is also the `--root` whose
+# `pull_request` workflows check 5 owes), and the guard itself is
+# cat-harness-tools at `tools-ref`. So a PR cannot edit the judge it is judged
+# by. That is why a caller should use `pull_request_target`: it runs the
+# workflow file from main and its token may post a status on any PR head.
+#
+# A caller (in each layer, `.github/workflows/merge-guard.yml` — keep that
+# name: the guard ignores its own runs as evidence about the head):
+#
+#   name: Merge guard
+#   on:
+#     pull_request_target:
+#       types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, labeled, unlabeled, edited]
+#     issue_comment:
+#       types: [created, edited]
+#     workflow_run:
+#       workflows: ["Layer PR checks"]          # the caller's PR-checks workflow name(s)
+#       types: [completed]
+#     workflow_dispatch:
+#       inputs: { pr: { type: string, required: false, description: "PR number; empty: every open PR" } }
+#   permissions: { contents: read, pull-requests: read, issues: read, actions: read, checks: read, statuses: write }
+#   jobs:
+#     guard:
+#       uses: litlfred/cat-harness-tools/.github/workflows/layer-merge-guard.yml@main
+#       with: { pr: "${{ inputs.pr }}" }
+#
+# Which PRs a run judges (step "Which PRs"): the PR of a pull_request(_target)
+# event; the PR of a comment on a PR (a comment on an issue judges none); the
+# PRs a finished workflow run names, or else the open PRs whose head is its
+# head sha; and on workflow_dispatch the `pr` input, or every open PR.
+
+name: Layer merge guard
+
+on:
+  workflow_call:
+    inputs:
+      pr:
+        description: "A PR number to judge; empty means the PRs the event names (every open PR on workflow_dispatch)."
+        required: false
+        type: string
+        default: ""
+      tools-ref:
+        description: "The ref of cat-harness-tools, cat-harness and bootstrap-tools whose guard runs."
+        required: false
+        type: string
+        default: "main"
+      full-tier:
+        description: "Require the full tier green on the head (--full-tier). Off only for a layer with no full-tier judge."
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+  actions: read
+  checks: read
+  statuses: write
+
+concurrency:
+  group: merge-guard-${{ github.repository }}-${{ inputs.pr || github.event.pull_request.number || github.event.issue.number || github.event.workflow_run.head_sha || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    name: Post the merge-guard status
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      actions: read
+      checks: read
+      statuses: write
+    steps:
+      - name: Which PRs
+        id: prs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          INPUT_PR: ${{ inputs.pr }}
+        run: |
+          set -euo pipefail
+          ev="$GITHUB_EVENT_PATH"
+          prs=""
+          if [ -n "$INPUT_PR" ]; then
+            prs="$INPUT_PR"
+          else
+            case "$EVENT" in
+              pull_request|pull_request_target)
+                prs="$(jq -r '.pull_request.number // empty' "$ev")" ;;
+              issue_comment)
+                prs="$(jq -r 'if .issue.pull_request then .issue.number else empty end' "$ev")" ;;
+              workflow_run)
+                prs="$(jq -r '[.workflow_run.pull_requests[]?.number] | map(tostring) | join(" ")' "$ev")"
+                if [ -z "$prs" ]; then
+                  sha="$(jq -r '.workflow_run.head_sha // empty' "$ev")"
+                  [ -n "$sha" ] && prs="$(gh api "repos/$REPO/commits/$sha/pulls" --jq '[.[] | select(.state == "open") | .number | tostring] | join(" ")')"
+                fi ;;
+              workflow_dispatch|schedule)
+                prs="$(gh api "repos/$REPO/pulls?state=open&per_page=100" --jq '[.[].number | tostring] | join(" ")')" ;;
+            esac
+          fi
+          prs="$(printf '%s\n' $prs | grep -E '^[0-9]+$' | sort -un | tr '\n' ' ' | sed 's/ $//')" || true
+          echo "prs=$prs" >> "$GITHUB_OUTPUT"
+          echo "judging: ${prs:-no PR} ($EVENT)" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Check out the caller at its default branch (the root check 5 reads)
+        if: steps.prs.outputs.prs != ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: site
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        if: steps.prs.outputs.prs != ''
+        with:
+          bun-version: 1.4.4
+      - name: Compose the guard at ${{ inputs.tools-ref }}
+        if: steps.prs.outputs.prs != ''
+        env:
+          REF: ${{ inputs.tools-ref }}
+        run: |
+          set -euo pipefail
+          mkdir tools
+          for r in bootstrap bootstrap-tools cat-harness cat-harness-tools; do
+            git clone -q --depth 1 --branch "$REF" "https://github.com/litlfred/$r" "tools/$r" \
+              || git clone -q --depth 1 "https://github.com/litlfred/$r" "tools/$r"
+          done
+          cat > tools/package.json <<'JSON'
+          { "name": "merge-guard-tools", "private": true, "workspaces": ["bootstrap-tools", "cat-harness", "cat-harness-tools"] }
+          JSON
+          (cd tools && bun install)
+      - name: Post the merge-guard status on each PR head
+        if: steps.prs.outputs.prs != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PRS: ${{ steps.prs.outputs.prs }}
+          FULL_TIER: ${{ inputs.full-tier }}
+        run: |
+          set -uo pipefail
+          tier=()
+          [ "$FULL_TIER" = "true" ] && tier=(--full-tier)
+          failed=""
+          for n in $PRS; do
+            # Exit 1 (refused) and 2 (unknown) are verdicts, posted as the
+            # status; only a status that could not be posted fails this job.
+            # Actions runs this step as `bash -e`, and a refusal exits 1: without
+            # `|| code=$?` the step died here, printing nothing (first live run,
+            # #2103 at 857b26f, 2026-11-13).
+            code=0
+            out="$(bun tools/cat-harness-tools/scripts/merge-guard.ts "$n" --repo "$REPO" --root site --status "${tier[@]}" 2>&1)" || code=$?
+            printf '%s\n' "$out"
+            { echo '```'; printf '%s\n' "$out"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+            if printf '%s' "$out" | grep -q "could not post the merge-guard status"; then failed="$failed #$n"; fi
+            echo "#$n: exit $code"
+          done
+          if [ -n "$failed" ]; then
+            echo "::error::the merge-guard status could not be posted on:$failed"
+            exit 1
+          fi

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  who-iris — Sign and publish an IRIS CDN release.
+
+  Source of truth: this file; open it in any BPMN 2.0 tool. Prose:
+  docs/iris-cdn-export.md. Skills: skills/iris-cdn-*.md. Code: scripts/iris-cdn/.
+
+  Constraints shared by the IRIS CDN processes: the initial load carries
+  metadata AND the PDFs; changes are read from the DSpace REST API only; exports
+  live on Cloudflare (a git repository on Cloudflare Artifacts, NOT GitHub, plus
+  R2 behind the CDN), and who-iris's GitHub Pages only previews the exported
+  site; keys are published as verificationMethods of a did:web DID document (no
+  GDHCN trust list is assumed); content that has not changed is not rewritten,
+  re-uploaded or re-signed.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_IrisCdnSignPublish"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="release-signer" name="Release signer"/>
+  <bpmn:resource id="cloudflare-r2-cdn" name="Cloudflare R2 and CDN"/>
+  <bpmn:resource id="cloudflare-git" name="Cloudflare git (Artifacts)"/>
+  <bpmn:resource id="verifier" name="Verifier"/>
+  <bpmn:process id="Process_IrisCdnSignPublish" name="Sign and publish an IRIS CDN release" isExecutable="false">
+    <bpmn:documentation>Turn a candidate payload into a signed release on Cloudflare: each changed library item gets a detached JWS over its own manifest, and the BagIt bag (RFC 8493) whose tagmanifest pins every item manifest and signature is signed once with a detached JWS (RFC 7515 Appendix F, ES256 per RFC 7518), the key published as a verificationMethod of a did:web DID document whose publicKeyJwk carries an x5c chain to the WHO signing key. Nothing unchanged is re-uploaded or re-signed; an empty diff ends the process with no commit.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_IrisCdnSignPublish">
+      <bpmn:lane id="Lane_Pipeline" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Deterministic scripts in scripts/iris-cdn/, entry point run.ts. Same input, same bytes.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Candidate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BuildBag</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Diff</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Empty</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Unchanged</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Signer" name="Release signer" partitionElementRef="release-signer">
+        <bpmn:documentation>Holds the P-256 private key (GitHub environment secret IRIS_CDN_SIGNING_JWK). Signs each changed item manifest and the release tag manifest.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_SignItems</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Sign</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Upload</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PublishTags</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Verifier" name="Verifier" partitionElementRef="verifier">
+        <bpmn:documentation>Anyone. Resolves the key from the did:web DID document, never from the package, and checks its x5c chain up to WHO's signing key. Cannot reach it: the verdict is unknown, not verified.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Verify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Verified</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Published</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Revert</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Failed</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Candidate" name="A candidate&#10;payload"/>
+    <bpmn:task id="Task_BuildBag" name="Write the BagIt tag files&#10;(sorted, no dates)">
+      <bpmn:documentation>scripts/iris-cdn/bag.ts tagFiles: manifest-sha256.txt sorted by path, bag-info.txt with Payload-Oxum and no Bagging-Date.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-signing"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_Diff" name="Diff against the&#10;published manifest">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-signing"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Empty" name="Anything&#10;changed?"/>
+    <bpmn:endEvent id="End_Unchanged" name="Unchanged:&#10;no commit"/>
+    <bpmn:task id="Task_Upload" name="Store new objects&#10;(never overwrite)">
+      <bpmn:documentation>Content-addressed: an object whose SHA-256 is already stored is skipped. Published objects are never deleted by a nightly run.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-exporter"/></bpmn:extensionElements>
+      <bpmn:dataOutputAssociation id="DOA_Task_Upload">
+        <bpmn:targetRef>DSR_cloudflare_r2_cdn</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:task id="Task_SignItems" name="Sign each changed&#10;item manifest (ES256)">
+      <bpmn:documentation>A signature on each library item: items/&lt;handle&gt;/manifest-sha256.txt lists the item record and its files; its detached JWS sits beside it. Only items whose manifest bytes changed are signed: ES256 is randomised, so re-signing an unchanged item would be churn. The item manifests and their signatures join the payload, so the tag files are refreshed to cover them before the release is signed.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-signing"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_Sign" name="Sign the release&#10;tag manifest (ES256)">
+      <bpmn:documentation>scripts/iris-cdn/signing.ts signDetached. kid is a did:web DID URL listed under assertionMethod.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-signing"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_PublishTags" name="Commit tag files and&#10;signature, last">
+      <bpmn:documentation>One commit to the Cloudflare git repository, after every payload object is in place, so a reader never sees a manifest naming bytes that are not there yet.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-signing"/></bpmn:extensionElements>
+      <bpmn:dataOutputAssociation id="DOA_Task_PublishTags">
+        <bpmn:targetRef>DSR_cloudflare_git</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:task id="Task_Verify" name="Resolve did:web; verify&#10;JWS and digests">
+      <bpmn:documentation>scripts/iris-cdn/run.ts checkRelease: every tag file against tagmanifest-sha256.txt, then scripts/iris-cdn/signing.ts verifyDetached against the DID document fetched from its did:web URL.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-signing"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Verified" name="Verified?"/>
+    <bpmn:endEvent id="End_Published" name="Release published&#10;and verified"/>
+    <bpmn:task id="Task_Revert" name="Revert to the&#10;previous release">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-signing"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Failed" name="Failed; previous&#10;release still served"/>
+    <bpmn:sequenceFlow id="P1" sourceRef="Start_Candidate" targetRef="Task_BuildBag"/>
+    <bpmn:sequenceFlow id="P2" sourceRef="Task_BuildBag" targetRef="Task_Diff"/>
+    <bpmn:sequenceFlow id="P3" sourceRef="Task_Diff" targetRef="GW_Empty"/>
+    <bpmn:sequenceFlow id="P4" name="no" sourceRef="GW_Empty" targetRef="End_Unchanged"/>
+    <bpmn:sequenceFlow id="P5" name="yes" sourceRef="GW_Empty" targetRef="Task_Upload"/>
+    <bpmn:sequenceFlow id="P6" sourceRef="Task_Upload" targetRef="Task_SignItems"/>
+    <bpmn:sequenceFlow id="P6b" sourceRef="Task_SignItems" targetRef="Task_Sign"/>
+    <bpmn:sequenceFlow id="P7" sourceRef="Task_Sign" targetRef="Task_PublishTags"/>
+    <bpmn:sequenceFlow id="P8" sourceRef="Task_PublishTags" targetRef="Task_Verify"/>
+    <bpmn:sequenceFlow id="P9" sourceRef="Task_Verify" targetRef="GW_Verified"/>
+    <bpmn:sequenceFlow id="P10" name="yes" sourceRef="GW_Verified" targetRef="End_Published"/>
+    <bpmn:sequenceFlow id="P11" name="no / unknown" sourceRef="GW_Verified" targetRef="Task_Revert"/>
+    <bpmn:sequenceFlow id="P12" sourceRef="Task_Revert" targetRef="End_Failed"/>
+    <bpmn:dataStoreReference id="DSR_cloudflare_r2_cdn" name="Cloudflare R2 + CDN" dataStoreRef="cloudflare-r2-cdn"/>
+    <bpmn:dataStoreReference id="DSR_cloudflare_git" name="Cloudflare git (Artifacts)" dataStoreRef="cloudflare-git"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_IrisCdnSignPublish">
+    <bpmndi:BPMNPlane id="Plane_IrisCdnSignPublish" bpmnElement="Process_IrisCdnSignPublish">
+      <bpmndi:BPMNShape id="S_Lane_Pipeline" bpmnElement="Lane_Pipeline" isHorizontal="true"><dc:Bounds x="160" y="60" width="2400" height="280" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Lane_Signer" bpmnElement="Lane_Signer" isHorizontal="true"><dc:Bounds x="160" y="340" width="2400" height="420" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Lane_Verifier" bpmnElement="Lane_Verifier" isHorizontal="true"><dc:Bounds x="160" y="760" width="2400" height="282" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Start_Candidate" bpmnElement="Start_Candidate"><dc:Bounds x="297" y="112" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="255" y="152" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_BuildBag" bpmnElement="Task_BuildBag"><dc:Bounds x="445" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_Diff" bpmnElement="Task_Diff"><dc:Bounds x="635" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_GW_Empty" bpmnElement="GW_Empty" isMarkerVisible="true"><dc:Bounds x="860" y="105" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="825" y="159" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_End_Unchanged" bpmnElement="End_Unchanged"><dc:Bounds x="1057" y="252" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1015" y="292" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_Upload" bpmnElement="Task_Upload"><dc:Bounds x="1000" y="510" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_SignItems" bpmnElement="Task_SignItems"><dc:Bounds x="1205" y="352" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_Sign" bpmnElement="Task_Sign"><dc:Bounds x="1395" y="352" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_PublishTags" bpmnElement="Task_PublishTags"><dc:Bounds x="1570" y="650" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_Verify" bpmnElement="Task_Verify"><dc:Bounds x="1775" y="772" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_GW_Verified" bpmnElement="GW_Verified" isMarkerVisible="true"><dc:Bounds x="2000" y="805" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1965" y="859" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_End_Published" bpmnElement="End_Published"><dc:Bounds x="2197" y="812" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="2155" y="852" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_Revert" bpmnElement="Task_Revert"><dc:Bounds x="2155" y="910" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_End_Failed" bpmnElement="End_Failed"><dc:Bounds x="2387" y="952" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="2345" y="895" width="120" height="53" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="E_P1" bpmnElement="P1">
+        <di:waypoint x="333" y="130" />
+        <di:waypoint x="389" y="130" />
+        <di:waypoint x="389" y="132" />
+        <di:waypoint x="445" y="132" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_P2" bpmnElement="P2">
+        <di:waypoint x="565" y="132" />
+        <di:waypoint x="635" y="132" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_P3" bpmnElement="P3">
+        <di:waypoint x="755" y="132" />
+        <di:waypoint x="807.5" y="132" />
+        <di:waypoint x="807.5" y="130" />
+        <di:waypoint x="860" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_P4" bpmnElement="P4"><di:waypoint x="910" y="130"/><di:waypoint x="1037" y="130"/><di:waypoint x="1037" y="270"/><di:waypoint x="1057" y="270"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_P5" bpmnElement="P5"><di:waypoint x="910" y="130"/><di:waypoint x="980" y="130"/><di:waypoint x="980" y="550"/><di:waypoint x="1000" y="550"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="917.5" y="109" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_P6" bpmnElement="P6">
+        <di:waypoint x="1150" y="550" />
+        <di:waypoint x="1177.5" y="550" />
+        <di:waypoint x="1177.5" y="412" />
+        <di:waypoint x="1205" y="412" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_P6b" bpmnElement="P6b">
+        <di:waypoint x="1325" y="412" />
+        <di:waypoint x="1395" y="412" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_P7" bpmnElement="P7">
+        <di:waypoint x="1515" y="412" />
+        <di:waypoint x="1542.5" y="412" />
+        <di:waypoint x="1542.5" y="690" />
+        <di:waypoint x="1570" y="690" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_P8" bpmnElement="P8">
+        <di:waypoint x="1720" y="690" />
+        <di:waypoint x="1747.5" y="690" />
+        <di:waypoint x="1747.5" y="832" />
+        <di:waypoint x="1775" y="832" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_P9" bpmnElement="P9">
+        <di:waypoint x="1895" y="832" />
+        <di:waypoint x="1947.5" y="832" />
+        <di:waypoint x="1947.5" y="830" />
+        <di:waypoint x="2000" y="830" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_P10" bpmnElement="P10"><di:waypoint x="2050" y="830"/><di:waypoint x="2197" y="830"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_P11" bpmnElement="P11">
+        <di:waypoint x="2050" y="830" />
+        <di:waypoint x="2102.5" y="830" />
+        <di:waypoint x="2102.5" y="970" />
+        <di:waypoint x="2155" y="970" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2008.5" y="891.5" width="90" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_P12" bpmnElement="P12">
+        <di:waypoint x="2275" y="970" />
+        <di:waypoint x="2387" y="970" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_DSR_cloudflare_r2_cdn" bpmnElement="DSR_cloudflare_r2_cdn"><dc:Bounds x="1050" y="1080" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1104" y="1077" width="90" height="53" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_Upload" bpmnElement="DOA_Task_Upload"><di:waypoint x="1075" y="590"/><di:waypoint x="1075" y="1080"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_DSR_cloudflare_git" bpmnElement="DSR_cloudflare_git"><dc:Bounds x="1620" y="1080" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1674" y="1087" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_PublishTags" bpmnElement="DOA_Task_PublishTags"><di:waypoint x="1645" y="730"/><di:waypoint x="1645" y="1080"/></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
