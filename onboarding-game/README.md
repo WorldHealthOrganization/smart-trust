@@ -1,6 +1,6 @@
 # Join the Network: GDHCN onboarding simulation
 
-A browser game that teaches how a country onboards to the WHO Global Digital Health Certification Network (GDHCN). The player is **Country XC**, a sample country, and takes it from a first email to live on the production Trust Network Gateway. Each moment is a choice; wrong choices send things back, sometimes several steps later, the way they would in real onboarding.
+A browser game that teaches how a country onboards to the WHO Global Digital Health Certification Network (GDHCN). The player is **Onesa**, the sample country (the fictional home country of the [SMART Trust demonstrator](https://github.com/WorldHealthOrganization/smart-trust-demo)'s journeys), and takes it from a first email to live on the production Trust Network Gateway. Each moment is a choice; wrong choices send things back, sometimes several steps later, the way they would in real onboarding.
 
 Built for the GDHCN onboarding workshop (Kigali) and for ministry teams to replay and demonstrate afterwards.
 
@@ -81,11 +81,15 @@ After the debrief, **Finish** opens a completion splash with links to the live W
 
 ### Make it your country
 
-On the title screen, type your country's name. The 2–3 letter code fills itself in (editable) and drives the ministry sign and email domain (`health.ke`). Repository names use the ISO 3-letter code, as the onboarding checklist requires (`tng-ken-uat`; the sample country becomes `tng-xxc-uat`). **Advanced: name your team** renames the four representatives; emails and initials follow. Choices are remembered in the browser; *Reset to the sample country* restores Country XC.
+On the title screen, type your country's name. The 2–3 letter code fills itself in (editable) and drives the ministry sign and email domain (`health.ke`). Repository names use the ISO 3-letter code, as the onboarding checklist requires (`tng-ken-uat`; the sample country becomes `tng-xxu-uat`). **Advanced: name your team** renames the four representatives; emails and initials follow. Choices are remembered in the browser; *Reset to the sample country* restores the sample.
+
+The sample country is **Onesa**, code **XXU**: the demonstrator's own fictional home country, whose clinics' first move in its journeys is GDHCN onboarding (J3a). XXU is an ISO 3166-1 user-assigned code, so it can never name a real country; Participants-DEV names it "Onesa". When a workshop has renamed Onesa in the demonstrator's journeys viewer (*Make it your countries*), the game takes that name as its sample in the same browser: both sites are served from `worldhealthorganization.github.io`, and the game reads, never writes, the viewer's key `jv:<workshop>:country:onesa` (a plain string; `countryKey` in cat-harness-tools `scripts/journeys/present.ts`; the policy track's name wins when several workshops have one). The code is then derived from that name. A country the player types is their own and wins over both; the sample itself is not saved as the player's choice, so a later rename in the viewer still reaches the game.
+
+Every country mention is written to take any name: `{country}` stands alone, with no adjective or demonym, and in Russian, Arabic and French it always follows a head noun that carries the grammar (страна/страны {country}, دولة {country}, le pays/du pays {country}), so the name itself is never inflected. `npm test` (`scripts/test-country.mjs`, also run by the build) checks this and the sample-country rules.
 
 ### Demo mode
 
-**▶ Watch the demo** on the title screen (or `#demo` in the URL) plays the ideal path in nine beats, about four minutes, with no choices and no errors: apply, make the keys, public keys to GitHub, the Letter of Application, identity checks, tng-bot collecting the keys, air-gapped PROD signing, UAT testing, go live. Each beat shows a caption with its WHO step reference and is narrated by **Naomi** (Higgsfield Seed Audio, speech rate 15, the narrator of *Mary's Yellow Card*). The demo is deliberately generic: it always says "The Country" and refers to the team by role (Business Owner, Key Master, Legal representative, Technical lead), so the recorded narration always matches. Custom names apply only in the game.
+**▶ Watch the demo** on the title screen (or `#demo` in the URL) plays the ideal path in nine beats, about four minutes, with no choices and no errors: apply, make the keys, public keys to GitHub, the Letter of Application, identity checks, tng-bot collecting the keys, air-gapped PROD signing, UAT testing, go live. Each beat shows a caption with its WHO step reference and is narrated by **Naomi** (Higgsfield Seed Audio, speech rate 15, the narrator of *Mary's Yellow Card*). The demo is deliberately generic: it always says "The Country", never Onesa or a name from the viewer, and refers to the team by role (Business Owner, Key Master, Legal representative, Technical lead), so the recorded narration always matches. Custom names apply only in the game.
 
 Controls: pause, previous, next, jump to any beat (dots), and 🔊 to mute or unmute. Narration is on by default; if the browser blocks autoplay (for example, opening `#demo` directly) the demo runs silently with a *Tap for sound* button. The end card offers *Play it yourself*.
 
@@ -134,7 +138,7 @@ Without the URL the tab still opens but says feedback is not connected.
 
 ### The world
 
-- **Country XC** (amber boundary): Ministry of Health (people, paperwork) and the country backend (private keys, the offline SCA vault).
+- **The country** (amber boundary, labelled with its name): Ministry of Health (people, paperwork) and the country backend (private keys, the offline SCA vault).
 - **Trust Network Gateway** (teal): UAT and PROD gateways. PROD is roped off until the dry run passes.
 - **WHO** (blue): GDHCN Secretariat and Operations, with the air-gapped signing room for the WHO Trust Anchor.
 - **GitHub** (purple, neutral island): the country's private repos, read by tng-bot.
@@ -161,6 +165,6 @@ Simplifications to know about:
 - Steps are grouped into 18 moments.
 - Some checks are shown at a convenient point in the story (for example, reused certificates caught during WHO's PROD verification).
 - "Game days" are illustrative, not WHO timelines.
-- Country XC and its people (Dr Zawadi Nkosi, Kwame Mensah, Sara Diallo, Tendai Banda) are fictional.
+- The sample country, Onesa (XXU), and its people (Dr Zawadi Nkosi, Kwame Mensah, Sara Diallo, Tendai Banda) are fictional.
 - The IG text differs on the bot's repository permission (read in the process page, Write in the checklist), so the game does not mention it.
 - The WHO emblem is not used.

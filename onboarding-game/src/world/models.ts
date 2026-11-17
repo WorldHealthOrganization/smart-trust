@@ -139,7 +139,7 @@ export function ministry(): THREE.Group {
   add(b, new RoundedBoxGeometry(4.2, 0.15, 2.6, 2, 0.04), trim, 0, 1.69, 0);
   for (let i = 0; i < 6; i++) add(b, new THREE.CylinderGeometry(0.1, 0.11, 1.2, 16), white, -1.0 + i * 0.4, 0.82, 1.5);
   add(b, new THREE.BoxGeometry(2.6, 0.22, 0.6), trim, 0, 1.53, 1.45);
-  const fr = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.18), new THREE.MeshBasicMaterial({ map: ministrySign('XC') }));
+  const fr = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.18), new THREE.MeshBasicMaterial({ map: ministrySign('') }));
   fr.position.set(0, 1.53, 1.751); b.add(fr);
   root.userData.sign = fr;
   const tri = new THREE.Shape(); tri.moveTo(-1.35, 0); tri.lineTo(1.35, 0); tri.lineTo(0, 0.5); tri.closePath();

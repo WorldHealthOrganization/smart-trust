@@ -13,11 +13,6 @@ export interface Settings {
   names: Record<Person, string>;
 }
 
-export const DEFAULTS: Settings = {
-  country: t('settings.ts:DEFAULTS.country'),
-  code: 'XXC',
-  names: { business: 'Dr Zawadi Nkosi', keymaster: 'Kwame Mensah', legal: 'Sara Diallo', technical: 'Tendai Banda' },
-};
 
 /**
  * Trust domains the player applies for this run: zero, one or more (owner, 2026-11-11). DDCC until
@@ -36,25 +31,6 @@ const LIVE = new Set(['domains', 'domainCount', 'domainLetters']);
 const KEY = 'gdhcn-game-settings';
 localiseStatic(PHASES, ROLES); // French phase names and role titles, in place
 const TEMPLATE: Moment[] = localiseMoments(structuredClone(MOMENTS)); // French overlay on a clone; English stays the source
-let current: Settings = structuredClone(DEFAULTS);
-
-export function loadSettings(): Settings {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) {
-      const s = JSON.parse(raw) as Partial<Settings>;
-      // a country saved while the other language was on is still the sample country: show this language's name
-      if (s.country === en['settings.ts:DEFAULTS.country'] || s.country === 'Pays XC') s.country = DEFAULTS.country;
-      const code = typeof s.code === 'string' && s.code.length === 2 ? alpha3(s.code) : s.code; // older versions stored 2 letters
-      return { ...DEFAULTS, ...s, ...(code ? { code } : {}), names: { ...DEFAULTS.names, ...(s.names ?? {}) } };
-    }
-  } catch { /* private window or blocked storage: fall back to defaults */ }
-  return structuredClone(DEFAULTS);
-}
-
-export function saveSettings(s: Settings) {
-  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* not fatal */ }
-}
 
 export const settings = () => current;
 
@@ -127,10 +103,79 @@ export function deriveCode(name: string) {
   return invented(name);
 }
 
-/** "KE" -> KEN; a 3-letter code is kept; an unknown (sample) code is padded with X, so XC -> XXC. */
+/** "KE" -> KEN; a 3-letter code is kept; an unknown (sample) code is padded with X, so XU -> XXU. */
 export function alpha3(code: string) {
   const c = code.toUpperCase();
   return c.length === 3 ? c : ALPHA3[c] ?? `X${c}`.slice(0, 3);
+}
+
+/**
+ * The sample country is the SMART Trust demonstrator's: Onesa, the fictional home country of
+ * smart-trust-demo's journeys (scenarios/countries/onesa.json), whose clinics' first move is GDHCN
+ * onboarding (J3a). XXU is an ISO 3166-1 user-assigned code, so it can never name a real country;
+ * Participants-DEV names it "Onesa". The name is a translated string; the code is not.
+ */
+const SAMPLE_CODE = 'XXU';
+/** Codes earlier sample countries were saved with: they go with the sample, not with a player's choice. */
+const OLD_SAMPLE_CODES = new Set(['XC', 'XXC', SAMPLE_CODE]);
+/** Names a saved setting may hold that mean "the sample country", in any language, old and new. */
+const SAMPLE_NAMES = new Set([
+  'Country XC', 'Pays XC', 'País XC', 'Страна XC', 'البلد XC', 'XC 国',
+  'Onesa', 'Онеса', 'أونيسا', '奥内萨', en['settings.ts:DEFAULTS.country'], t('settings.ts:DEFAULTS.country'),
+]);
+const isSampleName = (c: unknown) => typeof c !== 'string' || !c.trim() || SAMPLE_NAMES.has(c.trim());
+
+/**
+ * The room's own name for Onesa, from the demonstrator's journeys viewer, when this browser has one.
+ * Both sites are served from worldhealthorganization.github.io, so they share localStorage. The
+ * viewer (cat-harness-tools scripts/journeys/present.ts, countryKey; #2409) keeps it per workshop as
+ * a plain string at `jv:<workshop>:country:onesa`. Read only: the game never writes the viewer's keys.
+ * Several workshops with a name: the policy track's wins, then the first found.
+ */
+export const DEMO_COUNTRY_KEY = /^jv:([^:]+):country:onesa$/;
+export function demoCountryName(): string | undefined {
+  try {
+    const found = new Map<string, string>();
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      const m = k ? DEMO_COUNTRY_KEY.exec(k) : null;
+      const v = m ? (localStorage.getItem(k!) ?? '').trim().slice(0, 32) : '';
+      if (m && v && !isSampleName(v)) found.set(m[1], v);
+    }
+    return found.get('dpi-h-policy-track') ?? found.values().next().value;
+  } catch { return undefined; /* private window or blocked storage */ }
+}
+
+const demoName = demoCountryName();
+/** The sample: Onesa, or the name the demonstrator's viewer gave it in this browser. The player's own setting wins over both. */
+export const DEFAULTS: Settings = {
+  country: demoName ?? t('settings.ts:DEFAULTS.country'),
+  code: demoName ? deriveCode(demoName) : SAMPLE_CODE,
+  names: { business: 'Dr Zawadi Nkosi', keymaster: 'Kwame Mensah', legal: 'Sara Diallo', technical: 'Tendai Banda' },
+};
+let current: Settings = structuredClone(DEFAULTS);
+
+export function loadSettings(): Settings {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const s = JSON.parse(raw) as Partial<Settings>;
+      // no country saved, or a sample country's name in any language: the sample, as it is now
+      if (isSampleName(s.country)) {
+        s.country = DEFAULTS.country;
+        if (typeof s.code !== 'string' || OLD_SAMPLE_CODES.has(s.code.toUpperCase())) s.code = DEFAULTS.code;
+      }
+      const code = typeof s.code === 'string' && s.code.length === 2 ? alpha3(s.code) : s.code; // older versions stored 2 letters
+      return { ...DEFAULTS, ...s, ...(code ? { code } : {}), names: { ...DEFAULTS.names, ...(s.names ?? {}) } };
+    }
+  } catch { /* private window or blocked storage: fall back to defaults */ }
+  return structuredClone(DEFAULTS);
+}
+
+/** The sample country is not saved as the player's choice, so a later name from the demonstrator still reaches it. */
+export function saveSettings(s: Settings) {
+  const own = s.country !== DEFAULTS.country || s.code !== DEFAULTS.code;
+  try { localStorage.setItem(KEY, JSON.stringify(own ? s : { names: s.names })); } catch { /* not fatal */ }
 }
 
 const ascii = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '');
