@@ -1,0 +1,329 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://litlfred.github.io/folio-assistant/cat-harness/skills/wireframe-design-review/output.schema.json",
+  "title": "Wireframe Design Review Output",
+  "description": "The wireframe renderings and the choice: each candidate's source HTML and its web and mobile screenshots, its check and review entries, the chosen candidate and who chose it, the same files as changed assets of the branch, and the staging deep links the requester or BA reviewed them at.",
+  "type": "object",
+  "required": [
+    "use",
+    "topic",
+    "assetDir",
+    "candidates",
+    "changedAssets",
+    "stagingLinks"
+  ],
+  "properties": {
+    "use": {
+      "type": "string",
+      "enum": [
+        "design",
+        "as-is"
+      ]
+    },
+    "topic": {
+      "type": "string"
+    },
+    "assetDir": {
+      "type": "string",
+      "description": "Repository-relative directory holding the drawings: docs/proposals/<slug>/wireframes/ for Design use from CRDM (assets of the proposal), docs/wireframes/<topic>/ for as-is use."
+    },
+    "intent": {
+      "type": "string",
+      "description": "Repository-relative path of intent.md."
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "description": "At least two for Design use, exactly one (marked as-is) for as-is use.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "screenshots",
+          "outcome"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Candidate id, shown to reviewers in place of its author."
+          },
+          "title": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "description": "Repository-relative path of the candidate's mid-fidelity HTML."
+          },
+          "screenshots": {
+            "type": "object",
+            "required": [
+              "web",
+              "mobile"
+            ],
+            "description": "Written by wireframe-check: one per viewport. A candidate with only one does not enter review.",
+            "properties": {
+              "web": {
+                "type": "string",
+                "description": "Repository-relative path of the 1280×800 screenshot."
+              },
+              "mobile": {
+                "type": "string",
+                "description": "Repository-relative path of the 390×844 screenshot."
+              }
+            }
+          },
+          "staging": {
+            "type": "object",
+            "description": "The candidate and its screenshots on the staging preview, as deep links.",
+            "properties": {
+              "source": {
+                "type": "string",
+                "format": "uri"
+              },
+              "web": {
+                "type": "string",
+                "format": "uri"
+              },
+              "mobile": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/criterionEntry"
+            },
+            "description": "Script and review entries, per criterion. No scores, no averages."
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "chosen",
+              "rejected",
+              "pending",
+              "as-is"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why it was chosen or why it lost. Rejected candidates stay, each with its reason."
+          }
+        }
+      }
+    },
+    "chosen": {
+      "type": "object",
+      "required": [
+        "candidate",
+        "chosenBy"
+      ],
+      "description": "Design use: the candidate the human reviewer chose. Absent until they choose; an agent never records a choice on a person's behalf.",
+      "properties": {
+        "candidate": {
+          "type": "string",
+          "description": "The chosen candidate's id."
+        },
+        "chosenBy": {
+          "type": "string",
+          "description": "The requester or BA who chose it."
+        },
+        "recordedAt": {
+          "type": "string",
+          "format": "uri",
+          "description": "Where the choice is recorded: the issue or pull request comment, or, when it was made in the conversation, the proposal section that records it."
+        }
+      }
+    },
+    "changedAssets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/changedAsset"
+      },
+      "description": "Every wireframe file the branch adds, changes or removes — candidate HTML, screenshots, intent, reviews — in the changed-assets record shape a staging preview's graph carries, so the review lists them the same way."
+    },
+    "stagingLinks": {
+      "$ref": "#/definitions/stagingLinks"
+    }
+  },
+  "definitions": {
+    "criterionEntry": {
+      "type": "object",
+      "required": [
+        "criterion",
+        "status"
+      ],
+      "properties": {
+        "criterion": {
+          "type": "string",
+          "description": "renders, no-overflow, no-placeholder (script entries from wireframe-check); intent-fit, web-usability, mobile-usability, accessibility, alternatives (review entries)."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "warn",
+            "fail"
+          ]
+        },
+        "by": {
+          "type": "string",
+          "description": "`script` for a wireframe-check entry; the reviewer otherwise."
+        },
+        "note": {
+          "type": "string",
+          "description": "The reason. Required in substance for every warn and fail."
+        }
+      }
+    },
+    "changedAsset": {
+      "title": "Changed asset",
+      "description": "One wireframe file the branch adds, changes or removes, in the record shape of a staging preview graph's `changedAssets` (cat-harness-tools scripts/kg-changed-assets.ts `ChangedAsset`; glosses in schemas/content/vocabulary.ts: assetChange, assetKind, beforeVersion, afterVersion, assetSource, renderedPage, renderedPagesUnknown).",
+      "type": "object",
+      "required": [
+        "change"
+      ],
+      "properties": {
+        "change": {
+          "type": "string",
+          "enum": [
+            "added",
+            "changed",
+            "removed"
+          ],
+          "description": "How the asset differs from main."
+        },
+        "kind": {
+          "type": "string",
+          "description": "What the asset is, without namespace: e.g. `wireframe-candidate`, `wireframe-screenshot`, `wireframe-intent`, `wireframe-review`."
+        },
+        "title": {
+          "type": "string"
+        },
+        "before": {
+          "type": "string",
+          "format": "uri",
+          "description": "The asset as published on main; absent when it is new on the branch."
+        },
+        "after": {
+          "type": "string",
+          "format": "uri",
+          "description": "The asset as published in the staging preview; absent when the branch removes it."
+        },
+        "source": {
+          "type": "string",
+          "description": "The repository-relative file."
+        },
+        "pages": {
+          "type": "array",
+          "description": "The rendered pages the source maps to, as before/after pairs (StagingPageComparison rows: the item shape of stagingLinks.pages).",
+          "items": {
+            "type": "object",
+            "required": [
+              "title"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string",
+                "format": "uri"
+              },
+              "after": {
+                "type": "string",
+                "format": "uri"
+              },
+              "summary": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "pagesUnknown": {
+          "type": "string",
+          "description": "Why the pages were not mapped one by one, when they were not; never read as 'renders no page'."
+        }
+      },
+      "$comment": "Mirrors ChangedAsset in cat-harness-tools scripts/kg-changed-assets.ts (PR #203, branch claude/staging-kg-changed-assets)."
+    },
+    "stagingLinks": {
+      "title": "Staging links",
+      "description": "The staging preview of the work a request for feedback is about: one deep link per changed page (the page and the anchor where the change sits) with the same page on main as `before`. Mirrors StagingComparison in schemas/sdlc/staging.ts. The rule is skills/authoring/content-lifecycle/feedback-deep-links.md. Copied inline as `definitions.stagingLinks` into every skill contract that carries it; schemas/staging.test.ts fails when a copy drifts.",
+      "type": "object",
+      "required": [
+        "branch",
+        "slug",
+        "branchUrl",
+        "mainBaseUrl",
+        "stagingBaseUrl",
+        "pages"
+      ],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "Feature branch name."
+        },
+        "slug": {
+          "type": "string",
+          "description": "Branch slug used in the staging URL path."
+        },
+        "branchUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pr": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mainBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "stagingBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pages": {
+          "type": "array",
+          "description": "One entry per changed page, deep-linked; from the change's rendered-impact list, never chosen by judgement.",
+          "items": {
+            "type": "object",
+            "required": [
+              "title"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string",
+                "format": "uri",
+                "description": "Same page on main; absent for a new page."
+              },
+              "after": {
+                "type": "string",
+                "format": "uri",
+                "description": "The page on the staging preview, with the anchor where the change sits; absent for a deleted page."
+              },
+              "summary": {
+                "type": "string",
+                "description": "What to look at on this page."
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What could not be linked, said rather than hidden: no preview yet (and when it will exist), no page list computed, or a changed page the publish ref does not hold."
+        }
+      },
+      "$comment": "Copy of cat-harness schemas/staging-comparison.schema.json; cat-harness schemas/staging.test.ts fails when a copy drifts."
+    }
+  }
+}

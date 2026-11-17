@@ -1,0 +1,89 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "qa-sweep",
+    "title": "QA sweep",
+    "description": "Run every registered criterion over the blocks under a path and write a per-block QA sidecar. A sidecar rather than a console report, because a printed verdict cannot distinguish \"never checked\" from \"checked and clean\".",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat qa:sweep"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "targetPath",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The content root to sweep. Absent, the command exits 2 with its usage — could-not-determine, not a clean sweep.",
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "dryRun",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Report what would change without writing sidecars.",
+          "required": false,
+          "arg": {
+            "flag": "--dry-run"
+          }
+        },
+        {
+          "name": "ci",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Fail on a finding rather than recording it.",
+          "required": false,
+          "arg": {
+            "flag": "--ci"
+          }
+        },
+        {
+          "name": "json",
+          "schema": {
+            "$type": "Flag"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--json"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "sidecars",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "One `<block>.qa.json` per block, committed beside its subject."
+        }
+      ]
+    },
+    "satisfies": [
+      "content-test"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/io/inputs",
+      "comment": "`--only ID,ID` and `--axis NAME,NAME` are DELIBERATELY not declared.\nBoth take a comma-separated list inside one argv word, and the type\nvocabulary has no honest shape for that: `Slug` forbids the comma,\n`repeated` would claim the flag may be given more than once when the\nscript parses one list, and `Text` is refused on argv for exactly the\nreason it would be wrong here. Adding a type to fit a flag rather than\nto describe a value is how the vocabulary stops meaning anything, so\nthese two stay undeclared and documented rather than mistyped."
+    },
+    {
+      "at": "",
+      "comment": "── The QA sweep: one node over a checker REGISTRY ─────────────────────\n\n27 files in this group and 2 entry points, which is the shape `d308` argues\nfor rather than against: the group is already almost entirely\nlibrary-behind-one-command. So this is one node over `qa-sweep`, and the\nchecker registry underneath is untouched.\n\n**`qa-checker-discovery` is the extension point, not the entry point.** A\nnew criterion is added by registering a checker, never by adding a Tool —\na node per checker would put twenty-odd near-identical entries in the graph\nand still not describe how a criterion gets registered.\n\nAnd unlike `latex-authoring` and `proof-verification` above, `content-test`'s\ncontract IS satisfiable: it requires `targetPath`, and `qa-sweep` takes a\ncontent root as its first positional. Found by running it — `usage:\nqa-sweep.ts <content-root> …`, exit 2 — rather than by reading for it."
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+---
+# The SITE-WIDE facts the client needs, published ONCE instead of per page.
+#
+# Measured over one preview of 1571 pages, 2026-10-02, these three payloads
+# were inlined into the `<head>` of every page and were BYTE-IDENTICAL on every
+# one of them:
+#
+#   | island                 | per page | total    | distinct payloads |
+#   |------------------------|----------|----------|-------------------|
+#   | `fa-translation-index` |   9.3 KB | 14.26 MB | 1                 |
+#   | `fa-declared-kinds`    |    372 B |  0.57 MB | 1                 |
+#   | `fa-site-links`        |    273 B |  0.42 MB | 1                 |
+#
+# 15.25 MB of one ~9.9 KB answer. The two obligations that come with loading it
+# client-side instead are in `skills/ui/ui-core/ui-accessibility.md`
+# §"A rendering built client-side owes two things the static one gave for
+# free", and `assets/js/kg-render.js` is where this instance satisfies them.
+#
+# ONLY THE FIRST ROW IS HERE TODAY, and the other two are not an oversight.
+#
+# `getSiteLinks` and `declaredKinds` are read SYNCHRONOUSLY by
+# `mountActionTiles`, inside an `init()` sequence whose own comments record its
+# order as load-bearing — the icon row proxies the tile panel's button, and
+# `mountInstanceGraphs` MOVES the node `mountDocumentIndex` inserts against.
+# Moving them means either making that sequence wait on a fetch or re-entering
+# its ordering. On 2026-10-02 four `ready-to-merge` PRs (#1804, #1805, #1808,
+# #1819) were open inside exactly those functions.
+#
+# So: 0.42 MB + 0.57 MB does not buy that risk during a merge train; 22.34 MB
+# did. THE CONDITION FOR MOVING THEM is that those PRs have landed and
+# `mountActionTiles` can take its links asynchronously — at which point they
+# are two more keys in this file and two more fallbacks in `getSiteLinks` and
+# `declaredKinds`, not a different design.
+#
+# ONE FILE rather than one per fact, deliberately: these are one question —
+# "what is this site" — and N files would be N fetches, N failure states and N
+# chances for a page to be half-configured.
+#
+# RENDERED from the same `site.data.*` the islands were, so there is one
+# declaration and two ways it reaches a page, never two lists. The prior art is
+# `assets/harness/config.json` and `assets/harness/tiles.json` beside this
+# file, and `scripts/staging-banner.ts:1-20`, which made exactly this move for
+# the preview banner (bean `g196`) with the owner's approval.
+#
+# `fa-site-scheme` is NOT here, and that is not an omission. It is read by the
+# first-paint snippet in `head_custom.html` — a synchronous script in `<head>`
+# whose whole job is to set the colour scheme BEFORE the first paint. A fetch
+# cannot be awaited there, so moving it would reintroduce the white flash the
+# owner reported on 2026-09-24. `fa-translation-meta` is not here either: it is
+# genuinely per-page (86 distinct payloads over the same 1571 pages).
+# ── A NOTE THAT BELONGS HERE RATHER THAN IN `head_custom.html` ──────────────
+#
+# PROSE IN `head_custom.html` IS NOT FREE, and it is the only file in this
+# repository where that is true. Its comments are HTML comments, not Liquid
+# ones, so every byte is served on every page: measured 2026-10-02 over 2356
+# pages, **1 KB of rationale there costs 2.36 MB published.**
+#
+# This change paid that before it measured it. The first draft of the comments
+# explaining the move added 5845 B to `head_custom.html` and **gave back 62 %
+# of the 22.34 MB saving it had just made** — a change that argued against
+# inlining one payload per page, by inlining an essay per page.
+#
+# So the rule for that file: a comment there is a POINTER, and the reasoning
+# lives in the artefact it is about — a `.js` docblock, which is served once
+# and cached, or front matter like this, which is never served at all. The long
+# comments already in `head_custom.html` predate the measurement; this is a
+# reason not to add more, not a licence to delete theirs.
+#
+# This note is itself the worked example: it sits in front matter because front
+# matter is free, and `head_custom.html` carries four lines pointing here.
+#
+layout: null
+permalink: /assets/harness/site.json
+sitemap: false
+---
+{
+  "$schema": "folio-site-index/v1",
+  "baseurl": "{{ site.baseurl }}",
+  "translations": {{ site.data.translations | jsonify }}
+}

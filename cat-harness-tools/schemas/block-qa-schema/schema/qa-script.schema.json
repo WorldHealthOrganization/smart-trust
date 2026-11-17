@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/litlfred/folio-assistant/blob/main/schemas/block-qa-schema/schema/qa-script.schema.json",
+  "title": "QaScriptSidecar",
+  "description": "JSON shape of a per-criterion `<criterion-id>.script.json` sidecar recording the canonical (script_hash, script_commit_sha, deps_hash) triple captured at the most recent qa-sweep run. Block-level criterion entries snapshot the same triple inline; this sidecar is the single-source-of-truth view of 'is checker X currently stale globally?'. A checker bug fix changes script_hash, which invalidates every verdict that checker ever wrote, corpus-wide.",
+  "type": "object",
+  "required": ["$schema", "criterion_id", "source_file", "script_hash", "script_commit_sha", "last_run_sha"],
+  "additionalProperties": true,
+  "properties": {
+    "$schema": {
+      "const": "qa-script/v1",
+      "description": "Schema marker for this sidecar format."
+    },
+    "criterion_id": {
+      "type": "string",
+      "description": "Criterion id this sidecar tracks (e.g. 'proof-no-bare-sorries')."
+    },
+    "source_file": {
+      "type": "string",
+      "description": "Path (repo-relative) to the checker's source file."
+    },
+    "script_hash": {
+      "type": "string",
+      "description": "12-char SHA-256 prefix of the checker source file's content."
+    },
+    "script_commit_sha": {
+      "type": "string",
+      "description": "Full git SHA of the most recent commit touching source_file."
+    },
+    "extra_inputs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Optional repo-relative paths to extra-input files the checker consults (e.g. cached audit witnesses, the bibliography database)."
+    },
+    "deps_hash": {
+      "type": "string",
+      "description": "12-char SHA-256 prefix of the concatenated extra_inputs content (omitted if none)."
+    },
+    "last_run_at": {
+      "type": "string",
+      "description": "ISO-8601 UTC timestamp of the most recent qa-sweep run."
+    },
+    "last_run_sha": {
+      "type": "string",
+      "description": "Repo HEAD at the most recent sweep (full git SHA)."
+    },
+    "engine_version": {
+      "type": "string",
+      "description": "Engine fingerprint, e.g. 'bun-1.3.11+node-22'."
+    }
+  }
+}

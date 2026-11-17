@@ -1,0 +1,129 @@
+# Cut an IG release as a GitHub DRAFT that carries its files (owner,
+# 2026-11-09, Q-REL-1 "A"; skill `ig-binary-artefacts`, "Releasing").
+# Reusable: an IG repository calls it on a tag with a short caller (template:
+# `templates/ig-repo-site/ig-release.yml`) and carries no copy of these steps.
+#
+# What a run does, and nothing else:
+#   1. `build`: a FULL Publisher build of the tag through
+#      `ig-ast-refresh.yml` (`force`, `release`), whose `ig-release`
+#      artifact holds package.tgz (and its R4/R4B variants) and the AST;
+#   2. `draft`: checks the AST is a full build of the tag, gathers the files
+#      (`ig-release.ts assets`: the packages, ast-data.zip and SHA256SUMS),
+#      reads from sushi-config.yaml whether it is a pre-release
+#      (`ig-release.ts kind`), and makes or refreshes the tag's draft release
+#      with the files (`ig-release.ts draft`).
+#
+# It never publishes: the owner does, on GitHub (`Task_AuthorizeRelease`,
+# draft-to-publication.bpmn). A tag whose release is already published is
+# refused.
+#
+# Nothing here may know about any one IG or publisher (fhir-harness/AGENTS.md).
+name: IG release (draft)
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "The tag to release"
+        type: string
+        required: true
+      tx:
+        description: "Terminology server the Publisher uses"
+        type: string
+        default: http://tx.fhir.org
+      pre-export:
+        description: "As ig-ast-refresh.yml: the caller's overlay command, run before the export"
+        type: string
+        default: ""
+      package-lock:
+        description: "As ig-ast-refresh.yml: the caller's FHIR package lock"
+        type: string
+        default: fhir-packages.lock.json
+      template-repos:
+        description: "As ig-ast-refresh.yml: name=owner/repo for a template the registry does not list"
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    uses: litlfred/fhir-harness/.github/workflows/ig-ast-refresh.yml@main
+    with:
+      ref: ${{ inputs.tag }}
+      force: true
+      release: true
+      tx: ${{ inputs.tx }}
+      pre-export: ${{ inputs.pre-export }}
+      package-lock: ${{ inputs.package-lock }}
+      template-repos: ${{ inputs.template-repos }}
+
+  draft:
+    needs: build
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ig-release-${{ github.repository }}-${{ inputs.tag }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4  # the platform's CI version
+
+      - name: Mount the layers index.lock.json pins
+        env:
+          CAT_MOUNT_CACHE_DIR: /home/runner/.cache/cat-mount
+        run: |
+          [ -f index.lock.json ] || { echo "::error::no index.lock.json: the caller must mount fhir-harness (templates/ig-repo-site)"; exit 2; }
+          ref=$(python3 -c "import json;print(next(m['ref'] for m in json.load(open('index.lock.json'))['mounts'] if m['harness']=='cat-harness-tools'))")
+          M="$RUNNER_TEMP/mounter"
+          git init -q "$M"
+          git -C "$M" fetch -q --depth 1 https://github.com/litlfred/cat-harness-tools.git "$ref"
+          git -C "$M" checkout -q FETCH_HEAD
+          # --no-install: this job installs the three mounts it runs, below.
+          # Installing every mount failed the whole job when a mount it never
+          # runs could not install (a mounted IG's own dependency asked npm
+          # for an unpublished @litlfred/folio-assistant-core; every run since
+          # 2026-10-30 failed here).
+          bun run "$M/scripts/mount-from-lock.ts" --root . --no-install
+          for d in fhir-harness folio-assistant-core cat-harness cat-harness-tools bootstrap-tools; do
+            [ -f "$d/package.json" ] && (cd "$d" && bun install --no-save)
+          done
+          # A mount imports another by its package name
+          # (`@litlfred/cat-harness-tools/...` in fhir-harness/schemas/ig-ast.ts),
+          # and an IG repository has no root workspace to resolve it. Link each
+          # mounted package into the root's node_modules, which no mount digest
+          # covers.
+          mkdir -p node_modules/@litlfred
+          for f in */package.json; do
+            d=${f%/package.json}
+            n=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('name',''))" "$f")
+            case "$n" in @litlfred/*) ln -sfn "../../$d" "node_modules/$n" ;; esac
+          done
+          [ -f fhir-harness/scripts/ig-cache.sh ] || { echo "::error::the lock mounts no fhir-harness"; exit 2; }
+
+      - name: The build's files
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ig-release
+          path: ${{ runner.temp }}/ig-release-in
+
+      - name: Make or refresh the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          IN: ${{ runner.temp }}/ig-release-in
+          OUT: ${{ runner.temp }}/ig-release
+        run: |
+          # A release is cut from a full build only.
+          bun run fhir-harness/scripts/ig-ast.ts build-kind "$IN/output-ast" --require-full
+          bun run fhir-harness/scripts/ig-release.ts assets --output "$IN/output" --ast "$IN/output-ast" --out "$OUT"
+          kind=$(bun run fhir-harness/scripts/ig-release.ts kind --ig .)
+          echo "::notice::$TAG is a $kind"
+          flag=""
+          [ "$kind" = prerelease ] && flag=--prerelease
+          bun run fhir-harness/scripts/ig-release.ts draft --repo "$GITHUB_REPOSITORY" --tag "$TAG" --dir "$OUT" $flag

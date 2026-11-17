@@ -1,0 +1,195 @@
+# Has any runner judged this tree? (cat-harness-tools#399)
+#
+# Owner, 2026-10-16: "github should be one Tool of several". A tree is judged
+# ONCE, by whichever runner is at hand -- an agent container, a local machine,
+# or GitHub Actions -- with `scripts/judge-tree.ts judge`, which writes a
+# verdict record (`schemas/verdict-record.schema.json`) and publishes it as
+# the commit status `judge-tree`. This workflow does not judge. Given the head
+# SHA it computes the tree digest (the index lock's fixity digests, the
+# caller's entry replaced by the head's git tree, and the judging-scripts
+# version at `tools-ref`) and passes only if a GREEN verdict for that digest
+# is published on the head commit. Otherwise it fails saying no runner has
+# judged this tree.
+#
+# `sample: N` keeps the published verdict honest: N gates of the record, chosen
+# by a PRNG seeded with the head SHA (so any runner re-picks the same ones),
+# are re-run on this runner, and the check fails if any exit disagrees. It
+# needs the record itself: `record-url`, or the status's target_url when that
+# names a `.json`.
+#
+# A caller is one `uses:` line, as for layer-pr-checks.yml:
+#
+#   on: { pull_request: {} }
+#   permissions: { contents: read, statuses: read }
+#   jobs:
+#     verdict:
+#       uses: litlfred/cat-harness-tools/.github/workflows/verdict-check.yml@main
+#       with: { head-sha: "${{ github.event.pull_request.head.sha }}" }
+#
+# Whoever judges must name the caller the same way (`--caller owner/name`) and
+# use the same tools ref, or the digests differ and nothing is found -- which
+# fails closed, never open.
+
+name: Verdict check
+
+on:
+  workflow_call:
+    inputs:
+      head-sha:
+        description: "The commit whose tree is checked."
+        required: true
+        type: string
+      mode:
+        description: "'layer' (mounted by the folio-assistant index: its lock is the index's) or 'index' (the caller is its own index: its lock is its own)."
+        required: false
+        type: string
+        default: "layer"
+      caller:
+        description: "How the caller is named in the digest: its owner/name (default) or its lock instance."
+        required: false
+        type: string
+        default: ""
+      path-in-repo:
+        description: "layer mode, sample only: where the instance sits in the calling repository."
+        required: false
+        type: string
+        default: "."
+      instance:
+        description: "layer mode, sample only: the instance's directory in the index; empty means the repository's name."
+        required: false
+        type: string
+        default: ""
+      index-ref:
+        description: "layer mode: the folio-assistant ref whose index.lock.json the digest reads."
+        required: false
+        type: string
+        default: "main"
+      tools-ref:
+        description: "The cat-harness-tools ref whose judging scripts define the digest's judging version."
+        required: false
+        type: string
+        default: "main"
+      sample:
+        description: "Re-run this many recorded gates, seeded by head-sha, and fail on any disagreement. 0 re-runs none."
+        required: false
+        type: number
+        default: 0
+      record-url:
+        description: "sample only: where the verdict record is; empty means the status's target_url when it names a .json."
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  statuses: read
+
+jobs:
+  verdict:
+    name: A runner judged this tree green
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      HEAD_SHA: ${{ inputs.head-sha }}
+      CALLER: ${{ inputs.caller != '' && inputs.caller || github.repository }}
+      INSTANCE: ${{ inputs.instance != '' && inputs.instance || github.event.repository.name }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out the judging scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: litlfred/cat-harness-tools
+          ref: ${{ inputs.tools-ref }}
+          path: ci
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+      - name: Check out the head commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.head-sha }}
+          path: caller
+      - name: Check out the index (layer mode)
+        if: inputs.mode == 'layer'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: litlfred/folio-assistant
+          ref: ${{ inputs.index-ref }}
+          path: fa
+      - name: The lock the digest reads
+        id: lock
+        env:
+          MODE: ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+          lock="fa/index.lock.json"
+          [ "$MODE" = "index" ] && lock="caller/index.lock.json"
+          test -f "$lock" || { echo "::error::$lock is missing: the tree cannot be named, so no verdict can answer for it"; exit 2; }
+          echo "path=$lock" >> "$GITHUB_OUTPUT"
+      - name: Is there a green verdict for this tree?
+        id: check
+        env:
+          LOCK: ${{ steps.lock.outputs.path }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -uo pipefail
+          digest="$(bun ci/scripts/judge-tree.ts digest --lock "$LOCK" --caller "$CALLER" --caller-dir caller --sha "$HEAD_SHA")" || exit 2
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "tree digest for $REPO@$HEAD_SHA: $digest"
+          # `|| code=$?`: under Actions' `bash -e` a failing assignment ended
+          # the step here, so a red or undetermined verdict lost its output,
+          # its summary and its annotation below.
+          code=0
+          out="$(bun ci/scripts/judge-tree.ts check --digest "$digest" --repo "$REPO" --sha "$HEAD_SHA")" || code=$?
+          echo "$out"
+          { echo "### Verdict check"; echo; echo "$out"; } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$code" -ne 0 ]; then
+            echo "::error title=No green verdict::$out"
+            exit "$code"
+          fi
+      - name: Fetch the verdict record (sample)
+        if: inputs.sample > 0
+        env:
+          RECORD_URL: ${{ inputs.record-url }}
+          REPO: ${{ github.repository }}
+          DIGEST: ${{ steps.check.outputs.digest }}
+        run: |
+          set -euo pipefail
+          url="$RECORD_URL"
+          if [ -z "$url" ]; then
+            url="$(gh api "repos/$REPO/commits/$HEAD_SHA/statuses" --jq "[.[] | select(.context == \"judge-tree\" and ((.target_url // \"\") | endswith(\"#judge-tree=$DIGEST\")))][0].target_url // \"\"" | sed 's/#.*//')"
+          fi
+          case "$url" in
+            *.json) curl -fsSL "$url" -o "$RUNNER_TEMP/record.json" ;;
+            *) echo "::error::sample requested, but no verdict record is reachable (record-url is empty and the status's target_url '$url' names no .json)"; exit 2 ;;
+          esac
+      - name: Mount the judged tree (sample)
+        if: inputs.sample > 0
+        env:
+          MODE: ${{ inputs.mode }}
+          SUBDIR: ${{ inputs.path-in-repo }}
+        run: |
+          set -euo pipefail
+          if [ "$MODE" = "index" ]; then
+            rm -rf fa
+            cp -a caller fa
+          fi
+          if [ -f fa/.github/mount-from-lock.sh ]; then
+            bash fa/.github/mount-from-lock.sh --root fa
+          else
+            bun ci/scripts/mount-from-lock.ts --root fa
+          fi
+          if [ "$MODE" = "layer" ]; then
+            rm -rf "fa/$INSTANCE"
+            if [ "$SUBDIR" = "." ]; then cp -a caller "fa/$INSTANCE"; else cp -a "caller/$SUBDIR" "fa/$INSTANCE"; fi
+            rm -rf "fa/$INSTANCE/.git"
+          fi
+          (cd fa && bun install)
+      - name: Re-run a seeded sample of the recorded gates
+        if: inputs.sample > 0
+        env:
+          LOCK: ${{ steps.lock.outputs.path }}
+          N: ${{ inputs.sample }}
+        run: |
+          bun ci/scripts/judge-tree.ts sample --record "$RUNNER_TEMP/record.json" --root fa --seed "$HEAD_SHA" --n "$N" \
+            --lock "$LOCK" --caller "$CALLER" --caller-dir caller --sha "$HEAD_SHA"
