@@ -174,7 +174,7 @@ export class World {
     add(gh, new RoundedBoxGeometry(7, 0.9, 4.4, 6, 0.42), std(C.base), 0, -0.35, 0);
     add(gh, new RoundedBoxGeometry(6.7, 0.2, 4.1, 4, 0.09), std('#dfe2f4'), 0, 0.12, 0);
 
-    this.countryLabel = this.label(s, t('World.ts:territory.country'), -10, 0, -9.6, 'w-territory t-country');
+    this.countryLabel = this.label(s, t('settings.ts:DEFAULTS.country').toUpperCase(), -10, 0, -9.6, 'w-territory t-country');
     this.label(s, t('World.ts:territory.network'), 0, 0, -8.4, 'w-territory t-network');
     this.label(s, t('World.ts:territory.who'), 10, 0, -9.6, 'w-territory t-who');
     tipLabel(this.label(s, t('World.ts:territory.github'), 0, 0.4, 13.7, 'w-territory t-github'));

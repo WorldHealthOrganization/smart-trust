@@ -119,7 +119,7 @@ export class UI {
             ${([['business', 'Business', 'BO'], ['keymaster', 'Keymaster', 'KM'], ['legal', 'Legal', 'LG'], ['technical', 'Technical', 'TC']] as const).map(([r, K]) =>
               `<label><span class="avatar r-${r}">${U(`title.avatar${K}`)}</span>${U(`title.team${K}`)}<input data-p="${r}"><span class="job">${ROLES[r].job}</span></label>`).join('')}
           </div>
-          <button class="link reset" type="button">${U('title.resetSample')}</button>
+          <button class="link reset" type="button">${U('title.resetSample', { country: DEFAULTS.country })}</button>
         </details>
         <div class="title-grid">
           <div><span class="dot c-country"></span><b class="t-cname"></b><br>${U('title.gridCountry')}</div>

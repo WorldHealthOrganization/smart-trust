@@ -29,7 +29,8 @@ function domainItems() {
  * Text uses {tokens} filled in at runtime from the player's settings (see settings.ts):
  * {country}, {code}, {codeLower} (3-letter, same as {code3}), {code3}, {code3Lower} (ISO 3-letter, for repo names), {domain}, {business}, {keymaster}, {legal}, {technical},
  * {keymasterFirst}, {legalFirst}, {technicalFirst}, {keymasterEmail}, {keymasterPersonal}.
- * Defaults: Country XC, with fictional people Dr Zawadi Nkosi, Kwame Mensah, Sara Diallo, Tendai Banda.
+ * Defaults: Onesa (XXU), the fictional home country of the SMART Trust demonstrator's journeys
+ * (smart-trust-demo, scenarios/countries/onesa.json), with fictional people Dr Zawadi Nkosi, Kwame Mensah, Sara Diallo, Tendai Banda.
  */
 
 export const PHASES: Record<Phase, string> = {
@@ -248,7 +249,7 @@ export const MOMENTS: Moment[] = [
         consequence: {
           title: 'Private key published', by: 'Your own security review', steps: ['GDHCN.ONB.PrepareKeys#K.Publish', 'GDHCN.ONB.PrepareKeys#K.Repo'],
           what: 'A private key left the country. It has to be treated as compromised: revoke it, regenerate, and prepare the key material again.',
-          why: 'Only public keys go to GitHub. Private keys never cross the {country} boundary.',
+          why: 'Only public keys go to GitHub. Private keys never leave {country}.',
           days: 12, travel: { legs: [['backend-github', 1]], label: 'SCA private key', kind: 'key' },
         },
       },
