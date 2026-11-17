@@ -1,0 +1,77 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "archimate-pages",
+    "title": "Give every ArchiMate view, element and relationship a page and an IRI, and draw every view",
+    "description": "Write a JSON-LD node and a thin page for each model a layer's `cat-archimate.config.json` names and for every view, element and relationship in it — keyed by Archi's own ids — plus the normalised model the pages' one loader draws from, and every view drawn as SVG from the model's own bounds and bendpoints in ArchiMate's notation, each box a link to its element. `--out` writes into a site being built — the data at the graph's path, the pages at the route of the visualiser the layer declares for this Tool, `<locale>/<harness>/<id>/`; without it the files go into the graph and `--check` gates them.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat archimate:pages"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The layer root.",
+          "required": true,
+          "arg": {
+            "flag": "--instance"
+          }
+        },
+        {
+          "name": "out",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A site being built: the data lands at `<out>/<graph path>/` and the pages at `<out>/<locale>/<harness>/<id>/`, the route of the layer's one visualiser `renderedBy` this Tool (none declared: nothing is written). Absent, they are written into the graph, which must be `served: true`.",
+          "required": false,
+          "arg": {
+            "flag": "--out"
+          }
+        },
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Without `--out`: fail if a committed page is missing, stale or orphaned; write nothing.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "pages",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "Pages and view drawings written (or found current)."
+        }
+      ]
+    },
+    "satisfies": [
+      "archimate-models"
+    ],
+    "selection": {
+      "when": "A folio's staging or publish build should show its ArchiMate models: run after the document site is built and before the navbar pass.",
+      "limits": "Draws the notation, not Archi's icons, custom images or fonts; sketch and canvas views are skipped. Never replaced by Archi's CLI report (skill `archimate-models`).",
+      "cost": "Milliseconds per view; four models of 5,809 pages and 131 drawings (~24 MB) take about 1.5 s. No network, no JVM."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    },
+    "renders": [
+      "archimate"
+    ]
+  }
+}

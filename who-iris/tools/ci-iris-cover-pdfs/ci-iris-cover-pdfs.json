@@ -1,0 +1,29 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "ci-iris-cover-pdfs",
+    "title": "Fetch IRIS cover PDFs",
+    "description": "Dispatch `iris-cover-pdfs.yml`: fetch the PDFs the replica's home page references (`scripts/iris-covers/fetch-referenced-pdfs.py`) and render their cover previews (`scripts/iris-covers/render-previews.py`). Started with the standard GitHub CLI; the run is watched with `gh run watch`.",
+    "install": { "cli": "gh" },
+    "invoke": { "shell": "gh workflow run iris-cover-pdfs.yml" },
+    "io": {
+      "inputs": [
+        { "name": "repo", "schema": { "$type": "RepoFullName" }, "required": false, "arg": { "flag": "--repo" }, "description": "The repository whose workflow is run. Default: the current one." },
+        { "name": "ref", "schema": { "$type": "Branch" }, "required": false, "arg": { "flag": "--ref" }, "description": "The branch to run it on. Default: the default branch." }
+      ],
+      "outputs": [
+        { "name": "run", "schema": { "$type": "Text" }, "description": "The dispatched run; its outcome is read with `gh run watch` or `gh run view`." }
+      ]
+    },
+    "satisfies": ["iris-dspace"],
+    "selection": {
+      "when": "Refreshing the replica's cover previews on demand. Pass `-f only=<slugs>` to limit it to some items.",
+      "limits": "Needs a token that may dispatch workflows (actions: write) on the repository.",
+      "cost": "A CI run on GitHub's runners."
+    },
+    "requires": { "runtime": ["gh"], "network": true },
+    "remedies": [
+      { "host": "github.com", "none": "The workflow runs on GitHub; with no host there is nothing to dispatch. The scripts it runs can still be run locally." }
+    ]
+  }
+}

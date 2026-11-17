@@ -1,0 +1,3 @@
+Sub-indicator 4-02.3
+Existence of mechanisms and models for health workforce planning (Yes/Partial/No)
+Guiding questions: Is there a coordinated communication and information flow among national-level intersectoral stakeholders? Is there a dedicated and established Human Resources for Health Planning Committee, a designated entity or a specific group at the national level responsible for the health workforce? Is there a methodology established for health workforce planning? Are complete data with full coverage of the population available in a sustainable manner to provide quantitative assessment required for health workforce planning? Are policy actions based on the recommendations of the Human Resources for Health Planning Committee implemented?

@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_SessionStateMachine"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="session-record" name="Session record"/>
+  <bpmn:resource id="user" name="User"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       An agent PLAYING a state machine — folio-assistant
+
+       An agent can play a (non-deterministic) state machine as a
+       tool, managing session state during a human/agentic discussion.
+
+       WHERE THE NON-DETERMINISM LIVES, and it is not where it looks.
+       A machine whose SHAPE were non-deterministic could not be drawn:
+       the interpreter supports nine element types and throws on the
+       rest, deliberately. So the shape here is strict and enumerable,
+       and what varies is WHICH ENABLED BRANCH THE AGENT TAKES and what
+       it writes. That distinction is the whole design: an exclusive gateway with no
+       `cat-harness.processes:decision` is the case where the caller supplies the
+       outcome.
+
+       Each such gateway carries `<cat-harness.processes:judgement reason="…"/>`.
+       Without it, "no table because this is somebody's call" and "no table
+       because nobody wrote one yet" are indistinguishable — the gap
+       `cat-harness.processes:no-skill` closed for activities, one element type along.
+       Every gateway below carries it, because every one of them is a
+       reading of intent that no table can make.
+
+       THE MACHINE CLAIMS NOTHING. No `cat-harness.processes:bean` anywhere: this
+       process RECORDS that an actor claimed a bean, it does not claim
+       one. A machine that quietly claimed on the actor's behalf would
+       make the claim's owner unrecoverable, and a claim ANNOUNCES
+       rather than reserves precisely so a reader can tell who
+       announced it.
+
+       ADVISORY, not strict. An agent keeping its own session record
+       must never be refused — a missing update is a gap in a record,
+       not an unauthorised write. The base content processes gate; this
+       one describes.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:collaboration id="Collab_SessionStateMachine">
+    <bpmn:participant id="Participant_SessionStateMachine" name="Session state machine" processRef="Process_SessionStateMachine"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_SessionStateMachine" name="Session state machine" isExecutable="true">
+    <bpmn:documentation>The shape of a session from the outside: establish who is acting, open a record for them, take each turn in, and write down only what actually changed.
+
+You are in this process for the whole of a session, underneath whatever else you are doing — it is the frame the other processes run inside. The first gateway is the one that matters: an agent that cannot say who is acting ASKS, because every later decision about permissions, preferences and language depends on an answer nobody guessed.
+
+The distinction between refreshing a timestamp and writing what changed is the diagram's whole content. A session record that logs every turn as a change cannot be read for what happened, and one that logs none cannot be read at all.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_SessionStateMachine">
+      <bpmn:lane id="Lane_Machine" name="Agent (playing the machine)" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Classifies every turn into exactly one of three effects at Gateway_TurnEffect — nothing changed, state changed, ending — a fresh judgement each time because a table cannot key on intent and a wrong read is corrected by the next turn. It records that a bean was claimed or an instance closed, at A_UpdateSession, but performs none of those actions itself: the record and the thing it describes are kept deliberately separate.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Session</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_IdentifyActor</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ActorKnown</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_OpenSession</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_SecurePermissions</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ReadTurn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TurnEffect</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Touch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_UpdateSession</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_CloseSession</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Session</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Human" name="Human actor" partitionElementRef="user">
+        <bpmn:documentation>Entered only when Gateway_ActorKnown cannot confirm an actor — the one fact in this whole record that the machine cannot recover by reading the repository — and answered once: the response is recorded so this lane is never re-entered for the same session, which is what keeps asking who is acting from becoming a repeated interruption.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_AskWhoIsActing</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <!-- Written to, decides nothing. No flowNodeRef, which is what
+           `actedUpon` means. -->
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Session" name="An actor picks up">
+      <bpmn:outgoing>F_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="A_IdentifyActor" name="Establish who is acting">
+      <bpmn:documentation>The first step and not a formality: `actor` is the one field of the record that nothing else can supply. Every other field is recoverable by reading the repository; who is acting is not.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="session-context"/></bpmn:extensionElements>
+      <bpmn:incoming>F_1</bpmn:incoming>
+      <bpmn:incoming>F_4</bpmn:incoming>
+      <bpmn:outgoing>F_2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Gateway_ActorKnown" name="Actor established?">
+      <bpmn:documentation>Is it established who is acting? `no` asks; `yes` opens the session record. A session is never opened for an actor it has not identified.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="Only the discussion says who is acting, and it rarely says so in a field. A table would need a name to read; this branch is the reading."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_2</bpmn:incoming>
+      <bpmn:outgoing>F_3</bpmn:outgoing>
+      <bpmn:outgoing>F_5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:callActivity id="A_AskWhoIsActing" calledElement="Process_AskThePerson" name="Ask who is acting">
+      <bpmn:documentation>The one step that needs a person. Asked ONCE and recorded, never re-asked: `memory/interaction.json` and the record exist so that a preference stated once is not requested again, which is WCAG 2.2 SC 3.3.7.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="interaction-modality"/></bpmn:extensionElements>
+      <bpmn:incoming>F_3</bpmn:incoming>
+      <bpmn:outgoing>F_4</bpmn:outgoing>
+    </bpmn:callActivity>
+
+    <bpmn:task id="A_OpenSession" name="Open the session record">
+      <bpmn:documentation>Writes `id`, `actor` and `startedAt`, with `open` and `claimed` empty. An empty `open` is the NORMAL state, not an unfinished one: an agent reading, answering or deciding is in no process at all.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="session-context"/></bpmn:extensionElements>
+      <bpmn:incoming>F_5</bpmn:incoming>
+      <bpmn:outgoing>F_6</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_A_OpenSession">
+        <bpmn:targetRef>DSR_session_record</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+
+    <bpmn:callActivity id="Call_SecurePermissions" name="Secure the agent's&#10;permissions" calledElement="Process_SecureAgentPermissions">
+      <bpmn:documentation>Once the actor is known and the record is open, check that the coding agent acting here holds the permissions this layer's processes need, granted by a person and recorded, and ask for any that are missing. This is where initiating the harness for an actor secures them, rather than the first denied command. A run that finds them current returns without asking anything; the same process is called on demand when an action is denied later in the session. Vendor-neutral: the agent is a Tool, and its config is written through that Tool's adapter. Skill: agent-permissions.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="agent-permissions"/></bpmn:extensionElements>
+      <bpmn:incoming>F_6</bpmn:incoming>
+      <bpmn:outgoing>F_6b</bpmn:outgoing>
+    </bpmn:callActivity>
+
+    <bpmn:task id="A_ReadTurn" name="Take in the turn">
+      <bpmn:documentation>A turn is anything that arrives — a person's message, a tool result, a notification. The machine advances on turns rather than on a clock, because a session that has been told nothing has not changed.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="reading what a turn said is the agent's ordinary comprehension, not a procedure an instruction body could add anything to"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_6b</bpmn:incoming>
+      <bpmn:incoming>F_9</bpmn:incoming>
+      <bpmn:incoming>F_11</bpmn:incoming>
+      <bpmn:outgoing>F_7</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Gateway_TurnEffect" name="What did the turn change?">
+      <bpmn:documentation>THE non-deterministic point, and the reason this process exists. Three branches, and the agent chooses.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="Whether a turn changed the session's state is a reading of intent — 'I might look at X later' and 'start X' differ by nothing a table can key on. Getting it wrong is recoverable: the next turn corrects it, which is why this is judgement rather than a gate."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_7</bpmn:incoming>
+      <bpmn:outgoing>F_8</bpmn:outgoing>
+      <bpmn:outgoing>F_10</bpmn:outgoing>
+      <bpmn:outgoing>F_12</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_Touch" name="Refresh `updatedAt` only">
+      <bpmn:documentation>Nothing changed, and saying so is the point. A record that stops being written looks exactly like an abandoned session; a refreshed timestamp with no other change says the session is alive and idle, which is a different fact and the commonest one.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="session-context"/></bpmn:extensionElements>
+      <bpmn:incoming>F_8</bpmn:incoming>
+      <bpmn:outgoing>F_9</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_A_Touch">
+        <bpmn:targetRef>DSR_session_record</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+
+    <bpmn:task id="A_UpdateSession" name="Write what changed">
+      <bpmn:documentation>An instance opened or closed, a bean claimed, a wait started or ended. All by REFERENCE: the bean and the instance are each the authority on themselves, and a status copied here would be free to contradict them.
+
+NO `cat-harness.processes:bean` on this step. It records that a claim happened; it does not claim.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="session-context"/></bpmn:extensionElements>
+      <bpmn:incoming>F_10</bpmn:incoming>
+      <bpmn:outgoing>F_11</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_A_UpdateSession">
+        <bpmn:targetRef>DSR_session_record</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+
+    <bpmn:task id="A_CloseSession" name="Close the session">
+      <bpmn:documentation>Records that the actor stopped. It does NOT resolve beans or complete instances: those outlive the session by design, and a machine that closed them on the way out would be asserting work finished because somebody went away.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="session-context"/></bpmn:extensionElements>
+      <bpmn:incoming>F_12</bpmn:incoming>
+      <bpmn:outgoing>F_13</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_A_CloseSession">
+        <bpmn:targetRef>DSR_session_record</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Session" name="Session closed">
+      <bpmn:incoming>F_13</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="F_1" sourceRef="Start_Session" targetRef="A_IdentifyActor"/>
+    <bpmn:sequenceFlow id="F_2" sourceRef="A_IdentifyActor" targetRef="Gateway_ActorKnown"/>
+    <bpmn:sequenceFlow id="F_3" name="no" sourceRef="Gateway_ActorKnown" targetRef="A_AskWhoIsActing"/>
+    <bpmn:sequenceFlow id="F_4" sourceRef="A_AskWhoIsActing" targetRef="A_IdentifyActor"/>
+    <bpmn:sequenceFlow id="F_5" name="yes" sourceRef="Gateway_ActorKnown" targetRef="A_OpenSession"/>
+    <bpmn:sequenceFlow id="F_6" sourceRef="A_OpenSession" targetRef="Call_SecurePermissions"/>
+    <bpmn:sequenceFlow id="F_6b" sourceRef="Call_SecurePermissions" targetRef="A_ReadTurn"/>
+    <bpmn:sequenceFlow id="F_7" sourceRef="A_ReadTurn" targetRef="Gateway_TurnEffect"/>
+    <bpmn:sequenceFlow id="F_8" name="nothing changed" sourceRef="Gateway_TurnEffect" targetRef="A_Touch"/>
+    <bpmn:sequenceFlow id="F_9" sourceRef="A_Touch" targetRef="A_ReadTurn"/>
+    <bpmn:sequenceFlow id="F_10" name="state changed" sourceRef="Gateway_TurnEffect" targetRef="A_UpdateSession"/>
+    <bpmn:sequenceFlow id="F_11" sourceRef="A_UpdateSession" targetRef="A_ReadTurn"/>
+    <bpmn:sequenceFlow id="F_12" name="the session is ending" sourceRef="Gateway_TurnEffect" targetRef="A_CloseSession"/>
+    <bpmn:sequenceFlow id="F_13" sourceRef="A_CloseSession" targetRef="End_Session"/>
+    <bpmn:dataStoreReference id="DSR_session_record" name="Session record" dataStoreRef="session-record"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_SessionStateMachine">
+    <bpmndi:BPMNPlane id="Plane_SessionStateMachine" bpmnElement="Collab_SessionStateMachine">
+      <bpmndi:BPMNShape id="Shape_Participant_SessionStateMachine" bpmnElement="Participant_SessionStateMachine" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1340" height="660" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Machine" bpmnElement="Lane_Machine" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1310" height="500" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Human" bpmnElement="Lane_Human" isHorizontal="true">
+        <dc:Bounds x="190" y="580" width="1310" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Session" bpmnElement="Start_Session">
+        <dc:Bounds x="236" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="343" width="70" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_IdentifyActor" bpmnElement="A_IdentifyActor">
+        <dc:Bounds x="302" y="260" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_ActorKnown" bpmnElement="Gateway_ActorKnown" isMarkerVisible="true">
+        <dc:Bounds x="462" y="295" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="447" y="250" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_OpenSession" bpmnElement="A_OpenSession">
+        <dc:Bounds x="582" y="260" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_SecurePermissions" bpmnElement="Call_SecurePermissions">
+        <dc:Bounds x="732" y="260" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ReadTurn" bpmnElement="A_ReadTurn">
+        <dc:Bounds x="882" y="260" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_TurnEffect" bpmnElement="Gateway_TurnEffect" isMarkerVisible="true">
+        <dc:Bounds x="1062" y="295" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1117" y="255" width="100" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Touch" bpmnElement="A_Touch">
+        <dc:Bounds x="1027" y="90" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_UpdateSession" bpmnElement="A_UpdateSession">
+        <dc:Bounds x="1027" y="410" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_CloseSession" bpmnElement="A_CloseSession">
+        <dc:Bounds x="1232" y="260" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Session" bpmnElement="End_Session">
+        <dc:Bounds x="1382" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1370" y="343" width="60" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_DSR_session_record" bpmnElement="DSR_session_record">
+        <dc:Bounds x="1267" y="445" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1160" y="500" width="105" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_AskWhoIsActing" bpmnElement="A_AskWhoIsActing">
+        <dc:Bounds x="427" y="600" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_F_1" bpmnElement="F_1">
+        <di:waypoint x="272" y="320" />
+        <di:waypoint x="302" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_2" bpmnElement="F_2">
+        <di:waypoint x="422" y="320" />
+        <di:waypoint x="462" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_5" bpmnElement="F_5">
+        <di:waypoint x="512" y="320" />
+        <di:waypoint x="582" y="320" />
+        <bpmndi:BPMNLabel><dc:Bounds x="525" y="300" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_3" bpmnElement="F_3">
+        <di:waypoint x="487" y="345" />
+        <di:waypoint x="487" y="600" />
+        <bpmndi:BPMNLabel><dc:Bounds x="492" y="390" width="25" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_4" bpmnElement="F_4">
+        <di:waypoint x="427" y="660" />
+        <di:waypoint x="362" y="660" />
+        <di:waypoint x="362" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_6" bpmnElement="F_6">
+        <di:waypoint x="702" y="320" />
+        <di:waypoint x="732" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_6b" bpmnElement="F_6b">
+        <di:waypoint x="852" y="320" />
+        <di:waypoint x="882" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_7" bpmnElement="F_7">
+        <di:waypoint x="1002" y="320" />
+        <di:waypoint x="1062" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_8" bpmnElement="F_8">
+        <di:waypoint x="1087" y="295" />
+        <di:waypoint x="1087" y="210" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1006" y="222" width="76" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_9" bpmnElement="F_9">
+        <di:waypoint x="1027" y="150" />
+        <di:waypoint x="942" y="150" />
+        <di:waypoint x="942" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_10" bpmnElement="F_10">
+        <di:waypoint x="1087" y="345" />
+        <di:waypoint x="1087" y="410" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1006" y="352" width="76" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_11" bpmnElement="F_11">
+        <di:waypoint x="1027" y="470" />
+        <di:waypoint x="942" y="470" />
+        <di:waypoint x="942" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_12" bpmnElement="F_12">
+        <di:waypoint x="1112" y="320" />
+        <di:waypoint x="1232" y="320" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1125" y="326" width="95" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_13" bpmnElement="F_13">
+        <di:waypoint x="1352" y="320" />
+        <di:waypoint x="1382" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_A_OpenSession" bpmnElement="DOA_A_OpenSession">
+        <di:waypoint x="642" y="380" />
+        <di:waypoint x="642" y="550" />
+        <di:waypoint x="1292" y="550" />
+        <di:waypoint x="1292" y="495" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_A_CloseSession" bpmnElement="DOA_A_CloseSession">
+        <di:waypoint x="1292" y="380" />
+        <di:waypoint x="1292" y="445" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_A_UpdateSession" bpmnElement="DOA_A_UpdateSession">
+        <di:waypoint x="1147" y="470" />
+        <di:waypoint x="1267" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_A_Touch" bpmnElement="DOA_A_Touch">
+        <di:waypoint x="1147" y="130" />
+        <di:waypoint x="1460" y="130" />
+        <di:waypoint x="1460" y="470" />
+        <di:waypoint x="1317" y="470" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

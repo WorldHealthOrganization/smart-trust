@@ -1,0 +1,115 @@
+---
+doc_id: 10665-47547
+doc_title: "HIV : to test or not to test?"
+section_id: page-004
+section_title: "Page 4"
+pages: 4-4
+pdf_page: 4
+source_pdf: 10665-47547.pdf
+source_sha256: 69fd2e6e3ac140b3
+text_source: ocr
+granularity: page
+---
+is resistance in a number of countries,
+including my own, to systematic screening;
+there is the feeling that “compulsory” is a
+very important word in all this. Screening
+has been discussed for three situations in
+life: before marriage, during pregnancy, and
+before surgical operations. I have the
+impression that the public feels—and
+perhaps the very important role of the press
+needs to be stressed here—that there is
+resistance on the part of the medical
+profession or the government to protect the
+general public by undertaking systematic
+screening of all potential patients. Here I
+think Mr Kirby’s detailed analysis of the
+economics involved is very useful, and we
+also need specific explanations in moral
+terms.
+
+Second, I think we need to stress in
+particular the delicate task of announcing
+seropositivity to the patient. I have been
+working with a number of nongovernmental
+organizations in France where tests are done
+free and I shall never forget the first
+patients to whom we had to announce that
+they were seropositive. Psychological and
+medical counselling are essential before,
+during, and especially after informing the
+patient. We cannot simply test people and
+then leave them to their own devices.
+Follow-up is of paramount importance, in
+order to resolve all the questions that arise
+from seropositivity.
+
+Miss Bailey: I think the primary concept
+that really stands out is trust. I entirely agree
+that one has to have absolute trust in the
+physician once the word AIDS is
+pronounced. But trust should not be limited
+to the patient/physician relationship, it has
+to be general too. In the entertainment
+profession it is strange the way a rumour
+starts: first of all it’s highly confidential, and
+the next thing you know it’s an open secret.
+Rumours are the most insidious things in
+the world, and the more they spread the
+
+World Health Forum Vol. 10
+
+1989
+
+HIV—to test or not to test?
+
+more the person concerned wants to hide
+away even if the rumours are unfounded, It
+has come to the point where some people
+don’t even want to shake hands with others
+because they heard a whisper. Find the way
+to foster trust and you will have found how
+to get people to open up and say, “I have
+AIDS”.
+
+Professor Dembelé: The very fact that we
+are discussing the problems of individuals
+vis-a-vis society means that there is a
+problem. In fact, it is a very simple one.
+AIDS has given rise to so many fantasies in
+people’s minds that in almost all countries
+there are pressures from certain people who
+demand that we take special measures to
+protect those who are not infected with HIV
+from those who are. Unfortunately, some
+authorities have yielded to such pressures
+and some countries are preparing to
+introduce systematic testing on entry. We
+know very well that in public health this
+type of measure is completely futile. So the
+medical profession has a very important duty
+to explain things clearly and the mass media
+must take responsibility for putting the
+messages across in a very clear manner. A
+bridge has to be built between all parts of
+society.
+
+Dr Castro: On the ethics of screening, I am
+concerned about protecting individuals and
+avoiding prejudice against certain sectors of
+society or certain racial groups on the
+pretext that we are scientifically combating a
+disease. We need to be very careful when
+we get into the area of compulsory testing;
+such a step could be manipulated into
+discrimination on ethnic or other grounds. It
+may be in contradiction with what I am
+saying, but I wonder whether testing would
+be necessary for those who enjoy a high
+economic level in a developed culture and
+who go to establish themselves in other
+countries where there is not the same
+educational level or the economic and
+
+425

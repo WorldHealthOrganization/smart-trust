@@ -1,0 +1,52 @@
+{%- comment -%}
+  OVERRIDES just-the-docs 0.12.0's `_includes/components/breadcrumbs.html`.
+  Include as: {%- include components/breadcrumbs.html -%}
+  Depends on: page, and the cached `nav_cache/breadcrumbs_map.html`.
+  Results in: HTML for the breadcrumbs component, the same as the theme's.
+  Overwrites: nav_breadcrumbs (read by components/children_nav.html),
+    nav_cache_map, nav_cache_key, nav_cache_crumbs, nav_breadcrumb.
+
+  WHAT CHANGED, AND WHY ("cache the nav"). The theme finds the page's
+  ancestors by splitting the whole nav HTML up to the page's link at every
+  "</a>" and walking each anchor before it: O(pages) Liquid work on every page,
+  O(pages^2) for the site. Here they are LOOKED UP in a map that
+  `nav_cache/breadcrumbs_map.html` computes once per build with the theme's own
+  loop. The condition and the `<nav>` markup below are the theme's VERBATIM.
+
+  Keep in step with the theme when the just-the-docs pin moves
+  (upstream/upstream-pins.json).
+{%- endcomment -%}
+
+{%- if page.url != "/" and page.parent and page.title -%}
+
+{%- capture nav_cache_map -%}
+{%- include_cached nav_cache/breadcrumbs_map.html -%}
+{%- endcapture -%}
+
+{%- capture nav_cache_key -%}
+|@|{{ page.url | relative_url }}|=|
+{%- endcapture -%}
+
+{%- unless nav_cache_map contains nav_cache_key -%}
+  {%- assign nav_cache_key = "|@|*end*|=|" -%}
+{%- endunless -%}
+
+{%- assign nav_cache_crumbs = nav_cache_map | split: nav_cache_key | slice: 1 | first
+      | split: "|@|" | first -%}
+
+{%- assign nav_breadcrumbs = nav_cache_crumbs | split: "|#|" -%}
+
+<nav aria-label="Breadcrumb" class="breadcrumb-nav">
+  <ol class="breadcrumb-nav-list">
+    {%- for nav_breadcrumb in nav_breadcrumbs %}
+    <li class="breadcrumb-nav-list-item">{{ nav_breadcrumb }}</li>
+    {%- endfor %}
+    <li class="breadcrumb-nav-list-item"><span>{{ page.title }}</span></li>
+  </ol>
+</nav>
+
+{% if site.nav_error_report %}
+{{ nav_error_report }}
+{% endif %}
+
+{%- endif -%}
