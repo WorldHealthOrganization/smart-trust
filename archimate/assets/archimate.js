@@ -81,7 +81,7 @@
   // values put in. A word with no translation stays English.
   var I18N = (function () {
     var s = document.getElementById("am-i18n");
-    try { return s ? JSON.parse(s.textContent) : {}; } catch (e) { return {}; }
+    try { return s ? JSON.parse(s.textContent) : {}; } catch (_e) { return {}; }
   })();
   function T(s) { return Object.prototype.hasOwnProperty.call(I18N, s) ? I18N[s] : s; }
   function F(s) {
