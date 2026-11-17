@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_BoardRelocate"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="board-renderer" name="Board renderer"/>
+  <bpmn:resource id="user" name="User"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       The fishbone — relocating content into fsh-guts
+       fsh-guts is where content is thrown. The fishbone on open content,
+       once confirmed, relocates the content itself into fsh-guts: delete
+       becomes move.
+
+       WHY THIS IS A DIAGRAM AND NOT A HANDLER. The fishbone LOOKS like
+       a delete and is not one, which is exactly the confusion a drawn
+       process is for. Two facts have to survive every future edit of
+       the code:
+
+         1. The content MOVES. Nothing is removed, so the reader who
+            hits the wrong control loses a location rather than a node.
+         2. The reader is ASKED FIRST, and the question names what will
+            move and where it lands — `deletion-requires-confirmation`,
+            which governs any durable artefact an agent or a control
+            would take away on its own initiative.
+
+       THE EXPORTED LABELS SAY "the trashcan", NOT THE DIRECTORY NAME, and
+       that is not squeamishness: fsh-guts is NEVER published, and references
+       to it are stripped out of the KG before publication. A task name is a published node, an XML comment is not,
+       so the directory is named here and nowhere a consumer can follow.
+       `fsh-guts-unpublished.test.ts` is what catches a rename back.
+
+       STRICT, unlike `board-open-close`. Opening a card is a click and
+       refusing it would refuse a click; relocating content edits the
+       folio, and a step that has not been confirmed must be refused.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:collaboration id="Collab_BoardRelocate">
+    <bpmn:participant id="Participant_BoardRelocate" name="Board: relocate content to the trashcan" processRef="Process_BoardRelocate"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_BoardRelocate" name="Board: relocate content to the trashcan" isExecutable="true">
+    <bpmn:documentation>Moving open content to the trashcan from the board, with the reader's confirmation in front of the move and not behind it.
+
+You are in this process when the fishbone is used on open content. The confirmation gateway has a real "nothing moved" end state, because a destructive action whose refusal is not drawn is a destructive action somebody performs by accident.
+
+The order of the two writes is the content of the diagram. The CONTENT relocates, and only then are its positions dropped and orphans swept — the folio carries what is true, the layout layer carries where it was drawn, and the arrow never runs the other way. Sweeping first would leave the board authoritative over the folio for the length of one step.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_BoardRelocate">
+      <bpmn:lane id="Lane_Reader" name="Reader" partitionElementRef="user">
+        <bpmn:flowNodeRef>Start_Fishbone</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Confirmed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Unchanged</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Renderer" name="Board renderer" partitionElementRef="board-renderer">
+        <bpmn:documentation>The order of its five tasks is load-bearing: the folio move lands before the layer update, so an interruption between the two leaves the semantic content already relocated rather than the presentation layer half-updated against a folio it no longer matches. On "no", everything is left untouched.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_Cancel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_AskConfirm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_MoveContent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_UpdateLayer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ReportMove</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Moved</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Fishbone" name="The fishbone is used on open content">
+      <bpmn:outgoing>F_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="A_AskConfirm" name="Name what will move, and where it lands">
+      <bpmn:documentation>Before anything moves, name the content that would move — what it is, with its size and age — and where it lands. The confirmation sits in front of the move: an agent never relocates a durable artefact on its own initiative.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <!-- The question carries the SUBJECT and the DESTINATION, not a
+             bare "are you sure": a confirmation that does not say what is
+             at stake is not one. -->
+        <bootstrap.processes:skill ref="deletion-requires-confirmation"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_1</bpmn:incoming>
+      <bpmn:outgoing>F_2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Confirmed" name="Confirmed by the reader?">
+      <bpmn:documentation>The reader's answer to A_AskConfirm, which named what will move and where it lands. `yes, move it` relocates the content to the trashcan; `no` leaves it exactly where it is. Nothing moves without the yes.</bpmn:documentation>
+      <bpmn:incoming>F_2</bpmn:incoming>
+      <bpmn:outgoing>F_Yes</bpmn:outgoing>
+      <bpmn:outgoing>F_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_Cancel" name="Leave the content exactly where it is">
+      <bpmn:documentation>The reader said no: nothing moves, no position is dropped, and the board is left exactly as it was. Drawn as its own end state because a destructive action whose refusal is not drawn gets performed by accident.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="board-windows"/></bpmn:extensionElements>
+      <bpmn:incoming>F_No</bpmn:incoming>
+      <bpmn:outgoing>F_Cancelled</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Unchanged" name="Nothing moved">
+      <bpmn:incoming>F_Cancelled</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:task id="A_MoveContent" name="Relocate the content to the trashcan">
+      <bpmn:documentation>Relocate the confirmed content — that one thing, not the class it belongs to — to the trashcan. The folio changes first, because the folio carries what is true.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <!-- A MOVE in the folio, the semantic layer. The node keeps its
+             identity, so every reference to it still resolves. -->
+        <bootstrap.processes:skill ref="board-diagram-interchange"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_Yes</bpmn:incoming>
+      <bpmn:outgoing>F_3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_UpdateLayer" name="Drop its positions and sweep orphans">
+      <bpmn:documentation>Only after the content has moved: drop its positions from the layout layer and sweep any position whose note is now gone. Sweeping first would make the board authoritative over the folio for one step.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <!-- The layer follows the folio and never the other way: an
+             orphan is swept from `board-positions.json`, not edited out
+             of a note somebody owns. -->
+        <bootstrap.processes:skill ref="board-diagram-interchange"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_3</bpmn:incoming>
+      <bpmn:outgoing>F_4</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_ReportMove" name="Say what moved and where it went">
+      <bpmn:documentation>Tell the reader what moved and where it went, so the content can be found in the trashcan rather than inferred missing from a card that disappeared.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="deletion-requires-confirmation"/></bpmn:extensionElements>
+      <bpmn:incoming>F_4</bpmn:incoming>
+      <bpmn:outgoing>F_5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Moved" name="The content lives in the trashcan">
+      <bpmn:incoming>F_5</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="F_1" sourceRef="Start_Fishbone" targetRef="A_AskConfirm"/>
+    <bpmn:sequenceFlow id="F_2" sourceRef="A_AskConfirm" targetRef="GW_Confirmed"/>
+    <bpmn:sequenceFlow id="F_Yes" name="yes, move it" sourceRef="GW_Confirmed" targetRef="A_MoveContent"/>
+    <bpmn:sequenceFlow id="F_No" name="no" sourceRef="GW_Confirmed" targetRef="A_Cancel"/>
+    <bpmn:sequenceFlow id="F_Cancelled" sourceRef="A_Cancel" targetRef="End_Unchanged"/>
+    <bpmn:sequenceFlow id="F_3" sourceRef="A_MoveContent" targetRef="A_UpdateLayer"/>
+    <bpmn:sequenceFlow id="F_4" sourceRef="A_UpdateLayer" targetRef="A_ReportMove"/>
+    <bpmn:sequenceFlow id="F_5" sourceRef="A_ReportMove" targetRef="End_Moved"/>
+  </bpmn:process>
+
+  <!-- Layout only. Nothing below changes what the process does. -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_BoardRelocate">
+    <bpmndi:BPMNPlane id="BPMNPlane_BoardRelocate" bpmnElement="Collab_BoardRelocate">
+      <bpmndi:BPMNShape id="Shape_Participant_BoardRelocate" bpmnElement="Participant_BoardRelocate" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1060" height="440" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Reader" bpmnElement="Lane_Reader" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1030" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Renderer" bpmnElement="Lane_Renderer" isHorizontal="true">
+        <dc:Bounds x="190" y="200" width="1030" height="320" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start_Fishbone" bpmnElement="Start_Fishbone">
+        <dc:Bounds x="220" y="122" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="260" y="82" width="135" height="36" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Confirmed" bpmnElement="GW_Confirmed" isMarkerVisible="true">
+        <dc:Bounds x="480" y="115" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="415" y="93" width="180" height="18" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Unchanged" bpmnElement="End_Unchanged">
+        <dc:Bounds x="1000" y="122" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1040" y="113.5" width="90" height="53" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_AskConfirm" bpmnElement="A_AskConfirm">
+        <dc:Bounds x="310" y="230" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Cancel" bpmnElement="A_Cancel">
+        <dc:Bounds x="760" y="230" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_MoveContent" bpmnElement="A_MoveContent">
+        <dc:Bounds x="570" y="370" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_UpdateLayer" bpmnElement="A_UpdateLayer">
+        <dc:Bounds x="770" y="370" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ReportMove" bpmnElement="A_ReportMove">
+        <dc:Bounds x="970" y="370" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Moved" bpmnElement="End_Moved">
+        <dc:Bounds x="1140" y="412" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_F_1" bpmnElement="F_1">
+        <di:waypoint x="256" y="140" />
+        <di:waypoint x="283" y="140" />
+        <di:waypoint x="283" y="290" />
+        <di:waypoint x="310" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_2" bpmnElement="F_2">
+        <di:waypoint x="430" y="290" />
+        <di:waypoint x="455" y="290" />
+        <di:waypoint x="455" y="140" />
+        <di:waypoint x="480" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Yes" bpmnElement="F_Yes">
+        <di:waypoint x="530" y="140" />
+        <di:waypoint x="550" y="140" />
+        <di:waypoint x="550" y="430" />
+        <di:waypoint x="570" y="430" />
+        <bpmndi:BPMNLabel><dc:Bounds x="536" y="119" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_No" bpmnElement="F_No">
+        <di:waypoint x="530" y="140" />
+        <di:waypoint x="820" y="140" />
+        <di:waypoint x="820" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Cancelled" bpmnElement="F_Cancelled">
+        <di:waypoint x="880" y="290" />
+        <di:waypoint x="1018" y="290" />
+        <di:waypoint x="1018" y="158" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_3" bpmnElement="F_3">
+        <di:waypoint x="690" y="430" />
+        <di:waypoint x="770" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_4" bpmnElement="F_4">
+        <di:waypoint x="890" y="430" />
+        <di:waypoint x="970" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_5" bpmnElement="F_5">
+        <di:waypoint x="1090" y="430" />
+        <di:waypoint x="1140" y="430" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

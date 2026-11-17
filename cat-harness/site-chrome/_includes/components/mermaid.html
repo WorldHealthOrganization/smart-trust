@@ -1,0 +1,86 @@
+{%- comment -%}
+  just-the-docs v0.12.0's `_includes/components/mermaid.html`, overridden for
+  ONE change (bean `gp2f`, page weight): the loader is emitted only on a page
+  whose content holds a diagram. The theme emits it on every page, so every
+  page carried the config block (about 2.5 KB) and every visit fetched Mermaid
+  from the CDN, whether or not there was anything to draw.
+
+  Kramdown writes a ```mermaid fence as `<code class="language-mermaid">`, and
+  `mermaid.run()` below only ever looks for `.language-mermaid`, so a page
+  without that string has nothing for it to do. The rest is the theme's v10+
+  branch verbatim; this site pins `mermaid.version` 10.9.0 in `_config.yml`.
+  Moving the theme pin means re-checking this file against the new theme.
+{%- endcomment -%}
+{%- comment -%}
+  LAZY, DIAGRAM BY DIAGRAM (owner, 2026-11-14: "do lazy load content and
+  libs"). The theme imported Mermaid at once and ran it over every diagram on
+  the page, including those in closed <details> and in the UML pages' unpicked
+  views. Now each diagram is drawn as it comes within 800px of the viewport,
+  and Mermaid is imported for the first of them; the preconnect starts the CDN
+  handshake while the page parses.
+
+  PRINT (owner, 2026-11-14: "Make sure printing loads all of the content
+  before it renders the PDF"): a diagram never scrolled to would print as its
+  source text, and `beforeprint` cannot wait for a render. So once the page
+  is idle the remaining diagrams are drawn in the background, and
+  `beforeprint` draws any still left; `window.faRenderAllMermaid()` returns a
+  promise for a Print button that can wait. What is deferred is WHEN, not
+  WHETHER: the first diagram on screen no longer queues behind the last.
+{%- endcomment -%}
+{%- if content contains 'language-mermaid' -%}
+{%- unless site.mermaid.path -%}
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+{%- endunless %}
+<script type="module">
+  {% if site.mermaid.path %}
+  var MERMAID = new URL('{{ site.mermaid.path | relative_url }}', document.baseURI).href;
+  {% else %}
+  var MERMAID = 'https://cdn.jsdelivr.net/npm/mermaid@{{ site.mermaid.version }}/dist/mermaid.esm.min.mjs';
+  {% endif %}
+
+  var config = {% include mermaid_config.js %};
+  var lib = null;
+  function mermaidLib() {
+    return lib || (lib = import(MERMAID).then(function (m) {
+      m.default.initialize(config);
+      return m.default;
+    }));
+  }
+  var all = [].slice.call(document.querySelectorAll('.language-mermaid'));
+  var queue = Promise.resolve();
+  function draw(nodes) {
+    var todo = nodes.filter(function (n) { return !n.hasAttribute('data-fa-mermaid'); });
+    if (!todo.length) return queue;
+    todo.forEach(function (n) { n.setAttribute('data-fa-mermaid', 'queued'); });
+    // One run at a time: Mermaid's renderer is not re-entrant.
+    queue = queue.then(mermaidLib).then(function (mermaid) {
+      return mermaid.run({ nodes: todo });
+    }).catch(function (e) {
+      console.warn('mermaid: ' + (e && e.message || e));
+    }).then(function () {
+      todo.forEach(function (n) { n.setAttribute('data-fa-mermaid', 'drawn'); });
+      document.dispatchEvent(new Event('fa:figures-changed'));
+    });
+    return queue;
+  }
+  window.faRenderAllMermaid = function () { return draw(all); };
+  window.addEventListener('beforeprint', function () { draw(all); });
+  if (typeof window.IntersectionObserver === 'function') {
+    var io = new window.IntersectionObserver(function (entries) {
+      var near = entries.filter(function (e) { return e.isIntersecting; }).map(function (e) { return e.target; });
+      near.forEach(function (n) { io.unobserve(n); });
+      if (near.length) draw(near);
+    }, { rootMargin: '800px 0px' });
+    all.forEach(function (n) { io.observe(n); });
+    var rest = function () { draw(all); };
+    var idle = function () {
+      if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(rest, { timeout: 5000 });
+      else window.setTimeout(rest, 2000);
+    };
+    if (document.readyState === 'complete') idle();
+    else window.addEventListener('load', idle);
+  } else {
+    draw(all);
+  }
+</script>
+{%- endif -%}

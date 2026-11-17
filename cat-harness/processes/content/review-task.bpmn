@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                   xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_ReviewTask"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="editor" name="Editor"/>
+  <bpmn:resource id="reviewer" name="Reviewer / SME"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Review task — the GENERIC entry, and the reason the two
+       specialisms are subprocesses rather than inherited skills.
+
+       ROLES COMPOSE TWO WAYS AND THEY ARE NOT THE SAME THING
+       (skills/process/process-core/role-model.md):
+
+         `inherits` is IS-A and STATIC. `qc-reviewer inherits reviewer`
+         carries the reviewer's skills everywhere, always.
+
+         The SUBPROCESS STACK is SCOPED. Descending into a called process,
+         the actor keeps the outer role AND takes on the inner lane's, and
+         the skills are the union ALONG THAT CALL PATH ONLY.
+
+       Review is the case that needs the second. A generic reviewer that
+       statically inherited both specialisms would carry the Tool and schema
+       skills while reading prose, and the voice and translation skills while
+       reading a schema — a closure so broad that `role-carries-activity-skill`
+       could never fail, which is the audit going quiet rather than passing.
+
+       So: this lane classifies WHAT CHANGED and descends into one
+       subprocess; a change that is both prose and the code it describes goes
+       to the pair review. Neither role widens the other.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:process id="Process_Review" name="Review task" isExecutable="false">
+    <bpmn:documentation>The generic review position: classify what changed, descend into the review that fits it, consolidate what comes back, and accept or send back.
+
+You are in this process for any change under review. It is a DISPATCHER — the actor takes on the inner lane's role for the call path only — which is why prose and code can both be reviewed without either reviewer having to know the other's criteria. A change that is both — prose and the code it describes — takes a branch of its own, which reviews the two against each other; the gateway is exclusive and takes exactly one branch.
+
+The accept-or-send-back decision lives here and nowhere beneath it. The subprocesses produce findings; this is the only lane entitled to turn findings into an outcome, so "who decided" stays answerable.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_Review">
+      <bpmn:lane id="Lane_Reviewer" name="Reviewer / SME" partitionElementRef="reviewer">
+        <bpmn:documentation>Makes exactly one decision on its own — what changed, at Task_ClassifyChange — and for everything after that descends into a subprocess, taking on the narrative- or code-reviewer role for that call path only rather than carrying both statically. A change that is both prose and code goes to the pair review; neither role widens the other.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_ChangeToReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ClassifyChange</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Kind</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_NarrativeReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_CodeReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_NarrativeCodeReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Consolidate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Reviewed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_EditorDecides" name="Editors + authoring agents" partitionElementRef="editor">
+        <bpmn:documentation>Kept a separate lane on purpose, holding the one activity this diagram gives it: the reviewer who classified and judged the change is never the party that accepts it, so consolidated findings cross a lane boundary before anything is decided on them.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_EditorDecides</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_ChangeToReview" name="Change&#10;to review"/>
+
+    <bpmn:task id="Task_ClassifyChange" name="Classify what changed">
+      <bpmn:documentation>
+        Prose, code nodes, or both. This is the only decision the generic lane
+        makes on its own: everything after it is made inside a subprocess by
+        the role that lane binds.
+
+        Binds `content-review`, the same skill as Task_Consolidate in this lane, because a paper skill belongs to the science layer, which this harness diagram cannot reach.
+        A paper process that wants semantic scoping adds it by
+        calling this process.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-review"/><bootstrap.processes:skill ref="staging-review"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Kind" name="Prose, code,&#10;or both?">
+      <bpmn:documentation>What changed decides which review it gets, from Task_ClassifyChange's scoping. Prose alone goes to narrative review and code nodes alone to code node review. A change touching BOTH SIDES OF A DECLARED PAIR — a diagram and the workflow it implements, a skill and the code beside it — goes to the pair review, which is the only branch that reads the two against each other. Exclusive, so exactly one branch is taken.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:callActivity id="Call_NarrativeReview" name="Narrative review" calledElement="Process_NarrativeReview">
+      <bpmn:documentation>
+        Descend into Process_NarrativeReview. The actor takes on the
+        `narrative-reviewer` lane for this call path only.
+      </bpmn:documentation>
+    </bpmn:callActivity>
+
+    <bpmn:callActivity id="Call_CodeReview" name="Code node review" calledElement="Process_CodeReview">
+      <bpmn:documentation>
+        Descend into Process_CodeReview. The actor takes on the `code-reviewer`
+        lane for this call path only.
+      </bpmn:documentation>
+    </bpmn:callActivity>
+
+    <bpmn:task id="Call_NarrativeCodeReview" name="Prose and the code&#10;it describes">
+      <bpmn:documentation>
+        Descend into Process_NarrativeCodeReview: judge what the pair checks
+        could not settle (a stale pair, a false or undetermined claim), and send
+        a disagreement with a checker to adjudication.
+       Where `cat-harness.sdlc` is switched on, this step is the opt-in process `narrative-code-review` (`Process_NarrativeCodeReview`, sdlc/processes/narrative-code-review.bpmn); it is not called from here, because a layer without that sub-graph does not have it (owner card Q-OPTIN-CALLS A, 2026-11-12).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="Implemented by the opt-in sdlc process narrative-code-review, which an always-on diagram may not call (owner card Q-OPTIN-CALLS A, 2026-11-12); no always-on skill teaches judging prose against the code it describes."/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Join"/>
+
+    <bpmn:task id="Task_Consolidate" name="Consolidate findings">
+      <bpmn:documentation>
+        One report from however many subprocesses ran. Findings are advice: a
+        reviewer cannot accept the change.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-review"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Task_EditorDecides" name="Accept, or send back">
+      <bpmn:documentation>
+        The editor's lane, kept separate on purpose: the reviewer who judged the
+        change is not the position that accepts it.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-validate"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Reviewed" name="Decision&#10;recorded"/>
+
+    <bpmn:sequenceFlow id="F_R1" sourceRef="Start_ChangeToReview" targetRef="Task_ClassifyChange"/>
+    <bpmn:sequenceFlow id="F_R2" sourceRef="Task_ClassifyChange" targetRef="GW_Kind"/>
+    <bpmn:sequenceFlow id="F_R3" name="prose" sourceRef="GW_Kind" targetRef="Call_NarrativeReview"/>
+    <bpmn:sequenceFlow id="F_R4" name="code nodes" sourceRef="GW_Kind" targetRef="Call_CodeReview"/>
+    <bpmn:sequenceFlow id="F_R10" name="prose and the code it describes" sourceRef="GW_Kind" targetRef="Call_NarrativeCodeReview"/>
+    <bpmn:sequenceFlow id="F_R5" sourceRef="Call_NarrativeReview" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow id="F_R11" sourceRef="Call_NarrativeCodeReview" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow id="F_R6" sourceRef="Call_CodeReview" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow id="F_R7" sourceRef="GW_Join" targetRef="Task_Consolidate"/>
+    <bpmn:sequenceFlow id="F_R8" sourceRef="Task_Consolidate" targetRef="Task_EditorDecides"/>
+    <bpmn:sequenceFlow id="F_R9" sourceRef="Task_EditorDecides" targetRef="End_Reviewed"/>
+
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_ReviewTask">
+    <bpmndi:BPMNPlane id="Plane_ReviewTask" bpmnElement="Process_Review">
+      <bpmndi:BPMNShape id="S_Lane_Reviewer" bpmnElement="Lane_Reviewer" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1000" height="440" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Lane_EditorDecides" bpmnElement="Lane_EditorDecides" isHorizontal="true">
+        <dc:Bounds x="160" y="520" width="1000" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Start_ChangeToReview" bpmnElement="Start_ChangeToReview">
+        <dc:Bounds x="206" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="192" y="323" width="70" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_ClassifyChange" bpmnElement="Task_ClassifyChange">
+        <dc:Bounds x="272" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_GW_Kind" bpmnElement="GW_Kind" isMarkerVisible="true">
+        <dc:Bounds x="472" y="275" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="398" y="212" width="70" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Call_NarrativeReview" bpmnElement="Call_NarrativeReview">
+        <dc:Bounds x="622" y="90" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Call_NarrativeCodeReview" bpmnElement="Call_NarrativeCodeReview">
+        <dc:Bounds x="622" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Call_CodeReview" bpmnElement="Call_CodeReview">
+        <dc:Bounds x="622" y="390" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_GW_Join" bpmnElement="GW_Join" isMarkerVisible="true">
+        <dc:Bounds x="782" y="275" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_Consolidate" bpmnElement="Task_Consolidate">
+        <dc:Bounds x="872" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_EditorDecides" bpmnElement="Task_EditorDecides">
+        <dc:Bounds x="872" y="535" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_End_Reviewed" bpmnElement="End_Reviewed">
+        <dc:Bounds x="1022" y="577" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1000" y="618" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="E_F_R1" bpmnElement="F_R1">
+        <di:waypoint x="242" y="300" />
+        <di:waypoint x="272" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_R2" bpmnElement="F_R2">
+        <di:waypoint x="392" y="300" />
+        <di:waypoint x="472" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_R3" bpmnElement="F_R3">
+        <di:waypoint x="497" y="275" />
+        <di:waypoint x="497" y="150" />
+        <di:waypoint x="622" y="150" />
+        <bpmndi:BPMNLabel><dc:Bounds x="510" y="130" width="50" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_R10" bpmnElement="F_R10">
+        <di:waypoint x="522" y="300" />
+        <di:waypoint x="622" y="300" />
+        <bpmndi:BPMNLabel><dc:Bounds x="527" y="305" width="92" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_R4" bpmnElement="F_R4">
+        <di:waypoint x="497" y="325" />
+        <di:waypoint x="497" y="450" />
+        <di:waypoint x="622" y="450" />
+        <bpmndi:BPMNLabel><dc:Bounds x="510" y="455" width="85" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_R5" bpmnElement="F_R5">
+        <di:waypoint x="742" y="150" />
+        <di:waypoint x="807" y="150" />
+        <di:waypoint x="807" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_R11" bpmnElement="F_R11">
+        <di:waypoint x="742" y="300" />
+        <di:waypoint x="782" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_R6" bpmnElement="F_R6">
+        <di:waypoint x="742" y="450" />
+        <di:waypoint x="807" y="450" />
+        <di:waypoint x="807" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_R7" bpmnElement="F_R7">
+        <di:waypoint x="832" y="300" />
+        <di:waypoint x="872" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_R8" bpmnElement="F_R8">
+        <di:waypoint x="932" y="360" />
+        <di:waypoint x="932" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_R9" bpmnElement="F_R9">
+        <di:waypoint x="992" y="595" />
+        <di:waypoint x="1022" y="595" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

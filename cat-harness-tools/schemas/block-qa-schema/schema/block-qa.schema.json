@@ -1,0 +1,253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/litlfred/folio-assistant/blob/main/schemas/block-qa-schema/schema/block-qa.schema.json",
+  "title": "BlockQaReport",
+  "description": "JSON shape of a per-content-block `<block>.qa.json` QA sidecar. Each content block (a .ts + .md + optional .lean triple) may carry one sidecar recording, per QA criterion, an append-only array of reviewer verdicts pinned to the content hashes they judged. Canonical interchange reference for the folio block-QA format — readable from any language.",
+  "type": "object",
+  "required": ["$schema", "label", "kind", "paths", "source_hashes", "criteria"],
+  "additionalProperties": true,
+  "properties": {
+    "$schema": {
+      "const": "block-qa/v1",
+      "description": "Schema marker for this sidecar format."
+    },
+    "label": {
+      "type": "string",
+      "description": "Block label, kind-prefixed and stable (e.g. 'def:carbon-valence', 'prop:jet-tower-convergence')."
+    },
+    "kind": {
+      "type": "string",
+      "description": "Block kind — mirror of the .ts manifest's discriminator (definition / theorem / lemma / proposition / corollary / conjecture / example / remark / proof / simulator / prose / equation / diagram / table / algorithm)."
+    },
+    "paths": {
+      "type": "object",
+      "required": ["ts"],
+      "additionalProperties": true,
+      "properties": {
+        "ts": { "type": "string", "description": "Manifest path, relative to repo root." },
+        "md": { "type": "string", "description": "Narrative path, if present." },
+        "lean": { "type": "string", "description": "Formalization path, if present." },
+        "bpmn": { "type": "string", "description": "WHO L2 DAK business process (BPMN 2.0), if present." },
+        "dmn": { "type": "string", "description": "WHO L2 DAK decision-support logic (DMN table), if present." },
+        "xlsx": { "type": "string", "description": "WHO L2 DAK data dictionary / indicator sheet, if present." },
+        "fsh": { "type": "string", "description": "WHO L3 FHIR Shorthand artefact (profile, ValueSet, PlanDefinition, ...), if present." },
+        "cql": { "type": "string", "description": "WHO L3 Clinical Quality Language logic, if present." }
+      },
+      "description": "Paths to the block's source files, relative to repo root."
+    },
+    "source_hashes": {
+      "$ref": "#/$defs/fieldHash",
+      "description": "Hashes of the present source files, refreshed on every write."
+    },
+    "criteria": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "$ref": "#/$defs/criterionEntry" }
+      },
+      "description": "Per-criterion reviewer entries, keyed by criterion id (e.g. 'voice-status-leak', 'detangler-block-tanglement'). Multiple reviewers (script + agent + human) may co-exist; entries are NOT deduplicated. The criterion's current verdict is the most recent entry whose field_hash matches the present source files; if none matches, the criterion is stale and requires re-audit."
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "Report creation / last-update timestamp (ISO-8601 UTC)."
+    }
+  },
+  "$defs": {
+    "fieldHash": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "md": { "type": "string" },
+        "ts": { "type": "string" },
+        "lean": { "type": "string" },
+        "bpmn": { "type": "string" },
+        "dmn": { "type": "string" },
+        "xlsx": { "type": "string" },
+        "fsh": { "type": "string" },
+        "cql": { "type": "string" }
+      },
+      "description": "12-char SHA-256 prefixes of each companion file's UTF-8 bytes, keyed by companion role. Absent fields mean the audit did not depend on that file (or it did not exist at audit time). `md`/`ts`/`lean` are the paper adapter's companions; `bpmn`/`dmn`/`xlsx`/`fsh`/`cql` are the WHO SMART Guidelines L2 DAK and L3 FHIR companions. A criterion opts in to a role by listing it in its own `depends_on`, which gates applicability as well as freshness. Compiled FHIR JSON is not a role: SUSHI generates it from the .fsh, so it is a build output rather than an authored companion."
+    },
+    "reviewer": {
+      "type": "object",
+      "required": ["kind", "id"],
+      "additionalProperties": true,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["script", "agent", "human"],
+          "description": "script = deterministic CLI checker (reproducible); agent = LLM-driven reviewer (not deterministic); human = repo owner / collaborator adjudication (final authority)."
+        },
+        "id": {
+          "type": "string",
+          "description": "Stable identifier — script path, agent/skill name, or GitHub login."
+        },
+        "version": { "type": "string", "description": "Optional version pin (script revision, model id)." },
+        "script_hash": {
+          "type": "string",
+          "description": "12-char SHA-256 prefix of the checker's own source file at audit time (kind: script). Mismatch with the current file means the checker logic changed and the entry is stale."
+        },
+        "script_commit_sha": {
+          "type": "string",
+          "description": "Full git SHA of the most recent commit touching the checker's source file at audit time. Audit trail only — staleness is driven by script_hash."
+        },
+        "deps_hash": {
+          "type": "string",
+          "description": "12-char SHA-256 prefix of the concatenated extra inputs the checker consulted beyond the block under audit (e.g. the bibliography database). Mismatch means an input changed and the entry is stale."
+        },
+        "agent_model": { "type": "string", "description": "LLM model identifier (kind: agent), e.g. 'claude-opus-4-7'." },
+        "agent_session": { "type": "string", "description": "Reviewing agent's session id, if available." },
+        "agent_date": { "type": "string", "description": "ISO date of the agent review." },
+        "agent_skill": { "type": "string", "description": "Skill that dispatched the review, e.g. 'local/one-voice-audit', 'local/devils-advocate-watcher'." }
+      },
+      "description": "Identity + provenance of the reviewer that produced an entry."
+    },
+    "score": {
+      "type": "object",
+      "required": ["value", "max"],
+      "additionalProperties": true,
+      "properties": {
+        "value": { "type": "number" },
+        "max": { "type": "number" },
+        "rubric": {
+          "type": "object",
+          "additionalProperties": { "type": "number" },
+          "description": "Optional per-dimension sub-scores."
+        }
+      },
+      "description": "Rubric score for rater-style quality criteria (e.g. proof-rater-*). A quality measure to improve over time, not a pass/fail gate. Convention: value/max >= 0.66 maps to result 'pass', 0.33-0.66 to 'warn', < 0.33 to 'fail'."
+    },
+    "criterionEntry": {
+      "type": "object",
+      "required": ["field_hash", "result", "reviewer"],
+      "additionalProperties": true,
+      "properties": {
+        "field_hash": {
+          "$ref": "#/$defs/fieldHash",
+          "description": "Source-file hashes captured at audit time. A verdict whose field_hash no longer matches the present sources is stale and must be re-run."
+        },
+        "result": {
+          "type": "string",
+          "enum": ["pass", "fail", "warn", "n/a"],
+          "description": "pass = satisfied; fail = violated (evidence must cite file:line + verbatim quote); warn = borderline, flagged but not blocking; n/a = criterion does not apply to this block kind."
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "major", "minor"],
+          "description": "Severity when result is 'fail' or 'warn'."
+        },
+        "score": { "$ref": "#/$defs/score" },
+        "evidence": {
+          "oneOf": [
+            { "type": "string" },
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "properties": {
+                  "line": { "type": "integer" },
+                  "text": { "type": "string" }
+                }
+              }
+            }
+          ],
+          "description": "Evidence for fail/warn verdicts: either a free-form 'file:line + verbatim quote' string, or a structured list of {line, text} locations (the shape some agent reviewers emit, e.g. on the voice axis)."
+        },
+        "metrics": {
+          "type": "object",
+          "additionalProperties": { "type": ["number", "string"] },
+          "description": "Optional structured numeric/heuristic measures the checker emits alongside its verdict — e.g. the detangler axis records per-block dependency-graph measures (fwd_emitted, tanglement_score, out_degree, in_degree, cone_size, depth, pagerank, edge_span_max, edge_span_mean, graph_energy, worst_target). Descriptive snapshots, not quality scores."
+        },
+        "reviewer": { "$ref": "#/$defs/reviewer" },
+        "reviewed_at": {
+          "type": "string",
+          "description": "When the audit ran. ISO-8601 UTC datetime; legacy agent entries may carry a bare ISO date."
+        },
+        "reviewed_tree": {
+          "type": "string",
+          "description": "Tree of repo HEAD at audit time (HEAD^{tree}, full git id). What producers write: a pull-request run's HEAD is a synthetic merge commit that can vanish, while its tree survives onto main unchanged."
+        },
+        "reviewed_sha": {
+          "type": "string",
+          "description": "Repo HEAD at audit time (full git SHA). Superseded by reviewed_tree and no longer written; kept readable for existing sidecars. Legacy agent entries (pre-2026-06) may omit it."
+        },
+        "notes": { "type": "string", "description": "Free-form notes." },
+        "scope": { "$ref": "#/$defs/daScope" },
+        "ruling": { "$ref": "#/$defs/daRuling" },
+        "referee_argument": {
+          "type": "string",
+          "description": "The objection stated in the referee's voice (1-3 sentences). On a da-referee-verdict rollup entry this holds the strongest objection."
+        },
+        "rebuttal": {
+          "type": "string",
+          "description": "What rebuts the objection, or 'none — survived because <why>'. For structural scope, must name the proved invariant."
+        },
+        "verdict": { "$ref": "#/$defs/daVerdict" }
+      },
+      "allOf": [
+        {
+          "description": "result must agree with ruling on finding entries.",
+          "if": { "required": ["ruling"], "properties": { "ruling": { "const": "surviving" } } },
+          "then": { "properties": { "result": { "const": "fail" } } }
+        },
+        {
+          "if": { "required": ["ruling"], "properties": { "ruling": { "const": "partial" } } },
+          "then": { "properties": { "result": { "const": "warn" } } }
+        },
+        {
+          "if": { "required": ["ruling"], "properties": { "ruling": { "const": "rebutted" } } },
+          "then": { "properties": { "result": { "const": "pass" } } }
+        },
+        {
+          "description": "result must agree with verdict on the rollup entry.",
+          "if": { "required": ["verdict"], "properties": { "verdict": { "const": "open-objection" } } },
+          "then": { "properties": { "result": { "const": "fail" } } }
+        },
+        {
+          "if": { "required": ["verdict"], "properties": { "verdict": { "const": "survivable-objection" } } },
+          "then": { "properties": { "result": { "const": "warn" } } }
+        },
+        {
+          "if": { "required": ["verdict"], "properties": { "verdict": { "enum": ["clean", "clean-rebutted"] } } },
+          "then": { "properties": { "result": { "const": "pass" } } }
+        },
+        {
+          "description": "structural scope requires a non-empty rebuttal naming the invariant.",
+          "if": { "required": ["scope"], "properties": { "scope": { "const": "structural" } } },
+          "then": { "required": ["rebuttal", "referee_argument"] }
+        },
+        {
+          "description": "An AGENT verdict asserting a violation must carry its evidence. The `result` description has always said so, but nothing enforced it and 1302 agent fail/warn entries accumulated with `evidence` empty, their reasoning filed under `notes`/`referee_argument` instead. Scoped to reviewer.kind == 'agent' deliberately: 933 SCRIPT fail/warn entries carry no reason under any key, so a universal rule would reject them on arrival; widening this is the end state and is blocked on fixing those checkers.",
+          "if": {
+            "required": ["result", "reviewer"],
+            "properties": {
+              "result": { "enum": ["fail", "warn"] },
+              "reviewer": { "required": ["kind"], "properties": { "kind": { "const": "agent" } } }
+            }
+          },
+          "then": {
+            "required": ["evidence"],
+            "properties": { "evidence": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "array", "minItems": 1 }] } }
+          }
+        }
+      ],
+      "description": "The outcome of one reviewer evaluating one criterion on one block."
+    },
+    "daScope": {
+      "type": "string",
+      "enum": ["limited", "structural"],
+      "description": "Refutation scope per AGENTS.md 'Before declaring refuted'. 'limited' = this construction ALONE fails as stated (default). 'structural' = cannot hold in any closure; PERMITTED ONLY when referee_argument/rebuttal cite a proved invariant (parity/sign, dimension/degree/orbit-count bound, Lean-proved impossibility, entropy/precision bound)."
+    },
+    "daRuling": {
+      "type": "string",
+      "enum": ["surviving", "rebutted", "partial"],
+      "description": "Adjudicator's verdict on a single objection after the block's own text/Lean/refs/corpus-grep were given the chance to rebut. surviving = no rebuttal found; rebutted = block defeats it; partial = block mitigates but does not fully defeat it."
+    },
+    "daVerdict": {
+      "type": "string",
+      "enum": ["clean-rebutted", "no-objection-raised", "clean", "survivable-objection", "open-objection"],
+      "description": "Block-level rollup (criterion id da-referee-verdict). clean-rebutted = >=1 objection raised and all rebutted; no-objection-raised = 0 objections raised (does not satisfy sidecar skip); clean = legacy synonym for clean-rebutted; survivable-objection = >=1 partial, 0 surviving; open-objection = >=1 surviving."
+    }
+  }
+}

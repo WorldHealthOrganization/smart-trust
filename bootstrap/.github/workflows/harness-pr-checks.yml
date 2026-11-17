@@ -1,0 +1,26 @@
+# bootstrap's checks on every pull request (owner, 2026-10-14: every
+# harnessed layer is judged by ONE reusable workflow the harness owns, and
+# "there shouldnt be copying of code"). Everything is decided there.
+name: Harness PR checks
+on:
+  pull_request:
+    # Draft PRs run only the fast tier (bean dft1, issue 616 of the shared workflow);
+    # ready_for_review re-runs the full tier the moment a PR is marked ready.
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+  # main's own run keeps main's answer, the gate seconds and the cone records
+  # in caches every PR can read; a run on a PR can only read caches saved from
+  # its own PR or from main.
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks:
+    # A label starts a run only for `release` (full tier) or `preview`
+    # (the change's cone; cat-harness-tools#2150); any other label is a no-op.
+    if: ${{ github.event.action != 'labeled' || github.event.label.name == 'release' || github.event.label.name == 'preview' }}
+    uses: litlfred/cat-harness-tools/.github/workflows/layer-pr-checks.yml@main
+    with:
+      # On a draft PR: prepare and typecheck only; the full tier runs on ready_for_review.
+      draft-fast-tier: true

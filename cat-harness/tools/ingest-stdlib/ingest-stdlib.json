@@ -1,0 +1,80 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "ingest-stdlib",
+    "title": "Ingest, standard library only",
+    "description": "Ingest an upload into `library/` using only the Python standard library — archive listings, CSV and spreadsheet records, technical file metadata, and the content sniff that routes a file to its rung.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat ingest"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "file",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The upload to ingest, under the declared `uploads` graph.",
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "outdir",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Library root; defaults to the declared `library` graph.",
+          "required": false,
+          "arg": {
+            "flag": "--outdir"
+          }
+        },
+        {
+          "name": "dryRun",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Report the chosen rung and stop.",
+          "required": false,
+          "arg": {
+            "flag": "--dry-run"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "slug",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "The library entry written."
+        }
+      ]
+    },
+    "satisfies": [
+      "library-ingestion"
+    ],
+    "selection": {
+      "when": "Reach for this first, and in CI always. It is the only one of the pair that runs where nothing has been installed — which is every fresh container and every CI job here, since the workflow installs `ruff` and nothing else. It covers archives, CSV and spreadsheets, technical metadata, and the sniff that decides which rung a file takes, including the OOXML/ODF container check that stops a workbook being listed as a bag of XML parts.",
+      "limits": "It cannot read a PDF. Text layer, embedded outline, page rendering, OCR and image extraction all need a backend it deliberately does not have, so a PDF routes to `undetermined` and is REFUSED rather than half-ingested. `ingest-extended` is the sibling that does those.",
+      "cost": "None beyond `python3` itself. No wheels, no C toolchain, no network, nothing to keep current, and no CI minutes spent installing."
+    },
+    "requires": {
+      "runtime": [
+        "python3"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/install",
+      "comment": "Nothing to install: `zipfile`, `tarfile`, `csv`, `xml.etree` and\n`hashlib` ship with Python. Stated, so \"needs nothing\" is\ndistinguishable from an unfinished record."
+    }
+  ]
+}

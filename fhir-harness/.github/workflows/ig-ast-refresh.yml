@@ -1,0 +1,589 @@
+# Refresh an IG's FHIR AST cache — the ONE place an IG Publisher run writes
+# `cat/fhir-harness/fhir-ast/<package id>` (skill `ig-build-pipeline`,
+# "The AST cache lifecycle"). Reusable: an IG repository calls it with a short
+# caller (template: `templates/ig-repo-site/ig-ast-refresh.yml`); it carries no
+# copy of these steps (owner, 2026-10-14: "that should be in fhir-harness then
+# smart-* all use that").
+#
+# What a run does, and nothing else — no site build, no gh-pages, no dispatch
+# of another repository's workflow:
+#   1. checks out the CALLING repository at `ref` (default `main`);
+#   2. mounts the layers the caller's index.lock.json pins (this layer's
+#      `ig-cache.sh` and `ig-ast.ts` among them);
+#   3. restores the cache and asks `ig-ast.ts validity` whether it was built
+#      from the inputs that commit has (`valid`, `stale`, `cannot-tell`, or
+#      `missing` when there is no cache);
+#   4. when it is not `valid`, or `force` is set: runs the caller's
+#      `pre-export` command, if it gives one, then builds the IG with the
+#      Publisher AST exporter (`litlfred/fhir-ig-publisher`, branch
+#      `claude/ast-export`, pinned by `ast-export-ref`; skill
+#      `ig-publisher-fork`), checks the new AST is `valid` for the commit, and
+#      seeds the cache branch with `ig-cache.sh seed --push`.
+#   5. a later commit that changes no IG input does not make the cache stale
+#      (`ig-ast.ts` `sameSourceAs`), so most merges need no rebuild.
+#   6. a STALE cache is rebuilt INCREMENTALLY (`IncrementalBuildCli`: only the
+#      cone of what changed is rebuilt and merged over the cache; phase P4,
+#      owner 2026-10-24, option C). It falls back to a full build when the
+#      plan cannot tell, the build fails, or the merged AST is not valid. A
+#      `force` run, a `pre-export` caller, or a cache that is missing or
+#      cannot-tell always builds in full. A RELEASE is cut from a full build
+#      only: `ig-ast.ts build-kind output-ast --require-full` refuses an
+#      incremental AST, and the site's `folio-build.json` says which kind it
+#      was built from (`ast.kind`).
+#
+# The cache is shared by every build of the IG, so only a build of a commit on
+# the caller's DEFAULT branch whose inputs (sushi-config.yaml, ig.ini, input/)
+# equal its tip's seeds it; a build of any other ref reports its verdict and
+# keeps its AST to itself (as an artifact).
+#
+# `pre-export` is the hook for an OVERLAY: a command, in the caller's own
+# checkout, that prepares the IG's inputs the way that IG's own build does
+# before its Publisher run (pages registered, resources generated). This
+# workflow knows nothing of what it does. It records the AST against the
+# CLEAN commit's inputs: it takes their digest before the command runs, puts
+# the inputs back after the export, checks the digest is the same again, and
+# writes it into the manifest with `ig-ast.ts source-inputs` (the prepared
+# tree's digest is kept beside it, under `preExport`). Otherwise the cache
+# would record a tree no checkout has, and never verify.
+#
+# Nothing here may know about any one IG or publisher (fhir-harness/AGENTS.md).
+name: IG AST refresh
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "The caller's ref to build (branch, tag or sha)"
+        type: string
+        default: main
+      force:
+        description: "Rebuild in full even when the cache is valid for the ref (a release: never incremental)"
+        type: boolean
+        default: false
+      release:
+        description: "Keep the release's files as this run's `ig-release` artifact: the Publisher's package.tgz (and R4/R4B variants) and the AST. Set by fhir-harness's ig-release.yml, with force"
+        type: boolean
+        default: false
+      ast-export-ref:
+        description: "litlfred/fhir-ig-publisher commit carrying ast-export (AstExportCli)"
+        type: string
+        default: b1f85fa101b343e625d69df54d939b1949a062cb
+      tx:
+        description: "Terminology server the Publisher uses (its own default)"
+        type: string
+        default: http://tx.fhir.org
+      pre-export:
+        description: "Optional command run with bash at the IG root before the AST export: the caller's overlay. Its changes to the IG's inputs are not part of the source the AST is recorded against"
+        type: string
+        default: ""
+      package-lock:
+        description: "The caller's FHIR package lock, relative to its root (fhir-packages.lock.json format: name, version, tarball, integrity sha512-/sha256- and/or hex sha256). Every package it pins is installed from its URL into the FHIR package cache, hash verified, before the Publisher runs; a mismatch fails the run. Skipped when the default file is absent; empty disables it"
+        type: string
+        default: fhir-packages.lock.json
+      template-repos:
+        description: "Space-separated name=owner/repo for a `#current` template FHIR/ig-registry's templates.json does not list, e.g. who.template.root=WorldHealthOrganization/smart-ig-template. Named by the caller, never stored here"
+        type: string
+        default: ""
+    outputs:
+      verdict:
+        description: "The cache's verdict before the run: valid, stale, cannot-tell or missing"
+        value: ${{ jobs.refresh.outputs.verdict }}
+      kind:
+        description: "Which kind of build made the AST this run produced: full or incremental (empty when nothing was rebuilt)"
+        value: ${{ jobs.refresh.outputs.kind }}
+      seeded:
+        description: "true when this run wrote the cache branch"
+        value: ${{ jobs.refresh.outputs.seeded }}
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    concurrency:
+      group: ig-ast-refresh-${{ github.repository }}
+      cancel-in-progress: false
+    outputs:
+      verdict: ${{ steps.ast.outputs.verdict }}
+      kind: ${{ steps.build.outputs.kind }}
+      seeded: ${{ steps.seed.outputs.seeded }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          # Full history: validity accepts a later commit that changes no IG
+          # input only when it can see the recorded commit is an ancestor.
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4  # the platform's CI version
+
+      - name: Cache remote mounts (bean cis1)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /home/runner/.cache/cat-mount
+          key: cat-mount-v1-${{ hashFiles('index.lock.json') }}
+          restore-keys: |
+            cat-mount-v1-
+
+      - name: Mount the layers index.lock.json pins
+        env:
+          CAT_MOUNT_CACHE_DIR: /home/runner/.cache/cat-mount
+        run: |
+          [ -f index.lock.json ] || { echo "::error::no index.lock.json: the caller must mount fhir-harness (templates/ig-repo-site)"; exit 2; }
+          ref=$(python3 -c "import json;print(next(m['ref'] for m in json.load(open('index.lock.json'))['mounts'] if m['harness']=='cat-harness-tools'))")
+          M="$RUNNER_TEMP/mounter"
+          git init -q "$M"
+          git -C "$M" fetch -q --depth 1 https://github.com/litlfred/cat-harness-tools.git "$ref"
+          git -C "$M" checkout -q FETCH_HEAD
+          # --no-install: this job installs the three mounts it runs, below.
+          # Installing every mount failed the whole job when a mount it never
+          # runs could not install (a mounted IG's own dependency asked npm
+          # for an unpublished @litlfred/folio-assistant-core; every run since
+          # 2026-10-30 failed here).
+          bun run "$M/scripts/mount-from-lock.ts" --root . --no-install
+          for d in fhir-harness folio-assistant-core cat-harness cat-harness-tools bootstrap-tools; do
+            [ -f "$d/package.json" ] && (cd "$d" && bun install --no-save)
+          done
+          # A mount imports another by its package name
+          # (`@litlfred/cat-harness-tools/...` in fhir-harness/schemas/ig-ast.ts),
+          # and an IG repository has no root workspace to resolve it. Link each
+          # mounted package into the root's node_modules, which no mount digest
+          # covers.
+          mkdir -p node_modules/@litlfred
+          for f in */package.json; do
+            d=${f%/package.json}
+            n=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('name',''))" "$f")
+            case "$n" in @litlfred/*) ln -sfn "../../$d" "node_modules/$n" ;; esac
+          done
+          [ -f fhir-harness/scripts/ig-cache.sh ] || { echo "::error::the lock mounts no fhir-harness"; exit 2; }
+
+      - name: The cache's verdict for this commit
+        id: ast
+        env:
+          FORCE: ${{ inputs.force }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set +e
+          verdict=missing
+          if bash fhir-harness/scripts/ig-cache.sh restore --ig-root .; then
+            bun run fhir-harness/scripts/ig-ast.ts validity output-ast --ig . > "$RUNNER_TEMP/ast-validity.json"
+            case $? in 0) verdict=valid ;; 1) verdict=stale ;; *) verdict=cannot-tell ;; esac
+            cat "$RUNNER_TEMP/ast-validity.json"
+            # The `fhir-ast` cache's summary line (absent from a fhir-harness older than this step).
+            bun run fhir-harness/scripts/ig-ast.ts cache-line output-ast --ig . 2>/dev/null || true
+          else
+            echo '**cached-step `ig-ast`: miss** (exact) — no cache branch to restore.'
+          fi
+          rebuild=false
+          [ "$verdict" != valid ] && rebuild=true
+          [ "$FORCE" = "true" ] && rebuild=true
+          # A valid AST from a full build that carries no Publisher QA summary
+          # (qa.json) was seeded by a fhir-harness whose seed did not carry it
+          # (older than 7468adf5, 2026-11-06), and a valid cache is never
+          # rebuilt, so the site's QA report would never get it. Rebuild it
+          # once, in full, on the default branch, where the new AST is seeded.
+          # An incremental AST has no full Publisher QA: it is left as it is.
+          # The same once more for the Publisher's full message list
+          # (qa-messages.json, the qa.html layout's data), when the lock's
+          # fhir-harness can write one: a build whose Publisher wrote no
+          # qa.xml still writes the file, so this never repeats.
+          missing=""
+          [ -f output-ast/qa.json ] || missing="qa.json (the Publisher's QA summary)"
+          [ -z "$missing" ] && [ -f fhir-harness/scripts/ig-qa-messages.ts ] && [ ! -f output-ast/qa-messages.json ] \
+            && missing="qa-messages.json (the Publisher's message list)"
+          if [ "$rebuild" = false ] && [ -f output-ast/manifest.json ] && [ -n "$missing" ]; then
+            kind=$(bun run fhir-harness/scripts/ig-ast.ts build-kind output-ast 2>/dev/null || echo full)
+            git fetch -q origin "refs/heads/${DEFAULT_BRANCH:-main}" 2>/dev/null || true
+            if [ "$kind" = full ] && [ "$(git rev-parse HEAD)" = "$(git rev-parse -q --verify FETCH_HEAD)" ]; then
+              rebuild=true
+              echo "::notice::the cached AST is valid but carries no $missing: rebuilding it once in full"
+            fi
+          fi
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+          echo "rebuild=$rebuild" >> "$GITHUB_OUTPUT"
+          echo "::notice::AST cache for $(git rev-parse --short HEAD): $verdict; rebuild: $rebuild"
+
+      - name: The IG toolchain's pins
+        id: toolchain
+        if: steps.ast.outputs.rebuild == 'true'
+        run: grep -E '^[A-Z_]+=[^ ]+$' fhir-harness/scripts/ig-toolchain.env >> "$GITHUB_OUTPUT"
+
+      # Declared cache `fhir-ig-tooling` (fhir-harness/caches/). The key hashes
+      # the toolchain pins, so an entry built with another Java, Node, SUSHI,
+      # Ruby or Jekyll is never restored; ~/.ig-toolchain keeps the Jekyll gems
+      # and the compiled AST exporter, so a warm run builds neither; the one fallback keeps the toolchain and lets only
+      # the IG's packages differ. Saved from the default branch only.
+      - name: Restore FHIR packages and IG tooling (bean cis5)
+        id: tooling-cache
+        if: steps.ast.outputs.rebuild == 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.fhir/packages
+            ~/.m2/repository
+            ~/.npm-global
+            ~/.ig-toolchain
+          key: fhir-ig-tooling-v3-${{ inputs.ast-export-ref }}-${{ hashFiles('fhir-harness/scripts/ig-toolchain.env') }}-${{ hashFiles('sushi-config.yaml', 'ig.ini') }}
+          restore-keys: |
+            fhir-ig-tooling-v3-${{ inputs.ast-export-ref }}-${{ hashFiles('fhir-harness/scripts/ig-toolchain.env') }}-
+
+      - name: Java for the IG Publisher
+        if: steps.ast.outputs.rebuild == 'true'
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: ${{ steps.toolchain.outputs.JAVA_VERSION }}
+
+      - name: Node for SUSHI
+        if: steps.ast.outputs.rebuild == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          package-manager-cache: false
+          node-version: ${{ steps.toolchain.outputs.NODE_VERSION }}
+
+      - name: Ruby for the Publisher's Jekyll
+        if: steps.ast.outputs.rebuild == 'true'
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
+        with:
+          ruby-version: ${{ steps.toolchain.outputs.RUBY_VERSION }}
+
+      - name: Build the IG and export its AST
+        id: build
+        if: steps.ast.outputs.rebuild == 'true'
+        env:
+          AST_EXPORT_REF: ${{ inputs.ast-export-ref }}
+          TX_SERVER: ${{ inputs.tx }}
+          PRE_EXPORT: ${{ inputs.pre-export }}
+          TEMPLATE_REPOS: ${{ inputs.template-repos }}
+          PACKAGE_LOCK: ${{ inputs.package-lock }}
+          VERDICT: ${{ steps.ast.outputs.verdict }}
+          FORCE: ${{ inputs.force }}
+          SUSHI_VERSION: ${{ steps.toolchain.outputs.SUSHI_VERSION }}
+          JEKYLL_VERSION: ${{ steps.toolchain.outputs.JEKYLL_VERSION }}
+        run: |
+          set -o pipefail
+          export PATH="$HOME/.npm-global/bin:$PATH"
+          have=$(sushi --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)
+          [ "$have" = "$SUSHI_VERSION" ] || npm install -g --prefix "$HOME/.npm-global" "fsh-sushi@$SUSHI_VERSION"
+          # Jekyll at the pinned version, in ~/.ig-toolchain (cached): a warm
+          # run finds it built and skips the native gem compile.
+          gems="$HOME/.ig-toolchain/gems/ruby-$(ruby -e 'print RUBY_VERSION')"
+          export GEM_PATH="$gems${GEM_PATH:+:$GEM_PATH}" PATH="$gems/bin:$PATH"
+          [ -x "$gems/bin/jekyll" ] || gem install jekyll -v "$JEKYLL_VERSION" --no-document --install-dir "$gems"
+          # The AST exporter, compiled once per pinned commit (cached): its
+          # classes and dependency jars. `ok` is written last, so a half-built
+          # directory is rebuilt.
+          exp="$HOME/.ig-toolchain/ast-export/$AST_EXPORT_REF"
+          # First choice: the bundle fhir-harness published for this commit
+          # (ast-export-bundle.yml), taken only when its sha256 matches the pin
+          # in scripts/ast-export-bundles.tsv. No pin, no bundle or a mismatch:
+          # the exporter is built from source, as before.
+          if [ ! -f "$exp/ok" ]; then
+            rm -rf "$exp" && mkdir -p "$exp"
+            want=$(awk -v r="$AST_EXPORT_REF" '$1 == r { print $2 }' fhir-harness/scripts/ast-export-bundles.tsv 2> /dev/null || true)
+            if [ -n "$want" ] \
+              && curl -fsSL --retry 2 -o "$RUNNER_TEMP/ast-export.tar.gz" \
+                   "https://github.com/litlfred/fhir-harness/releases/download/ast-export-$AST_EXPORT_REF/ast-export.tar.gz" \
+              && echo "$want  $RUNNER_TEMP/ast-export.tar.gz" | sha256sum -c --quiet \
+              && tar -xzf "$RUNNER_TEMP/ast-export.tar.gz" -C "$exp"; then
+              touch "$exp/ok"
+              echo "::notice::AST exporter $AST_EXPORT_REF from its published bundle (sha256 $want)"
+            else
+              rm -rf "$exp" && mkdir -p "$exp"
+              [ -z "$want" ] || echo "::warning::the AST exporter bundle for $AST_EXPORT_REF was not usable; building it from source"
+            fi
+          fi
+          if [ ! -f "$exp/ok" ]; then
+            git clone -q --filter=blob:none https://github.com/litlfred/fhir-ig-publisher "$RUNNER_TEMP/igp"
+            git -C "$RUNNER_TEMP/igp" checkout -q "$AST_EXPORT_REF"
+            (cd "$RUNNER_TEMP/igp/ast-export" && mvn -q -B -DskipTests compile dependency:copy-dependencies -DoutputDirectory="$exp/lib")
+            cp -a "$RUNNER_TEMP/igp/ast-export/target/classes" "$exp/classes"
+            touch "$exp/ok"
+          fi
+          CP="$exp/classes:$exp/lib/*"
+          # The packages the caller's lock pins are installed from the lock, each
+          # verified against its pinned hash, before SUSHI or the Publisher runs:
+          # with them in the cache neither fetches them, so nothing it pins is
+          # resolved at run time (Tool fhir-cache-seed-npm, `--lock`). A package
+          # that does not match its pin fails the run; the Publisher is not run.
+          if [ -n "$PACKAGE_LOCK" ]; then
+            case "$PACKAGE_LOCK" in /*|*..*) echo "::error::package-lock must be a path inside the repository: $PACKAGE_LOCK"; exit 2 ;; esac
+            if [ -f "$PACKAGE_LOCK" ]; then
+              echo "::group::install the FHIR packages $PACKAGE_LOCK pins"
+              bun run fhir-harness/scripts/fhir-cache-seed-npm.ts --cache "$HOME/.fhir/packages" --lock "$PACKAGE_LOCK" \
+                || { echo "::error::a FHIR package $PACKAGE_LOCK pins was not installed as pinned"; exit 1; }
+              echo "::endgroup::"
+            elif [ "$PACKAGE_LOCK" != fhir-packages.lock.json ]; then
+              echo "::error::package-lock names $PACKAGE_LOCK, which this commit does not have"; exit 2
+            fi
+          fi
+          # The ig.ini template, when it is a `#current` package the cache lacks,
+          # is seeded from the template's own repository at HEAD (the fork's
+          # seeder, Tool fhir-cache-seed-npm; skill ig-publisher-fork). The
+          # Publisher's own route is the CI build server, which can lose a
+          # template's build: who.template.root#current was a 404 there on
+          # 2026-10-30. Best effort: when seeding fails the Publisher tries its
+          # own route. A cached template is kept by the Publisher when the
+          # server cannot say it is out of date.
+          tpl=$(sed -n 's/^[[:space:]]*template[[:space:]]*=[[:space:]]*\([A-Za-z0-9._-]*#current\)[[:space:]]*$/\1/p' ig.ini 2>/dev/null | head -n 1)
+          # A `#local-template` extends a base template named in its own
+          # package.json; when that base is `current`, it is the package to
+          # seed, since the Publisher fetches it from the same CI build server.
+          if [ -z "$tpl" ] && grep -Eq '^[[:space:]]*template[[:space:]]*=[[:space:]]*#local-template[[:space:]]*$' ig.ini 2>/dev/null \
+             && [ -f local-template/package/package.json ]; then
+            tpl=$(python3 -I -c 'import json,sys; p=json.load(open(sys.argv[1])); b=p.get("base",""); print(b+"#current" if b and p.get("dependencies",{}).get(b)=="current" else "")' local-template/package/package.json 2>/dev/null || true)
+          fi
+          if [ -n "$tpl" ] && [ ! -d "$HOME/.fhir/packages/$tpl" ]; then
+            targs=()
+            for m in $TEMPLATE_REPOS; do targs+=(--template-repo "$m"); done
+            echo "::group::seed the template $tpl from its repository"
+            # The seeder lives in the exporter's repository. A published
+            # bundle carries only classes/ and lib/, and then that repository
+            # was never cloned: check out the seeder alone, at the same pin.
+            seeder="$RUNNER_TEMP/igp/ast-export/scripts/seed-fhir-cache-from-npm.py"
+            if [ ! -f "$seeder" ]; then
+              { [ -d "$RUNNER_TEMP/igp/.git" ] || git clone -q --filter=blob:none --no-checkout https://github.com/litlfred/fhir-ig-publisher "$RUNNER_TEMP/igp"; } \
+                && git -C "$RUNNER_TEMP/igp" checkout -q "$AST_EXPORT_REF" -- ast-export/scripts/seed-fhir-cache-from-npm.py \
+                || echo "::warning::could not check out the template seeder at $AST_EXPORT_REF"
+            fi
+            python3 -I "$seeder" --cache "$HOME/.fhir/packages" "${targs[@]}" "$tpl" \
+              || echo "::warning::could not seed the template $tpl from its repository: the Publisher tries the CI build server"
+            echo "::endgroup::"
+          fi
+          # The Publisher's terminology cache (input-cache/txcache/), restored
+          # with the AST, holds only for the FHIR version it was built with. Its
+          # system-map.json keeps the registry's routing, code system to server
+          # endpoint, and the endpoint names a FHIR version (tx.fhir.org/r5).
+          # The Publisher reuses a persisted route without asking the registry
+          # again, and appends its own version to a tx.fhir.org endpoint that
+          # does not end in it, so an IG moved from R5 to R4 asked for
+          # https://tx.fhir.org/r5/r4 and failed (core 7.0.1,
+          # TerminologyClientFactory.checkEndsWith). A cache whose core package
+          # is another FHIR version than sushi-config.yaml's fhirVersion is
+          # dropped, and the Publisher builds its own. Either version unknown:
+          # the cache is kept, as before.
+          if [ -d input-cache/txcache ] && [ -f output-ast/manifest.json ] && [ -f sushi-config.yaml ]; then
+            if ! python3 -I - output-ast/manifest.json sushi-config.yaml <<'PY'
+          import json, re, sys
+          def minor(v):
+              return tuple(re.findall(r"\d+", str(v or ""))[:2])
+          try:
+              m = json.load(open(sys.argv[1], encoding="utf-8"))
+              lines = open(sys.argv[2], encoding="utf-8").read().splitlines()
+          except Exception:
+              sys.exit(0)
+          built = None
+          for p in m.get("packages") or []:
+              if isinstance(p, dict) and re.fullmatch(r"hl7\.fhir\.r\d+b?\.core", str(p.get("id", ""))):
+                  built = p.get("version")
+                  break
+          if not built and isinstance(m.get("ig"), dict):
+              built = m["ig"].get("version")
+          wanted = []
+          for i, line in enumerate(lines):
+              f = re.match(r"fhirVersion:(.*)$", line)
+              if not f:
+                  continue
+              v = f.group(1).split("#")[0].strip()
+              if v.startswith("["):
+                  wanted = [x.strip(" '\"") for x in v.strip("[]").split(",")]
+              elif v:
+                  wanted = [v.strip("'\"")]
+              else:
+                  for n in lines[i + 1:]:
+                      item = re.match(r"\s+-\s*([^\s#]+)", n)
+                      if item:
+                          wanted.append(item.group(1).strip("'\""))
+                      elif n.strip() and not n.lstrip().startswith("#"):
+                          break
+              break
+          wanted = [w for w in wanted if w]
+          if not built or not wanted or minor(built) in {minor(w) for w in wanted}:
+              sys.exit(0)
+          print(f"::notice::the restored terminology cache was built for FHIR {built}, the IG is FHIR {', '.join(wanted)}: it is dropped")
+          sys.exit(1)
+          PY
+            then
+              rm -rf input-cache/txcache
+            fi
+          fi
+          # Incremental only over a STALE cache, from a clean tree (the build
+          # refuses any other), never for a release (force). Anything it cannot
+          # account for ends in its own full build; a failure here falls back
+          # to the full export below.
+          kind=
+          if [ "$VERDICT" = stale ] && [ "$FORCE" != true ] && [ -z "$PRE_EXPORT" ] && [ -f output-ast/manifest.json ]; then
+            rm -rf "$RUNNER_TEMP/base-ast" && mv output-ast "$RUNNER_TEMP/base-ast"
+            echo "::group::incremental build over the cache"
+            if java -Xmx10g -cp "$CP" org.hl7.fhir.igtools.ast.IncrementalBuildCli -ast "$RUNNER_TEMP/base-ast" \
+                 -ig "$GITHUB_WORKSPACE" -out "$GITHUB_WORKSPACE/output-ast" -head HEAD -tx "$TX_SERVER" \
+                 -work "$RUNNER_TEMP/incremental-work" > "$RUNNER_TEMP/ast-build.log" 2>&1 \
+               && for p in sushi-config.yaml ig.ini input; do if git ls-files --error-unmatch -- "$p" > /dev/null 2>&1; then git checkout -q HEAD -- "$p"; fi; done \
+               && git clean -fdq -- sushi-config.yaml ig.ini input \
+               && bun run fhir-harness/scripts/ig-ast.ts validity output-ast --ig . > /dev/null; then
+              # An IG whose lock mounts a fhir-harness older than #173 has no
+              # `build-kind`; this branch only runs on IncrementalBuildCli's AST.
+              kind=$(bun run fhir-harness/scripts/ig-ast.ts build-kind output-ast 2>/dev/null || echo incremental)
+              tail -n 20 "$RUNNER_TEMP/ast-build.log"
+              if [ "$kind" = incremental ]; then
+                bun run fhir-harness/scripts/ig-ast.ts cache-line output-ast --ig . --warm 2>/dev/null || true
+              fi
+            else
+              tail -n 40 "$RUNNER_TEMP/ast-build.log"
+              echo "::warning::the incremental build failed or its AST is not valid: building in full"
+              kind=
+            fi
+            echo "::endgroup::"
+          fi
+          # `kind` is set only when IncrementalBuildCli produced a valid AST. It
+          # is `full` when its own plan chose a full build (nothing more to do).
+          if [ -n "$kind" ]; then
+            echo "kind=$kind" >> "$GITHUB_OUTPUT"
+            echo "::notice::AST rebuilt by IncrementalBuildCli: $kind (a release needs a force run)"
+            exit 0
+          fi
+          echo "kind=full" >> "$GITHUB_OUTPUT"
+          rm -rf output-ast
+          for p in sushi-config.yaml ig.ini input; do
+            if git ls-files --error-unmatch -- "$p" > /dev/null 2>&1; then git checkout -q HEAD -- "$p"; fi
+          done
+          git clean -fdq -- sushi-config.yaml ig.ini input
+          if [ -n "$PRE_EXPORT" ]; then
+            # The SOURCE's input digest, before anything prepares the tree. Only
+            # here: a caller without pre-export may pin a fhir-harness whose
+            # ig-ast.ts has no `digest` yet, and must not be broken by it.
+            source_digest=$(bun run fhir-harness/scripts/ig-ast.ts digest --ig .) \
+              || { echo "::error::pre-export needs a fhir-harness with \`ig-ast.ts digest\` and \`source-inputs\` (#55): repin the lock"; exit 1; }
+            echo "::group::pre-export: $PRE_EXPORT"
+            bash -c "$PRE_EXPORT" || { echo "::error::the pre-export command failed: nothing is exported"; exit 1; }
+            echo "::endgroup::"
+          fi
+          # Absolute paths: the exporter refuses a relative -ig. -tx explicitly:
+          # AstExportCli builds the Publisher directly and leaves it unset, so
+          # without it the build runs with NO terminology server.
+          java -Xmx10g -cp "$CP" org.hl7.fhir.igtools.ast.AstExportCli -ig "$GITHUB_WORKSPACE" \
+            -ast-out "$GITHUB_WORKSPACE/output-ast" -tx "$TX_SERVER" > "$RUNNER_TEMP/ast-build.log" 2>&1 \
+            || { tail -n 80 "$RUNNER_TEMP/ast-build.log"; exit 1; }
+          tail -n 20 "$RUNNER_TEMP/ast-build.log"
+          # The build's own expansions, beside the AST: its ValueSets carry none.
+          [ -f output/expansions.json ] && cp output/expansions.json output-ast/expansions.json
+          # The Publisher's QA summary goes with the AST too, as ig-ast-build.sh does: the
+          # site never reads output/, so a branch's AST (kept as this run's artifact, never
+          # seeded) carries it as well, whatever seed the IG's lock mounts (ig-qa-page.ts).
+          [ -f output/qa.json ] && cp output/qa.json output-ast/qa.json
+          # Every message the Publisher reported (output/qa.xml), as the JSON the
+          # site's QA report draws in the Publisher's qa.html layout.
+          if [ -f fhir-harness/scripts/ig-qa-messages.ts ]; then
+            bun run fhir-harness/scripts/ig-qa-messages.ts output/qa.xml output-ast/qa-messages.json || true
+          fi
+          # Put the IG's inputs back as the commit has them, ALWAYS: the
+          # Publisher writes under input/ during a build (it renders
+          # input/images-source/*.plantuml into input/images/*.svg, overwriting
+          # tracked files and adding untracked ones), so a digest of the work
+          # tree after the build is not the commit's (an IG repository's run
+          # 38609595363: recorded 35047502..., re-hashed 079a4e58...). Plain
+          # git, so it works with whichever fhir-harness the caller's lock
+          # mounts; a fhir-harness with `validity --at` can check the commit
+          # without it.
+          for p in sushi-config.yaml ig.ini input; do
+            if git ls-files --error-unmatch -- "$p" > /dev/null 2>&1; then git checkout -q HEAD -- "$p"; fi
+          done
+          git clean -fdq -- sushi-config.yaml ig.ini input
+          if [ -n "$PRE_EXPORT" ]; then
+            # Check the inputs are the commit's, and record the AST against them.
+            now=$(bun run fhir-harness/scripts/ig-ast.ts digest --ig .)
+            [ "$now" = "$source_digest" ] \
+              || { echo "::error::the inputs are not the commit's after the pre-export was undone ($now, not $source_digest)"; exit 1; }
+            bun run fhir-harness/scripts/ig-ast.ts source-inputs output-ast --digest "$source_digest" --pre-export "$PRE_EXPORT"
+          fi
+          # The new AST must be valid for the commit it was built from, or it
+          # is not seeded: a cache that fails its own check is worse than none.
+          bun run fhir-harness/scripts/ig-ast.ts validity output-ast --ig . \
+            || { echo "::error::the AST just built is not valid for $(git rev-parse --short HEAD)"; exit 1; }
+
+      # `fhir-ig-tooling` is saved from the default branch only (trust class c):
+      # a branch reads main's toolchain and packages, and never writes its own.
+      - name: Save FHIR packages and IG tooling (default branch only)
+        if: >-
+          steps.ast.outputs.rebuild == 'true' && steps.build.outcome == 'success'
+          && steps.tooling-cache.outputs.cache-hit != 'true'
+          && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.fhir/packages
+            ~/.m2/repository
+            ~/.npm-global
+            ~/.ig-toolchain
+          key: ${{ steps.tooling-cache.outputs.cache-primary-key }}
+
+      - name: Keep the AST build log
+        if: always() && steps.ast.outputs.rebuild == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ast-build-log
+          path: ${{ runner.temp }}/ast-build.log
+          if-no-files-found: ignore
+
+      - name: Seed the AST cache
+        id: seed
+        if: steps.ast.outputs.rebuild == 'true'
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          # Seeded when the built commit is on the default branch and the IG's
+          # inputs at its tip are the same: a merge during the (long) build
+          # that touches no input does not waste the run.
+          head=$(git rev-parse HEAD)
+          branch="${DEFAULT_BRANCH:-main}"
+          git fetch -q origin "refs/heads/$branch"
+          tip=$(git rev-parse FETCH_HEAD)
+          if ! git merge-base --is-ancestor "$head" "$tip" || ! git diff --quiet "$head" "$tip" -- sushi-config.yaml ig.ini input; then
+            echo "::notice::$head is not on $branch with $branch's inputs ($tip): the shared cache is left alone"
+            echo "seeded=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          bash fhir-harness/scripts/ig-cache.sh seed --ig-root . --push
+          echo "seeded=true" >> "$GITHUB_OUTPUT"
+
+      # The release catch-up (skill ig-binary-artefacts, "Releasing"): tagging
+      # is the owner's decision, so this only reports an untagged current
+      # version (naming the commit that set it) or a tag with no release. It
+      # never tags and never fails the run.
+      - name: Is the current version tagged and released? (advisory)
+        if: always() && !inputs.release && (inputs.ref == github.event.repository.default_branch || inputs.ref == 'main')
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bun run fhir-harness/scripts/ig-release.ts check --ig . --repo "${{ github.repository }}" \
+            | tee -a "$GITHUB_STEP_SUMMARY" | sed 's/^/::notice::/'
+
+      - name: Keep the AST when it was not seeded
+        if: steps.ast.outputs.rebuild == 'true' && steps.seed.outputs.seeded != 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: output-ast
+          path: output-ast
+          if-no-files-found: ignore
+
+      # A release run (`ig-release.yml`, skill ig-binary-artefacts "Releasing"):
+      # the files the release carries, from this full build. `ig-release.ts
+      # assets` refuses the set when package.tgz is missing.
+      - name: Keep the release's files
+        if: inputs.release && steps.build.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ig-release
+          path: |
+            output/package.tgz
+            output/package.r4.tgz
+            output/package.r4b.tgz
+            output-ast
+          if-no-files-found: error

@@ -1,0 +1,74 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "gates",
+    "title": "The platform's quality gates",
+    "description": "Run the checks CI runs, derived from the workflow rather than listed here. One Tool for all of them, not one per gate: the list is computed from `.github/workflows/code-quality-gates.yml` at call time, so it cannot drift from what CI actually enforces.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat gates"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "all",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Add the jobs that need a browser; the default is the fast set.",
+          "required": false,
+          "arg": {
+            "flag": "--all"
+          }
+        },
+        {
+          "name": "list",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Print the derived gates and exit, running none.",
+          "required": false,
+          "arg": {
+            "flag": "--list"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "One line per gate, then a pass count or the failures. Three exit codes, because two cannot carry the distinction: 0 every gate passed, 1 a gate failed, 2 the gate set could NOT BE DERIVED — the workflow it reads is absent or yields nothing. A caller must not read 2 as either verdict; it matters most downstream, where this Tool is inherited and `.github/workflows/` is not."
+        }
+      ]
+    },
+    "satisfies": [
+      "platform-gates",
+      "continual-progress"
+    ],
+    "selection": {
+      "when": "Before any push, and as the answer to \"what checks this?\". It matters most where CI is not: `tools/` is an INHERITED declaration and `.github/workflows/` is not, so a downstream layer gets this Tool and none of the gates it names.",
+      "limits": "It runs what the workflow declares, so a check CI does not run is a check this does not run. The default omits the browser jobs; `--all` adds them, and `render:bpmn:check` needs Chromium.",
+      "cost": "The fast set is about a minute, dominated by `bun test`. `--all` adds a browser render."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/satisfies",
+      "comment": "ONE node, and that is the design rather than a shortcut — bean\n`folio-assistant-ppkm`, route B of `folio-assistant-3lbz`.\n\nThe obvious reading of \"bind the gates as Tool nodes\" is one node per\ngate. The audit that proposed route B named the cost of that itself:\nthe Tool list becomes A SECOND ANSWER to \"what are the gates\", free\nto disagree with `gates.ts` the moment either changes. `gates.ts`\nderives the list from the workflow, so 43 hand-written nodes would be\n43 copies of a fact that is already computed.\n\nTwo further reasons, both measured. `Gate` carries `{ job, step,\ncommand }` and NO skill binding, so each of the 43 would need an\ninvented `satisfies:` — 43 judgements, none derived from anything.\nAnd route A settled the same question one bean earlier, on the\nowner's own instruction about Zod schemas: \"a Tool per Zod schema...\nno, but there should be common patterns (single pattern?) with some\nparameters more or less\".\n\nPer-gate discoverability is still reachable, and the way to get it is\nto give `Gate` a declared skill in the workflow the list is derived\nFROM — not to hand-maintain the nodes here."
+    },
+    {
+      "at": "",
+      "comment": "── Running the checks CI runs ────────────────────────────────────────\n\n`tools/` is an INHERITED declaration and `.github/workflows/` is not:\na downstream layer gets this node and none of the gates it names.\nThat asymmetry is the whole business case for the node."
+    }
+  ]
+}

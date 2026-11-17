@@ -1,0 +1,63 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "github",
+    "title": "GitHub (issues, Actions, pull requests)",
+    "description": "GitHub as a Tool: the forge that carries an adjudication as an issue, runs the workflow that records it on Actions, and holds the record as a pull request for a maintainer to merge. One forge among possible others; the process names the skill, never GitHub.",
+    "install": {
+      "cli": "gh (optional; the web interface needs nothing)",
+      "service": "github.com"
+    },
+    "invoke": {
+      "shell": "gh",
+      "manual": true
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "repo",
+          "schema": {
+            "$type": "RepoFullName"
+          },
+          "description": "The repository holding the catalogues. Default: the current one.",
+          "required": false,
+          "arg": {
+            "flag": "-R"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "url",
+          "schema": {
+            "$type": "Url"
+          },
+          "description": "The issue, workflow run or pull request."
+        }
+      ]
+    },
+    "satisfies": [
+      "translation-adjudication"
+    ],
+    "selection": {
+      "when": "The layer's repository is on GitHub: the review page files issues there, and its caller workflow runs on Actions.",
+      "limits": "GitHub only. Identity is GitHub's `author_association`, so a reviewer must be an owner, member or collaborator of the repository. A PR opened with the workflow's token starts no other workflows. Another forge carrying the same `translation-adjudication/v1` record would be another Tool satisfying `translation-adjudication`.",
+      "cost": "Free for a public repository: issues, pull requests and the Actions minutes of one short job per adjudication."
+    },
+    "requires": {
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "The issue, the workflow and the pull request all live on GitHub; there is no offline arm. Record the verdict in the session and file it once GitHub can be reached."
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "Owner, 2026-11-14: \"GitHub is a tool.\" The adjudication process names its steps by skill; this node is the GitHub half of three of them (filing the issue, running the workflow, holding the PR)."
+    }
+  ]
+}
