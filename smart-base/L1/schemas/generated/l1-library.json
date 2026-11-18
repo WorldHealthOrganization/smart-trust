@@ -1,0 +1,126 @@
+{
+  "_generated": "smart-base/L1/schemas/emit.ts (npm run build in smart-base/L1/schemas/) — do not hand-edit; edit the layer source in smart-base/<Layer>/schemas/",
+  "schemaVersion": "3.0",
+  "layer": "l1-library",
+  "namespace": "http://smart.who.int/kg/",
+  "source": "authored",
+  "note": "Every layer points only upstream: L3 → L2 → L1 → library (the ingested source document, its sections and blocks). A layer may point at any layer above it and never at one below it. This layer adds what L1 needs to point at the library above it: one opaque upstream class and PROV's specializationOf. It also carries implementation-practice, the content class for implementation guidance, which L1 3.0 lacks (owner ruling 1b, 2026-10-12). It imports L1 3.0 unchanged.",
+  "imports": [
+    "l1"
+  ],
+  "groundedIn": [
+    {
+      "what": "The library a WHO SMART Guidelines DAK is built from",
+      "where": "folio-assistant library entries (structure.json, manifest.jsonld, blocks/*.jsonld)",
+      "detail": "Every L1 source is ingested into a library first; its sections and blocks exist, with their own IRIs, before any L1 node is minted from them."
+    },
+    {
+      "what": "Owner ruling on layering and specialisation",
+      "where": "folio-assistant session, 2026-10-07",
+      "detail": "'Library is upstream to L1. L1 can point upstream but not downstream.' and 'the publication -> publication section -> publication element should inherit parent classes and specialize them to be the L1 kind with some extra properties.'"
+    }
+  ],
+  "valueSets": [],
+  "predicates": [
+    {
+      "predicate": "specializationOf",
+      "iri": "http://www.w3.org/ns/prov#specializationOf",
+      "note": "An L1 layout node to the library node it specialises: the same printed thing, with L1's more specific aspects. Upstream only."
+    }
+  ],
+  "classes": [
+    {
+      "id": "implementation-practice",
+      "name": "Implementation practice",
+      "kind": "Concept",
+      "iri": "http://smart.who.int/kg/implementation-practice",
+      "note": "A statement of how to put guidance into practice, printed in a publication whose publicationType is implementation-guidance or methodology: the handbook's \"products that are not guidelines\" (§1.9), a \"how to\" document that makes no recommendations of its own. Not a recommendation, and not a good practice statement — both are made by a guideline and approved by the GRC; this is neither. It carries no kind, direction, strength or certainty, because nothing graded it. A handbook's own \"Best practices\" lists are the typical source. Owner ruling 1b, 2026-10-12: model these as their own class, not as recommendation nodes of a new kind.",
+      "properties": [
+        "identifier",
+        "statement",
+        "contentHash"
+      ],
+      "iriPattern": "^https://smart\\.who\\.int/kg/l1/publication/(isbn|iris-handle|doi|issn|url)-[^/]+/implementation-practice/[^/]+(/[^/]+)*$",
+      "minDerivation": "inferred",
+      "propertyNote": "statement is verbatim and is the only stored copy, as recommendation's is. identifier is used in the IRI. There is no remark: L1 3.0's remark is minted under a recommendation (its iriPattern) and hasRemark starts at one, so a remark of a practice needs L1 itself to change — proposed upstream, not patched here.",
+      "contentFields": [
+        "statement"
+      ]
+    },
+    {
+      "id": "library-node",
+      "name": "Library node",
+      "kind": "Reference",
+      "iri": "http://smart.who.int/kg/library-node",
+      "note": "A node in the ingested library L1 is read from: a source document, a section or a block, addressed by the library's own IRI. Opaque, as L1 asserts nothing about the library's internal model; the library is upstream, so pointing at it keeps the layering rule.",
+      "properties": [
+        "iri",
+        "libraryClass",
+        "entry",
+        "pageRange"
+      ],
+      "minDerivation": "derived"
+    }
+  ],
+  "edges": [
+    {
+      "predicate": "definedIn",
+      "source": "implementation-practice",
+      "target": "publication",
+      "minDerivation": "inferred",
+      "note": "Printed in this publication, whose publicationType is implementation-guidance or methodology."
+    },
+    {
+      "predicate": "presentedIn",
+      "source": "implementation-practice",
+      "target": "publication-section",
+      "minDerivation": "inferred"
+    },
+    {
+      "predicate": "presentedIn",
+      "source": "implementation-practice",
+      "target": "publication-element",
+      "minDerivation": "inferred"
+    },
+    {
+      "predicate": "partOf",
+      "source": "implementation-practice",
+      "target": "implementation-practice",
+      "minDerivation": "inferred",
+      "note": "One item of a printed list of practices, to the practice that heads it."
+    },
+    {
+      "predicate": "specializationOf",
+      "source": "publication",
+      "target": "library-node",
+      "minDerivation": "derived"
+    },
+    {
+      "predicate": "specializationOf",
+      "source": "publication-section",
+      "target": "library-node",
+      "minDerivation": "derived"
+    },
+    {
+      "predicate": "specializationOf",
+      "source": "publication-element",
+      "target": "library-node",
+      "minDerivation": "inferred",
+      "note": "An element is cut from a library block by reading its layout; one element may span several blocks (a table over two pages), so this edge may repeat."
+    },
+    {
+      "predicate": "resolvesTo",
+      "source": "reference-entry",
+      "target": "library-node",
+      "minDerivation": "inferred",
+      "note": "A reference to a source the library holds that is not an L1 publication."
+    },
+    {
+      "predicate": "resolvesTo",
+      "source": "citation",
+      "target": "library-node",
+      "minDerivation": "inferred",
+      "note": "As for reference-entry."
+    }
+  ]
+}

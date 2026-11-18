@@ -1,0 +1,164 @@
+---
+doc_id: 10665-270157
+doc_title: "Acceptability of routine HIV counselling and testing, and HIV seroprevalence in Ugandan hospitals"
+section_id: page-007
+section_title: "Page 7"
+pages: 7-7
+pdf_page: 7
+source_pdf: 10665-270157.pdf
+source_sha256: 8d92e149775a034a
+text_source: ocr
+granularity: page
+---
+Research
+Routine HIV testing in Ugandan hospitals
+
+Rhoda K Wanyenze et al.
+
+paddle
+
+agoiall goth) 595) oa nd) gap) shee Vly Sygtbl GAL Aguile
+
+Jushl Bog) 185 Lol BU jL2sVI Io) 18 agi %81 OWSs .%25
+Jasbls (%35) dabldl PLB 3 Glew! gorkl oe sles BS]
+L289 (%12) eleul plus! 3 Gelb! orb! gy Lolissl SV)
+Laz ye 39.037 SI Gy %28 Gris Lb! jg) yagxd sLa! Jaze
+ee Ge wae GY 9%9 ES Ge SLES! cle] eal Gay 6 O2HI
+erbl pol S18] Ge 10 439 Gy Ges pg dybe dius Cs 051,21
+45,21 de (%93) agis 9720 alg GLESVI clo! padle Wye Gut!
+59 -%20 egies Spball GEL! Joell yes nd Aulen! jLasil Jaze ays
+25s) (19) les} 224 SS sLASVI lope) Go) gloj5I ge 1213 oy
+. (gley! 23g Gale saad) lite
+ell 53d) ard) Gis! eeVlp Sygdihl GAG ho iq leiul
+dl wolg datsl 3 SyS) Slaszudl Ge gil SS Uo gnu
+(oll jgsl wands Gos] eg Cuaks Of Guu b Gao SI UBS
+gla! FUp Gals WSl,b) sol) Weck! OWI Go Ly as ptdl
+
+pera 181 gus wort! Gy WSs (Wes nil
+
+Maik gl Cladiwe § dulabl duleuls
+
+Ayaasall GlAdtubl Go Ulneg s83g0 tilts Gladius wind Sug
+dag nhs Sg tsdly NI G0 Ls caer eg Gl Auss I) Gbliol
+Ly YI) loz Y gated etl jigs) wag x8 sla! OS Ca8 C89 Gey
+2004 nadgi/GW) Gopi 4b deg Ad ados tileY Ulb Ue
+Crtdl GSLbl gall ean’ Agog) L2eVI che! sSlgthl oe quel
+syadly GULas Vb Adasill go JS Guuod due) algo Syqdbl bis
+Gee DS, 2Bb! Shaogl 3 soph! goed LES eadle soya gp pul
+LS spill Gelbl jgsll osnd sles! Ayles! UB Ge pan Cabs &
+Adtubl 3 lyard Goll) earl ola WS el
+
+G ASyLis dobisg Lelie 25 Yo Glibsbl atoll eae 24s, bil
+«2006 ply3/bLS 285 2004 yodi/JsI gapid 1 gy 528
+dulabl dyleu Jizeg slesNI le ULV! use Ule Bx Loglleg
+earl ous wart! ov
+
+spall wand slat! che] yale dye Layye 51 642 oy Ge loge
+O89 SY! Nhe shel (%98) Laz ye 50 649 LS ag ctl ell
+oplisil Jase aly «wand Gualeu! LB de I5isSe fb codll edshl ow
+
+References
+
+1. Baggaly R. The impact of voluntary counselling and testing: a global review of
+the benefits and challenges. Geneva: UNAIDS; 2001 (UNAIDS/01.32E).
+
+2. Forsyth AD, Coates TJ, Grinstead OA, Sangiwa G, Balmer D, Kamenga MC,
+et al. HIV infection and pregnancy status among adults attending voluntary
+counselling and testing in 2 developing countries. Am J Public Health
+2002;92:1795-800. PMID:12406811
+
+3. Efficacy of voluntary HIV-1 counselling and testing in individuals and couples
+in Kenya, Tanzania, and Trinidad: a randomized trial. The Voluntary HIV-1
+Counselling and Testing Efficacy Study Group. Lancet 2000;356:103-12
+PMID:10963246 doi:10.1016/S0140-6736(00)02446-6
+
+4. De Zoysa |, Phillips KA, Kamenga MC, O'Reilly KR, Sweat MD, White RA, et al.
+Role of HIV counselling and testing in changing risk behavior in developing
+countries. AIDS 1995;9(Suppl A):S95-101.
+
+5. Gresenguet G, Sehonou J, Bassirou B, Longo Jde D, Malkin JE, Brogan T,
+et al. Voluntary HIV counselling and testing: experience among the sexually
+active population in Bangui, Central African Republic. J Acquir Immune Defic
+Syndr 2002;31:106-14. PMID:12352157
+
+6. De Cock KM, Mbori-Ngacha D, Marum E. Shadow on the continent: public
+health and HIV/AIDS in Africa in the 21st century. Lancet 2002;360:67-72.
+PMID:12114058 doi:10.1016/S0140-6736(02)09337-6
+
+7. De Cock KM, Marum E, Mbori-Ngacha D. A sero-status approach to HIV/AIDS
+prevention and care in Africa. Lancet 2003;362:1847-9. PMID:14654325
+doi:10.1016/S01 40-6736(03)1 4906-9
+
+8. Emergency scale-up of antiretroviral therapy in resource-limited settings:
+technical and operational recommendations to achieve 3 by 5. Report from:
+WHO/UNAIDS Zambia consultation, 18-21 November 2003, Lusaka, Zambia.
+Geneva: WHO/UNAIDS; 2003.
+
+9. Treating 3 million by 2005. Making it happen. The WHO strategy. The WHO
+and UNAIDS global initiative to provide antiretroviral therapy to 3 million
+people with HIV/AIDS in developing countries by the end of 2005. Geneva:
+WHO; 2003.
+
+10. Provisional WHO/UNAIDS Secretariat recommendations on the use of
+Cotrimoxazole Prophylaxis in adults and children living with HIV/AIDS in Africa.
+Geneva: UNAIDS; 2000.
+
+11. Mermin J, Lule J, Ekwaru JP, Malamba S, Downing R, Ransom R, et al.
+
+Effect of co-trimoxazole prophylaxis on morbidity, mortality, CD4-cell count,
+and viral load in HIV infection in rural Uganda. Lancet 2004;364:1428-34.
+PMID:15488218 doi:10.1016/S0140-6736(04)17225-5
+
+308
+
+12. Were A, Mermin J, Wamai N, Awor A, Bechange S, Moss S, et al. Undiagnosed
+HIV infection and couple HIV discordance among household members of
+HIV-infected people receiving antiretroviral therapy in Uganda. J Acquir
+Immune Defic Syndr 2006;43:91 -5. PMID:16885775 doi:10.1097/01
+gai.0000225021.81384.28
+
+13. UNAIDS/WHO Policy Statement on HIV testing. Geneva: UNAIDS/WHO; 2004.
+
+14. Increasing access to HIV testing and counselling. Report of: WHO consultation,
+19-21 November 2002, Geneva, Switzerland. Geneva: WHO; 2003.
+
+15. WHO/UNAIDS technical consultation on voluntary HIV counselling and testing:
+models for implementation and strategies for scaling of VCT services, July
+2001, Harare, Zimbabwe. Geneva: UNAIDS/WHO; 2001.
+
+16. Uganda HIV/AIDS Sero-Behavioral Survey. Kampala: Ministry of Health;
+2004-2005.
+
+17. Chang LW, Osei-Kwasi M, Boakye D, Aidoo S, Hagy A, Curran J, et al. HIV-1
+and HIV-2 seroprevalence and risk factors among hospital outpatients in
+the Eastern region of Ghana, West Africa. J Acquir Immune Defic Syndr
+2002;29:51 1-6. PMID:11981368
+
+18. Fabiani M, Accorsi S, Aleni R, Rizzardini G, Nattabi B, Gabrielli A, et al.
+Estimating HIV prevalence and the impact of HIV/AIDS on a Ugandan hospital
+by combining serosurvey data and hospital discharge records. J Acquir Immune
+Defic Syndr 2003;34:62-6. PMID:14501795 doi:10.1097/00126334-
+200309010-00009
+
+19. Tembo G, Friesan H, Asiimwe-Okiror G, Moser R, Naamara W, Bakyaita N,
+et al. Bed occupancy due to HIV/AIDS in an urban hospital medical ward in
+Uganda. AIDS 1994;8:1169-71. PMID:7986417 doi:10.1097/00002030-
+199408000-00021
+
+20. HIV prevention in the era of expanded treatment access. Global HIV prevention
+working group; 2004.
+
+21. Liddicoat RV, Horton NJ, Urban R, Maier E, Christiansen D, Samet JH.
+Assessing missed opportunities for HIV testing in medical settings. J Gen
+Intern Med 2004;19:349-56. PMID:15061744 doi:10.1111/.1525-
+1497.2004.21251.x
+
+22. Centers for Disease Control and Prevention. Routinely recommended HIV
+testing at an urban urgent-care clinic, Atlanta, Georgia, 2000. MMWR Morb
+Mortal Wkly Rep 2001;50:538-41. PMID:11446572
+
+23. Centers for Disease Control and Prevention. Voluntary HIV testing as part of
+routine medical care-Massachusetts, 2002. MMWR Morb Mortal Wkly Rep
+2002;53:523-6.
+
+Bulletin of the World Health Organization | Apri 2008, 86 (4)

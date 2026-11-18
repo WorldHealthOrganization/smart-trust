@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_Process_IgDocsSiteCompose" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:collaboration id="Collaboration_Process_IgDocsSiteCompose">
+    <bpmn:participant id="Participant_Process_IgDocsSiteCompose" name="Each IG, composed into a host docs site and rendered with just-the-docs" processRef="Process_IgDocsSiteCompose"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_IgDocsSiteCompose" name="Each IG, composed into a host docs site and rendered with just-the-docs" isExecutable="false">
+    <bpmn:documentation>How a host docs site builds every IG it mounts INSIDE itself, so each IG's pages wear the host's chrome (one sidebar, one search, one language selector) rather than being a site of their own. Subprocess of Tool `stage-ig-sites`; reached from `docs-site-publish`'s `Call_InstanceSites` (skill `docs-generation`).
+
+NO IG PUBLISHER RUNS. `build-ig-site` turns the IG's source into Jekyll source, with the Publisher's `site.data.fhir` filled from the IG's AST and `sushi-config.yaml`, and the host's ONE Jekyll build renders it with just-the-docs (skill `ig-render-jekyll`). Which IGs is DATA: each instance whose `fhir-artifact-index/menu.json` records a `source.of` (the IG repository) and `source.ref` (the commit). No workflow and no step here names an IG.
+
+`feature-staging.yml` runs the same steps for a pull request's preview, with `--changed-files`, so only the IGs a change reaches are rebuilt. An IG repository building its OWN site runs `stage-ig-sites --only &lt;instance&gt; --source &lt;checkout&gt; --compose-into &lt;shell&gt; --compose-at-root`, which is `ig-ast-cache`'s `Task_BuildSite`, not this process.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- ADVISORY: a host with no IG instance has no steps to run. -->
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_IgDocsSiteCompose">
+      <bpmn:lane id="Lane_Build" name="Host docs site build (CI runner)">
+        <bpmn:documentation>The host's publish or preview job: GitHub Actions running each Tool's command in one runner. An instance with no recorded source is skipped and named, never silently absent, and a theme it cannot choose between is refused.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="build-pipeline"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_Compose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Indexes</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Pages</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Stage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ComposeInto</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Composed</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Compose" name="Host docs source&#10;composed; IG sites&#10;wanted">
+      <bpmn:documentation>The host has composed its docs layers into one Jekyll source (`compose-docs --out ./_docs`) and the IG instances are on disk: the remote mounts are replayed from the mount lock (e.g. `.github/mount-from-lock.sh`); `bun run cat state:mount` mounts state-branch graphs such as the work plan.</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_Indexes" name="Build each IG's&#10;artefact index&#10;[ig-index-build]">
+      <bpmn:documentation>Tool `ig-index-build`: `bun run cat ig-index:build`. Restores each IG's AST from its cache branch and writes `fhir-artifact-index/` (`index.json`, `menu.json` with the `source.of`/`source.ref` that `Task_Stage` clones from, `releases.json`, `package.tgz`). A missing input skips that instance, named.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-build-pipeline"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Pages" name="Generate each IG&#10;instance's artefact&#10;pages [ig-pages]">
+      <bpmn:documentation>Tool `ig-pages`: `bun run fhir-harness/scripts/gen-ig-pages.ts --instance &lt;instance&gt; ...`, run for every IG instance by its own pages script. Writes `&lt;instance&gt;/docs/` from the artefact index: one thin page per artefact with its JSON-LD node, and, for an instance whose docs declare `igSite`, only a front-matter `artifacts.md`. Built at publish, never committed.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-build-pipeline"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Stage" name="Clone each IG at its&#10;recorded commit and&#10;stage it [stage-ig-sites]">
+      <bpmn:documentation>Tool `stage-ig-sites`: `bun run fhir-harness/scripts/stage-ig-sites.ts --work ./_ig --baseurl /&lt;repo&gt; --plantuml-jar &lt;jar&gt;`. Clones each IG at its recorded commit and stages ONE just-the-docs Jekyll source per IG with Tool `build-ig-site` (pages, includes, images, PlantUML, `_data/`, theme colours); the artefact lists (`artifacts`, `toc`) are thin pages over the artefact index node (Liquid only under `--full-pages`), and the instance's artefact pages from `Task_Pages` are copied in. The theme is the one `webpage` theme the instance declares or inherits along `needs`; two at the same distance are refused.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-render-jekyll"/>
+        <bootstrap.processes:skill ref="ig-build-pipeline"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ComposeInto" name="Compose each staged&#10;IG into the host source&#10;[stage-ig-sites]">
+      <bpmn:documentation>Tool `stage-ig-sites` with `--compose-into ./_docs` (the same run as `Task_Stage`). Moves each staged site INTO the host's Jekyll source at `&lt;instance&gt;/`, with its includes and data namespaced per IG. Pages wear the thin layout with the host's chrome linked (`--full-pages` inlines the host's full chrome instead). Prints one `&lt;instance&gt; &lt;jekyll source&gt; &lt;at&gt;` line per IG: the build list the host keeps (`./_ig-list.txt`) for the post-build pass.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-render-jekyll"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Composed" name="Each IG composed;&#10;build list handed&#10;to the host">
+      <bpmn:documentation>The host builds its Jekyll source ONCE (`bundle exec jekyll build --source ./_docs --destination ./_site`, Jekyll 4 with `jekyll-remote-theme` loading just-the-docs), then, for each line of the build list, runs Tool `build-ig-site` with `--dedupe-ids ./_site/&lt;instance&gt;`: it keeps the first copy of each anchor the IG's source repeats, renames the rest, and reports each one.</bpmn:documentation>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_Compose" targetRef="Task_Indexes"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Indexes" targetRef="Task_Pages"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_Pages" targetRef="Task_Stage"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_Stage" targetRef="Task_ComposeInto"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_ComposeInto" targetRef="End_Composed"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_IgDocsSiteCompose">
+    <bpmndi:BPMNPlane id="Plane_Process_IgDocsSiteCompose" bpmnElement="Collaboration_Process_IgDocsSiteCompose">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_IgDocsSiteCompose" bpmnElement="Participant_Process_IgDocsSiteCompose" isHorizontal="true"><dc:Bounds x="60" y="60" width="1180" height="194" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Build" bpmnElement="Lane_Build" isHorizontal="true"><dc:Bounds x="90" y="60" width="1150" height="194" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Compose" bpmnElement="Start_Compose"><dc:Bounds x="192" y="139" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="110" y="184" width="120" height="54" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Indexes" bpmnElement="Task_Indexes"><dc:Bounds x="330" y="97" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Pages" bpmnElement="Task_Pages"><dc:Bounds x="510" y="97" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Stage" bpmnElement="Task_Stage"><dc:Bounds x="690" y="97" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ComposeInto" bpmnElement="Task_ComposeInto"><dc:Bounds x="870" y="97" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Composed" bpmnElement="End_Composed"><dc:Bounds x="1092" y="139" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1170" y="184" width="120" height="54" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="228" y="157" />
+        <di:waypoint x="330" y="157" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_2" bpmnElement="Flow_2">
+        <di:waypoint x="450" y="157" />
+        <di:waypoint x="510" y="157" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_3" bpmnElement="Flow_3">
+        <di:waypoint x="630" y="157" />
+        <di:waypoint x="690" y="157" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_4" bpmnElement="Flow_4">
+        <di:waypoint x="810" y="157" />
+        <di:waypoint x="870" y="157" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_5" bpmnElement="Flow_5">
+        <di:waypoint x="990" y="157" />
+        <di:waypoint x="1092" y="157" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

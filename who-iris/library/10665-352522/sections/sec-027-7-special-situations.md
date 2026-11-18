@@ -1,0 +1,158 @@
+---
+doc_id: 10665-352522
+doc_title: "WHO consolidated guidelines on tuberculosis"
+section_id: sec-027-7-special-situations
+section_title: "Special situations"
+section_number: 7
+pages: 89-93
+source_pdf: 10665-352522.pdf
+source_sha256: c8db061efbcb04cf
+toc_source: outline
+---
+7. Special situations 
+This chapter includes valid WHO recommendations that apply to children and adolescents in 
+special situations such as for the management of TB in the context of HIV infection or malnutrition 
+and optimal feeding of infants of mothers infected with TB. The recommendations have been 
+consolidated from several current WHO guidelines on TB/HIV coinfection and nutrition, namely 
+the WHO policy on collaborative TB/HIV activities: guidelines for national programmes and other 
+stakeholders (124), the Consolidated guidelines on HIV prevention, testing, treatment, service delivery 
+and monitoring: recommendations for a public health approach, July 2021 (125), the Guideline: updates 
+on the management of severe acute malnutrition in infants and children, 2013 (60), and the Guideline: 
+Nutritional care and support for patients with tuberculosis, 2013 (126). For more information on each 
+recommendation including the remarks, source of evidence, justification, subgroup-, implementation- 
+and monitoring and evaluation considerations, the source guidelines or WHO TB KSP should be 
+consulted. 
+Table 8: WHO recommendations on TB/HIV coinfection and nutrition relevant to 
+children and adolescents
+WHO policy on collaborative TB/HIV activities: guidelines for national programmes and 
+other stakeholders, 2012 (124)
+Routine HIV testing should be offered to all patients with presumptive and diagnosed TB. 
+(Strong recommendation, low certainty of evidence)
+Consolidated guidelines on HIV prevention, testing, treatment, service delivery and 
+monitoring: recommendations for a public health approach, July 2021 (125)
+Co-trimoxazole prophylaxis for infants, children and adolescents living with HIV
+Co-trimoxazole prophylaxis is recommended for infants, children and adolescents with HIV, 
+regardless of clinical and immune conditions. Priority should be given to all children younger 
+than 5 years old regardless of CD4 cell count or clinical stage and children with severe or 
+advanced HIV clinical disease (WHO clinical stage 3 or 4) and/or those with CD4 cell count 
+≤350 cells/mm3. 
+(Strong recommendation, high certainty evidence)
+In settings where malaria and/or severe bacterial infections are highly prevalent, co-trimoxazole 
+prophylaxis should be continued until adulthood, irrespective of whether ART is provided. 
+(Conditional recommendation, moderate certainty evidence)
+In settings with low prevalence for both malaria and bacterial infections, cotrimoxazole 
+prophylaxis may be discontinued for children 5 years of age and older who are clinically stable 
+and/or virally suppressed on ART for at least six months and with a CD4 count >350 cells/mm3. 
+(Strong recommendation, very low certainty evidence).
+66
+WHO consolidated guidelines on tuberculosis, Module 5: Management of tuberculosis in children and adolescents
+Co-trimoxazole prophylaxis is recommended for HIV-exposed infants from 4 to 6 weeks of age 
+and should be continued until HIV infection has been excluded by an age-appropriate HIV test 
+to establish final diagnosis after complete cessation of breastfeeding.
+(Strong recommendation, very low certainty evidence)
+Routine co-trimoxazole prophylaxis should be given to all people living with HIV with TB disease 
+regardless of CD4 cell count.
+(Strong recommendation, high certainty evidence)
+General recommendations on eligibility for ART
+ART should be initiated for all people living with HIV regardless of WHO clinical stage and at 
+any CD4 cell count.
+•	Pregnant and breastfeeding women (strong recommendation, moderate certainty evidence)
+•	Adolescents (conditional recommendation, low certainty evidence)
+•	Children living with HIV, one year old to less than 10 years old (conditional recommendation, 
+low certainty evidence)
+•	Infants diagnosed in the first year of life (strong recommendation, moderate certainty evidence)
+Rapid ART initiation should be offered to all people living with HIV following a confirmed HIV 
+diagnosis and clinical assessment.
+(Strong recommendation, high-certainty evidence for adults and adolescents; low certainty 
+evidence for children).
+Rapid initiation is defined as within seven days from the day of HIV diagnosis; people with 
+advanced HIV disease should be given priority for assessment and initiation.
+ART initiation should be offered on the same day to people who are ready to start. 
+(Strong recommendation, high certainty evidence for adults and adolescents; low certainty 
+evidence for children)
+Timing of ART for children and adolescents with TB
+ART should be started as soon as possible within 2 weeks of initiating TB treatment, regardless 
+of CD4 count, among adolescents and children living with HIV (except when signs and 
+symptoms of meningitis are present). (Adolescents: strong recommendation, low- to moderate-
+certainty evidence; Children and infants: strong recommendation, very low certainty evidence)
+ART should be delayed at least 4 weeks (and initiated within 8 weeks) after treatment for TB 
+meningitis is initiated.
+First-line ART regimens
+Dolutegravir (DTG) in combination with a nucleoside reverse-transcriptase inhibitor (NRTI) 
+backbone is recommended as the preferred first-line regimen for people living with HIV 
+initiating ART
+•	Adolescents (strong recommendation, moderate certainty evidence)
+•	Infants and children with approved DTG dosing (conditional recommendation, low 
+certainty evidence)
+A raltegravir (RAL)-based regimen may be recommended as the preferred first-line regimen for 
+neonates
+(Conditional recommendation, very low certainty evidence)
+7. Special situations 
+Second-line ART regimens
+DTG in combination with an optimized NRTI backbone may be recommended as a preferred 
+second-line regimen for people living with HIV for whom non-DTG-based regimens are failing.
+•	Adolescents (conditional recommendation, moderate certainty evidence)
+•	Children with approved DTG dosing (conditional recommendation, low certainty evidence)
+Boosted protease inhibitors in combination with an optimized NRTI backbone are 
+recommended as a preferred second-line regimen for people living with HIV for whom DTG-
+based regimens are failing.
+(Strong recommendation, moderate certainty evidence)
+Guidelines: updates on the management of severe acute malnutrition in infants and 
+children, 2013 (60)
+Infants with severe acute malnutrition who are admitted for inpatient care should be given 
+parenteral antibiotics to treat possible sepsis and appropriate treatment for other medical 
+complications such as tuberculosis, HIV, surgical conditions or disability.
+(Strong recommendation, very low certainty evidence)
+Guideline: nutritional care and support for patients with tuberculosis, 2013 (126)
+Management of severe acute malnutrition
+School-age children and adolescents (5 to 19 years), and adults, including pregnant and 
+lactating women, with TB disease and severe acute malnutrition (very low BMI-for-age) 
+should be treated in accordance with the WHO recommendations for management of severe 
+acute malnutrition.
+(Strong recommendation, very low certainty evidence)
+Children who are less than 5 years of age with TB disease and severe acute malnutrition (mid-
+upper arm circumference more than 115 mm or weight-for-height/length more than three 
+z-scores below the WHO child growth standards median, or with any degree of bilateral 
+pitting oedema) should be treated in accordance with the WHO recommendations for the 
+management of severe acute malnutrition in children who are less than 5 years of age.
+(Strong recommendation, very low certainty evidence)
+Management of moderate undernutrition
+School-age children and adolescents (5 to 19 years) and adults, including lactating women, 
+with TB disease and moderate undernutrition, who fail to regain normal body mass index after 
+2 months’ TB treatment, as well as those who are losing weight during TB treatment, should 
+be evaluated for adherence and comorbid conditions. They should also receive nutrition 
+assessment and counselling and if indicated be provided with locally available nutrient-rich or 
+fortified supplementary foods as necessary to restore normal nutritional status.
+(Conditional recommendation, low certainty evidence)
+Children who are less than 5 years of age with TB disease and moderate undernutrition should 
+be managed as any other children with moderate undernutrition. This includes provision of 
+locally available nutrient-rich or fortified supplementary foods, in order to restore appropriate 
+weight-for-height.
+(Strong recommendation, very low certainty evidence)
+68
+WHO consolidated guidelines on tuberculosis, Module 5: Management of tuberculosis in children and adolescents
+Patients with multidrug-resistant TB and moderate undernutrition should be provided with 
+locally available nutrient-rich or fortified supplementary foods, as necessary, to restore normal 
+nutritional status.
+(Strong recommendation, very low certainty evidence) 
+A daily multiple micronutrient supplement at 1× recommended nutrient intake should be 
+provided in situations where fortified or supplementary foods should have been provided in 
+accordance with standard management of moderate undernutrition,45 but are unavailable.
+(Conditional recommendation, very low certainty evidence)
+Nutrition screening as part of contact investigation
+In settings where contact tracing is implemented, household contacts of people with TB 
+disease should have a nutrition screening and assessment as part of contact investigation. If 
+malnutrition is identified, it should be managed according to WHO recommendations.
+(Conditional recommendation, very low certainty evidence)
+Remarks:
+•	There is no evidence that nutritional management of acute malnutrition of patients with TB 
+disease should be different than for those without TB.
+•	Concerns about weight loss or failure to gain weight should trigger further clinical assessment 
+(e.g. resistance to TB drugs, poor adherence, comorbid conditions) and nutrition assessment, in 
+order to determine the most appropriate interventions.
+•	Closer nutritional monitoring and earlier initiation of nutrition support (before the first 2 months 
+of TB treatment are completed) should be considered if the nutritional indicator is approaching 
+the cut-off value for a diagnosis of severe undernutrition.
+45	 Pyridoxine supplementation is recommended along with isoniazid treatment for all pregnant (or breastfeeding) women, as well as for 
+people with conditions such as HIV infection, alcohol dependency, malnutrition, diabetes, chronic liver disease or renal failure. Pyridoxine 
+provision together with isoniazid treatment was not analysed for the 2013 nutrition guideline.

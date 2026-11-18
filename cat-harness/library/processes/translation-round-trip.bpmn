@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_TranslationRoundTrip" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="locale-translator" name="Locale translator"/>
+  <bpmn:resource id="back-translator" name="Back-translator"/>
+  <bpmn:resource id="round-trip-adjudicator" name="Round-trip adjudicator"/>
+
+  <bpmn:collaboration id="Collaboration_TranslationRoundTrip">
+    <bpmn:participant id="Participant_TranslationRoundTrip" name="Translation round trip" processRef="Process_TranslationRoundTrip"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_TranslationRoundTrip" name="Translation round trip (untainted)" isExecutable="false">
+    <bpmn:documentation>Did the meaning survive the translation? The untainted round trip on a sample of one locale's strings, with the two parties kept apart: a back-translator who sees only the target text, and an adjudicator who sees only the source and the back-translation.
+
+You are in this process when `multi-locale-translation` or `translation-refresh` calls it, after the deterministic gates have passed. It is the translation instance of `untainted-verification`: the producer (the locale translator) draws the sample and never writes the verdict; the back-translator renders and rules on nothing; the adjudicator rules. `GT_RoundTripQa` in `translation-workflow` is the same check drawn as one step; this diagram draws its parties, because the separation between them is what makes the result a measurement.
+
+A first run samples every diagram label, the personas and scenarios, and a seeded random fraction of the rest; a refresh samples only the strings it changed. The third state is drawn: when two separate parties cannot be dispatched, the producer records "could not dispatch" with a reason, and that is never a pass.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_TranslationRoundTrip">
+      <bpmn:lane id="Lane_RT_Translator" name="Locale translator" partitionElementRef="locale-translator">
+        <bpmn:documentation>The producer. It chooses what is checked, by a rule stated before any result is seen, and hands on the target strings alone. It may record one thing here, "could not dispatch", because without that state a producer forbidden from writing a verdict has nothing honest to write.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_RT</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RT_Sample</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_RT_Dispatch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RT_RecordNA</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_RT_NA</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_RT_Back" name="Back-translator" partitionElementRef="back-translator">
+        <bpmn:documentation>Sees the target strings and nothing else: not the source, not the repository, no tools. Shown the source, it writes the source back and the check passes without measuring anything.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_RT_BackTranslate</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_RT_Adjudicator" name="Round-trip adjudicator" partitionElementRef="round-trip-adjudicator">
+        <bpmn:documentation>Sees the source strings and the back-translation, never the target text, and rules each pair drift or not drift with its reason. Both halves of the drift definition are in front of it, so that inflection and word order are not ruled as drift.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_RT_PreScreen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RT_Rule</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RT_Record</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_RT_Ruled</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_RT" name="Strings to check">
+      <bpmn:documentation>One locale's catalogue has passed the deterministic gates: every placeholder, tag and URL preserved, every template current.</bpmn:documentation>
+      <bpmn:outgoing>Flow_RT_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="Task_RT_Sample" name="Draw the sample">
+      <bpmn:documentation>On a first translation: every diagram label, every persona and scenario string, and a seeded random fraction of the rest, with the seed written down so the sample can be drawn again. On a refresh: only the strings that were new or fuzzy. Hand the back-translator the msgstr values alone, keyed by an opaque id.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_RT_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_RT_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_RT_Dispatch" name="Two parties available?">
+      <bpmn:documentation>Can a back-translator and an adjudicator be dispatched as two separate parties, neither of them the producer? `Yes` runs the round trip. `No` records the third state.</bpmn:documentation>
+      <bpmn:incoming>Flow_RT_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_RT_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_RT_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_RT_RecordNA" name="Record could not dispatch">
+      <bpmn:documentation>Write one entry, `result: "n/a"`, `metrics.dispatch: "unavailable"`, with the reason. The producer may write this entry and no other. It is never a pass, and the QA report says so.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_RT_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_RT_NA</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="End_RT_NA" name="Not verified">
+      <bpmn:incoming>Flow_RT_NA</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:task id="Task_RT_BackTranslate" name="Back-translate the target text">
+      <bpmn:documentation>Render each target string into the source language, from the target text alone, using no tools, and say so in a TOOLS_USED line that is recorded. A string that cannot be rendered is reported as such, not guessed.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="untainted-verification"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_RT_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_RT_3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:serviceTask id="Task_RT_PreScreen" name="Pre-screen every pair">
+      <bpmn:documentation>Mechanically, over every (source, back-translation) pair: flag a pair whose negation, modal, quantifier, number or code tokens differ, and a pair whose word overlap is low. The pre-screen only chooses what is read first; it rules on nothing, and an unflagged pair is still in the sample.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_RT_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_RT_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:task id="Task_RT_Rule" name="Read and rule each flagged pair">
+      <bpmn:documentation>Read every flagged pair in full and rule it drift or not drift, with the reason. Not drift: synonyms, articles, word order, inflection, a purpose clause rendered in the subjunctive, an acronym left uninflected, an acronym spelled out with the acronym kept. Drift: a claim added, dropped, weakened, strengthened or reversed; a term of art swapped for one that means something else; a named entity, number or quantifier moved.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="untainted-verification"/>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_RT_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_RT_5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:serviceTask id="Task_RT_Record" name="Record both witnesses">
+      <bpmn:documentation>Record the adjudicator's verdict first and the back-translator's rendering behind it (`translation:roundtrip --payload`), so a reader can ask both who ruled and on what basis. The counts (sampled, flagged, drift, not drift) go into the locale's QA report.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="untainted-verification"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_RT_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_RT_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="End_RT_Ruled" name="Verdicts recorded">
+      <bpmn:incoming>Flow_RT_6</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_RT_1" sourceRef="Start_RT" targetRef="Task_RT_Sample"/>
+    <bpmn:sequenceFlow id="Flow_RT_2" sourceRef="Task_RT_Sample" targetRef="Gateway_RT_Dispatch"/>
+    <bpmn:sequenceFlow id="Flow_RT_Yes" name="Yes" sourceRef="Gateway_RT_Dispatch" targetRef="Task_RT_BackTranslate"/>
+    <bpmn:sequenceFlow id="Flow_RT_No" name="No" sourceRef="Gateway_RT_Dispatch" targetRef="Task_RT_RecordNA"/>
+    <bpmn:sequenceFlow id="Flow_RT_NA" sourceRef="Task_RT_RecordNA" targetRef="End_RT_NA"/>
+    <bpmn:sequenceFlow id="Flow_RT_3" sourceRef="Task_RT_BackTranslate" targetRef="Task_RT_PreScreen"/>
+    <bpmn:sequenceFlow id="Flow_RT_4" sourceRef="Task_RT_PreScreen" targetRef="Task_RT_Rule"/>
+    <bpmn:sequenceFlow id="Flow_RT_5" sourceRef="Task_RT_Rule" targetRef="Task_RT_Record"/>
+    <bpmn:sequenceFlow id="Flow_RT_6" sourceRef="Task_RT_Record" targetRef="End_RT_Ruled"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_TranslationRoundTrip">
+    <bpmndi:BPMNPlane id="Plane_TranslationRoundTrip" bpmnElement="Collaboration_TranslationRoundTrip">
+      <bpmndi:BPMNShape id="Participant_TranslationRoundTrip_di" bpmnElement="Participant_TranslationRoundTrip" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="950" height="510"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_RT_Translator_di" bpmnElement="Lane_RT_Translator" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="920" height="170"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_RT_Back_di" bpmnElement="Lane_RT_Back" isHorizontal="true">
+        <dc:Bounds x="190" y="250" width="920" height="170"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_RT_Adjudicator_di" bpmnElement="Lane_RT_Adjudicator" isHorizontal="true">
+        <dc:Bounds x="190" y="420" width="920" height="170"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_RT_di" bpmnElement="Start_RT">
+        <dc:Bounds x="236" y="147" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="188" width="64" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RT_Sample_di" bpmnElement="Task_RT_Sample">
+        <dc:Bounds x="300" y="105" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_RT_Dispatch_di" bpmnElement="Gateway_RT_Dispatch" isMarkerVisible="true">
+        <dc:Bounds x="450" y="140" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="430" y="88" width="90" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RT_RecordNA_di" bpmnElement="Task_RT_RecordNA">
+        <dc:Bounds x="560" y="105" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_RT_NA_di" bpmnElement="End_RT_NA">
+        <dc:Bounds x="720" y="147" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="704" y="188" width="68" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RT_BackTranslate_di" bpmnElement="Task_RT_BackTranslate">
+        <dc:Bounds x="415" y="275" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RT_PreScreen_di" bpmnElement="Task_RT_PreScreen">
+        <dc:Bounds x="580" y="445" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RT_Rule_di" bpmnElement="Task_RT_Rule">
+        <dc:Bounds x="740" y="445" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RT_Record_di" bpmnElement="Task_RT_Record">
+        <dc:Bounds x="900" y="445" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_RT_Ruled_di" bpmnElement="End_RT_Ruled">
+        <dc:Bounds x="1040" y="487" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1024" y="528" width="80" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_RT_1_di" bpmnElement="Flow_RT_1">
+        <di:waypoint x="272" y="165"/>
+        <di:waypoint x="300" y="165"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RT_2_di" bpmnElement="Flow_RT_2">
+        <di:waypoint x="420" y="165"/>
+        <di:waypoint x="450" y="165"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RT_No_di" bpmnElement="Flow_RT_No">
+        <di:waypoint x="500" y="165"/>
+        <di:waypoint x="560" y="165"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="512" y="143" width="24" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RT_NA_di" bpmnElement="Flow_RT_NA">
+        <di:waypoint x="680" y="165"/>
+        <di:waypoint x="720" y="165"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RT_Yes_di" bpmnElement="Flow_RT_Yes">
+        <di:waypoint x="475" y="190"/>
+        <di:waypoint x="475" y="275"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="482" y="222" width="28" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RT_3_di" bpmnElement="Flow_RT_3">
+        <di:waypoint x="535" y="335"/>
+        <di:waypoint x="640" y="335"/>
+        <di:waypoint x="640" y="445"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RT_4_di" bpmnElement="Flow_RT_4">
+        <di:waypoint x="700" y="505"/>
+        <di:waypoint x="740" y="505"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RT_5_di" bpmnElement="Flow_RT_5">
+        <di:waypoint x="860" y="505"/>
+        <di:waypoint x="900" y="505"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RT_6_di" bpmnElement="Flow_RT_6">
+        <di:waypoint x="1020" y="505"/>
+        <di:waypoint x="1040" y="505"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

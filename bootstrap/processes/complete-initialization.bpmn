@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  id="Definitions_Process_CompleteInitialization"
+                  targetNamespace="https://litlfred.github.io/bootstrap/v0/workflows"
+                  exporter="bootstrap" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="bootstrapping-agent" name="Bootstrapping Agent"/>
+  <bpmn:resource id="knowledge-graph-data-store" name="Knowledge Graph Data Store"/>
+  <bpmn:collaboration id="Collaboration_Process_CompleteInitialization">
+    <bpmn:participant id="Participant_Process_CompleteInitialization" name="Complete initialization" processRef="Process_CompleteInitialization"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_CompleteInitialization" name="Complete initialization" isExecutable="false">
+    <bpmn:documentation>A SUB-PROCESS of initialize-harness, called after a harness is installed and also when the location turns out to be a layer instantiating the chosen harness already. It is how an agent — the one that installed the harness, or one dispatched for exactly this with nothing but this diagram and the declaration — makes sure EVERY initialization step is done.
+
+THE STEPS ARE NOT LISTED HERE. They are named by the declarations: the layer's `&lt;name&gt;.json` and every declaration it `needs`, read from the sibling checkouts. A declared directory is a step (it exists); a declared asset is a step (the file is there); a dependency's `&lt;name&gt;/docs/bootstrap/initialization.md` is a step (it was followed); the root README and the sections it opts into are steps; the `repository` a declaration names makes the site steps — a Pages workflow, a `gh-pages` branch, Pages switched on, the address answering. A harness above bootstrap names more in the same way — a work-plan store it declares as a directory is a directory step — and bootstrap does not need to know which. The skill `initialization-steps` has the table.
+
+IDEMPOTENT BY CONSTRUCTION. Every step is CHECKED before anything is done, and a done step is left alone, so running this twice changes nothing the second time. Nothing is replaced: a step that would overwrite what somebody wrote is a step for a person, not for the agent.
+
+FOUR STATES, NOT TWO. done; not done; could not determine — the check could not run (no forge CLI, no network), which is NEVER reported as done; and stated — the declarations name it but nothing can observe it (reading and following instructions), exactly as a stated precondition is never reported as satisfied.
+
+THE PRIMARY STEP IS DRAWN, not left in the list: A_CheckDocuments, the harness's JSON Schemas and JSON-LD at the IRIs they name, checked first after the declarations are read. Everything after it — directories, README, the site — is either how those documents are reached or how a person reads about them.
+
+WHERE TOOLS ARE AVAILABLE, a toolset may perform the same checks (`initialization-steps`); otherwise the agent reads files. The diagram is the same either way.
+
+NO work-plan element on any activity, and isExecutable is false, for the reasons initialize-harness gives.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_Process_CompleteInitialization">
+      <bpmn:lane id="Lane_BootstrappingAgent" name="Bootstrapping Agent" partitionElementRef="bootstrapping-agent">
+        <bpmn:documentation>Still acting on bootstrap's instructions, because this process is bootstrap's. Checks, performs what it can, asks a person for what only they can do, and records every step in its state. It never marks a step done that it did not check.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_CompleteInitialization</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_CheckDocuments</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ListSteps</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_NextStep_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_NextStep</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_CheckStep</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_StepState</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_PerformStep</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_FollowStated</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_AskPerson</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_RecordStep</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Report</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_AllDone</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Complete</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_OpenStepsRecorded</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ReadDeclarations</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_CompleteInitialization" name="A harness is installed here"/>
+
+    <bpmn:task id="A_ReadDeclarations" name="Read the declaration, and each one it needs">
+      <bpmn:documentation>`&lt;name&gt;.json` at the root, then each name in its `needs`, from a sibling checkout `../&lt;name&gt;/&lt;name&gt;.json`. A dependency that is not beside it is itself a step, not done — never skipped.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bootstrap-kg-navigation"/></bpmn:extensionElements>
+      <bpmn:property id="Property_A_ReadDeclarations_DSR_knowledge_graph" name="__targetRef_placeholder"/>
+      <bpmn:dataInputAssociation id="DIA_A_ReadDeclarations">
+        <bpmn:sourceRef>DSR_knowledge_graph</bpmn:sourceRef>
+        <bpmn:targetRef>Property_A_ReadDeclarations_DSR_knowledge_graph</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:task>
+
+    <bpmn:task id="A_CheckDocuments" name="Check the JSON Schemas and JSON-LD are at their IRIs">
+      <bpmn:documentation>THE PRIMARY STEP of initializing a Knowledge Graph harness and so the first one checked once the declarations are read. Every JSON Schema the harness publishes (its `$id`) and every JSON-LD document (its vocabulary, its diagram vocabulary, its graph export, each carrying its own `@context`) is at the address it names under `iriBase`, where a program following the IRI finds it. Two checks: that the site build stages each one at its address, and that each address answers. A 404 is not published; a 403 or no answer from here could not be determined. The Pages site is the vehicle: when the documents are not yet answering, the site steps below are how they get there, and the report leads with this step's state.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="publish-documents"/>
+        <bootstrap.processes:skill ref="initialization-steps"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_ListSteps" name="List the steps the declarations name">
+      <bpmn:documentation>In the order of the table in `initialization-steps`: declaration, needs, each dependency's instructions, the documents at their IRIs (checked above; the report leads with them), directories, assets, README, README sections, site. Each step names the declaration that names it, so a reader can see why it is there.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="initialization-steps"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_NextStep_Join">
+      <bpmn:documentation>Brings the paths together before the decision after it, so that decision only splits.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="GW_NextStep" name="A step not yet checked?"/>
+
+    <bpmn:task id="A_CheckStep" name="Check it">
+      <bpmn:documentation>Look, do not remember. The answer is one of the four states, and "could not determine" is its own answer: a check that could not look is not a pass.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="initialization-steps"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_StepState" name="What did the check find?"/>
+
+    <bpmn:task id="A_PerformStep" name="Do it, then check again">
+      <bpmn:documentation>Only what the agent, or a tool it has, can do without replacing anything somebody wrote: regenerate a README section, add a missing Pages workflow, switch Pages on with an authenticated `gh`. Performing is not the same as done: the flow goes back to the check, and only the check says done.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="initialization-steps"/>
+        <bootstrap.processes:skill ref="publish-site"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_FollowStated" name="Follow it, and say that you did">
+      <bpmn:documentation>A stated step — a harness's own `docs/bootstrap/initialization.md`. Read it and do what it says. It stays `stated` in the record: nothing can observe that it was followed, and the record does not pretend otherwise.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="initialization-steps"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:callActivity id="A_AskPerson" name="Ask the person" calledElement="Process_HumanAgentDiscussion">
+      <bpmn:documentation>A step the agent cannot do or cannot check from here — switching Pages on without a signed-in `gh`, granting a permission, choosing between two ways of fixing a declaration. Asked through the one reusable discussion, with the exact step written out so it can be followed without opening anything else. A person saying "done" is recorded as their word, not as a check; the next run checks it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="human-agent-discussion"/>
+        <bootstrap.processes:skill ref="publish-site"/>
+      </bpmn:extensionElements>
+    </bpmn:callActivity>
+
+    <bpmn:task id="A_RecordStep" name="Record the step in its state">
+      <bpmn:documentation>The step, the declaration that named it, its state, what was seen, and — for anything not done — exactly what to do next.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="initialization-steps"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:callActivity id="A_Report" name="Report every step" calledElement="Process_LogMessage">
+      <bpmn:documentation>One report, every step in its state, with counts: done, not done, could not determine, stated — led by the primary step, the JSON Schemas and JSON-LD at their IRIs. Required, which is what drawing the call says: an initialization that finished with steps open must say which.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="log-message"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+
+    <bpmn:exclusiveGateway id="GW_AllDone" name="Every checkable step done?"/>
+
+    <bpmn:endEvent id="End_Complete" name="Every step done"/>
+    <bpmn:endEvent id="End_OpenStepsRecorded" name="Open steps recorded, each with what to do">
+      <bpmn:documentation>Not a failure of the harness: the repository is a layer, and the report says what is left and who does it. Running this process again resumes from the checks, because a done step is left alone.</bpmn:documentation>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="SF_CI_1" sourceRef="Start_CompleteInitialization" targetRef="A_ReadDeclarations"/>
+    <bpmn:sequenceFlow id="SF_CI_2" sourceRef="A_ReadDeclarations" targetRef="A_CheckDocuments"/>
+    <bpmn:sequenceFlow id="SF_CI_18" sourceRef="A_CheckDocuments" targetRef="A_ListSteps"/>
+    <bpmn:sequenceFlow id="SF_CI_3" sourceRef="A_ListSteps" targetRef="GW_NextStep_Join"/>
+    <bpmn:sequenceFlow id="SF_CI_4" name="yes" sourceRef="GW_NextStep" targetRef="A_CheckStep"/>
+    <bpmn:sequenceFlow id="SF_CI_5" sourceRef="A_CheckStep" targetRef="GW_StepState"/>
+    <bpmn:sequenceFlow id="SF_CI_6" name="done" sourceRef="GW_StepState" targetRef="A_RecordStep"/>
+    <bpmn:sequenceFlow id="SF_CI_7" name="not done, and I can do it" sourceRef="GW_StepState" targetRef="A_PerformStep"/>
+    <bpmn:sequenceFlow id="SF_CI_8" sourceRef="A_PerformStep" targetRef="A_CheckStep"/>
+    <bpmn:sequenceFlow id="SF_CI_9" name="stated" sourceRef="GW_StepState" targetRef="A_FollowStated"/>
+    <bpmn:sequenceFlow id="SF_CI_10" sourceRef="A_FollowStated" targetRef="A_RecordStep"/>
+    <bpmn:sequenceFlow id="SF_CI_11" name="needs a person, or could not determine" sourceRef="GW_StepState" targetRef="A_AskPerson"/>
+    <bpmn:sequenceFlow id="SF_CI_12" sourceRef="A_AskPerson" targetRef="A_RecordStep"/>
+    <bpmn:sequenceFlow id="SF_CI_13" sourceRef="A_RecordStep" targetRef="GW_NextStep_Join"/>
+    <bpmn:sequenceFlow id="Flow_GW_NextStep_Join" sourceRef="GW_NextStep_Join" targetRef="GW_NextStep"/>
+    <bpmn:sequenceFlow id="SF_CI_14" name="no, all checked" sourceRef="GW_NextStep" targetRef="A_Report"/>
+    <bpmn:sequenceFlow id="SF_CI_15" sourceRef="A_Report" targetRef="GW_AllDone"/>
+    <bpmn:sequenceFlow id="SF_CI_16" name="yes" sourceRef="GW_AllDone" targetRef="End_Complete"/>
+    <bpmn:sequenceFlow id="SF_CI_17" name="no" sourceRef="GW_AllDone" targetRef="End_OpenStepsRecorded"/>
+    <bpmn:dataStoreReference id="DSR_knowledge_graph" name="Knowledge graph" dataStoreRef="knowledge-graph-data-store"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_CompleteInitialization">
+    <bpmndi:BPMNPlane id="Plane_Process_CompleteInitialization" bpmnElement="Collaboration_Process_CompleteInitialization">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_CompleteInitialization" bpmnElement="Participant_Process_CompleteInitialization" isHorizontal="true">
+        <dc:Bounds x="100" y="60" width="1360" height="680" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_BootstrappingAgent" bpmnElement="Lane_BootstrappingAgent" isHorizontal="true">
+        <dc:Bounds x="130" y="60" width="1330" height="680" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_CompleteInitialization" bpmnElement="Start_CompleteInitialization">
+        <dc:Bounds x="182" y="602" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="163.01" y="554.5" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ReadDeclarations" bpmnElement="A_ReadDeclarations">
+        <dc:Bounds x="270" y="560" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_CheckDocuments" bpmnElement="A_CheckDocuments">
+        <dc:Bounds x="440" y="560" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ListSteps" bpmnElement="A_ListSteps">
+        <dc:Bounds x="610" y="560" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_NextStep_Join" bpmnElement="GW_NextStep_Join" isMarkerVisible="true">
+        <dc:Bounds x="215" y="255" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_GW_NextStep_Join" bpmnElement="Flow_GW_NextStep_Join">
+        <di:waypoint x="265" y="280"/>
+        <di:waypoint x="305" y="280"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_GW_NextStep" bpmnElement="GW_NextStep" isMarkerVisible="true">
+        <dc:Bounds x="305" y="255" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="285" y="205" width="90" height="38" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_CheckStep" bpmnElement="A_CheckStep">
+        <dc:Bounds x="420" y="220" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_StepState" bpmnElement="GW_StepState" isMarkerVisible="true">
+        <dc:Bounds x="595" y="255" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="649" y="309" width="84.22" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_PerformStep" bpmnElement="A_PerformStep">
+        <dc:Bounds x="760" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_FollowStated" bpmnElement="A_FollowStated">
+        <dc:Bounds x="760" y="235" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_AskPerson" bpmnElement="A_AskPerson">
+        <dc:Bounds x="760" y="395" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_RecordStep" bpmnElement="A_RecordStep">
+        <dc:Bounds x="940" y="220" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Report" bpmnElement="A_Report">
+        <dc:Bounds x="940" y="560" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_AllDone" bpmnElement="GW_AllDone" isMarkerVisible="true">
+        <dc:Bounds x="1135" y="595" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1115" y="530" width="90" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Complete" bpmnElement="End_Complete">
+        <dc:Bounds x="1282" y="542" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1255" y="584" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_OpenStepsRecorded" bpmnElement="End_OpenStepsRecorded">
+        <dc:Bounds x="1282" y="662" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1325" y="653" width="110" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_1" bpmnElement="SF_CI_1">
+        <di:waypoint x="218" y="620"/>
+        <di:waypoint x="270" y="620"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_2" bpmnElement="SF_CI_2">
+        <di:waypoint x="390" y="620" />
+        <di:waypoint x="440" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_18" bpmnElement="SF_CI_18">
+        <di:waypoint x="560" y="620" />
+        <di:waypoint x="610" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_3" bpmnElement="SF_CI_3">
+        <di:waypoint x="670" y="560" />
+        <di:waypoint x="670" y="545" />
+        <di:waypoint x="240" y="545" />
+        <di:waypoint x="240" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_4" bpmnElement="SF_CI_4">
+        <di:waypoint x="355" y="280" />
+        <di:waypoint x="420" y="280" />
+        <bpmndi:BPMNLabel><dc:Bounds x="365" y="255" width="45" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_5" bpmnElement="SF_CI_5">
+        <di:waypoint x="540" y="280" />
+        <di:waypoint x="595" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_6" bpmnElement="SF_CI_6">
+        <di:waypoint x="635" y="305" />
+        <di:waypoint x="635" y="375" />
+        <di:waypoint x="980" y="375" />
+        <di:waypoint x="980" y="340" />
+        <bpmndi:BPMNLabel><dc:Bounds x="645" y="350" width="50" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_7" bpmnElement="SF_CI_7">
+        <di:waypoint x="620" y="255" />
+        <di:waypoint x="620" y="190" />
+        <di:waypoint x="760" y="190" />
+        <bpmndi:BPMNLabel><dc:Bounds x="624" y="196" width="90" height="53" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_8" bpmnElement="SF_CI_8">
+        <di:waypoint x="760" y="130" />
+        <di:waypoint x="480" y="130" />
+        <di:waypoint x="480" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_9" bpmnElement="SF_CI_9">
+        <di:waypoint x="645" y="280"/>
+        <di:waypoint x="760" y="280"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="670" y="255" width="60" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_10" bpmnElement="SF_CI_10">
+        <di:waypoint x="880" y="280" />
+        <di:waypoint x="940" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_11" bpmnElement="SF_CI_11">
+        <di:waypoint x="610" y="305"/>
+        <di:waypoint x="610" y="455"/>
+        <di:waypoint x="760" y="455"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="620" y="398" width="120" height="53" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_12" bpmnElement="SF_CI_12">
+        <di:waypoint x="880" y="455" />
+        <di:waypoint x="1030" y="455" />
+        <di:waypoint x="1030" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_13" bpmnElement="SF_CI_13">
+        <di:waypoint x="1000" y="220" />
+        <di:waypoint x="1000" y="80" />
+        <di:waypoint x="240" y="80" />
+        <di:waypoint x="240" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_14" bpmnElement="SF_CI_14">
+        <di:waypoint x="330" y="305" />
+        <di:waypoint x="330" y="530" />
+        <di:waypoint x="1000" y="530" />
+        <di:waypoint x="1000" y="560" />
+        <bpmndi:BPMNLabel><dc:Bounds x="340" y="485" width="90" height="38" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_15" bpmnElement="SF_CI_15">
+        <di:waypoint x="1060" y="620" />
+        <di:waypoint x="1135" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_16" bpmnElement="SF_CI_16">
+        <di:waypoint x="1185" y="620"/>
+        <di:waypoint x="1210" y="620"/>
+        <di:waypoint x="1210" y="560"/>
+        <di:waypoint x="1282" y="560"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1220" y="535" width="40" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CI_17" bpmnElement="SF_CI_17">
+        <di:waypoint x="1160" y="645"/>
+        <di:waypoint x="1160" y="680"/>
+        <di:waypoint x="1282" y="680"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1200" y="655" width="40" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_DSR_knowledge_graph" bpmnElement="DSR_knowledge_graph"><dc:Bounds x="305" y="770" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="365" y="777" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_DIA_A_ReadDeclarations" bpmnElement="DIA_A_ReadDeclarations"><di:waypoint x="330" y="770"/><di:waypoint x="330" y="680"/></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

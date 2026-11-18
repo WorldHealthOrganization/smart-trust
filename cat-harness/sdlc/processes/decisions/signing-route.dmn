@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "Which signing route?" — Gateway_SigningRoute in qa-report-signing.bpmn.
+
+  From the owner, 2026-09-20 on #363:
+
+    | in this case an API wouldnt wokr and a human actor is needed. so
+    | process for signing needs two parallel routes/processes, air gapped
+    | vs not, the first needed a human actor
+
+  Two facts, and they answer different questions:
+
+    reach                  effectiveReach(deployment, actor) from
+                           `schemas/process/actor-reach.ts` — CAN this participant
+                           call out at all. One of internet,
+                           egress-restricted, air-gapped, unknown.
+    signingApiConfigured   the `signing-api` capability probe — IS there an
+                           endpoint to call. A boolean, from configuration,
+                           not from a live request.
+
+  Neither substitutes for the other, which is why both columns exist. A
+  configured endpoint on an air-gapped host is still uncallable; a connected
+  host with nothing configured has nothing to call.
+
+  ## `unknown` routes to the human, and that is the load-bearing row
+
+  A gateway that read "could not determine" as "use the API" would fail
+  CLOSED ON THE WIRE AND OPEN IN THE RECORD: the call fails, and what
+  survives is a QA report that nobody signed and nothing says is unsigned.
+  Routing it to a person costs a signature request and cannot produce that
+  outcome. Same rule as `ci-health` — could-not-check is never green.
+
+  ## `egress-restricted` is not decided by reach alone
+
+  It means SOME egress is blocked, not which. So it is admitted only in the
+  row that also has an endpoint configured, and the operator's allowlist is
+  what makes that true. If the call then fails, the process re-enters here
+  with the actor's reach corrected — a declaration fix, not a retry.
+
+  ## What is deliberately NOT a column
+
+  Whether the report is worth signing. That is the QA verdict, already
+  computed upstream by `draft-qa-gate.dmn`, and a table that re-decided it
+  would be a second answer free to disagree with the first.
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_SigningRoute"
+             name="Signing route"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_SigningRoute" name="Which signing route?">
+    <decisionTable id="Table_SigningRoute" hitPolicy="FIRST">
+      <input id="In_Reach" label="performing actor's effective reach">
+        <inputExpression id="Expr_Reach" typeRef="string">
+          <text>reach</text>
+        </inputExpression>
+      </input>
+      <input id="In_ApiConfigured" label="signing endpoint configured">
+        <inputExpression id="Expr_ApiConfigured" typeRef="boolean">
+          <text>signingApiConfigured</text>
+        </inputExpression>
+      </input>
+      <output id="Out_Route" name="outcome" typeRef="string" />
+
+      <rule id="Rule_AirGapped">
+        <description>An air-gapped actor cannot call any endpoint, however well configured.</description>
+        <inputEntry id="IE_Air_1"><text>"air-gapped"</text></inputEntry>
+        <inputEntry id="IE_Air_2"><text>-</text></inputEntry>
+        <outputEntry id="OE_Air"><text>"human"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Unknown">
+        <description>Reach undeclared. Could-not-determine takes the route that needs no network.</description>
+        <inputEntry id="IE_Unk_1"><text>"unknown"</text></inputEntry>
+        <inputEntry id="IE_Unk_2"><text>-</text></inputEntry>
+        <outputEntry id="OE_Unk"><text>"human"</text></outputEntry>
+      </rule>
+      <rule id="Rule_NoEndpoint">
+        <description>Reachable, but nothing is configured to call.</description>
+        <inputEntry id="IE_NoEp_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_NoEp_2"><text>false</text></inputEntry>
+        <outputEntry id="OE_NoEp"><text>"human"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Api">
+        <description>Can call out, and has an endpoint. The only row that reaches the API.</description>
+        <inputEntry id="IE_Api_1"><text>"internet", "egress-restricted"</text></inputEntry>
+        <inputEntry id="IE_Api_2"><text>true</text></inputEntry>
+        <outputEntry id="OE_Api"><text>"api"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Default">
+        <description>Anything the rows above do not name — including a reach value added to the vocabulary and not yet given a row. It routes to a person rather than to the wire, so an unhandled value degrades into a slower signature and never into an unsigned report.</description>
+        <inputEntry id="IE_Def_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Def_2"><text>-</text></inputEntry>
+        <outputEntry id="OE_Def"><text>"human"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

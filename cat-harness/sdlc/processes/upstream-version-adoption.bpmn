@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_UpstreamAdoption" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="publication-manager" name="Publication manager"/>
+  <bpmn:resource id="reviewer" name="Reviewer / SME"/>
+  <bpmn:collaboration id="Collaboration_Process_UpstreamAdoption">
+    <bpmn:participant id="Participant_Process_UpstreamAdoption" name="Adopting an upstream version bump" processRef="Process_UpstreamAdoption"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_UpstreamAdoption" name="Adopting an upstream version bump" isExecutable="false">
+    <bpmn:documentation>A REUSABLE SUBPROCESS, entered once per pinned upstream dependency that has fallen behind a release. Callers invoke it with `calledElement="Process_UpstreamAdoption"`; `upstream-pin-watch.bpmn` is the first, and a person may enter it directly with `workflow_start` when they want to try a version the watcher has not raised.
+
+Reusable means the tenant-specific part is DATA. `upstream-pins.json` carries, per row, what of ours binds to the dependency and what its MVP runs; this diagram carries the order those are done in, which is the same for every tenant. A second tenant is a registry row, not a second diagram.
+
+Shaped after `crdm-requirements.bpmn` because the question is the same one: something outside the repository wants to change what we ship, and the answer has to be a judgement somebody made on evidence rather than a merge that happened. The loop back into impact analysis is the MVP loop — findings the agent can fix are fixed on the same branch and re-evidenced, and only what remains reaches the decider.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_UpstreamAdoption">
+      <bpmn:lane id="Lane_Agent" name="Agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Owns the whole MVP loop end to end except the two calls it cannot make: SF_UA_8 re-enters this lane's own A_Impact on a fixable finding rather than escalating, so a defect gets fixed and re-evidenced here before anyone outside the lane sees it, and Call_OptionsAnalysis sits here specifically because framing the options is not deciding among them — that judgement belongs to PM_Decide in a different lane entirely.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Adopt</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Scope</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanOpen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_BeanYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_BeanNotYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Impact</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Evidence</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_OptionsAnalysis</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ApplyPin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_RecordOutcome</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Adopt</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanClose</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Build" name="CI/CD Pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Produces evidence, not verdicts: Task_Gates going red does not end the process or loop by itself — "this version breaks us" is a finding the decider needs to see, not a reason for this lane to stop the run — and Task_Mvp exists so that finding is checked against a real deployed build rather than a description of one.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Mvp</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Gates</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Review" name="Reviewer / SME" partitionElementRef="reviewer">
+        <bpmn:documentation>Narrower than a general release review: the question is only whether what upstream-pins.json lists as bound still holds against the deployed MVP, not whether the new version is good on its own terms, and a finding here (GW_Findings) sends the run back to the Agent lane's own impact analysis rather than stopping it.</bpmn:documentation>
+        <bpmn:flowNodeRef>R_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Findings</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Publication" name="Publication manager" partitionElementRef="publication-manager">
+        <bpmn:documentation>Holds the one call in this subprocess that policy marks unrelaxable: PM_Decide's lane admits a person only, because a pin change is not an edit to the corpus but a change to what the published artefact is BUILT FROM — the fact that puts this decision in the publication manager's lane rather than the editor's, which owns corpus changes elsewhere in this repository.</bpmn:documentation>
+        <bpmn:flowNodeRef>PM_Decide</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Adopt</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Adopt" name="Candidate version&#10;identified"/>
+    <bpmn:serviceTask id="A_Scope" name="Scope the delta&#10;pinned → candidate">
+      <bpmn:documentation>Restricted to the directories that reach our output — for a Jekyll theme `_sass`, `_includes`, `_layouts`, `assets`. Upstream's own docs, CI and tests cannot reach us, and counting them makes a harmless release look alarming.
+
+The changelog is the claim; `git diff --stat pinned..candidate` over those paths is the evidence.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="upstream-version-adoption"/>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="A_Impact" name="Impact analysis&#10;what of ours binds it">
+      <bpmn:documentation>The half a changelog cannot supply, because upstream does not know what you reached into. Worked from the row's `binds` list in `upstream-pins.json`.
+
+For the theme: `site-chrome/assets/js/docs-ui.js` MOVES the theme's own search markup into the action launcher and binds `.search`, `#search-input` and `.search-label`; `docs-ui.css` overrides `.side-bar`, `.site-header` and `.main-header`; three e2e specs assert the structure the theme emits. An upstream rename of any of those is not a build failure — it is a shipped feature that quietly stops working.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="upstream-version-adoption"/></bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Mvp" name="MVP: build the candidate&#10;on a staging branch">
+      <bpmn:documentation>An MVP is a DEPLOYED BUILD, not a description of one. The pin is moved on a branch and `feature-staging.yml` publishes it under `branches/&lt;branch-slug&gt;/`, so the reviewer looks at the artefact rather than at a screenshot — the same argument the merge discipline makes about rendered work.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="feature-staging"/><cat-harness.processes:no-call reason="Moving the pin on a branch is the step; CI stages it on the pull_request event. A call activity would claim the engine drives CI."/></bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Gates" name="Run the row's gates&#10;tests · e2e · site-links">
+      <bpmn:documentation>The `mvp` commands declared for this tenant. For the theme: `bun test`, `CI=1 bunx playwright test` (a11y, action tiles, sidebar panels, QA panel) and `scripts/site-links.ts --site ./_site`, which checks the navbar tiles against the BUILT site rather than against the attribute — the distinction that let a 404 ship unnoticed once already.
+
+A red gate is EVIDENCE, not an exit. It does not end the process and it does not loop by itself: "this version breaks us" is a finding the decider needs, not a reason to stop before they see it.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-test"/></bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="A_Evidence" name="Post the MVP evidence&#10;staging URL + gate results">
+      <bpmn:documentation>Staging URL, gate results and the impact analysis, on the PR. Enough for the reviewer to answer without opening anything else.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="delivery-summary"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="R_Review" name="Review the MVP against&#10;what we bind to">
+      <bpmn:documentation>A narrower question than "is the new version good": does everything in `binds` still hold, checked against the deployed page.
+
+A `userTask`, and the lane admits `person` and `agent` — a review agent is a legitimate reviewer here, and the separation that matters is the next lane's: a reviewer cannot accept.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="staging-review"/></bpmn:extensionElements>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_Findings" name="Findings we can fix?">
+      <bpmn:documentation>The review of the upstream MVP against what we bind to: are there findings we can fix on our side? `yes` goes to impact analysis; `no` goes to the options analysis (adopt, hold or decline).</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_OptionsAnalysis" name="Options analysis&#10;adopt · hold · decline" calledElement="Process_OptionsAnalysis">
+      <bpmn:documentation>On the single edge into `PM_Decide`, and deliberately not earlier: the MVP build and its gates are HOW the options' costs are measured, so an analysis before `Task_Mvp` would weigh alternatives against no evidence. Everything the decider needs exists by the time the reviewer has finished and the fixable findings are fixed.
+
+In the Agent lane, because this step produces the analysis and does not make the decision — `PM_Decide` is a `userTask` whose lane admits `person` only, and putting the analysis in the agent's lane is what keeps that separation legible rather than implied. A subprocess that decided would be a second accepting party.
+
+Reached through the loop as well as straight through: `SF_UA_8` re-enters at `A_Impact`, so a run where the reviewer found something fixable arrives here a second time with different evidence. That is a genuine re-analysis and its `op="note"` appends rather than deduping, which is the behaviour wanted — a second note records that the options were weighed again against changed inputs.</bpmn:documentation>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="PM_Decide" calledElement="Process_AskThePerson" name="Adopt, hold&#10;or decline">
+      <bpmn:documentation>A PERSON decides. The lane admits `person` only, so `activity-fulfilment-kind` fails the moment somebody makes an agent the accepting party, and `relaxable="false"` means no package may relax the step.
+
+The publication manager rather than the editor because a pin is not a change to the corpus — it is a change to what the published artefact is BUILT FROM, and that role is the one accountable for what is live.
+
+Deliberately NOT a DMN-backed gateway. Every computed gateway in this repository reduces to arithmetic over tool output; this one weighs a rendering nobody can score against the cost of staying behind, and a table here would look authoritative without being so.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="decision-audit"/>
+        <cat-harness.processes:policy relaxable="false" />
+      </bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Adopt" name="Adopt?">
+      <bpmn:documentation>The project manager's decision. `yes` moves the pin and opens the PR; `no` records the hold or the decline.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="A_ApplyPin" name="Move the pin&#10;and open the PR">
+      <bpmn:documentation>The pin literal moves in the one file `upstream-pins.json` declares, and the PR body says what the version range changed in RENDERED output — the evidence, not just the verdict.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="prepare-merge"/>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="A_RecordOutcome" name="Record the hold&#10;or the decline">
+      <bpmn:documentation>A HOLD is a block with an expiry and a revisit trigger: a hold with neither cannot be told from abandoned work, and the next watcher run re-raises the same pin with no memory of why it was left. A DECLINE is a scrapped bean carrying its reasons — what stops the next agent re-entering the same dead end.
+
+Either way the decision is written down before the process ends, and the bean is resolved from here: a run that stops at "we looked and said no" is as finished as one that moved the pin.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="upstream-version-adoption"/>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Adopt" name="Decision recorded"/>
+    <bpmn:callActivity id="Call_BeanOpen" name="Open the bean" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Process_BeanOpen: check before you create, find out whose the bean is, and claim it — or leave it alone when it is someone else's. The one place a claim is drawn (bean m8gz, owner 2026-10-24); the gateway after this reads which end it reached.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_BeanYours" name="Bean claimed?">
+      <bpmn:documentation>Reads which end Process_BeanOpen reached. `claimed`: the bean is in progress and this process works it. `not yours`: a sibling session or a human holds it, nothing was written to it, and this process stops here rather than work a bean it does not own (bean-coordination).</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_BeanNotYours" name="Not yours —&#10;left alone">
+      <bpmn:documentation>Someone else holds the bean; this run stops without touching it.</bpmn:documentation>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Call_BeanClose" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>Process_BeanClose: end the bean in a state that says why — complete and archive it, scrap it with its reasons and archive it, or record the blocker and hand it back. The one place resolve and archive are drawn (bean m8gz, owner 2026-10-24); placed straight before the end so the engine's resolve sees nothing left but the archive step.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SF_UA_1" sourceRef="Start_Adopt" targetRef="Call_BeanOpen"/>
+    <bpmn:sequenceFlow id="SF_UA_2" sourceRef="A_Scope" targetRef="A_Impact"/>
+    <bpmn:sequenceFlow id="SF_UA_3" sourceRef="A_Impact" targetRef="Task_Mvp"/>
+    <bpmn:sequenceFlow id="SF_UA_4" sourceRef="Task_Mvp" targetRef="Task_Gates"/>
+    <bpmn:sequenceFlow id="SF_UA_5" sourceRef="Task_Gates" targetRef="A_Evidence"/>
+    <bpmn:sequenceFlow id="SF_UA_6" sourceRef="A_Evidence" targetRef="R_Review"/>
+    <bpmn:sequenceFlow id="SF_UA_7" sourceRef="R_Review" targetRef="GW_Findings"/>
+    <bpmn:sequenceFlow id="SF_UA_8" name="yes" sourceRef="GW_Findings" targetRef="A_Impact"/>
+    <bpmn:sequenceFlow id="SF_UA_9" name="no" sourceRef="GW_Findings" targetRef="Call_OptionsAnalysis"/>
+    <bpmn:sequenceFlow id="SF_UA_15" sourceRef="Call_OptionsAnalysis" targetRef="PM_Decide"/>
+    <bpmn:sequenceFlow id="SF_UA_10" sourceRef="PM_Decide" targetRef="GW_Adopt"/>
+    <bpmn:sequenceFlow id="SF_UA_11" name="yes" sourceRef="GW_Adopt" targetRef="A_ApplyPin"/>
+    <bpmn:sequenceFlow id="SF_UA_12" name="no" sourceRef="GW_Adopt" targetRef="A_RecordOutcome"/>
+    <bpmn:sequenceFlow id="SF_UA_13" sourceRef="A_ApplyPin" targetRef="Call_BeanClose"/>
+    <bpmn:sequenceFlow id="SF_UA_14" sourceRef="A_RecordOutcome" targetRef="Call_BeanClose"/>
+    <bpmn:sequenceFlow id="SF_Bean_1" name="claimed" sourceRef="GW_BeanYours" targetRef="A_Scope"/>
+    <bpmn:sequenceFlow id="SF_Bean_2" sourceRef="Call_BeanOpen" targetRef="GW_BeanYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_3" name="not yours" sourceRef="GW_BeanYours" targetRef="End_BeanNotYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_4" sourceRef="Call_BeanClose" targetRef="End_Adopt"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_UpstreamAdoption">
+    <bpmndi:BPMNPlane id="Plane_Process_UpstreamAdoption" bpmnElement="Collaboration_Process_UpstreamAdoption">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_UpstreamAdoption" bpmnElement="Participant_Process_UpstreamAdoption" isHorizontal="true">
+        <dc:Bounds x="80" y="60" width="1360" height="790" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Build" bpmnElement="Lane_Build" isHorizontal="true">
+        <dc:Bounds x="110" y="60" width="1330" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Review" bpmnElement="Lane_Review" isHorizontal="true">
+        <dc:Bounds x="110" y="220" width="1330" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="110" y="380" width="1330" height="310" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Publication" bpmnElement="Lane_Publication" isHorizontal="true">
+        <dc:Bounds x="110" y="690" width="1330" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Adopt" bpmnElement="Start_Adopt">
+        <dc:Bounds x="148" y="437" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="142" y="530" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanOpen_di" bpmnElement="Call_BeanOpen">
+        <dc:Bounds x="210" y="395" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_BeanYours_di" bpmnElement="GW_BeanYours" isMarkerVisible="true">
+        <dc:Bounds x="355" y="430" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="335" y="392" width="90" height="32" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_BeanNotYours_di" bpmnElement="End_BeanNotYours">
+        <dc:Bounds x="362" y="555" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="335" y="597" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Scope" bpmnElement="A_Scope">
+        <dc:Bounds x="465" y="395" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Impact" bpmnElement="A_Impact">
+        <dc:Bounds x="610" y="395" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Mvp" bpmnElement="Task_Mvp">
+        <dc:Bounds x="610" y="80" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Gates" bpmnElement="Task_Gates">
+        <dc:Bounds x="755" y="80" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Evidence" bpmnElement="A_Evidence">
+        <dc:Bounds x="755" y="395" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_R_Review" bpmnElement="R_Review">
+        <dc:Bounds x="755" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Findings" bpmnElement="GW_Findings" isMarkerVisible="true">
+        <dc:Bounds x="915" y="275" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="890" y="232" width="100" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_OptionsAnalysis" bpmnElement="Call_OptionsAnalysis">
+        <dc:Bounds x="915" y="395" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_PM_Decide" bpmnElement="PM_Decide">
+        <dc:Bounds x="915" y="710" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Adopt" bpmnElement="GW_Adopt" isMarkerVisible="true">
+        <dc:Bounds x="1065" y="745" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1045" y="800" width="90" height="24" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ApplyPin" bpmnElement="A_ApplyPin">
+        <dc:Bounds x="1080" y="395" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_RecordOutcome" bpmnElement="A_RecordOutcome">
+        <dc:Bounds x="1080" y="555" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanClose_di" bpmnElement="Call_BeanClose">
+        <dc:Bounds x="1235" y="395" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Adopt" bpmnElement="End_Adopt">
+        <dc:Bounds x="1380" y="437" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1348" y="479" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_1" bpmnElement="SF_UA_1">
+        <di:waypoint x="184" y="455" />
+        <di:waypoint x="210" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_2_di" bpmnElement="SF_Bean_2">
+        <di:waypoint x="330" y="455" />
+        <di:waypoint x="355" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_3_di" bpmnElement="SF_Bean_3">
+        <di:waypoint x="380" y="480" />
+        <di:waypoint x="380" y="555" />
+        <bpmndi:BPMNLabel><dc:Bounds x="386" y="505" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_1_di" bpmnElement="SF_Bean_1">
+        <di:waypoint x="405" y="455" />
+        <di:waypoint x="465" y="455" />
+        <bpmndi:BPMNLabel><dc:Bounds x="408" y="431" width="52" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_2" bpmnElement="SF_UA_2">
+        <di:waypoint x="585" y="455" />
+        <di:waypoint x="610" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_3" bpmnElement="SF_UA_3">
+        <di:waypoint x="670" y="395" />
+        <di:waypoint x="670" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_4" bpmnElement="SF_UA_4">
+        <di:waypoint x="730" y="140" />
+        <di:waypoint x="755" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_5" bpmnElement="SF_UA_5">
+        <di:waypoint x="755" y="180" />
+        <di:waypoint x="742" y="180" />
+        <di:waypoint x="742" y="455" />
+        <di:waypoint x="755" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_6" bpmnElement="SF_UA_6">
+        <di:waypoint x="815" y="395" />
+        <di:waypoint x="815" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_7" bpmnElement="SF_UA_7">
+        <di:waypoint x="875" y="300" />
+        <di:waypoint x="915" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_8" bpmnElement="SF_UA_8">
+        <di:waypoint x="940" y="325" />
+        <di:waypoint x="940" y="370" />
+        <di:waypoint x="895" y="370" />
+        <di:waypoint x="895" y="545" />
+        <di:waypoint x="670" y="545" />
+        <di:waypoint x="670" y="515" />
+        <bpmndi:BPMNLabel><dc:Bounds x="895" y="340" width="40" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_9" bpmnElement="SF_UA_9">
+        <di:waypoint x="965" y="300" />
+        <di:waypoint x="1005" y="300" />
+        <di:waypoint x="1005" y="395" />
+        <bpmndi:BPMNLabel><dc:Bounds x="971" y="276" width="40" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_15" bpmnElement="SF_UA_15">
+        <di:waypoint x="975" y="515" />
+        <di:waypoint x="975" y="710" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_10" bpmnElement="SF_UA_10">
+        <di:waypoint x="1035" y="770" />
+        <di:waypoint x="1065" y="770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_11" bpmnElement="SF_UA_11">
+        <di:waypoint x="1090" y="745" />
+        <di:waypoint x="1090" y="700" />
+        <di:waypoint x="1055" y="700" />
+        <di:waypoint x="1055" y="455" />
+        <di:waypoint x="1080" y="455" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1008" y="650" width="40" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_12" bpmnElement="SF_UA_12">
+        <di:waypoint x="1115" y="770" />
+        <di:waypoint x="1140" y="770" />
+        <di:waypoint x="1140" y="675" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1146" y="720" width="40" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_13" bpmnElement="SF_UA_13">
+        <di:waypoint x="1200" y="455" />
+        <di:waypoint x="1235" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_UA_14" bpmnElement="SF_UA_14">
+        <di:waypoint x="1200" y="615" />
+        <di:waypoint x="1295" y="615" />
+        <di:waypoint x="1295" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_4_di" bpmnElement="SF_Bean_4">
+        <di:waypoint x="1355" y="455" />
+        <di:waypoint x="1380" y="455" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

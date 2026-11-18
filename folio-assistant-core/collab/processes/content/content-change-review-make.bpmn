@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+ xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_ContentChangeReviewMake"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="0.1.0">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+
+  <bpmn:collaboration id="Collaboration_ContentChangeReviewMake">
+    <bpmn:participant id="Participant_ContentChangeReviewMake" name="Make the content change" processRef="Process_ContentChangeReviewMake" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_ContentChangeReviewMake" name="Make the content change" isExecutable="false">
+    <bpmn:documentation>Making one requested change to a folio's content on a feature branch: work out its scope, branch, edit the narrative and any deterministic logic, assess what else it touches and how to absorb that, and push.
+
+Called from content-change-review once the bean is claimed; it runs on its caller's bean. Revisions after the first push are Task_Iterate in the caller, not a second run of this phase.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_ContentChangeReviewMake">
+      <bpmn:lane id="Lane_Agent" name="Folio-Assistant Agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Owns the technical execution of the change: scoping, branching, editing narrative and deterministic logic, assessing what else it touches, weighing how to absorb that, and pushing. It is also the single re-entry point for the author's and the committee's feedback (Task_Iterate in the caller).</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Agent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DetectScope</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CreateBranch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_EditContent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_EditLogic</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AssessImpact</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_OptionsAnalysis</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CommitPush</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Agent</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Agent" name="Receive change request">
+      <bpmn:outgoing>a1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_DetectScope" name="Detect change scope &amp; impact">
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="No skill at this layer computes a change&apos;s scope generically. Content-type layers supply one through the role-graph overlay rather than a binding here: folio-assistant-sci extends authoring-agent, this lane&apos;s role, with semantic-review-scoping for papers."/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>
+        Agent analyses the requested change:
+        - Which content blocks are affected?
+        - Are there downstream implications (indicators, referral logic, visit schedules)?
+        - Will deterministic logic (CQL/DMN) need updating?
+        skill: content-graph, integration-watcher
+      </bpmn:documentation>
+      <bpmn:incoming>a1</bpmn:incoming>
+      <bpmn:outgoing>a2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_CreateBranch" name="Create feature branch">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="feature-staging"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>
+        Agent creates a feature branch from main.
+        Branch naming: feature/&lt;short-description&gt;
+        Opens a PR immediately (AGENTS.md: "open the PR at the first commit").
+      </bpmn:documentation>
+      <bpmn:incoming>a2</bpmn:incoming>
+      <bpmn:outgoing>a3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_EditContent" name="Edit narrative content blocks">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-author"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>
+        Agent modifies the relevant content blocks (.md files, block manifests).
+        Validates each edit against the schema (content_validate).
+        skill: content editing, block builders
+      </bpmn:documentation>
+      <bpmn:incoming>a3</bpmn:incoming>
+      <bpmn:outgoing>a4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_EditLogic" name="Edit deterministic logic (if needed)">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-author"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>
+        If the content change affects decision logic, indicators, or workflows:
+        - Update CQL expressions
+        - Update DMN decision tables
+        - Adjust indicator definitions
+        skill: dak-authoring, fhir-pipeline
+      </bpmn:documentation>
+      <bpmn:incoming>a4</bpmn:incoming>
+      <bpmn:outgoing>a5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_AssessImpact" name="Assess downstream impact">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-graph"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>
+        Agent reviews downstream implications:
+        - Will indicators need adjustment?
+        - Will referral/follow-up for next visit be impacted?
+        - Are translations affected (re-extract POT)?
+        - Do Lean proofs still hold?
+        skill: integration-watcher, translation-manager
+      </bpmn:documentation>
+      <bpmn:incoming>a5</bpmn:incoming>
+      <bpmn:outgoing>a6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_OptionsAnalysis" name="Options analysis&#10;how to absorb the impact" calledElement="Process_OptionsAnalysis">
+      <bpmn:documentation>On the edge OUT of `Task_AssessImpact` and before `Task_CommitPush`, because the impact assessment is the evidence the options are weighed against. An analysis before it would compare ways of absorbing a downstream effect nobody has measured yet; one after the commit would be a rationalisation of a choice already pushed.
+
+Not between `Task_AssessImpact` and `Task_ReviewImpact`: those are in different processes with no sequence flow between them; the assessment reaches the committee through `Task_CompareBeforeAfter`.
+
+In the Agent lane, matching `upstream-version-adoption`: this step produces the options and their trade-offs, and `GW_Approved` in the committee review is where a decision is taken.
+
+On the trigger: reaching this call is not the same as running the whole of it. `Process_OptionsAnalysis` opens with `A_Frame`, whose trigger is `opening-brief`'s — irreversibility and surprise, not size — and leaving at that first activity is a correct outcome rather than a skipped step. A copy-edit exits immediately; a logic change that moves an indicator (from `Task_EditLogic`) does not.</bpmn:documentation>
+      <bpmn:incoming>a6</bpmn:incoming>
+      <bpmn:outgoing>a6b</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:task id="Task_CommitPush" name="Commit, push, update PR">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="prepare-merge-auto"/>
+        <bootstrap.processes:skill ref="before-after-preview"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>
+        Agent commits all changes to the feature branch and pushes.
+        The feature-staging.yml workflow automatically deploys to
+        branches/&lt;branch-slug&gt;/ and comments the URL on the PR.
+        For a rendered change the agent also produces the before/after
+        preview (skill before-after-preview) and links it in the PR body.
+      </bpmn:documentation>
+      <bpmn:incoming>a6b</bpmn:incoming>
+      <bpmn:outgoing>a7</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Agent" name="Feature branch ready">
+      <bpmn:incoming>a7</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="a1" sourceRef="Start_Agent" targetRef="Task_DetectScope" />
+    <bpmn:sequenceFlow id="a2" sourceRef="Task_DetectScope" targetRef="Task_CreateBranch" />
+    <bpmn:sequenceFlow id="a3" sourceRef="Task_CreateBranch" targetRef="Task_EditContent" />
+    <bpmn:sequenceFlow id="a4" sourceRef="Task_EditContent" targetRef="Task_EditLogic" />
+    <bpmn:sequenceFlow id="a5" sourceRef="Task_EditLogic" targetRef="Task_AssessImpact" />
+    <bpmn:sequenceFlow id="a6" sourceRef="Task_AssessImpact" targetRef="Call_OptionsAnalysis" />
+    <bpmn:sequenceFlow id="a6b" sourceRef="Call_OptionsAnalysis" targetRef="Task_CommitPush" />
+    <bpmn:sequenceFlow id="a7" sourceRef="Task_CommitPush" targetRef="End_Agent" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ContentChangeReviewMake">
+    <bpmndi:BPMNPlane id="BPMNPlane_ContentChangeReviewMake" bpmnElement="Collaboration_ContentChangeReviewMake">
+      <bpmndi:BPMNShape id="Participant_ContentChangeReviewMake_di" bpmnElement="Participant_ContentChangeReviewMake" isHorizontal="true">
+        <dc:Bounds x="100" y="80" width="1360" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Agent_di" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="130" y="80" width="1330" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_Agent_di" bpmnElement="Start_Agent">
+        <dc:Bounds x="200" y="137" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="175" y="180" width="85" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DetectScope_di" bpmnElement="Task_DetectScope">
+        <dc:Bounds x="275" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CreateBranch_di" bpmnElement="Task_CreateBranch">
+        <dc:Bounds x="420" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_EditContent_di" bpmnElement="Task_EditContent">
+        <dc:Bounds x="565" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_EditLogic_di" bpmnElement="Task_EditLogic">
+        <dc:Bounds x="710" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AssessImpact_di" bpmnElement="Task_AssessImpact">
+        <dc:Bounds x="855" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_OptionsAnalysis_di" bpmnElement="Call_OptionsAnalysis">
+        <dc:Bounds x="1000" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CommitPush_di" bpmnElement="Task_CommitPush">
+        <dc:Bounds x="1145" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Agent_di" bpmnElement="End_Agent">
+        <dc:Bounds x="1310" y="137" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1285" y="180" width="85" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="a1_di" bpmnElement="a1">
+        <di:waypoint x="236" y="155" />
+        <di:waypoint x="275" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a2_di" bpmnElement="a2">
+        <di:waypoint x="395" y="155" />
+        <di:waypoint x="420" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a3_di" bpmnElement="a3">
+        <di:waypoint x="540" y="155" />
+        <di:waypoint x="565" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a4_di" bpmnElement="a4">
+        <di:waypoint x="685" y="155" />
+        <di:waypoint x="710" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a5_di" bpmnElement="a5">
+        <di:waypoint x="830" y="155" />
+        <di:waypoint x="855" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a6_di" bpmnElement="a6">
+        <di:waypoint x="975" y="155" />
+        <di:waypoint x="1000" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a6b_di" bpmnElement="a6b">
+        <di:waypoint x="1120" y="155" />
+        <di:waypoint x="1145" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a7_di" bpmnElement="a7">
+        <di:waypoint x="1265" y="155" />
+        <di:waypoint x="1310" y="155" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
