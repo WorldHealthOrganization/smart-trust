@@ -1,0 +1,84 @@
+# Build, key or restore a harnessed repository's prepared CI image, with the
+# scripts that ship beside the ci-setup action (../ci-setup). The workflow
+# that builds and publishes a repository's image stays the repository's (it
+# needs `packages: write` on its own package); what it runs is this:
+#
+#   - uses: litlfred/cat-harness-tools/.github/actions/ci-image@<sha>
+#     id: key
+#     with: { op: key }                       # outputs.key, outputs.image
+#   - uses: litlfred/cat-harness-tools/.github/actions/ci-image@<sha>
+#     with: { op: build, ref: "${{ steps.key.outputs.image }}:${{ steps.key.outputs.key }}" }
+#   - uses: litlfred/cat-harness-tools/.github/actions/ci-image@<sha>
+#     with: { op: fetch, image: …, key: …, workspace: …, browsers: …, roles: ws pw }
+#
+# Pin it at the SAME commit as ci-setup: the key hashes the scripts in
+# ../ci-setup, so a build and a restore at different commits never share a key.
+name: CI image (build, key, restore)
+description: Key, build or restore the prepared CI image ci-setup streams onto a runner.
+inputs:
+  op:
+    description: "'key' (outputs key and image), 'build' (ref, insecure) or 'fetch' (image, key, workspace, browsers, roles)."
+    required: true
+  ref:
+    description: For `build`, where to push (registry/name:tag).
+    default: ""
+  insecure:
+    description: For `build`, 'true' to push to a plain-http local registry.
+    default: "false"
+  image:
+    description: For `fetch`, the image without its tag.
+    default: ""
+  key:
+    description: For `fetch`, the tag.
+    default: ""
+  workspace:
+    description: For `fetch`, where the workspace layers go.
+    default: ""
+  browsers:
+    description: For `fetch`, where the browser layers go.
+    default: ""
+  roles:
+    description: For `fetch`, which layers to restore, 'ws' or 'ws pw'.
+    default: ws pw
+  registry-token:
+    description: For `fetch`, a token with packages:read when the image is not public.
+    default: ""
+  scheme:
+    description: For `fetch`, `http` against a throwaway local registry (a pull request's test job); default https.
+    default: ""
+outputs:
+  key:
+    description: With op `key`, the image key for this checkout.
+    value: ${{ steps.run.outputs.key }}
+  image:
+    description: With op `key`, ghcr.io/<owner>/<repo>-ci for the calling repository.
+    value: ${{ steps.run.outputs.image }}
+runs:
+  using: composite
+  steps:
+    - name: ci-image ${{ inputs.op }}
+      id: run
+      shell: bash
+      env:
+        OP: ${{ inputs.op }}
+        REF: ${{ inputs.ref }}
+        INSECURE: ${{ inputs.insecure }}
+        IMAGE: ${{ inputs.image }}
+        KEY: ${{ inputs.key }}
+        WS: ${{ inputs.workspace }}
+        PW: ${{ inputs.browsers }}
+        ROLES: ${{ inputs.roles }}
+        REGISTRY_TOKEN: ${{ inputs.registry-token }}
+        CI_IMAGE_SCHEME: ${{ inputs.scheme }}
+      run: |
+        here="$GITHUB_ACTION_PATH/../ci-setup"
+        case "$OP" in
+          key)
+            echo "key=$(bash "$here/key.sh" .)" >> "$GITHUB_OUTPUT"
+            echo "image=ghcr.io/${GITHUB_REPOSITORY,,}-ci" >> "$GITHUB_OUTPUT" ;;
+          build)
+            if [ "$INSECURE" = true ]; then bash "$here/build.sh" "$REF" insecure; else bash "$here/build.sh" "$REF"; fi ;;
+          fetch)
+            bash "$here/fetch.sh" "$IMAGE" "$KEY" "$WS" "$PW" "$ROLES" ;;
+          *) echo "::error::ci-image: op must be key, build or fetch (got '$OP')"; exit 2 ;;
+        esac

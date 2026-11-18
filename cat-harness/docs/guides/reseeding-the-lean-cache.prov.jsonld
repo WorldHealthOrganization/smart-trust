@@ -1,0 +1,70 @@
+{
+  "@context": {
+    "@base": "https://litlfred.github.io/cat-harness/v0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "cat-harness": "https://litlfred.github.io/cat-harness/v0/ns/"
+  },
+  "dcterms:description": "Provenance moved out of the narrative of reseeding-the-lean-cache.md: who decided, when, and under which work item or proposal. The document keeps the rules and their reasons; this log is rendered in its footer.",
+  "@graph": [
+    {
+      "@id": "docs/guides/reseeding-the-lean-cache.md",
+      "@type": "prov:Entity",
+      "prov:wasInfluencedBy": [
+        {
+          "@id": "docs/guides/reseeding-the-lean-cache.md#provenance-1"
+        },
+        {
+          "@id": "docs/guides/reseeding-the-lean-cache.md#provenance-2"
+        },
+        {
+          "@id": "docs/guides/reseeding-the-lean-cache.md#provenance-3"
+        },
+        {
+          "@id": "docs/guides/reseeding-the-lean-cache.md#provenance-4"
+        },
+        {
+          "@id": "docs/guides/reseeding-the-lean-cache.md#provenance-5"
+        }
+      ]
+    },
+    {
+      "@id": "docs/guides/reseeding-the-lean-cache.md#provenance-1",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "bean",
+      "cat-harness:section": "Reseeding the Lean cache",
+      "prov:value": "> **Branch names are changing.** The family is moving from `lake-cache/` to\n> `cat-lake-cache/` (bean `folio-assistant-32f6`). Until each repository's\n> branches are renamed, the scripts resolve a key to `cat-lake-cache/<key>`\n> if it exists, otherwise to `lake-cache/<key>` if that exists — for a\n> seed as well as a restore. The commands below name the legacy branches\n> explicitly; drop `--branch` and the script resolves the right one.",
+      "cat-harness:refs": [
+        "bean folio-assistant-32f6"
+      ]
+    },
+    {
+      "@id": "docs/guides/reseeding-the-lean-cache.md#provenance-2",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "history",
+      "cat-harness:section": "Reseeding the Lean cache",
+      "prov:value": "> **Step 1 no longer needs elan, or unrestricted network.** elan's hosts\n> (`elan.lean-lang.org`, `release.lean-lang.org`) are unreachable from\n> the cloud authoring container, but elan is only a fetcher and the same\n> toolchain is a GitHub release asset, which *is* reachable.\n> `lake-cache.sh install-toolchain` fetches it directly — verified\n> in-container, static libs and all, with `lake exe` linking and running\n> (mathlib's `cache:exe` builds and links there).\n>\n> **Step 2 still does.** Mathlib's cache CDN\n> (`mathlib4.lean-cache.cloud`, `lakecache.blob.core.windows.net`) is\n> blocked from that same container, and there is no GitHub-hosted mirror\n> of Mathlib's oleans to fall back on. These are two independent egress\n> restrictions — a working toolchain does **not** imply a reachable\n> cache. Step 2 onward still needs CI or a local machine."
+    },
+    {
+      "@id": "docs/guides/reseeding-the-lean-cache.md#provenance-3",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "history",
+      "cat-harness:section": "What is wrong today",
+      "prov:value": "## What is wrong today\n\n`lake-cache/qou-v4-24-0` carries **7268 oleans, 0 traces, 0 own-package\nmodules**. Three independent defects:\n\n| Defect | Effect |\n|---|---|\n| No `.trace` files | Lake reads `.trace`, not `.olean`, to decide staleness. Untraced modules are \"out of date\", so a build rebuilds them — and **evicts** them. Measured: building one module ran 823 targets and cut 7268 oleans to 772. |\n| No own-package oleans | Every build recompiles the paper; sibling `.lean` files cannot elaborate standalone. |\n| Toolchain branch has no `.a` files | `lean` elaborates but nothing **links**, so `lake exe …` fails — including `lake exe cache get`. |\n\nThe cache has only ever worked for direct `lean` + `LEAN_PATH`. That is\nthe whole \"olean cache restore doesn't help\" complaint."
+    },
+    {
+      "@id": "docs/guides/reseeding-the-lean-cache.md#provenance-4",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "history",
+      "cat-harness:section": "Related beans",
+      "prov:value": "## Related beans\n\n`02kc` (missing traces), `ga7e` (toolchain static libs), `5d7z` (own\noleans), `nimj` (blocked on all three)."
+    },
+    {
+      "@id": "docs/guides/reseeding-the-lean-cache.md#provenance-5",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "history",
+      "cat-harness:section": "Afterwards",
+      "prov:value": "Then the blocked work becomes possible:\n\n- re-run `content/pipeline/lean-triviality-probe.ts` over the whole\n  corpus rather than the 43% that currently elaborate standalone;\n- `lake build` in CI stops being a from-scratch Mathlib compile."
+    }
+  ]
+}

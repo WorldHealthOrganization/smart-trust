@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_KgSeparationCutover" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="administrator" name="Administrator"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:collaboration id="Collaboration_Process_KgSeparationCutover">
+    <bpmn:participant id="Participant_Process_KgSeparationCutover" name="Cut over to the separated graph" processRef="Process_KgSeparationCutover"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_KgSeparationCutover" name="Cut over to the separated graph" isExecutable="false">
+    <bpmn:documentation>Retires the parent's copy and measures the cutover with separation:cutover:check until every condition holds. A check that cannot decide ends the phase as unknown, never as complete. Called by kg-separation and sub-kg-lifecycle (bpmn-authoring: split by phase).</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_KgSeparationCutover">
+      <bpmn:lane id="Lane_Admin" name="Administrator" partitionElementRef="administrator">
+        <bpmn:documentation>The person's decisions: whether to separate at all, authorising the extraction, creating the repositories, and the cutover that retires the parent's copy. An agent reports and waits at each; none of them may be relaxed by a package.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Cutover</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Cutover</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pipeline" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Runs the checks that decide the gateways: the tools' import closure and the content's lack of code, node identifiers against file paths, the standalone rehearsal, and dereferencing after release. A gate that cannot tell stops the process; it never reads as clean.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_CutoverCheck</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_CutoverComplete</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_CutOver</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_CutoverUnknown</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Cutover" name="First release consumed">
+      <bpmn:outgoing>F1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Cutover" name="Cutover: retire&#10;the parent's copy">
+      <bpmn:documentation>The one commit worth reverting, made only after the parent consumes the release and every identifier dereferences. It retires the parent's copy, frozen, never refreshed and never rendered, rather than deleting it. Where the copy goes is the sub-kg-lifecycle skill's stage 13; this diagram does not name that store, because the published graph must not.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="deletion-requires-confirmation"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F1</bpmn:incoming>
+      <bpmn:incoming>F5</bpmn:incoming>
+      <bpmn:outgoing>F2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:task id="Task_CutoverCheck" name="Measure the cutover:&#10;separation:cutover:check">
+      <bpmn:documentation>Run `bun run cat separation:cutover:check --site` in the SEPARATED repository (Tool `separation-cutover-check`). Six conditions, each decided by an existing gate and none assumed: every declared layer mounted at its pin; every path a declaration names resolves (`check:declaration-resolution` — directories, assets, visualisers, needs); no wiring still names the monorepo (`livesAt`, a submodule, a reusable workflow, a path into the old checkout); no import or reference against the layer order; and the site builds from the mounts alone. A finding inside a mounted layer is upstream's and is listed, not counted.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-separation"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F2</bpmn:incoming>
+      <bpmn:outgoing>F3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_CutoverComplete" name="Cutover&#10;complete?">
+      <bpmn:documentation>Decided by the exit of `separation:cutover:check`: 0 every condition measured and passed, 1 a condition failed, 2 one could not be determined or was not run (without `--site` the answer is never complete). A failure goes back to the cutover with the findings; an undetermined answer stops, because a cutover that could not be shown complete has not been shown complete.</bpmn:documentation>
+      <bpmn:incoming>F3</bpmn:incoming>
+      <bpmn:outgoing>F4</bpmn:outgoing>
+      <bpmn:outgoing>F5</bpmn:outgoing>
+      <bpmn:outgoing>F6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_CutOver" name="Cut over">
+      <bpmn:documentation>Every cutover condition holds, measured.</bpmn:documentation>
+      <bpmn:incoming>F4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_CutoverUnknown" name="UNKNOWN: not&#10;shown complete">
+      <bpmn:documentation>The check could not determine it. Not clean.</bpmn:documentation>
+      <bpmn:incoming>F6</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="F1" sourceRef="Start_Cutover" targetRef="Task_Cutover"/>
+    <bpmn:sequenceFlow id="F2" sourceRef="Task_Cutover" targetRef="Task_CutoverCheck"/>
+    <bpmn:sequenceFlow id="F3" sourceRef="Task_CutoverCheck" targetRef="GW_CutoverComplete"/>
+    <bpmn:sequenceFlow id="F4" name="complete" sourceRef="GW_CutoverComplete" targetRef="End_CutOver"/>
+    <bpmn:sequenceFlow id="F5" name="a condition failed" sourceRef="GW_CutoverComplete" targetRef="Task_Cutover"/>
+    <bpmn:sequenceFlow id="F6" name="could not determine" sourceRef="GW_CutoverComplete" targetRef="End_CutoverUnknown"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_KgSeparationCutover">
+    <bpmndi:BPMNPlane id="Plane_Process_KgSeparationCutover" bpmnElement="Collaboration_Process_KgSeparationCutover">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_KgSeparationCutover" bpmnElement="Participant_Process_KgSeparationCutover" isHorizontal="true"><dc:Bounds x="130" y="60" width="1155" height="750"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Admin" bpmnElement="Lane_Admin" isHorizontal="true"><dc:Bounds x="160" y="60" width="1125" height="250"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Pipeline" bpmnElement="Lane_Pipeline" isHorizontal="true"><dc:Bounds x="160" y="310" width="1125" height="500"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Cutover" bpmnElement="Start_Cutover"><dc:Bounds x="272" y="167" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="240" y="209" width="100" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Cutover" bpmnElement="Task_Cutover"><dc:Bounds x="405" y="125" width="120" height="120"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_CutoverCheck" bpmnElement="Task_CutoverCheck"><dc:Bounds x="580" y="416.667" width="120" height="120"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_CutoverComplete" bpmnElement="GW_CutoverComplete"><dc:Bounds x="790" y="451.667" width="50" height="50"/><bpmndi:BPMNLabel><dc:Bounds x="844" y="411.667" width="100" height="36" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_CutOver" bpmnElement="End_CutOver"><dc:Bounds x="972" y="458.667" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="940" y="500.667" width="100" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_CutoverUnknown" bpmnElement="End_CutoverUnknown"><dc:Bounds x="797" y="625.333" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="765" y="667.333" width="100" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_F1" bpmnElement="F1"><di:waypoint x="308" y="185"/><di:waypoint x="405" y="185"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F2" bpmnElement="F2"><di:waypoint x="525" y="185"/><di:waypoint x="555" y="185"/><di:waypoint x="555" y="476.667"/><di:waypoint x="580" y="476.667"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F3" bpmnElement="F3"><di:waypoint x="700" y="476.667"/><di:waypoint x="790" y="476.667"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F4" bpmnElement="F4"><di:waypoint x="840" y="476.667"/><di:waypoint x="972" y="476.667"/><bpmndi:BPMNLabel><dc:Bounds x="866" y="455.67" width="80" height="18" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F5" bpmnElement="F5"><di:waypoint x="815" y="451.667"/><di:waypoint x="815" y="82.2222"/><di:waypoint x="465" y="82.2222"/><di:waypoint x="465" y="125"/><bpmndi:BPMNLabel><dc:Bounds x="819" y="230.312" width="80" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F6" bpmnElement="F6"><di:waypoint x="815" y="501.667"/><di:waypoint x="815" y="625.333"/><bpmndi:BPMNLabel><dc:Bounds x="819" y="546" width="80" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

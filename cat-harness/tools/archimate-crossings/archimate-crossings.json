@@ -1,0 +1,85 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "archimate-crossings",
+    "title": "Count the tangles in ArchiMate views: lines crossing lines, and lines through boxes",
+    "description": "For each view, as `render-view.ts` draws it, count the pairs of lines that cross and the lines that run through a box they do not connect (groups, and boxes that hold one of the line's ends, excepted). With `--view` it lists each tangle by the boxes it joins; with `--max` it is a gate.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat archimate:crossings"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "model",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The `.archimate` file (plain XML or Archi's zipped archive).",
+          "required": true,
+          "arg": {
+            "flag": "--model"
+          }
+        },
+        {
+          "name": "view",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "One view, by its Archi id (`id-<hex>`) or its page slug (e.g. `1-central-health-workforce-registry`). A slug, not free text, so no shell payload can ride on it. Absent: every view in the model.",
+          "required": false,
+          "arg": {
+            "flag": "--view"
+          }
+        },
+        {
+          "name": "max",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "Exit 1 if any view has more tangles than this.",
+          "required": false,
+          "arg": {
+            "flag": "--max"
+          }
+        },
+        {
+          "name": "json",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Print JSON instead of one line per view.",
+          "required": false,
+          "arg": {
+            "flag": "--json"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tangles",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Per view: crossings and lines through a box."
+        }
+      ]
+    },
+    "satisfies": [
+      "archimate-models"
+    ],
+    "selection": {
+      "when": "Before and after every change to an ArchiMate view, so a change never adds tangles (skill `archimate-models`, \"Untangle every view you touch\").",
+      "limits": "Counts the lines as drawn by this harness's renderer, which draws a stale Archi route straight; Archi itself may draw the same view slightly differently.",
+      "cost": "Milliseconds per view. No network, no JVM."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  }
+}

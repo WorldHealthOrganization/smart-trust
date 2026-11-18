@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_JsonLdDrift" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:collaboration id="Collaboration_Process_JsonLdDrift">
+    <bpmn:participant id="Participant_Process_JsonLdDrift" name="Are the .jsonld siblings still in sync with their .ts manifests?" processRef="Process_JsonLdDrift"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_JsonLdDrift" name="Are the .jsonld siblings still in sync with their .ts manifests?" isExecutable="false">
+    <bpmn:documentation>Check that the committed `.jsonld` siblings are still in sync with the `.ts` manifests they are generated from. A GENERATED FILE THAT IS COMMITTED CAN GO STALE, AND A STALE ONE IS CONSULTED. Five `--check` runs in one job: the JSON-LD context, the block siblings, the library nodes, the site graph, and the label-resolution tests. Each regenerates from the `.ts` manifest that owns it and fails on any difference.
+
+They are drawn as ONE task rather than five, because they are independent of each other and sequential only because a single job runs them. Five boxes would assert an ordering the workflow does not have.
+
+The check itself is the shared `generated-file-drift` process (Process_GeneratedFileDrift), drawn once for every drift check. This diagram stays because its workflow's job names Start_Change (`# bpmn-node:`), which is what lets check:workflow-coverage see the job.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_JsonLdDrift">
+      <bpmn:lane id="Lane_Ci" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>The only lane: the job runs one shared check.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Change</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Drift</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Checked</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Change" name="Pull request, push to main, or dispatch">
+      <bpmn:outgoing>Flow_0</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="Call_Drift" name="Check the .jsonld siblings are in sync" calledElement="Process_GeneratedFileDrift">
+      <bpmn:documentation>Run the five --check generators in one job — the JSON-LD context, block siblings, library nodes, site graph, then the label-resolution and emitter tests. Any committed .jsonld that differs from what its generator now produces fails the PR, because a stale generated file is still consulted.</bpmn:documentation>
+      <bpmn:incoming>Flow_0</bpmn:incoming>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_Checked" name="Checked">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0" sourceRef="Start_Change" targetRef="Call_Drift"/>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Call_Drift" targetRef="End_Checked"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_JsonLdDrift">
+    <bpmndi:BPMNPlane id="Plane_Process_JsonLdDrift" bpmnElement="Collaboration_Process_JsonLdDrift">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_JsonLdDrift" bpmnElement="Participant_Process_JsonLdDrift" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="468" height="240"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Ci" bpmnElement="Lane_Ci" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="438" height="240"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Change" bpmnElement="Start_Change">
+        <dc:Bounds x="150" y="182" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="118" y="221.5" width="120" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Drift" bpmnElement="Call_Drift">
+        <dc:Bounds x="250" y="140" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Checked" bpmnElement="End_Checked">
+        <dc:Bounds x="432" y="182" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="390" y="222" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_0" bpmnElement="Flow_0">
+        <di:waypoint x="186" y="200"/>
+        <di:waypoint x="250" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="370" y="200"/>
+        <di:waypoint x="432" y="200"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

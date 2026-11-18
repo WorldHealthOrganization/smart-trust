@@ -1,0 +1,91 @@
+---
+doc_id: 10665-47547
+doc_title: "HIV : to test or not to test?"
+section_id: page-001
+section_title: "Page 1"
+pages: 1-1
+pdf_page: 1
+source_pdf: 10665-47547.pdf
+source_sha256: 69fd2e6e3ac140b3
+text_source: ocr
+granularity: page
+---
+In Focus
+
+HIV—to test or not to test?
+
+World AIDS Day has been established as an annual event to be marked
+on 1 December each year. The first was held in 1988, when worldwide
+activities were coordinated by the World Health Organization (see Vol. 10,
+No.1, page 136). As part of the 24-hour event held in Geneva, a debate
+took place on the ethical aspects of AIDS. We publish below an edited
+version of part of the discussions; the views expressed do not
+necessarily reflect the policy of WHO. The Editor of World Health Forum
+would be pleased to hear from readers who have practical experience of
+ethical problems relating to AIDS and HIV infection, and the steps taken
+
+to overcome them.
+
+Dr Sartorius: AIDS raises an array of
+ethical issues relevant to our life, our
+society, our survival and the very survival of
+the human race. Many of them are directly
+concerned with the treatment of disease, the
+funding of research, the organization of
+health services, and the structure of society
+
+Dr Norman Sartorius, Director of the Division of
+Mental Health, World Health Organization, Geneva,
+was Moderator of the discussions. The participants
+quoted here were: Miss Pearl Bailey, Special
+Representative of the USA to the United Nations
+General Assembly, United States Mission to the United
+Nations, New York, USA; Reverend Father Professor
+Ignazio Carrasco, Representative of the Holy See, The
+Vatican, Italy; Dr Emilio Castro, General Secretary,
+World Council of Churches, Geneva, Switzerland;
+
+Dr John Dawson, Director, AIDS Foundation,
+
+British Medical Association, London, England;
+Professor M. Dembelé, Minister of Health and Social
+Affairs, Koulouba, Mali; Rabbi Frangois Garai,
+Geneva, Switzerland; Mr H. Keilau, Centre for Human
+Rights, United Nations, Geneva, Switzerland; The
+Honourable Mr Justice Michael Kirby, President of
+the Court of Appeal, Sydney, NSW, Australia;
+
+Dr Bernard Kouchner, Secretary of State for
+Humanitarian Action, Paris, France; and Professor
+Vladimir Pokrovski, President, Soviet Academy of
+Medical Sciences, Moscow, USSR.
+
+422
+
+itself. Almost any measure proposed to deal
+with AIDS and HIV infection raises issues
+related to the rights and duties of
+individuals and to the balance between them
+and the rights and duties of society. Perhaps
+in attempting to resolve some of these issues
+in regard to AIDS we shall learn how to
+deal with diseases that may come tomorrow,
+and might even be more lethal and terrible
+than AIDS. If so, our discussion here of
+ethical issues may have even wider
+application than to AIDS-related problems
+alone.
+
+Dr Dawson, would you like to start the
+discussion by telling us what is being done
+in the United Kingdom with regard to
+testing and screening?
+
+Dr Dawson: First of all I should like to
+differentiate between “testing” and
+“screening”. I use the term “testing” to
+describe a test for HIV antibodies or for the
+virus itself done on an individual to produce
+an identifiable result, which is linked to that
+
+Worid Health Forum Vol. 10 1989

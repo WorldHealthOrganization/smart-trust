@@ -1,0 +1,33 @@
+# TEMPLATE — cut a GitHub DRAFT release when a version is tagged. Copy to
+# `.github/workflows/ig-release.yml` unchanged: it has no placeholders.
+#
+# The steps live in fhir-harness (`.github/workflows/ig-release.yml`; skill
+# `ig-binary-artefacts`, "Releasing"). A full Publisher build of the tag; the
+# draft carries package.tgz (and its R4/R4B variants), ast-data.zip (the AST,
+# Libraries with their ELM) and SHA256SUMS. A ballot, draft or CI-build version
+# is a pre-release. The owner publishes the draft on GitHub; nothing here does.
+#
+# Tag trigger: the owner chose it for releases (2026-11-09, Q-REL-1 "A"), the
+# exception to the by-hand rule of 2026-10-06. Start it by hand for an
+# existing tag.
+name: IG release (draft)
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "The existing tag to release"
+        type: string
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: litlfred/fhir-harness/.github/workflows/ig-release.yml@main
+    with:
+      tag: ${{ inputs.tag || github.ref_name }}
+      # pre-export: bash <overlay>/scripts/<prepare-inputs>.sh

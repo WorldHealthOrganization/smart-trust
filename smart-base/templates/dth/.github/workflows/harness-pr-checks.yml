@@ -1,0 +1,51 @@
+# {{name}}'s harness checks on every pull request.
+#
+# Owner, 2026-10-14: "There should be CI running", and ("1") through ONE
+# reusable workflow the harness owns, not a copy per repository; and "A
+# harnessed repo should run not just core but all of the checks in the
+# dependency harness".
+#
+# Copied from smart-ra's caller so the two handbook pipelines run the same
+# checks (thread "Align smart-ra and DTH handbook pipelines", 2026-10-30).
+#
+# This repository is its own index (index.config.json, index.lock.json), so
+# the reusable workflow runs in `index` mode: the PR's merge commit is the
+# root, mounted from this repository's own lock, and the own layer is the
+# one declared at the root (`{{name}}.json`). Its gates and those of its whole
+# dependency harness (smart-base and below) are run on base and head, failing
+# only on what this PR newly breaks. `index-ref` is not used in index mode:
+# the layers come from this repository's lock.
+#
+# The block QA sweep (qa-sweep.yml, warn-only) and the manual workflows are
+# unchanged: none of them runs the harness gates.
+name: Harness PR checks
+
+on:
+  pull_request:
+    # Draft PRs run only the fast tier (bean dft1, cat-harness-tools#616);
+    # ready_for_review re-runs the full tier the moment a PR is marked ready.
+    types: [opened, synchronize, reopened, ready_for_review]
+  # main's own run keeps main's answer, the gate seconds and the cone records
+  # in caches every PR can read (cat-harness-tools#406, #411); a run on a PR
+  # can only read caches saved from its own PR or from main.
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: harness-pr-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    uses: litlfred/cat-harness-tools/.github/workflows/layer-pr-checks.yml@main
+    with:
+      # On a draft PR: prepare and typecheck only; the full tier runs on ready_for_review.
+      draft-fast-tier: true
+      mode: index
+      instance: {{name}}
+      path-in-repo: .
+      tools-ref: main

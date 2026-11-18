@@ -1,0 +1,40 @@
+{
+  "$schema": "cache/1.0.0",
+  "id": "layers-ref",
+  "title": "Layers cache ref: the composed overlay of a lock's pinned layers",
+  "instance": "cat-harness-tools",
+  "kind": "git-ref",
+  "trustClass": "a",
+  "location": "refs/cat/layers/<key> (and the moving refs/cat/layers/main), in the INDEX repository",
+  "keyRecipe": {
+    "source": "script",
+    "implementation": "scripts/mount-from-lock.ts#layersKey",
+    "expression": "sha256(JSON.stringify(index.lock.json .instances))"
+  },
+  "derivedInputs": "the index's committed lock (index.lock.json), whose instances pin every layer's repository, commit, directories and digests",
+  "holds": "one commit whose tree is every locked directory, declaration and asset at its mount path, exactly as mount-from-lock lays it down (no node_modules, no state mounts, nothing built at publish)",
+  "producer": "the committer who changes the lock: mount:remote publishes it after a lock change, or `bun run cat layers:publish`; fallbacks: the re-pin train and the index's layers-cache workflow on main",
+  "consumers": [
+    "mount-from-lock.ts (mount:lock), and through it .github/mount-from-lock.sh: the session-start hook, every CI job's mount, merge-main, the re-pin train, the prepared CI image build"
+  ],
+  "needs": [],
+  "refresh": {
+    "mode": "incremental",
+    "how": "only the instances whose lock entry moved are fetched; every layer that did not move is served from refs/cat/layers/main"
+  },
+  "savePolicy": "written when the lock changes, by its writer; refused unless every mount hashes to the lock; pruned to the newest 20 lock refs plus main and every open PR's lock",
+  "verify": "per instance, against the lock: the declaration's and each asset's sha256 and each directory's treeDigest (mount-from-lock layDownFrom); a layer that does not verify is fetched from its own repository, a missing ref falls back for all",
+  "owner": "layers cache (session_01VQDpPg3qqw5ugnQBEYASrP), under cache-first CI",
+  "uses": [
+    "scripts/mount-from-lock.ts:841 layersKey",
+    "scripts/mount-from-lock.ts:870 openLayersCache (reader)",
+    "scripts/mount-from-lock.ts:974 publishLayers (writer)",
+    "scripts/mount-from-lock.ts:1086 layersSummaryLine (hit/warm/miss)",
+    "scripts/remote-mount.ts:2186 the committer's publish after a lock change"
+  ],
+  "notes": "Supersedes the retired cat-mount-v1-* Actions caches. Untrusted but exactly verified, so a stale or tampered ref only costs time. Measured on folio-assistant's lock (12 layers, ~32k files): 69 s per repository against 27 s on a hit with every byte verified. Every target needs it (it is the root of every needs closure), so it carries no `materializes`.",
+  "stateInputs": {
+    "reads": "none",
+    "how": "by construction: the ref holds every locked directory with no state mounts (mount-from-lock layDownFrom), and its key is the lock alone"
+  }
+}

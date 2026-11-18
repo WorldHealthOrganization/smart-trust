@@ -1,0 +1,184 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "remote-mount",
+    "title": "Mount remote harnesses at a pinned commit, only when trusted",
+    "description": "Lay down each declared remote mount — a `source.remote` layer in the root `index.config.json`, or, in a folio with no index, a `remoteMounts` entry on its declaration (both at once is refused) — and its dependency closure, from another repository at a full commit SHA. Write the lock, `index.lock.json` (a legacy `<name>.mount-lock.json` is read, and renamed onto it when rewritten), and, with an index, regenerate the root `.gitignore` block that ignores each mount path. It READS the declared mounts and never writes them: a tool that changes a mount writes through `writeDeclaredMounts` into `index.config.json`. Before anything is checked out, each mount must pass the trust gate (`schemas/kg/mount-trust.ts`, rule H8): a person's consent recorded for THIS pin, or a signature in a declared trust network. No signature verifier exists yet, so a signature alone is could-not-determine and does not mount. Unsigned and unconsented is refused. `--staging` mounts for a preview and needs neither. A directory id an override or `mountDefaults` names may be one the layer declares in its `<name>.json` or one it declares FROM WITHIN a declared directory (`skills/skills.json` naming `voices`), resolved at the pin through `instanceDirectories`; an id in neither is refused at plan time. `tools` on an override names Tools by id and mounts each one runnable: its definition (`<tools dir>/<id>/<id>.ts`), its implementation (the `inProcess.module`, or the script its `bun run cat <key>` resolves to) and their import closure, walked by bootstrap-tools' `importClosure` (the one closure walker), as every declared directory that closure touches — the lock still records directories only. A `hydrated` mount lays each chosen directory down as its published `index.hydrated.jsonld` only: read from the pin's git tree when a commit carries it, otherwise fetched from the pin's subgraph index package (the `subgraph-index-<sha>` release asset `subgraph-index-package` publishes), its tarball checked against its `folio-binary-release/v1` record, its manifest against the repository, pin and harness asked for, and each file against its sha256, `SubgraphHydratedSchema` and the subgraph IRI; the lock records the package's URL and sha256 so a replay fetches the same bytes. `--check` compares the disk against the lock and never fetches. When a run CHANGES the lock, it then re-renders the agent surface (`skill:commands` → `.claude/commands/`, `agent-memory` → `.claude/agent-memory/` and `.agents/`) from the checkout root, so a re-pin commit carries the skills and memory the new layers define; a generator that fails fails the run, and `--no-agent-surface` opts out.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat mount:remote"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The downstream layer root; omitted, every declaring layer in the checkout.",
+          "required": false,
+          "arg": {
+            "flag": "--instance"
+          }
+        },
+        {
+          "name": "staging",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Mount for a staging preview: no signature or consent required.",
+          "required": false,
+          "arg": {
+            "flag": "--staging"
+          }
+        },
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Compare the disk against the lock; fetch nothing.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        },
+        {
+          "name": "noAgentSurface",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Do not re-render `.claude/commands/` and the agent memory after a mount that changed the lock.",
+          "required": false,
+          "arg": {
+            "flag": "--no-agent-surface"
+          }
+        },
+        {
+          "name": "noInstall",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Lay the pinned bytes down without `bun install` in each mounted layer that carries a `package.json`. By default the install runs (`--production`; `--install-all` keeps devDependencies), so the mounted tools run; it writes only `node_modules/`, which no mount digest covers, so `--check` still passes.",
+          "required": false,
+          "arg": {
+            "flag": "--no-install"
+          }
+        },
+        {
+          "name": "seed",
+          "schema": {
+            "$type": "MountSeed"
+          },
+          "description": "`<name>=<owner/repo>@<40-char sha>`: create or re-pin that remote layer in `index.config.json` instead of mounting, writing its `trust.consent` for that pin in the same write (needs `consentBy` and `evidence`; repeatable; `--whole` mounts every tracked file). Refused while a mount it moves has edits the lock does not hold, since the next mount would leave that mount at the old commit; `fresh` lets it through.",
+          "required": false,
+          "arg": {
+            "flag": "--seed"
+          }
+        },
+        {
+          "name": "fresh",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Replace a mount whose bytes no longer hash to the lock instead of leaving it untouched; with `seed`, re-pin over such edits. The edits are discarded.",
+          "required": false,
+          "arg": {
+            "flag": "--fresh"
+          }
+        },
+        {
+          "name": "choose",
+          "schema": {
+            "$type": "MountChoice"
+          },
+          "description": "`<harness>[:<instance>]`: write a review's choice (`directories` and/or `tools`) into that mount entry's `overrides.<instance>` instead of mounting, so a fresh clone replays it. The pin and its consent are untouched; the next mount resolves the choice and the lock records what it resolved to.",
+          "required": false,
+          "arg": {
+            "flag": "--choose"
+          }
+        },
+        {
+          "name": "directories",
+          "schema": {
+            "$type": "IdList"
+          },
+          "description": "With `choose`: comma-separated directory ids, nested ids or concern names.",
+          "required": false,
+          "arg": {
+            "flag": "--directories"
+          }
+        },
+        {
+          "name": "tools",
+          "schema": {
+            "$type": "IdList"
+          },
+          "description": "With `choose`: comma-separated Tool ids, each mounted runnable.",
+          "required": false,
+          "arg": {
+            "flag": "--tools"
+          }
+        },
+        {
+          "name": "consentBy",
+          "schema": {
+            "$type": "Login"
+          },
+          "description": "With `seed`: who consented, as `consent.by`.",
+          "required": false,
+          "arg": {
+            "flag": "--consent-by"
+          }
+        },
+        {
+          "name": "evidence",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "With `seed`: where the consent was given, readable (a session, an issue comment), as `consent.evidence`. On stdin because it is free prose: it quotes what was said.",
+          "required": false,
+          "arg": {
+            "stdin": true
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "outcomes",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "Per layer: mounted, local, skipped, missing (including refused by the trust gate) or could-not-determine."
+        }
+      ]
+    },
+    "satisfies": [
+      "security",
+      "agent-memory"
+    ],
+    "requires": {
+      "runtime": [
+        "bun",
+        "git",
+        "curl",
+        "tar"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "A remote mount IS a fetch of another repository at a pin; offline there is nothing to mount. `--check` still reports the lock without the network."
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "Bean `ieum`, owner 2026-10-07: \"mounting remote KG needs trusted\nprovenance sources (digitally signed e.g. verifiable via GDHCN), or\nexplicit user consent\", and \"staging doesnt need signature\". This script\nhad no Tool node until then, so no agent could find it as a tool."
+    }
+  ]
+}

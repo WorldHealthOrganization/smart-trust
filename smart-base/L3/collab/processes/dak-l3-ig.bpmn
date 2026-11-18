@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  smart-base — a WHO SMART Guidelines L2 DAK to its published L3 FHIR IG.
+
+  Source of truth: this file. The picture beside it (dak-l3-ig.svg) is drawn by
+  `bun run cat render:bpmn`;
+  never hand-edit it.
+
+  The <bootstrap.processes:skill> extension on an activity names the skill
+  that implements it.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_DakL3Ig"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+
+  <bpmn:collaboration id="Collaboration_DakL3Ig">
+    <bpmn:participant id="Participant_DakL3Ig" name="WHO SMART Guidelines — L2 DAK to published FHIR IG" processRef="Process_DakL3Ig" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_DakL3Ig" name="L2 DAK to L3 FHIR IG" isExecutable="false">
+    <bpmn:documentation>How a WHO SMART Guidelines L2 Digital Adaptation Kit becomes a published L3 FHIR Implementation Guide: map the DAK's L2 content to the FHIR artefacts it calls for, then run fhir-harness's generic L3 pipeline (Process_L3Fhir) with that mapping as its source model. The WHO L2 → L3 ordering lives here because fhir-harness's pipeline does not know about DAKs; that pipeline is called, not copied.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_DakL3Ig_LaneSet">
+      <bpmn:lane id="Lane_Modeller" name="FHIR modeller">
+        <bpmn:documentation>One lane: this process adds one step, the mapping from the DAK's L2 content. Build, QC, work plan and publication belong to Process_L3Fhir, which CallActivity_L3Fhir runs whole.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="fhir-modeller"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>StartEvent_L2Ready</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MapL2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CallActivity_L3Fhir</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_IgPublished</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_L2Ready" name="L2 DAK ready">
+      <bpmn:documentation>Produced by l2-dak-authoring.bpmn (EndEvent_L2Ready).</bpmn:documentation>
+      <bpmn:outgoing>D01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_MapL2" name="Map L2 → L3">
+      <bpmn:documentation>Each data element becomes a profile, each value set a ValueSet, each decision a PlanDefinition / Library. The DAK's L2 content is l3-fhir-authoring's sourceModel; l2-dak-authoring, bound beside it, carries the WHO L2 → L3 ordering, which the generic skill does not name.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+        <bootstrap.processes:skill ref="l2-dak-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>D01</bpmn:incoming>
+      <bpmn:outgoing>D02</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:callActivity id="CallActivity_L3Fhir" name="L3 FHIR IG pipeline&#10;(fhir-harness)" calledElement="Process_L3Fhir">
+      <bpmn:documentation>fhir-harness's l3-fhir-pipeline.bpmn, from its StartEvent_ModelReady with the mapping above as the source model: author FSH, SUSHI, validate, QC, IG Publisher, publish. Called, not copied, so a change to the generic pipeline reaches every IG built on it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>D02</bpmn:incoming>
+      <bpmn:outgoing>D03</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="EndEvent_IgPublished" name="FHIR IG published">
+      <bpmn:incoming>D03</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="D01" sourceRef="StartEvent_L2Ready" targetRef="Task_MapL2" />
+    <bpmn:sequenceFlow id="D02" sourceRef="Task_MapL2" targetRef="CallActivity_L3Fhir" />
+    <bpmn:sequenceFlow id="D03" sourceRef="CallActivity_L3Fhir" targetRef="EndEvent_IgPublished" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_DakL3Ig">
+    <bpmndi:BPMNPlane id="BPMNPlane_DakL3Ig" bpmnElement="Collaboration_DakL3Ig">
+      <bpmndi:BPMNShape id="Participant_DakL3Ig_di" bpmnElement="Participant_DakL3Ig" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="760" height="380" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Modeller_di" bpmnElement="Lane_Modeller" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="730" height="380" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_L2Ready_di" bpmnElement="StartEvent_L2Ready">
+        <dc:Bounds x="262" y="252" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="225" y="292" width="110" height="30" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_MapL2_di" bpmnElement="Task_MapL2">
+        <dc:Bounds x="375" y="225" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_L3Fhir_di" bpmnElement="CallActivity_L3Fhir">
+        <dc:Bounds x="575" y="225" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_IgPublished_di" bpmnElement="EndEvent_IgPublished">
+        <dc:Bounds x="802" y="252" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="765" y="292" width="110" height="30" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="D01_di" bpmnElement="D01">
+        <di:waypoint x="298" y="270" />
+        <di:waypoint x="375" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D02_di" bpmnElement="D02">
+        <di:waypoint x="505" y="270" />
+        <di:waypoint x="575" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D03_di" bpmnElement="D03">
+        <di:waypoint x="705" y="270" />
+        <di:waypoint x="802" y="270" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

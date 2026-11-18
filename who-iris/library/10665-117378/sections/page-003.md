@@ -1,0 +1,112 @@
+---
+doc_id: 10665-117378
+doc_title: "[Pilot study of antiretroviral therapy in Djibouti]"
+section_id: page-003
+section_title: "Page 3"
+pages: 3-3
+pdf_page: 3
+source_pdf: 10665-117378.pdf
+source_sha256: a1da9552b4648697
+text_source: ocr
+granularity: page
+---
+1276
+
+mois de traitement, on considère qu’il y a
+un échec virologique si la charge virale est
+supérieure ou égale à 400 copies/mL et un
+succès virologique si la charge virale est
+inférieure à 400 copies/mL. On considère
+qu’il y a un succès immunologique si on a
+une augmentation de plus de 20 % du taux
+de CDA initial et un échec si on a moins de
+20 %. Un taux d’hémoglobine < 12 g/dL
+correspond à une anémie, des leucocytes
+< 4 G/L correspondent à une leucopénie
+et des plaquettes < 150 G/L à une throm-
+bopénie. L’association d’une anémie +
+leucopénie ou thrombopénie + anémie ou
+leucopénie + thrombopénie correspond à
+une bicytopénie et une pancytopénie cor-
+respond à anémie + leucopénie + thrombo-
+pénie. L’indice de masse corporelle (IMC)
+correspond au rapport poids / (taille?.
+
+Techniques de laboratoire
+
+Pour le suivi, le dosage des CD4 est réalisé
+grâce à deux appareils FACS-Count (F/uo-
+rescent Activated Cell Sorter) de Becton
+Dickinson. La technique NASBA (Nucleic
+Acid Sequence-Based Amplification) déve-
+loppée par bioMérieux permet la réalisation
+de la charge virale. Sa sensibilité est à
+partir de 25 Ul/mL. La numération formule
+sanguine (NFS) + plaquette est obtenue à
+l’aide de l’appareil Micros développé par
+Abis ; cet appareil ne donne pas la formule
+leucocytaire. Ces bilans sont réalisés au
+niveau du laboratoire de l’hôpital général
+Peltier, vers lequel tous les prélèvements
+convergeaient.
+
+Analyse statistique
+Les données, saisies à l’aide du logiciel
+Epidata 3.02 (Centers for Disease Control
+and Prevention [CDC], Atlanta, États-Unis)
+sont analysées dans le logiciel Stata 8.1,
+(Stata Corporation, College Station, Texas,
+États-Unis).
+
+Le critère principal de jugement de l’ef-
+ficacité est une charge virale inférieure à
+
+La Revue de Santé de la Méditerranée orientale, Vol. 13, N°6, 2007
+
+400 copies après trois mois de traitement.
+La charge virale est mesurée sur une échelle
+logarithmique décimale (log,,). Les tests de
+2, de Fischer et de Mac Nemar sont utilisés
+pour la comparaison des variables qualitati-
+ves. La comparaison des différences des va-
+riables quantitatives clinique et biologique
+est réalisée à l’aide du test T de Wilcoxon.
+La comparaison d’une variable continue
+entre deux groupes est réalisée à l’aide des
+tests de Mann-Whitney et entre plusieurs
+groupes à l’aide du test de Kruskall-Wallis.
+Pour vérifier la corrélation entre le taux
+de CD4 et le taux de lymphocytes, le test
+du coefficient de corrélation de Spearman
+et une représentation graphique selon un
+modèle de régression linéaire sont utilisés.
+Une analyse multivariée est réalisée à
+l’aide d’un modèle de régression logistique.
+La procédure de sélection pas à pas des-
+cendante est utilisée pour obtenir le modèle
+final contenant uniquement les variables
+significatives et les variables de confusion.
+Tous les tests ont été interprétés avec un
+seuil de significativité de 5 %, et les inter-
+valles de confiance ont été calculés à 95 %.
+
+Résultats
+
+Description de la population d'étude
+Pour l’enquête, 112 patients sont retenus.
+La durée médiane sous traitement antirétro-
+viral des patients est de 196 jours (écart in-
+terquartile [EIQ] : 132-252). L'âge médian
+est de 36 ans (EIQ : 30-41). L’âge moyen
+des hommes est de 38 ans (IC 95 % : 35,9-
+40,3) et celui des femmes de 34,7 ans (IC
+95 %: 32,6-36,9). Les femmes sont
+plus jeunes que les hommes (p = 0,03).
+Le sex ratio est de 1,04. Les patients vi-
+vant ou ayant vécu en couple sont
+majoritaires (82,14 %). Les sans-emploi re-
+présentent 54,46 %. Les patients des districts
+(15 %) s’approvisionnent en antirétroviraux
+(ARV) à Djibouti-ville ; 52 % des patients
+
+Yes V et ol he EU Al Aa ill ioliue clou ll Ga aol all

@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  smart-base — one L2 DAK component, edited by the agent and reviewed by a person.
+
+  Source of truth: this file. The picture beside it (l2-component-edit-review.svg) is drawn by
+  `bun run cat render:bpmn`;
+  never hand-edit it.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_L2ComponentEditReview"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+
+  <bpmn:collaboration id="Collaboration_L2ComponentEditReview">
+    <bpmn:participant id="Participant_L2ComponentEditReview" name="One L2 DAK component — agent edits, a person reviews" processRef="Process_L2ComponentEditReview" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_L2ComponentEditReview" name="L2 component edit and review" isExecutable="false">
+    <bpmn:documentation>One pass over one L2 DAK component: the agent edits it, runs its checker, renders and stages it with a before/after, and hands it on; review forks off beside the hand-on and never holds it up (adjudication is QA, not a gate). Called once per component pass by each authoring track of l2-dak-authoring.bpmn (Process_L2Dak).
+
+Only the call's inputs differ between components (skill l2-component-edit-review, "The inputs, per component"):
+- component: personas and user scenarios (C2, C3), business processes (C4), core data elements and glossary (C5) with their terminology bindings, decision-support and scheduling logic (C6, C7), indicators and requirements (C8, C9);
+- authoring skill: l2-dak-authoring, bpmn-authoring, dmn-authoring or terminology-management, named on the calling activity, so it joins this process's skills along the call path (review-task.bpmn's scoped composition);
+- renderer and diff: what the reviewer sees, before and after;
+- checker: the mechanical checks the agent runs before asking anyone;
+- reviewing role: the person who takes this process's reviewer lane for the call.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_L2ComponentEditReview_LaneSet">
+      <bpmn:lane id="Lane_Agent" name="Authoring agent">
+        <bpmn:documentation>Does everything except judge: edits the component with the authoring skill the call names, runs its checker, renders it and makes the before/after preview on a staged build, hands it on without waiting, and asks for review with staging deep links. Never records the verdict (smart-guideline-end-to-end, rule 4). On request-changes it edits again; on reject it reopens the stage upstream and flags what was derived from it.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="authoring-agent"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_ComponentPass</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Rework</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Edit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RenderStage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_HandOnFork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_HandedOn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RequestReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReopenUpstream</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Reopened</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Reviewer" name="Component reviewer (person)">
+        <bpmn:documentation>A person, never the agent, in the role the call names: the clinical SME for business processes, decision logic, personas and scenarios; a terminologist for terminology bindings and the glossary's codes, never the one who chose the code; the business analyst with the programme manager for indicators and requirements. The role takes this generic lane for the call path only (review-task.bpmn), so a DMN reviewer does not carry the terminologist's skills. Reads the staged component, its before/after and its checker's findings.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="reviewer"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Call_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Verdict</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Approved</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_ComponentPass" name="Component pass called">
+      <bpmn:outgoing>R01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_Rework" name="">
+      <bpmn:documentation>Merge only: the first pass and every request-changes rework enter the edit here.</bpmn:documentation>
+      <bpmn:incoming>R01</bpmn:incoming>
+      <bpmn:incoming>R11</bpmn:incoming>
+      <bpmn:outgoing>R02</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Edit" name="Edit the component">
+      <bpmn:documentation>Create or change the component with the authoring skill the call names, one component per pass. On rework, apply the review's findings; a fix written in an AuditNote is applied as given. An adapted component is edited against its pinned upstream, so the before side of the diff is that upstream, not an empty file.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>R02</bpmn:incoming>
+      <bpmn:outgoing>R03</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Check" name="Run the component's checker">
+      <bpmn:documentation>The mechanical checks for this component, before anyone is asked (skill l2-component-edit-review, column "checker"): BPMN imports in bpmn-js with no warnings and its lanes map to personas (dak-swimlanes.ts); DMN loads, its decisions are reachable (artefact-reachability, audit:reachability) and its test cases run (content-test); the data dictionary web annex's ids are unique and its references and terminology bindings resolve (check-web-annexes.ts); personas, scenarios and requirements each trace to an L1 recommendation (recommendation-extraction's implementedBy edges). Findings go with the review request; a failing check does not stop the hand-on.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-validate" />
+        <bootstrap.processes:skill ref="content-test" />
+        <bootstrap.processes:skill ref="artefact-reachability" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>R03</bpmn:incoming>
+      <bpmn:outgoing>R04</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_RenderStage" name="Render, stage, before/after">
+      <bpmn:documentation>Render the component the way its reviewer reads it (column "renderer and diff"): the BPMN diagram (render:bpmn) with a visual-diff picture; the DMN decision table (smart-base-transform.py dmn2html) with each rule's L1 citation; the data dictionary's term diff (dak-data-dictionary-diff.ts) and the chosen wireframe of each form; personas, scenarios and requirements as a prose diff. Commit to the feature branch so it is staged as branches/&lt;slug&gt;/ on the platform's just-the-docs site (for smart-base, a folio-assistant staging re-pin, never the IG's /deploy), and make the before/after preview here so it exists when review starts.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="before-after-preview" />
+        <bootstrap.processes:skill ref="feature-staging" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>R04</bpmn:incoming>
+      <bpmn:outgoing>R05</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Gateway_HandOnFork" name="Hand on and review">
+      <bpmn:documentation>One branch hands the component on at once; the other asks for review. The instance ends only when both have ended, so not waiting is not skipping.</bpmn:documentation>
+      <bpmn:incoming>R05</bpmn:incoming>
+      <bpmn:outgoing>R06</bpmn:outgoing>
+      <bpmn:outgoing>R07</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:endEvent id="End_HandedOn" name="Handed on, adjudication pending">
+      <bpmn:documentation>The calling track continues with this component. Anything derived from it carries adjudication: pending on its wasDerivedFrom edge until the verdict is recorded (smart-guideline-end-to-end, rule 2).</bpmn:documentation>
+      <bpmn:incoming>R06</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_RequestReview" name="Ask for review with staging deep links">
+      <bpmn:documentation>Ask the person in the reviewing role, following staging-review's deep-link rule: one deep link per changed page and anchor on branches/&lt;slug&gt;/, each beside the same page on main (or "new page"), the pages taken from the change (rendered-impact); say so if there is no preview yet. Lead with what changed in prose, then the links, the before/after and the checker's findings; put the question in interaction-modality's form. Post it where the work is discussed (this conversation, the originating GitHub issue, the pull request), with the same links in each. A comment tagged on the PR becomes a review-comment todo (review-comments).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="staging-review" />
+        <bootstrap.processes:skill ref="interaction-modality" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>R07</bpmn:incoming>
+      <bpmn:outgoing>R08</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_Review" name="Review the staged component" calledElement="Process_Review">
+      <bpmn:documentation>cat-harness's generic review, called: classify what changed, review it, and record a qa-review/v1 QaReview whose subject is the component and whose Decision carries the reviewing role. The reviewer reads the staged page and the before/after; for a figure or table, the visual-diff picture and its changed-pixel count; for a form, the wireframe (wireframe-design-review; at L3 its Questionnaire follows fhir-questionnaire-wireframe). What to judge per component is in the skill's column "the reviewer judges".</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+        <bootstrap.processes:skill ref="visual-diff" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>R08</bpmn:incoming>
+      <bpmn:outgoing>R09</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="Gateway_Verdict" name="Verdict?">
+      <bpmn:documentation>approve ends the review; request-changes sends the component back to the edit, which re-stages it and asks again; reject means the component is wrong at the root (wrong source or dependency) and reopens the stage that chose it. The calling track has not waited for any of these.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="A person's clinical, terminological or editorial reading of one component against its L1 source. The checker's findings are an input to it, not its answer, so there is no recurring input a decision table could key on."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>R09</bpmn:incoming>
+      <bpmn:outgoing>R10</bpmn:outgoing>
+      <bpmn:outgoing>R11</bpmn:outgoing>
+      <bpmn:outgoing>R12</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Approved" name="Component approved">
+      <bpmn:documentation>adjudication: pending on derived edges becomes the recorded outcome.</bpmn:documentation>
+      <bpmn:incoming>R10</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_ReopenUpstream" name="Reopen upstream, flag derived assets">
+      <bpmn:documentation>File a bean against the stage that chose the rejected source or dependency (check for an existing one first), and mark every asset derived from this component adjudication: rejected-upstream on its wasDerivedFrom edge. Nothing is deleted: the re-derivation may come out the same.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>R12</bpmn:incoming>
+      <bpmn:outgoing>R13</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Reopened" name="Upstream stage reopened">
+      <bpmn:incoming>R13</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="R01" sourceRef="Start_ComponentPass" targetRef="Gateway_Rework" />
+    <bpmn:sequenceFlow id="R02" sourceRef="Gateway_Rework" targetRef="Task_Edit" />
+    <bpmn:sequenceFlow id="R03" sourceRef="Task_Edit" targetRef="Task_Check" />
+    <bpmn:sequenceFlow id="R04" sourceRef="Task_Check" targetRef="Task_RenderStage" />
+    <bpmn:sequenceFlow id="R05" sourceRef="Task_RenderStage" targetRef="Gateway_HandOnFork" />
+    <bpmn:sequenceFlow id="R06" sourceRef="Gateway_HandOnFork" targetRef="End_HandedOn" />
+    <bpmn:sequenceFlow id="R07" sourceRef="Gateway_HandOnFork" targetRef="Task_RequestReview" />
+    <bpmn:sequenceFlow id="R08" sourceRef="Task_RequestReview" targetRef="Call_Review" />
+    <bpmn:sequenceFlow id="R09" sourceRef="Call_Review" targetRef="Gateway_Verdict" />
+    <bpmn:sequenceFlow id="R10" name="approve" sourceRef="Gateway_Verdict" targetRef="End_Approved" />
+    <bpmn:sequenceFlow id="R11" name="request-changes" sourceRef="Gateway_Verdict" targetRef="Gateway_Rework" />
+    <bpmn:sequenceFlow id="R12" name="reject" sourceRef="Gateway_Verdict" targetRef="Task_ReopenUpstream" />
+    <bpmn:sequenceFlow id="R13" sourceRef="Task_ReopenUpstream" targetRef="End_Reopened" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_L2ComponentEditReview">
+    <bpmndi:BPMNPlane id="BPMNPlane_L2ComponentEditReview" bpmnElement="Collaboration_L2ComponentEditReview">
+      <bpmndi:BPMNShape id="Participant_L2ComponentEditReview_di" bpmnElement="Participant_L2ComponentEditReview" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1700" height="530" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Agent_di" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1670" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Reviewer_di" bpmnElement="Lane_Reviewer" isHorizontal="true">
+        <dc:Bounds x="190" y="380" width="1670" height="230" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_ComponentPass_di" bpmnElement="Start_ComponentPass">
+        <dc:Bounds x="252" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="232" y="202" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Rework_di" bpmnElement="Gateway_Rework" isMarkerVisible="true">
+        <dc:Bounds x="310" y="155" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Edit_di" bpmnElement="Task_Edit">
+        <dc:Bounds x="400" y="140" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Check_di" bpmnElement="Task_Check">
+        <dc:Bounds x="580" y="140" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RenderStage_di" bpmnElement="Task_RenderStage">
+        <dc:Bounds x="760" y="140" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_HandOnFork_di" bpmnElement="Gateway_HandOnFork">
+        <dc:Bounds x="940" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="915" y="125" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_HandedOn_di" bpmnElement="End_HandedOn">
+        <dc:Bounds x="1062" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1025" y="202" width="110" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RequestReview_di" bpmnElement="Task_RequestReview">
+        <dc:Bounds x="900" y="270" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReopenUpstream_di" bpmnElement="Task_ReopenUpstream">
+        <dc:Bounds x="1560" y="140" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Reopened_di" bpmnElement="End_Reopened">
+        <dc:Bounds x="1762" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1730" y="202" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Review_di" bpmnElement="Call_Review">
+        <dc:Bounds x="1100" y="450" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Verdict_di" bpmnElement="Gateway_Verdict" isMarkerVisible="true">
+        <dc:Bounds x="1290" y="465" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1345" y="510" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Approved_di" bpmnElement="End_Approved">
+        <dc:Bounds x="1462" y="472" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1430" y="512" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="R01_di" bpmnElement="R01">
+        <di:waypoint x="288" y="180" />
+        <di:waypoint x="310" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R02_di" bpmnElement="R02">
+        <di:waypoint x="360" y="180" />
+        <di:waypoint x="400" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R03_di" bpmnElement="R03">
+        <di:waypoint x="530" y="180" />
+        <di:waypoint x="580" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R04_di" bpmnElement="R04">
+        <di:waypoint x="710" y="180" />
+        <di:waypoint x="760" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R05_di" bpmnElement="R05">
+        <di:waypoint x="890" y="180" />
+        <di:waypoint x="940" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R06_di" bpmnElement="R06">
+        <di:waypoint x="990" y="180" />
+        <di:waypoint x="1062" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R07_di" bpmnElement="R07">
+        <di:waypoint x="965" y="205" />
+        <di:waypoint x="965" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R08_di" bpmnElement="R08">
+        <di:waypoint x="1030" y="310" />
+        <di:waypoint x="1165" y="310" />
+        <di:waypoint x="1165" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R09_di" bpmnElement="R09">
+        <di:waypoint x="1230" y="490" />
+        <di:waypoint x="1290" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R10_di" bpmnElement="R10">
+        <di:waypoint x="1340" y="490" />
+        <di:waypoint x="1462" y="490" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1375" y="470" width="50" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R11_di" bpmnElement="R11">
+        <di:waypoint x="1315" y="465" />
+        <di:waypoint x="1315" y="110" />
+        <di:waypoint x="335" y="110" />
+        <di:waypoint x="335" y="155" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1210" y="92" width="100" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R12_di" bpmnElement="R12">
+        <di:waypoint x="1315" y="515" />
+        <di:waypoint x="1315" y="575" />
+        <di:waypoint x="1625" y="575" />
+        <di:waypoint x="1625" y="220" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1440" y="557" width="40" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R13_di" bpmnElement="R13">
+        <di:waypoint x="1690" y="180" />
+        <di:waypoint x="1762" y="180" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

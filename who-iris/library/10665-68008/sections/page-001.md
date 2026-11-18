@@ -1,0 +1,61 @@
+---
+doc_id: 10665-68008
+doc_title: "Country report : country, Upper Volta"
+section_id: page-001
+section_title: "Page 1"
+pages: 1-1
+pdf_page: 1
+source_pdf: 10665-68008.pdf
+source_sha256: 8a26dce3fc1e94c0
+text_source: ocr
+granularity: page
+---
+WORLD HEALTH ORGANIZATION
+ORGANISATION MONDIALE DE LA SANTE Country _UPPER VOLTA
+
+INTER-REGIONAL SEMINAR ON SMALLPOX ERADICATION
+
+Lagos, Nigeria, 13-20 May 1969
+
+COUNTRY REPORT:
+
+1.0 DEMOGRAPHIC DATA
+
+1,1 Estimated population (July }@6&) 1966 Age | 1966
+‘7 with an estimate for 1970 based on 0-4 849 155 907 164
+"La situation demographic en Haute, 5-14 - 1 146 596 1 22h 928
+Volta - resultats partiels" Insee. 15-44 2 062 914 2 203 S48
+. Cooperation Paris 1960-61. = ~* "45+ 738 811 789 284
+TOTAL 4 797 476 5 125 228
+
+1,2 Population by geographic subdivision (Table 1)
+1,3 Population density by geographic subdivision (Table 1)
+
+1.4 Population density by: geographic subdivision (Figure 1)
+
+2.0 SMALLPOX INC IDENCE AND VACCI NATION DATA
+
+2.1 Smallpox cases by month and geographic subdivision - Jan, 1968 - Feb, 1969 (Table '
+2,2 Location of smallpox outbreaks,
+
+Oct. 68.- Dec, 68 (Figure 2)
+Jan, 69 - Feb, 69 (Figure 3)
+
+2.3 Incidence rates per 100 000 population by geographic subdivision and by quarter,
+
+dan, 68 - Mar. 68 (Figure 4)
+Apr, 68 - Jun, 68 (Figure 5).
+Jui. 68 - Sep. 68 (Figure 6)
+oct, 68 - Dec, 68 (Figure 7)
+Jan, 69 - Feb, 69 (Figure 8)
+
+2.4 Monthly distribution of smallpox cases by age and sex - Jan, 1969 - Feb, 1969
+
+SE/69.25 (Table 3) i
+The issue of this document does not constitute Ce document ne constitue pas une publication.
+formal publication. It should not be reviewed, it ne doit faire l’objet d'aucun compte rendu ou i
+abstracted or quoted without the agreement of résumé ni d’aucune citation sans l’autorisation de
+the World Health Organization. Authors alone l'Organisation Mondiale de ia Santé. Les opinions
+are responsible for views expressed in signed exprimées dans les articles signés n'engagent
+
+articles. que leurs auteurs.

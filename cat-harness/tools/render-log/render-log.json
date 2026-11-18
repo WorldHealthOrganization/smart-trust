@@ -1,0 +1,151 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "render-log",
+    "title": "Record what the publish branch served",
+    "description": "Append one entry to the render log on the publish branch: what was published or taken down, when, from which commit, and — for a removal or a retention — WHY. The log is the only place a preview that vanished leaves a trace.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat render:log"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "dir",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A checkout of the publish branch, or a publish directory about to become one. This tool NEVER fetches, commits or pushes: the calling workflows hold the checkout with their own retry and concurrency handling, and a second pusher racing them could lose a deploy.",
+          "required": true,
+          "arg": {
+            "flag": "--dir"
+          }
+        },
+        {
+          "name": "event",
+          "schema": {
+            "$type": "RenderEvent"
+          },
+          "description": "`rendered`, `removed`, `restored` or `retained`. `retained` records a removal CONSIDERED and refused, which would otherwise leave no trace.",
+          "required": true,
+          "arg": {
+            "flag": "--event"
+          }
+        },
+        {
+          "name": "kind",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "What was rendered — `staging-preview`, `site`, `export`. Open, not an enum: the publish branch carries more than previews, and an enum would make logging a new kind wait on a schema change.",
+          "required": true,
+          "arg": {
+            "flag": "--kind"
+          }
+        },
+        {
+          "name": "path",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The path on the publish branch. Checked as a VALUE, never trusted by provenance: the slug sanitiser can emit `..`, which is only safe for a slug taken from a git ref, and a dispatch input is not one.",
+          "required": true,
+          "arg": {
+            "flag": "--path"
+          }
+        },
+        {
+          "name": "slug",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "The staging slug, where the subject has one.",
+          "required": false,
+          "arg": {
+            "flag": "--slug"
+          }
+        },
+        {
+          "name": "branch",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "The branch the render came from.",
+          "required": false,
+          "arg": {
+            "flag": "--branch"
+          }
+        },
+        {
+          "name": "commit",
+          "schema": {
+            "$type": "CommitSha"
+          },
+          "description": "The commit the artefact was built from.",
+          "required": false,
+          "arg": {
+            "flag": "--commit"
+          }
+        },
+        {
+          "name": "run",
+          "schema": {
+            "$type": "Url"
+          },
+          "description": "The workflow run that wrote this, so a reader can open the log.",
+          "required": false,
+          "arg": {
+            "flag": "--run"
+          }
+        },
+        {
+          "name": "prose",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "One JSON object on STDIN: `{summary, reason?, detail?, format?}`. `summary` is required and one line. `reason` is required by the SCRIPT for `removed` and `retained`, because an entry saying an artefact went and not why is the ambiguity the log exists to prevent. `format` declares how the prose reads (absent means plain text, never sniffed). Build it with `jq -n --arg`, never by concatenation.",
+          "required": true,
+          "arg": {
+            "stdin": true
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "entry",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The day's JSONL the entry was APPENDED to. Append is the only verb: there is no `--remove`, no `--edit` and no `--id`, so a takedown is a `removed` ENTRY rather than the erasure of the `rendered` one before it, and the never-delete rule is structural rather than a guard every cleanup path must remember."
+        }
+      ]
+    },
+    "satisfies": [
+      "render-logging"
+    ],
+    "selection": {
+      "when": "Whenever something is published to or removed from the publish branch — including a removal that was refused. Called from `feature-staging.yml` at four points; `staging-render-log.bpmn` is the process.",
+      "limits": "It writes into a directory and does not push, so a caller that forgets to commit the log has written nothing durable. It cannot edit or delete an entry, by design. `--summary` / `--reason` / `--detail` are REFUSED as flags at exit 2 rather than ignored: they go on stdin, and a caller still passing them is told instead of silently logging an entry with no summary.",
+      "cost": "One appended line. No network."
+    },
+    "requires": {
+      "runtime": [
+        "bun",
+        "jq"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/io/inputs/8",
+      "comment": "The whole reason this node exists, and why it took a change to the\nscript rather than a cleverer type."
+    },
+    {
+      "at": "",
+      "comment": "── The publish branch's own history of what it served ───────────────\n\nBean `ru6i`. This node could not be written at all until `render-log.ts`\ntook its prose on stdin: `satisfies` needs a skill, the skill is\n`render-logging`, and `check:tools` refuses a `Text` input that is a\ncommand-line word. The type system was fail-closed and correct, and the\nscript's interface was what had to move."
+    }
+  ]
+}

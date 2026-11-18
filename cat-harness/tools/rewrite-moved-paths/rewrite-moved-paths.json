@@ -1,0 +1,131 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "rewrite-moved-paths",
+    "title": "Rewrite paths that still name a moved file's old layer — never in a record",
+    "description": "After a move between two layers lands, find every mention `<from>/<prefix>/<rest>` in the scanned tree's tracked files and rewrite it to `<to>/<prefix>/<rest>` only when the file exists under the destination root and not under the source root. Records are never read: beans, todos, memory, proposals, wireframes, QA results, upstream pins, vocab mappings, provenance figures and terminologies, and test fixtures (`DEFAULT_RECORD_GLOBS`; the CLI's `--keep <glob>` adds more, generated trees among them, which their generators rewrite — a glob is not a shell-safe argument type, so it is not a declared input). Reports by default with file and line; `--write` applies; `--check` exits 1 while a rewrite is owed.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat paths:rewrite-moved"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "fromName",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "The moved files' old layer, as paths spell it (e.g. the harness).",
+          "required": true,
+          "arg": {
+            "flag": "--from-name"
+          }
+        },
+        {
+          "name": "fromRoot",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "That layer's root on disk.",
+          "required": true,
+          "arg": {
+            "flag": "--from-root"
+          }
+        },
+        {
+          "name": "toName",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "The layer the files moved to.",
+          "required": true,
+          "arg": {
+            "flag": "--to-name"
+          }
+        },
+        {
+          "name": "toRoot",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "That layer's root on disk.",
+          "required": true,
+          "arg": {
+            "flag": "--to-root"
+          }
+        },
+        {
+          "name": "prefix",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A moved directory, repeatable (e.g. `scripts`, `pipeline`).",
+          "required": true,
+          "arg": {
+            "flag": "--prefix"
+          }
+        },
+        {
+          "name": "scan",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The git checkout whose tracked files are read; default the source root.",
+          "required": false,
+          "arg": {
+            "flag": "--scan"
+          }
+        },
+        {
+          "name": "write",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Apply the rewrites.",
+          "required": false,
+          "arg": {
+            "flag": "--write"
+          }
+        },
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Exit 1 while any rewrite is owed; write nothing.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "rewrites",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "Rewrites made or owed, each with file and line; mentions left alone; record files not read."
+        }
+      ]
+    },
+    "satisfies": [
+      "kg-separation"
+    ],
+    "requires": {
+      "runtime": [
+        "bun",
+        "git"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "The 70lx sweep's rewrite rule, as a Tool (owner, 2026-10-10: \"any\ngeneralizations to add to skills/can we reuse in future subgraph\nseparation?\"). Skill `kg-separation` §\"After a move lands\"."
+    }
+  ]
+}
