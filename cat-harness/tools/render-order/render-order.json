@@ -1,0 +1,50 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "render-order",
+    "title": "The render pipeline, in dependency order",
+    "description": "Flatten the repository's renders into the order their `needs` imply, and optionally run them. Two stages: the current declared state as json/jsonld and the README derived from it are FATAL; the dynamic renderers (viewers, visualisers, doc pages, diagrams) skip and log; the dynamic-state export closes it. A cycle or a missing dependency yields NO order rather than a partial one.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat render",
+      "mcp": {
+        "tool": "render_order"
+      },
+      "inProcess": {
+        "module": "src/tools/render-order.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "dry_run",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Print the flattened order and each step's failure policy without running anything.",
+          "required": false,
+          "arg": {
+            "flag": "--dry-run"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "Per step: ran, failed, skipped, or PENDING — declared with no implementation yet, which is never rendered as a pass."
+        }
+      ]
+    },
+    "satisfies": [
+      "docs-generation"
+    ],
+    "requires": {
+      "network": false
+    }
+  }
+}

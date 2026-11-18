@@ -1,0 +1,15 @@
+# The `merge-guard` commit status on this repository's PR heads: a caller of
+# cat-harness-tools' layer-merge-guard.yml (owner, 2026-11-13, card "A.
+# merge-guard required status"). Keep this file name: the guard ignores its
+# own runs as evidence about the head. It never merges.
+name: Merge guard
+on:
+  pull_request_target: { types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, labeled, unlabeled, edited] }
+  issue_comment: { types: [created, edited] }
+  workflow_run: { workflows: ["Harness PR checks"], types: [completed] }
+  workflow_dispatch: { inputs: { pr: { type: string, required: false, description: "PR number; empty: every open PR" } } }
+permissions: { contents: read, pull-requests: read, issues: read, actions: read, checks: read, statuses: write }
+jobs:
+  guard:
+    uses: litlfred/cat-harness-tools/.github/workflows/layer-merge-guard.yml@5d1c20306628d5a6ff09e72c6d85ee1d8017ff68 # main
+    with: { pr: "${{ inputs.pr || '' }}" }

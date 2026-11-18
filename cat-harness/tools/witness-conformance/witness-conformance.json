@@ -1,0 +1,75 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "witness-conformance",
+    "title": "Witness conformance report",
+    "description": "Check every `*.witness.json` in the folio's declared `computation-witness` directories against the two schemas in `schemas/computation-witness.ts`: the envelope every witness should meet (a failure is a malformed file) and the producer contract (a failure is a finding against the producer, grouped by the fields at fault). Also lists files that are not strict JSON, which Python's reader accepts and every other consumer rejects. Report-only: it never edits a witness, which is generator output.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat witness:conformance"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "dir",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Check this directory instead of the declared ones, e.g. before a folio declares the kind.",
+          "required": false,
+          "arg": {
+            "flag": "--dir"
+          }
+        },
+        {
+          "name": "json",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Machine-readable output, every finding group listed.",
+          "required": false,
+          "arg": {
+            "flag": "--json"
+          }
+        },
+        {
+          "name": "strict",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Exit 1 when any witness is malformed or not strict JSON. Contract findings never fail the run.",
+          "required": false,
+          "arg": {
+            "flag": "--strict"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Counts of witnesses, malformed files, non-strict-JSON files and contract conformance, then the contract findings by field. Exit 2 when no directory declares the kind and no `--dir` was given: a clean report over nothing is not a pass."
+        }
+      ]
+    },
+    "satisfies": [
+      "directory-conventions"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "Bean `qou-qb6t`, owner 2026-10-04: \"all witnesses tools will need to go\ninto the KG\". The reader of the `computation-witness` kind: which\nwitnesses meet the producer contract, and which are malformed."
+    }
+  ]
+}

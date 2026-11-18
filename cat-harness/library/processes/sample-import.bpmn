@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — Sample import into a structured data store
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool. The SVG under docs/assets/img/workflows/ is generated from it
+  by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  The <bootstrap.processes:skill> extension on an activity names the folio-assistant skill
+  that implements it.
+  The engine keeps the work context; no step carries work-plan markup.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_SampleImport"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="corpus" name="Corpus"/>
+  <bpmn:resource id="ingestion-agent" name="Ingestion engine"/>
+  <bpmn:resource id="user" name="User"/>
+
+  <bpmn:collaboration id="Collaboration_SampleImport">
+    <bpmn:participant id="Participant_SampleImport" name="Sample import into a structured data store" processRef="Process_SampleImport" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_SampleImport" name="Sample import into a structured data store" isExecutable="false">
+    <bpmn:documentation>The SDLC for testing an import of a SAMPLE of a remote source into a knowledge graph or other structured store. It covers data size, retention, source loss and copyright. General, not WHO-specific: IRIS is the worked instance, and who-iris/ is what this is exercised on.
+
+THE GATES ARE CALLED, NOT COPIED. Size, restrictions, copyright, retention and source loss live once, in materialize-remote.bpmn. This process branches on that call's OUTCOME, so a gate refused there is a refusal here and there is no second copy to drift.
+
+WHERE A SAMPLE LANDS depends on whether it is meant to last. A permanent sample goes to library/ and is kept current by refresh-materialized.bpmn. A trial goes to fsh-guts/: kept, addressable, never published, and never refreshed, because a trial is evidence of what the source looked like when it was tried.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_SampleImport_LaneSet">
+      <bpmn:lane id="Lane_0" name="Contributor (human or agent)" partitionElementRef="user">
+        <bpmn:documentation>One decision, and it is the one no file answers: what the sample is FOR. Which items, into which store, and whether the result is meant to last. The last question decides the destination, and asking it after the copy exists would mean moving a copy that was already landed somewhere under the wrong obligations.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_Proposed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Scope</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_1" name="Ingestion Engine (agent, runs unattended)" partitionElementRef="ingestion-agent">
+        <bpmn:documentation>Calls the two shared subprocesses and does the part that is this process's own: landing the copy in the destination the contributor chose, importing it into the store, and testing the import. It never re-asks a gate: it acts on materialize-remote's outcome. It also answers the second entry, an upstream change to a permanent sample, by calling refresh-materialized rather than re-importing.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_Upstream</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Refresh</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Refreshed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Materialize</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Materialized</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Permanent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Library</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Trial</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ImportTest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Passed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Refused</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RecordFindings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Failed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Imported</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Proposed" name="A sample of a remote
+source is proposed">
+      <bpmn:documentation>The caller names a source (ideally one with a source descriptor in the declared sources/ of the layer that owns the corpus) and a reason to try it. Nothing about size, licence or permanence is assumed at this point.</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Scope" name="Scope the sample: items, store, permanence">
+      <bpmn:documentation>Three answers, recorded before anything is fetched. WHICH ITEMS: named by the source's identifiers, or by a subset strategy its descriptor supports. WHICH STORE: the knowledge graph or other structured store the import is tested against. PERMANENT OR TRIAL: a permanent sample lands in library/ and is refreshed; a trial lands in fsh-guts/ and is not. The purpose materialize-remote asks for (working or archival) is asked there, not here.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="sample-import" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:callActivity id="Call_Materialize" calledElement="Process_MaterializeRemote" name="Materialize remote content
+(the five gates)">
+      <bpmn:documentation>The shared subprocess. It resolves the request against the source descriptor, then asks size, restrictions, copyright, retention and source loss, and either fetches with fixity or leaves the content referenced. This process does not restate any of that; it waits for the outcome.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="sample-import" />
+        <bootstrap.processes:skill ref="materialize-remote" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="Gateway_Materialized" name="Materialized?">
+      <bpmn:documentation>Read off materialize-remote's end state, never re-decided. `referenced` (any gate refused or unknown) ends the sample here; `materialized` continues.</bpmn:documentation>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_Permanent" name="Meant to be
+permanent?">
+      <bpmn:documentation>The answer from Task_Scope. There is no default, and none is needed here: Task_Scope does not complete until permanence is stated, so an unscoped sample never reaches this gateway.</bpmn:documentation>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Library" name="Land it in library/">
+      <bpmn:documentation>A permanent sample joins the library as an L1 source, with the materialization record (purpose, gates, fixity) beside it. From here refresh-materialized governs it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="sample-import" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Trial" name="Keep it as a trial:
+the unpublished trashcan">
+      <bpmn:documentation>A trial goes to the kept trashcan: addressable, exported, never published. Its node declares `$schema: folio-fsh-guts/v1` and carries the bean or issue it was written under, since it was never moved from anywhere and a `movedFrom` would be invented provenance. It is NOT refreshed: a trial records what the source looked like when it was tried. Promoting a trial means running this process again with permanent = yes, so the gates are asked afresh.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="sample-import" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ImportTest" name="Import into the store,
+and test the import">
+      <bpmn:documentation>The part only this process does. Load the landed sample into the chosen store and check what an import can get wrong: every item arrived (count against the request), identifiers survived (the descriptor's authoritative ones), structure validates against the store's schema, and provenance (source, revision, fixity) is attached to each node. A check that could not run is a failure, not a pass.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="sample-import" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Passed" name="Every check
+passed?">
+      <bpmn:documentation>All of them, and each one ran. Anything else goes to Task_RecordFindings.</bpmn:documentation>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_RecordFindings" name="Record what failed">
+      <bpmn:documentation>Which check failed, on which items, and the evidence. The landed copy is not removed: a failed import is information about the source or the store, and deleting the copy would destroy the evidence.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="sample-import" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_RecordFindings">
+        <bpmn:targetRef>DSR_corpus</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Refused" name="Not imported;
+stays referenced, with why">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_Failed" name="Import failed,
+findings recorded">
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_Imported" name="Sample imported
+and tested">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="StartEvent_Upstream" name="A permanent sample
+is due or changed upstream">
+      <bpmn:documentation>The second entry. Only library/ copies arrive here; fsh-guts/ trials are never refreshed.</bpmn:documentation>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="Call_Refresh" calledElement="Process_RefreshMaterialized" name="Refresh materialized
+content">
+      <bpmn:documentation>Refresh is not re-import: what changed upstream, what changed locally since, and what to do when both did. The shared subprocess answers all three, and re-asks the five gates, since a licence can change and a collection can grow past the size agreed.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="sample-import" />
+        <bootstrap.processes:skill ref="materialize-remote" />
+        <cat-harness.processes:adjudication accepts="remote local merge defer" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="EndEvent_Refreshed" name="Refreshed">
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_Proposed" targetRef="Task_Scope" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Scope" targetRef="Call_Materialize" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Call_Materialize" targetRef="Gateway_Materialized" />
+    <bpmn:sequenceFlow id="Flow_4" name="yes" sourceRef="Gateway_Materialized" targetRef="Gateway_Permanent" />
+    <bpmn:sequenceFlow id="Flow_5" name="no, or unknown" sourceRef="Gateway_Materialized" targetRef="EndEvent_Refused" />
+    <bpmn:sequenceFlow id="Flow_6" name="permanent" sourceRef="Gateway_Permanent" targetRef="Task_Library" />
+    <bpmn:sequenceFlow id="Flow_7" name="trial" sourceRef="Gateway_Permanent" targetRef="Task_Trial" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Task_Library" targetRef="Task_ImportTest" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_Trial" targetRef="Task_ImportTest" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Task_ImportTest" targetRef="Gateway_Passed" />
+    <bpmn:sequenceFlow id="Flow_11" name="yes" sourceRef="Gateway_Passed" targetRef="EndEvent_Imported" />
+    <bpmn:sequenceFlow id="Flow_12" name="no, or could not run" sourceRef="Gateway_Passed" targetRef="Task_RecordFindings" />
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="Task_RecordFindings" targetRef="EndEvent_Failed" />
+    <bpmn:sequenceFlow id="Flow_14" sourceRef="StartEvent_Upstream" targetRef="Call_Refresh" />
+    <bpmn:sequenceFlow id="Flow_15" sourceRef="Call_Refresh" targetRef="EndEvent_Refreshed" />
+    <bpmn:dataStoreReference id="DSR_corpus" name="Corpus" dataStoreRef="corpus"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_SampleImport">
+    <bpmndi:BPMNPlane id="Plane_SampleImport" bpmnElement="Collaboration_SampleImport">
+      <bpmndi:BPMNShape id="Participant_SampleImport_di" bpmnElement="Participant_SampleImport" isHorizontal="true">
+        <dc:Bounds x="130" y="60" width="1360" height="750" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0_di" bpmnElement="Lane_0" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="1330" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1_di" bpmnElement="Lane_1" isHorizontal="true">
+        <dc:Bounds x="160" y="310" width="1330" height="500" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Proposed_di" bpmnElement="StartEvent_Proposed">
+        <dc:Bounds x="200" y="167" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="193.67" y="207.5" width="116" height="72" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Scope_di" bpmnElement="Task_Scope">
+        <dc:Bounds x="335" y="125" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Upstream_di" bpmnElement="StartEvent_Upstream">
+        <dc:Bounds x="200" y="642" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="192" y="682.5" width="116" height="90" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Refresh_di" bpmnElement="Call_Refresh">
+        <dc:Bounds x="310" y="600" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Refreshed_di" bpmnElement="EndEvent_Refreshed">
+        <dc:Bounds x="470" y="642" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="450" y="683" width="76" height="20" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Materialize_di" bpmnElement="Call_Materialize">
+        <dc:Bounds x="335" y="375" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Materialized_di" bpmnElement="Gateway_Materialized" isMarkerVisible="true">
+        <dc:Bounds x="500" y="410" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="480" y="385" width="90" height="20" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Permanent_di" bpmnElement="Gateway_Permanent" isMarkerVisible="true">
+        <dc:Bounds x="600" y="410" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="538" y="464" width="80" height="36" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Library_di" bpmnElement="Task_Library">
+        <dc:Bounds x="745" y="322" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Trial_di" bpmnElement="Task_Trial">
+        <dc:Bounds x="710" y="450" width="190" height="100" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ImportTest_di" bpmnElement="Task_ImportTest">
+        <dc:Bounds x="955" y="375" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Passed_di" bpmnElement="Gateway_Passed" isMarkerVisible="true">
+        <dc:Bounds x="1120" y="410" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1100" y="375" width="90" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Refused_di" bpmnElement="EndEvent_Refused">
+        <dc:Bounds x="600" y="662" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="553" y="703" width="130" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RecordFindings_di" bpmnElement="Task_RecordFindings">
+        <dc:Bounds x="1165" y="640" width="190" height="100" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Failed_di" bpmnElement="EndEvent_Failed">
+        <dc:Bounds x="1400" y="672" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1365" y="713" width="116" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Imported_di" bpmnElement="EndEvent_Imported">
+        <dc:Bounds x="1400" y="562" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1360" y="603" width="116" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="236" y="185" />
+        <di:waypoint x="335" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="395" y="245" />
+        <di:waypoint x="395" y="375" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="455" y="435" />
+        <di:waypoint x="500" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="550" y="435" />
+        <di:waypoint x="600" y="435" />
+        <bpmndi:BPMNLabel><dc:Bounds x="560" y="415" width="30" height="16" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="525" y="460" />
+        <di:waypoint x="525" y="680" />
+        <di:waypoint x="600" y="680" />
+        <bpmndi:BPMNLabel><dc:Bounds x="533" y="590" width="90" height="26" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="650" y="435" />
+        <di:waypoint x="697.5" y="435" />
+        <di:waypoint x="697.5" y="382" />
+        <di:waypoint x="745" y="382" />
+        <bpmndi:BPMNLabel><dc:Bounds x="608.5" y="386.25" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="625" y="460" />
+        <di:waypoint x="625" y="500" />
+        <di:waypoint x="710" y="500" />
+        <bpmndi:BPMNLabel><dc:Bounds x="650" y="505" width="40" height="16" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="865" y="382" />
+        <di:waypoint x="910" y="382" />
+        <di:waypoint x="910" y="435" />
+        <di:waypoint x="955" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+        <di:waypoint x="900" y="500" />
+        <di:waypoint x="927.5" y="500" />
+        <di:waypoint x="927.5" y="435" />
+        <di:waypoint x="955" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="1075" y="435" />
+        <di:waypoint x="1120" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+        <di:waypoint x="1170" y="435" />
+        <di:waypoint x="1418" y="435" />
+        <di:waypoint x="1418" y="562" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1240" y="415" width="30" height="16" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12_di" bpmnElement="Flow_12">
+        <di:waypoint x="1145" y="460" />
+        <di:waypoint x="1145" y="690" />
+        <di:waypoint x="1165" y="690" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1040" y="570" width="100" height="26" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13_di" bpmnElement="Flow_13">
+        <di:waypoint x="1355" y="690" />
+        <di:waypoint x="1400" y="690" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14_di" bpmnElement="Flow_14">
+        <di:waypoint x="236" y="660" />
+        <di:waypoint x="310" y="660" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15_di" bpmnElement="Flow_15">
+        <di:waypoint x="430" y="660" />
+        <di:waypoint x="470" y="660" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_DSR_corpus" bpmnElement="DSR_corpus"><dc:Bounds x="1250" y="830" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1304" y="846" width="90" height="18" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_RecordFindings" bpmnElement="DOA_Task_RecordFindings"><di:waypoint x="1275" y="740"/><di:waypoint x="1275" y="830"/></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

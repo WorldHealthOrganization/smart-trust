@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "Are the exit criteria met?" — GW_ExitCriteria in test-plan-execution.bpmn.
+
+  Bean `folio-assistant-3o5b`, arc `3fva`, proposal §3.2: the certifier
+  decides "using the DMN that `exitCriteria` names". This is the platform's
+  DEFAULT certification rule; a `test-plan/v1` names it as
+  `sdlc/processes/decisions/test-certification.dmn#Decision_TestCertification`.
+
+  Six facts, every one READ off a record rather than asserted:
+
+    reportStatus     the test report's `status` — running, completed, aborted
+    dataHashKnown    the run's `data.hash` is not `unknown` (zz0a)
+    unexecutedCases  plan cases with no verdict, from `checkAgainstPlan`
+    checker          the untainted checker's sample: agree, disagree, unknown
+    failedCases      the report rollup's `fail`
+    passedCases      the report rollup's `pass`
+
+  Three outcomes, and the third is the point:
+
+    certified      the exit criteria are met — the certifier may sign off
+    refused        a case failed — the system does not meet the plan
+    undetermined   the evidence does not decide; nothing is signed
+
+  `undetermined` is never folded into either neighbour. A running report, an
+  unknown data hash, an unexecuted case, a checker that disagreed or could
+  not run, a report in which nothing passed: each is "could not determine",
+  and could-not-determine is never green (`ci-health`, `testReportVerdict`).
+  Nor is it a refusal — refusing a system on missing evidence is a verdict
+  about the system that the evidence never reached.
+
+  A disagreeing checker is `undetermined`, not `refused`: tester and checker
+  disagreeing is a fact about the RUN, and which of them is right is an
+  adjudication, not something this table can see.
+
+  The rows are FIRST-hit and ordered so every "could not determine" row
+  fires before a failure is counted: a failure inside a run that cannot be
+  trusted is not yet a failure of the system.
+
+  What is deliberately NOT a column: who the reviewer was. The system under
+  test judging itself is refused by `test-report/v1` itself and audited by
+  `test-sut-not-self-judged`; a table that re-decided it would be a second
+  answer free to disagree with the first.
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_TestCertification"
+             name="Test certification"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_TestCertification" name="Are the plan's exit criteria met?">
+    <decisionTable id="Table_TestCertification" hitPolicy="FIRST">
+      <input id="In_Status" label="test report status">
+        <inputExpression id="Expr_Status" typeRef="string"><text>reportStatus</text></inputExpression>
+      </input>
+      <input id="In_DataHash" label="data hash known">
+        <inputExpression id="Expr_DataHash" typeRef="boolean"><text>dataHashKnown</text></inputExpression>
+      </input>
+      <input id="In_Unexecuted" label="plan cases with no verdict">
+        <inputExpression id="Expr_Unexecuted" typeRef="number"><text>unexecutedCases</text></inputExpression>
+      </input>
+      <input id="In_Checker" label="untainted checker on the sample">
+        <inputExpression id="Expr_Checker" typeRef="string"><text>checker</text></inputExpression>
+      </input>
+      <input id="In_Failed" label="failed cases">
+        <inputExpression id="Expr_Failed" typeRef="number"><text>failedCases</text></inputExpression>
+      </input>
+      <input id="In_Passed" label="passed cases">
+        <inputExpression id="Expr_Passed" typeRef="number"><text>passedCases</text></inputExpression>
+      </input>
+      <output id="Out_Certification" name="outcome" typeRef="string" />
+
+      <rule id="Rule_NotFinished">
+        <description>The run has not finished, or stopped before answering. `running` is never a pass, and an aborted run did not answer.</description>
+        <inputEntry id="IE_NF_1"><text>"running", "aborted"</text></inputEntry>
+        <inputEntry id="IE_NF_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_NF_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_NF_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_NF_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_NF_6"><text>-</text></inputEntry>
+        <outputEntry id="OE_NF"><text>"undetermined"</text></outputEntry>
+      </rule>
+      <rule id="Rule_DataUnknown">
+        <description>The data could not be hashed, so what was tested cannot be established, and a certificate over it certifies an unknown input.</description>
+        <inputEntry id="IE_DU_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_DU_2"><text>false</text></inputEntry>
+        <inputEntry id="IE_DU_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_DU_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_DU_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_DU_6"><text>-</text></inputEntry>
+        <outputEntry id="OE_DU"><text>"undetermined"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Unexecuted">
+        <description>A plan case has no verdict at all. Every case is executed or skipped with a reason; a silent gap cannot be told from a case nobody ran.</description>
+        <inputEntry id="IE_UX_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_UX_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_UX_3"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_UX_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_UX_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_UX_6"><text>-</text></inputEntry>
+        <outputEntry id="OE_UX"><text>"undetermined"</text></outputEntry>
+      </rule>
+      <rule id="Rule_CheckerNotAgreed">
+        <description>The untainted checker disagreed, or could not re-execute the sample. Either way the run rests on one party's word.</description>
+        <inputEntry id="IE_CK_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_CK_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_CK_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_CK_4"><text>"disagree", "unknown"</text></inputEntry>
+        <inputEntry id="IE_CK_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_CK_6"><text>-</text></inputEntry>
+        <outputEntry id="OE_CK"><text>"undetermined"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Failed">
+        <description>A trustworthy, complete run in which a case failed. The system does not meet the plan.</description>
+        <inputEntry id="IE_F_1"><text>"completed"</text></inputEntry>
+        <inputEntry id="IE_F_2"><text>true</text></inputEntry>
+        <inputEntry id="IE_F_3"><text>0</text></inputEntry>
+        <inputEntry id="IE_F_4"><text>"agree"</text></inputEntry>
+        <inputEntry id="IE_F_5"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_F_6"><text>-</text></inputEntry>
+        <outputEntry id="OE_F"><text>"refused"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Certified">
+        <description>Complete, hashed, every case accounted for, the checker agrees, nothing failed, and at least one case PASSED. The only row that certifies.</description>
+        <inputEntry id="IE_C_1"><text>"completed"</text></inputEntry>
+        <inputEntry id="IE_C_2"><text>true</text></inputEntry>
+        <inputEntry id="IE_C_3"><text>0</text></inputEntry>
+        <inputEntry id="IE_C_4"><text>"agree"</text></inputEntry>
+        <inputEntry id="IE_C_5"><text>0</text></inputEntry>
+        <inputEntry id="IE_C_6"><text>&gt; 0</text></inputEntry>
+        <outputEntry id="OE_C"><text>"certified"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Default">
+        <description>Anything the rows above do not name — nothing passed (every case skipped or not applicable has demonstrated nothing), or a status added to the vocabulary and not yet given a row. Degrades to no decision, never to a certificate.</description>
+        <inputEntry id="IE_D_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_D_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_D_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_D_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_D_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_D_6"><text>-</text></inputEntry>
+        <outputEntry id="OE_D"><text>"undetermined"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

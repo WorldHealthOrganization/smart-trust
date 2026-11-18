@@ -1,0 +1,58 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "vocab-map",
+    "title": "Apply a vocabulary mapping table",
+    "description": "Carry one source record into a target vocabulary by a declared `folio-vocab-mapping/v1` table: each source field becomes the predicate its row names, in the table's order, with a DERIVED target (such as `dcterms:title` rendering `skos:prefLabel`) copied from its authoritative one so the two cannot drift. A table is shaped like a FHIR ConceptMap: an existing ConceptMap, R4 or R5, is representable as one without loss (`fromConceptMap`), and a table can be produced as a ConceptMap (`toConceptMap`), which returns every loss rather than dropping anything silently. First consumer: `glossary-export`.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "inProcess": {
+        "module": "schemas/content/vocab-mapping.ts",
+        "register": "applyVocabMapping"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "table",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "The table's id, resolved from this layer's declared `vocab-mapping` directories. An unknown id is an error naming the directories searched, never an empty result.",
+          "required": true
+        },
+        {
+          "name": "record",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The source record, as a JSON object whose keys are the table's element codes. An absent, null, empty-string or empty-array value writes nothing.",
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "properties",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The mapped properties as a JSON object, keyed by each target's JSON term. Two rows writing one key is refused, not resolved."
+        }
+      ]
+    },
+    "satisfies": [
+      "vocabulary-authority"
+    ],
+    "requires": {
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "The Tool node for applying a vocabulary mapping table.\n\nBean `k74z`. The owner, 2026-09-23: *\"need Tools for this type of ETL\nprocedure depending on source / target content type and other metadata\"*;\nruled 2026-10-02: option 1, mapping tables as KG data applied by ONE\nin-process Tool. This is that Tool. The tables are the `vocab-mapping`\ngraph (`vocab-mappings/`); the function is `applyVocabMapping` in\n`schemas/content/vocab-mapping.ts`, and its ConceptMap boundary is\n`schemas/vocab-mapping-fhir.ts`.\n\nIts own module for the reason `sessions.ts` gives: `mcp.ts` holds the tools\nthis layer already serves over MCP, and this one is not served.\n\n@module tools/vocab-map"
+    }
+  ]
+}

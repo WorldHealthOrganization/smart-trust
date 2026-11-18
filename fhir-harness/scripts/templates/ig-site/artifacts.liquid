@@ -1,0 +1,25 @@
+{%- comment -%}
+The IG's Artifacts Summary page, the Publisher's `artifacts.html` rendered by Jekyll from `site.data.fhir`.
+Laid out as the Publisher lays it out (#1901, owner 2026-10-02: "use table layout so not too dissimlar",
+"keep things collasped"): one section per category in the Publisher's order, each a table of the
+artefact's name, linked to its page, and its description — collapsed, with the count in the summary.
+Reads `site.data.fhir.artifacts_listed` (how many artefacts the page lists),
+`site.data.fhir.artifact_categories[]` (`name`, `anchor`, `count`, `keys`, in the Publisher's order)
+and, per key, `site.data.fhir.artifacts[key]` (`text.label`, `text.description_cell`, `url.page`).
+Every value, the count, the anchor and the cell escaping included, is computed by `artifactVariables`
+in `build-ig-site.ts`; this file only arranges them. `markdown="1"` on each `<details>`, or kramdown
+leaves the table inside as rows of pipes (bean `7w1a`).
+{%- endcomment -%}
+# Artifacts Summary
+
+This page provides a list of the FHIR artifacts defined as part of this implementation guide: {{ site.data.fhir.artifacts_listed }} artefact(s).
+{% for cat in site.data.fhir.artifact_categories %}
+<details markdown="1" id="{{ cat.anchor }}">
+<summary><strong>{{ cat.name | escape }}</strong> — {{ cat.count }}</summary>
+
+| Name | Description |
+|---|---|
+{% for k in cat.keys %}{% assign a = site.data.fhir.artifacts[k] %}| [{{ a.text.label }}]({{ a.url.page }}) | {{ a.text.description_cell }} |
+{% endfor %}
+</details>
+{% endfor %}

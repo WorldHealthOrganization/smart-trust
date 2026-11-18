@@ -1,0 +1,945 @@
+{%- comment -%}
+  The configured colour scheme, published for site-chrome/assets/js/docs-ui.js.
+
+  just-the-docs' first stylesheet is `just-the-docs-default.css`, which is
+  whatever `color_scheme` in _config.yml compiled to -- so `jtd.getTheme()`
+  returns the string "default" on a fresh load, never "dark". The scheme
+  toggle needs to know what "default" MEANS here, and reading it from the
+  config is the one way that does not go stale when the config changes.
+
+  FIRST in this file since 2026-09-24, because the first-paint snippet below
+  reads it too, and a script can only read what the parser has already seen.
+{%- endcomment -%}
+<script type="application/json" id="fa-site-scheme">{"scheme": "{{ site.color_scheme | default: 'light' }}"}</script>
+{%- comment -%}
+  THE FIRST PAINT IS DARK — owner, 2026-09-24: *"when any
+  page/foio-asst/cat-harness first loads if flashes white before goignt o
+  dark mode. instead it should deafult dark mode then turn to light mode to
+  prevent light flash in dark."*
+
+  WHY IT FLASHED. The site is configured dark, so the theme's first
+  stylesheet already paints dark. But `docs-ui.js` is deferred, and on load
+  it applied a STORED choice with `jtd.setTheme(name)`, which swaps that
+  stylesheet's href -- to the dark file, when the default file already was
+  dark. The swap unloads the sheet that was painting the ground, and until
+  the new one arrives the browser's WHITE canvas shows. Every reader who had
+  ever pressed the light/dark control got that on every page. And nothing
+  painted `html` at all, so any moment without the theme's sheet was white.
+
+  So, FIRST THING in this include, before every stylesheet it emits:
+
+  1. decide the scheme -- the reader's stored choice (`fa-color-scheme`, the
+     key `docs-ui.js` writes), else the OS, else LIGHT -- and put it on
+     `<html data-fa-scheme>` before the body is parsed, so no rule keyed on
+     it ever paints the wrong way first;
+  2. if that is not the configured scheme, switch the theme's sheet NOW,
+     while the parser is still in the head. `jtd.setTheme` loads the new
+     file beside the old, render-blocking, and drops the old one once it
+     has loaded (cat-harness#820): never a frame with no theme sheet;
+  3. paint `html` itself, dark unless the scheme is light, so a sheet in
+     flight shows the page's ground rather than white.
+
+  The theme's own stylesheet link is ABOVE this include (just-the-docs emits
+  `head_custom.html` last in its head), which is why step 2 exists: there is
+  no hook before it, and none is needed -- nothing paints until the head is
+  parsed, and this runs while it is being parsed.
+
+  INLINE, which the rest of this file avoids so that no `script-src`
+  relaxation is ever needed. This is the one exception, and it is the only
+  way to run before first paint: a `src` script here is a network round-trip
+  on the critical path of every page. It interpolates nothing into markup,
+  and a CSP added later needs this block's hash.
+
+  ELSE LIGHT -- owner, 2026-10-15, "follow os else light". The declared
+  `color_scheme` only names the sheet shipped first. The ONE source: tools'
+  `scheme-css.ts` lifts this script; `docs-ui.js` reads its attribute.
+
+  NO LIQUID between the markers. `first-paint-scheme.e2e.ts` lifts these
+  exact bytes into a replica page, so the spec tests what ships.
+
+  The generated dashboards that write their OWN head (`state-visualizer.ts`,
+  `gen-translation-status.ts`) do not carry this. They switch nothing with
+  script, so they cannot flash: their first CSS paints dark, and the same spec
+  holds them to that. Giving them this snippet would switch ON their
+  `data-fa-scheme="light"` rules for the first time -- and those were never
+  finished (axe, 2026-09-24: 3 to 6 contrast failures per dashboard in light,
+  dark-scheme tag colours on a light ground). A light palette for them is its
+  own piece of work, not a side effect of this one.
+{%- endcomment -%}
+<!-- fa-first-paint:begin -->
+<script>(function(){var d=document.documentElement,s=null,c="dark";try{s=localStorage.getItem("fa-color-scheme")}catch(e){}if(s!=="light"&&s!=="dark"){s="light";try{if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)s="dark"}catch(e){}}try{var n=document.getElementById("fa-site-scheme");if(n)c=JSON.parse(n.textContent).scheme==="light"?"light":"dark"}catch(e){}d.setAttribute("data-fa-scheme",s);var j=window.jtd;if(s!==c&&j&&typeof j.setTheme==="function"){try{j.setTheme(s)}catch(e){}}})();</script>
+<style>html{background-color:#27262b}html[data-fa-scheme="light"]{background-color:#ffffff}</style>
+<!-- fa-first-paint:end -->
+{%- comment -%} PROSE HERE IS NOT FREE: these are HTML comments, so every byte ships on
+     every page (2356 of them). A comment in this file is a POINTER; the
+     reasoning goes in the artefact. Measured, with the cost this change paid
+     before measuring, in assets/harness/site.json's front matter. {%- endcomment -%}
+{%- comment -%} THE RENDER STATE. pending here; ready/failed from assets/js/kg-render.js,
+     which carries the contract. No attribute = no dynamic region on this page.
+     The number is a MINIMUM cross-checking registrations, not a count. {%- endcomment -%}
+<meta name="fa-render-regions" content="1">
+<script>document.documentElement.setAttribute("data-fa-render","pending");</script>
+{%- comment -%}
+  The browser-tab icon, from the same declared mark the sidebar title
+  (`title.html`) renders — reused rather than looked up by its own
+  `browser-icon` role. There WAS a second role for exactly that, on
+  `mark-small` in `harness.json`, and it went unread: nothing in this
+  repo ever emitted a favicon at all, `rel="icon"` included. It also could
+  not have driven this lookup as declared — `imagesForRole()`
+  (`schemas/kg/kg-node.ts`) requires an image's `layout` field, which neither
+  mark entry carries, so a `browser-icon`-role lookup returns nothing. Reusing
+  the already-resolved `icon` (the same field `title.html` reads) sidesteps
+  that and, more importantly, is what was asked for: the sidebar mark and the
+  tab icon are meant to be the SAME glyph, so one declaration driving both is
+  correct, not just convenient — flip `icon` in `harness.json` and both
+  follow in one edit, no template change needed.
+
+  SVG-only. No PNG/ICO fallback exists in the repo and none is generated
+  here — every browser this matters for (evergreen Chrome/Firefox/Edge, and
+  Safari since 16) reads `type="image/svg+xml"` directly; a raster fallback
+  would need generating actual image files, which is out of scope for this
+  change.
+
+  `relative_url`, same as `title.html` and `landing.html` — a bare
+  `/assets/...` 404s on the same baseurl this file's landing-panel fix exists
+  for.
+{%- endcomment -%}
+{%- comment -%}
+  TWO links, so the browser picks by size rather than us picking for it.
+
+  The unsized link is the full mark, whiskers and all, used wherever there is
+  room — a pinned tab, a bookmark tile, a home-screen icon. The `16x16` link is
+  the mark drawn for small sizes, which is what a tab strip actually shows.
+
+  The split exists because the whiskers are `stroke-width="2.4"` against a
+  120-unit viewBox: 0.32 px at 16 px and 0.48 px at 24 px. Sub-pixel at 1x, and
+  still under a whole device pixel at 2x, so at tab size they render as haze on
+  the face rather than as whiskers. One link would have meant choosing between
+  losing them everywhere and showing them where they cannot be drawn.
+{%- endcomment -%}
+{%- comment -%}
+  THE TAB ICON FOLLOWS THE OPERATING SYSTEM, not the page's own toggle, and
+  that difference is deliberate rather than an oversight.
+
+  A `<link rel="icon">` cannot read `data-fa-scheme` — it is resolved by the
+  browser before and outside the page's own styling, so the only switch
+  available to it is `media`, which asks the OS. The sidebar mark
+  (`title.html`) DOES follow the page toggle, so a reader who sets the page
+  against their system will see the two disagree.
+
+  That is the right way round. The tab strip is painted by the browser
+  chrome, which follows the OS — so an icon matching the OS is matching what
+  it actually sits on, while one matching the page would be the odd one out
+  in the tab bar. The sidebar mark sits on the page and follows the page.
+  Each matches its own background, which is the only rule that can be
+  satisfied everywhere at once.
+
+  Narrowest-first is not needed here: the two queries are mutually exclusive,
+  and a browser with no `prefers-color-scheme` support takes the unmedia'd
+  light one.
+{%- endcomment -%}
+{%- comment -%}
+  NO `assign` OF `site.data.harness`. Liquid 4's `assign` walks the value it binds, element
+  by element, to score it against the render's resource limits, so binding a
+  whole data file costs its full size on every page (~3 ms for a 180 KB
+  `harness.json`, measured). The fields are read where they are used.
+{%- endcomment -%}
+{%- if site.data.harness.icon.src -%}
+{%- if site.data.harness.iconDark.src -%}
+<link rel="icon" type="image/svg+xml" href="{{ site.data.harness.icon.src | relative_url }}" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/svg+xml" href="{{ site.data.harness.iconDark.src | relative_url }}" media="(prefers-color-scheme: dark)">
+{%- else -%}
+<link rel="icon" type="image/svg+xml" href="{{ site.data.harness.icon.src | relative_url }}">
+{%- endif -%}
+{%- endif -%}
+{%- if site.data.harness.smallIcon.src -%}
+<link rel="icon" type="image/svg+xml" sizes="16x16" href="{{ site.data.harness.smallIcon.src | relative_url }}">
+{%- endif -%}
+
+{%- comment -%}
+  Site-wide styling for the BPMN workflow figures.
+
+  just-the-docs pulls this file into <head> on every page. The diagrams are wide
+  (a swimlane process does not shrink well), so the figure scrolls horizontally
+  inside its own container rather than forcing the page body to scroll.
+
+  The SVGs carry their own white backdrop — see scripts/render-bpmn.ts — so they
+  stay legible under the dark colour scheme even if this stylesheet is missing.
+{%- endcomment -%}
+<style>
+  .bpmn-figure {
+    overflow-x: auto;
+    background: #fff;
+    border: 1px solid rgba(128, 128, 128, 0.35);
+    border-radius: 6px;
+    margin: 1em 0 0.4em;
+  }
+  .bpmn-figure img {
+    display: block;
+    width: 100%;
+    min-width: 1200px;
+    max-width: none;
+  }
+  .bpmn-source {
+    margin-top: 0;
+    font-size: 0.75rem;
+  }
+</style>
+
+{%- comment -%}
+  Site UI: a QR of the current page in the sidebar header, and zoom /
+  full-width controls on the figures.
+
+  Loaded as same-origin files with no inline script, so no script-src
+  relaxation is needed. The QR is generated in the browser from
+  window.location.href rather than baked per page at build time, so it is
+  right for anchors, query strings, and both the directory and .html forms of
+  the same page. The UTF-8 shim must come after the encoder: without it the
+  encoder's stringToBytes is single-byte and a non-ASCII character in a URL
+  silently encodes to mojibake.
+{%- endcomment -%}
+{%- comment -%}
+  The TRANSLATION INDEX — which source page has a translation in which locale.
+
+  `mountNavLocale` in docs-ui.js reads this to decide what the left-hand navbar
+  shows: with the source language selected it does nothing, and with `fr`
+  selected it swaps each nav item that HAS a French page for that page, IN
+  PLACE OF the English one. An item with no translation is left exactly as it
+  is — that is the fallback, and it is the absence of a rewrite rather than a
+  code path of its own.
+
+  Generated into `docs/_data/translations.json` by
+  `content/pipeline/translation-index.ts`, from what each page DECLARES about
+  itself: `lang`, and `translation_source` naming the page it expresses. NOT
+  from a scan for directories whose names look like language subtags — see
+  that module's header for why that inference is wrong in both directions.
+
+  THREE STATES, and the third is the reason this is a JSON island rather than
+  a conditional. (The tag name is written inside {% raw %}{% raw %}{% endraw %}
+  below because LIQUID PARSES TAGS INSIDE AN HTML COMMENT — the comment
+  wrapper means nothing to it — so naming a tag in prose is a syntax error at
+  build time, and the message points at the THEME's head.html because Liquid
+  attributes an include's line to the includer. This comment cost one red
+  deploy.
+
+  AND THEN IT COST A SECOND ONE, differently, which is why this paragraph now
+  describes the wrapper rather than spelling it. It used to SPELL both halves
+  as an example — and the closing half ENDED THIS COMMENT eighteen lines
+  early, so every line below it rendered as visible body text at the top of
+  EVERY PAGE on the site. Reported by the owner from the staging URL,
+  2026-09-19.
+
+  The asymmetry is the lesson: a Liquid tag has an escape, and the closing
+  comment delimiter has NONE. There is no way to write those three characters
+  inside a comment and have the comment survive them, because the parser is
+  not looking for an escape — it stops at the first match. So the rule is not
+  "escape it carefully", it is DO NOT WRITE IT: describe it, or name it one
+  character at a time. Guarded by
+  scripts/tests/html-comment-delimiters.test.ts, which fails on an opening
+  delimiter appearing inside an open comment — the one machine-detectable
+  signature of somebody trying.)
+  A {% raw %}{% if %}{% endraw %} would have to choose between the second and
+  third rows below, and there is no expression that can:
+
+    1. the data file is there      -> `index` is an object; filter the nav.
+    2. it is there and EMPTY       -> `pages` is `{}`; there is nothing to
+                                      swap, so every item correctly falls back
+                                      to the source language.
+    3. the data file is ABSENT     -> `jsonify` emits `null`, and docs-ui.js
+                                      leaves the navbar EXACTLY as built.
+
+  A build that could not determine the translation set must never render as a
+  folio that has no translations. `null` is how that is said.
+
+  `baseurl` travels with it because the client has no other way to strip the
+  site prefix off a nav `href` before matching it.
+{%- endcomment -%}
+{%- comment -%} MOVED 2026-10-02 to assets/harness/site.json: fetched once instead of
+     inlined 2356x (9482 B/page, 22.34 MB, ONE payload). The three states above
+     are unchanged; a fourth — the file is unreachable — is data-fa-render. {%- endcomment -%}
+{%- comment -%}
+  Translation metadata for this page, consumed by docs-ui.js to auto-render
+  language coverage and QA badges. The translation pipeline stamps front matter;
+  this block publishes it to the client. No manual editing needed.
+{%- endcomment -%}
+<script type="application/json" id="fa-translation-meta">{
+  "lang": "{{ page.lang | default: 'en' }}",
+  "translationStatus": "{{ page.translation_status | default: '' }}",
+  "translationSource": "{{ page.translation_source | default: '' }}",
+  "supportedLocales": {{ site.translation_locales | default: '["ar","zh","en","fr","ru","es"]' }},
+  "availableLocales": {{ page.available_locales | jsonify | default: '[]' }},
+  "translationQa": {%- comment -%}
+    The page-level Translation QA badge for a HAND-AUTHORED page, as PATHS only.
+
+    A generated page gets its badge placeholder written into its own markup by
+    `gen-docs-pages.ts`. An authored page has no generator, so these are the
+    PATHS for one, and `docs-ui.js` builds the badge only if `list` -- the
+    published `/assets/qa/translation-qa-pages.json`, which names the pages
+    that HAVE a projection -- says this page has one. It used to be a Jekyll
+    data file read here at build time, which baked a fact about the QA corpus
+    into every page: with the corpus absent it read `[]` and the committed site
+    went stale (bean `4l4d`). A list saying `corpus: "absent"`, or one that will
+    not load, makes the badge read "not available in this build"; a list that
+    does not name the page means no projection and no badge. A badge emitted
+    for every page would 404 where no projection exists and paint "could not
+    determine", which is a different answer from "not swept".
+
+    Never the verdict itself. The state and counts are fetched at load from
+    `qa-index.json`, the way every other badge on the site gets them -- bean
+    `d2kp`, where a page carrying its own measurement went stale by lying.
+
+    A TRANSLATED page points at its SOURCE's projection: it is the same subject,
+    "the translations of this page", and `translation_source` is how a
+    translated page names what it translates. Deriving it from the path instead
+    would read a locale out of a directory name, which
+    `content/pipeline/translation-index.ts` documents at length as wrong in both
+    directions.
+  {%- endcomment -%}
+  {%- assign _tr_src = page.translation_source | default: page.path -%}
+  {%- assign _tr_slug = _tr_src | remove: '.md' | replace: '/', '-' -%}
+  {
+    "key": "page.translation",
+    "slug": "{{ _tr_slug }}",
+    "src": "{{ '/assets/qa/' | append: _tr_slug | append: '/page.translation.json' | relative_url }}",
+    "index": "{{ '/assets/qa/' | append: _tr_slug | append: '/qa-index.json' | relative_url }}",
+    "list": "{{ '/assets/qa/translation-qa-pages.json' | relative_url }}"
+  },
+  "sweep": {%- comment -%}
+    `absent` is set only on a FOLIO's site whose build published no sweep of
+    its own (#2263 follow-up). The shell leaves the platform's sweep out, and
+    `run: false` alone would say "not run" -- a claim about the folio that
+    nobody made. `foreignSite.absent.translationQa` is the words instead
+    (`lib/foreign-site-scope.ts`); `null` everywhere else.
+  {%- endcomment -%}{
+    "absent": {% if site.data.translation-qa %}null{% else %}{{ site.data.harness.foreignSite.absent.translationQa | jsonify }}{% endif %},
+    "run": {% if site.data.translation-qa %}true{% else %}false{% endif %},
+    "sweptAt": "{{ site.data.translation-qa.sweptAt | default: '' }}",
+    "totalPages": {{ site.data.translation-qa.totalPages | default: 0 }},
+    "pagesWithTranslations": {{ site.data.translation-qa.pagesWithTranslations | default: 0 }},
+    "complete": {% if site.data.translation-qa.complete %}true{% else %}false{% endif %}
+  },
+  "statusSrc": {%- comment -%}
+    The instance's translation-status projection (`folio-translation-status/v1`,
+    written by `gen-translation-status.ts`), which the translation drawer reads
+    (bean `cat-tools-bbnd`). A PATH only: per-locale coverage and officiality
+    are fetched when the drawer opens, never baked into the page. A site that
+    publishes none gets a 404, which the drawer reports as "not published".
+  {%- endcomment -%}"{{ '/assets/translation-status/index.json' | relative_url }}",
+  "reviewSrc": {%- comment -%}
+    Its sibling, the review matrix (`folio-translation-review/v1`), which a
+    block's feedback panel reads to show that block's translation state and
+    to file an adjudication issue (translation-review.js). A PATH only,
+    fetched when a panel opens.
+  {%- endcomment -%}"{{ '/assets/translation-status/review.json' | relative_url }}"
+}</script>
+{%- comment -%}
+  Where the action tiles point.
+
+  RESOLVED, not composed. `scripts/sync-docs-harness.ts` writes
+  `docs/_data/harness.json` from the instance's own `cat-harness.json`,
+  through `siteLinks` in `scripts/site-links.ts` -- which computes every path
+  with `artefactStub` and `renderingPath`, the same functions the knowledge
+  graph exporter and the Pages workflow use. The tile therefore cannot
+  disagree with what is published.
+
+  This block previously wrote `{{ '/kg/' | relative_url }}` by hand. Nothing
+  has ever been published at `<base>/kg/` -- the renderings sit at the base,
+  named after the stub -- so the only entry point to the viewer anywhere on
+  this site was a 404 from the day it was added. See bean `udx8`, and the
+  identical defect AGENTS.md records against the README's chapter PDFs. A
+  path built by convention is a claim; `bun run cat site:links --site _site`
+  checks it against the tree that actually ships, and the Pages workflow runs
+  that check after the export.
+
+  `path` is site-ROOT-relative and gets `relative_url`, which is what makes it
+  right under this site's `/folio-assistant/` baseurl. `url` is off-site and
+  is printed as-is. `source` is no longer taken from `aux_links`: those were
+  removed so the forge link stops appearing as text at the top of the main
+  panel (the owner asked for it as an icon, not a header), and the URL is
+  resolved from the git remote instead of written down twice.
+{%- endcomment -%}
+{%- comment -%}
+  THE NAVBAR ICON ROW — which icons this instance shows, and where each goes.
+
+  `null` when the instance has not decided, and that is NOT the same as an
+  empty list: `navbarIcons` absent means "inherit, and nothing up the chain has
+  said either", while `[]` means the instance chose to show none. docs-ui.js
+  reads the two apart, and `jsonify` emits `null` for the first exactly as the
+  translations block above relies on.
+
+  Resolved in `sync-docs-harness.ts`: the icon list walks `needs` with the site
+  owner as the floor, and the hrefs come from this instance's own declared
+  visualisations plus `siteLinks`. Nothing about the row is decided in Liquid
+  or in JavaScript.
+{%- endcomment -%}
+{%- comment -%}
+  EMPTY HERE, FILLED BY `assets/js/harness-data.js` (bean `gp2f`, page weight).
+  The row is the same on every page of a build, so it is written once into a
+  cached file instead of into each page. `data-fa-row-src` is the contract the
+  railed pages already use (`withNavbarRow` in harness-rail.ts): the file drops
+  the name once it has filled the island, and a reader that finds it still
+  named and empty reports a failed load rather than "declared none".
+{%- endcomment -%}
+<script type="application/json" id="fa-navbar-row" data-fa-row-src="harness-data"></script>
+{%- comment -%}
+  `#fa-rail-scope` (#1902) is gone (2026-10-15): the rail pass scopes Pages and
+  Folders on the server (cat-harness-tools `railScopesOf`).
+{%- endcomment -%}
+
+{%- comment -%} NOT MOVED, deliberately. Measured, with the reason and the condition for
+     moving it, in assets/harness/site.json's front matter. {%- endcomment -%}
+<script type="application/json" id="fa-site-links">{
+{%- assign sep = "" -%}
+{%- for l in site.data.harness.links -%}
+{{ sep }}"{{ l.id }}":"{% if l.path %}{{ l.path | relative_url }}{% else %}{{ l.url }}{% endif %}"
+{%- assign sep = "," -%}
+{%- endfor -%}
+}</script>
+
+{%- comment -%}
+  The todo index — a PERSON's outstanding items, published by
+  `scripts/gen-docs-pages.ts` to `/assets/todos/index.json`.
+
+  `relative_url` for the same reason every other path here uses it: the site is
+  served from `/folio-assistant` on the canonical deploy and from
+  `/folio-assistant/branches/<branch>` on a preview, and an absolute literal
+  404s on every deploy but one.
+
+  A URL rather than inline JSON, unlike `fa-site-links` above, because the
+  index grows with the todo corpus and inlining it would put the whole set into
+  every page's <head> whether the reader opens the board or not. A missing file
+  is reported by the fetch and the board is simply not mounted — a board that
+  opens empty is indistinguishable from a person with nothing outstanding, and
+  those are opposite facts.
+
+  `<meta>` and not a `<div>`: this is `<head>`, where flow content is not
+  permitted. A browser hoists a stray `<div>` into `<body>` and the code still
+  works, which is exactly what makes the mistake survive review.
+{%- endcomment -%}
+{%- comment -%} THE SITE INDEX, published once. docs-ui.js reads an ISLAND FIRST where a
+     page has one and falls back to this. Rationale and measurement are in that
+     file's front matter, which is not served. {%- endcomment -%}
+<meta name="fa-site-index-src" content="{{ '/assets/harness/site.json' | relative_url }}">
+<meta name="fa-todo-src" content="{{ '/assets/todos/index.json' | relative_url }}">
+{%- comment -%} The todo GRAPH (#1941): the typed edges — node, person, bean — the board
+     filters and groups by, and each todo's own page. {%- endcomment -%}
+<meta name="fa-todo-graph" content="{{ '/todos.jsonld' | relative_url }}">
+
+{%- comment -%}
+  THE SEMANTIC-ZOOM DECLARATION — when the card stops rendering its words and
+  becomes its avatar.
+
+  R2 of issue #602: *"The threshold SHALL be declared data, not a literal in
+  the renderer."* `gen-docs-pages.ts` publishes the folio's own
+  `semantic-zoom.json`, and publishes NOTHING when the folio has not declared
+  one. So this `<meta>` may point at a 404, and that is a real state rather
+  than a defect: `docs-ui.js` reports it could not determine a threshold and
+  leaves every card's words in place. A default in either file would be the
+  literal R2 forbids, one layer further from where anybody looks for it.
+
+  The pointer is emitted UNCONDITIONALLY because Liquid cannot see whether the
+  generator wrote the file, and a conditional that guessed would make "this
+  folio declares no threshold" and "the build did not run" the same page.
+{%- endcomment -%}
+<meta name="fa-zoom-src" content="{{ '/assets/semantic-zoom.json' | relative_url }}">
+
+{%- comment -%}
+  THE DECLARED VISUALISATIONS, as tiles.
+
+  Owner, 2026-09-20: *"if harness declares visaluzers, those should have tile"*
+  — so the tile set is the `coverage.visualiser` obligation made reachable, not
+  a second registry. `graph-tiles.ts` derives it into `_data/harness.json`;
+  this hands it to `docs-ui.js` for BOTH surfaces, because a tile is declared
+  once and says where it shows.
+
+  INLINE rather than a second fetch, unlike the todo index above, and the two
+  are different for a reason worth stating: that index grows with the todo
+  corpus, while this one is bounded by the number of directories an instance
+  DECLARES — twelve here — and every page needs it before first paint or the
+  navbar would visibly grow tiles a moment after the reader arrives.
+
+  `jsonify` and not a hand-built string: a title carrying a quote would
+  otherwise close the attribute, and the quoting rule is Liquid's rather than
+  something this comment has to be right about.
+{%- endcomment -%}
+{%- comment -%}
+  THE CONTENT IS FILLED BY `assets/js/harness-data.js` (bean `gp2f`). The list
+  is the same on every page and was 12.5 KB of each one (measured on gh-pages
+  1ad53fa, 2026-10-23). That file is a deferred script ahead of `docs-ui.js`,
+  and deferred scripts run in document order, so the tiles are in place before
+  the first reader runs: no later paint than the inlined copy had.
+{%- endcomment -%}
+<meta name="fa-tiles" content="" data-fa-src="harness-data">
+{%- comment -%}
+  THE GLASS STRIP'S PINNED TILES, in order (owner, 2026-10-01, bean `ob3m`
+  finding 10: "Pinned tiles first, plus '+N more'"). Resolved from the
+  instance's `glassStrip` declaration by `sync-docs-harness.ts`; absent when
+  nothing declared one. Replica pages read `assets/harness/glass-strip.json`.
+{%- endcomment -%}
+{%- if site.data.harness.glassStrip %}
+<meta name="fa-glass-strip" content="{{ site.data.harness.glassStrip.pinned | jsonify | escape }}">
+{%- endif %}
+
+{%- comment -%}
+  THE SITE'S BASEURL, for the tiles above.
+
+  Every other site-root path on this page is composed by Liquid: `relative_url`
+  prepends `site.baseurl`, which is `/folio-assistant` on the canonical deploy
+  and `/folio-assistant/branches/<branch>` on a preview. The tiles cannot use
+  it, because they reach the client as JSON and are composed in `docs-ui.js`
+  after Liquid has finished — so the base has to travel with them.
+
+  IT SHIPPED WITHOUT ONE AND EVERY TILE 404ed (issue #801). `graph-tiles.ts`
+  stores `/beans/`, which is correct as data and is what `harness.links[].path`
+  stores too; written into an `href` unprefixed, a browser resolves it against
+  the ORIGIN, so the beans tile pointed at `litlfred.github.io/beans/`. The
+  owner found it by going looking for the board and landing there.
+
+  A meta of its own rather than reading the site index, which also carries a
+  `baseurl`: that document reads as `null` when `_data/translations.json` was
+  not built, and since 2026-10-02 it is FETCHED, so it is also absent until a
+  request resolves and may never arrive. Composing links out of an optional
+  block means the day it goes missing every tile silently points at the origin
+  again — which is this defect, with a second way to reach it. Two reasons for
+  one answer now.
+
+  RELATIVE TO THIS PAGE since bean `g196` (2026-10-23): `.` at the root,
+  `../..` two levels down, never the deploy's path, so the page is the same
+  bytes in every preview. `_plugins/fa-root-relative.rb` does that to every
+  `site.baseurl` and `relative_url` on an HTML page; `siteBaseurl()` in
+  `docs-ui.js` and `navbar-row.js` resolves it back to an absolute path.
+{%- endcomment -%}
+<meta name="fa-baseurl" content="{{ site.baseurl }}">
+{%- comment -%}
+  This page's own Markdown source and the headings it writes, for the ✎ edit
+  and ✍ suggest on its sections (owner, 2026-11-13: "own-text sections
+  only"). `compose-docs.ts` writes `_data/page_sources.json` keyed by
+  `page.path`, in the shape the IG pages' `ig-source-lines` use, so
+  `edit-links.js` reads both the same way. A page it does not list (its layer
+  declares no repository, or it is not Markdown) gets nothing, and keeps its
+  📣 alone. Every `<` is written `\u003c`, so a heading cannot close the
+  script and no end-tag opener reaches the page outside it.
+{%- endcomment -%}
+{%- assign _fa_page_src = site.data.page_sources[page.path] -%}
+{%- if _fa_page_src %}
+<script type="application/json" id="fa-page-source">{{ _fa_page_src | jsonify | replace: "<", "\u003c" }}</script>
+{%- endif %}
+
+{%- comment -%}
+  WHETHER THIS IS A PREVIEW, for the tiles above.
+
+  `feature-staging.yml` writes `staging_slug` into `_data/build.yml`;
+  `docs-site.yml` writes the same file WITHOUT it. So a non-empty value here
+  means "a branches/<slug>/ preview", an empty one means the canonical deploy
+  or a local build.
+
+  It exists so a tile can vanish with its page. `compose-docs.ts` withholds a
+  `publish: "staging-only"` page from the canonical tree; a tile still pointing
+  at it would be a link to a 404 — `pb04`, a dead link being worse than no
+  link, and worse than usual here because the tile ALSO advertises content the
+  declaration is deliberately not publishing.
+
+  The filtering is client-side rather than baked into `harness.json` because
+  that file is generated once and committed, so it cannot know which deploy
+  will serve it. The page can be withheld at compose time because compose runs
+  per deploy; the data file cannot.
+
+  EMPTY IS THE SAFE VALUE, and it is what an absent `_data/build.yml` yields:
+  a build that cannot say it is a preview is treated as canonical and hides
+  the tile. That matches `compose-docs.ts`, which withholds unless positively
+  told `--staging` — one direction in both places, so the page and its tile
+  cannot disagree about which deploy they are on.
+
+  A CONSTANT, `preview`, rather than the slug (bean `g196`, 2026-10-23): every
+  reader asks only whether it is empty, and the slug made every page differ
+  between previews. The branch is in `staging.json`, which the banner reads.
+{%- endcomment -%}
+<meta name="fa-staging" content="{% if site.data.build.staging_slug %}preview{% endif %}">
+
+{%- comment -%}
+  WHICH SEARCH INDEX THIS PAGE IS SERVING.
+
+  `feature-staging.yml` fetches the PUBLISHED index before the build and
+  stamps what happened; `docs-site.yml` writes no such key, so the canonical
+  deploy leaves this empty and draws no warning. Bean `eof6`, on the owner's
+  ruling of 2026-09-22: *"staging uses last published index (w/ wanrnig)"*.
+
+  Three values, and the empty one is a real state rather than a fallback:
+
+    published    the preview serves the last published index. Results are
+                 about the MAIN SITE, not about this branch.
+    unavailable  the fetch failed; an empty index is served.
+    (empty)      not a staging build. No warning.
+
+  The bean this implements had first concluded that staging must disable
+  search outright, because a stale hit is "a wrong PASS, BELIEVED". The ruling
+  keeps search and attacks the belief instead — which is why the value is
+  emitted at all. An index swapped in with nothing on the page saying so would
+  be the unmarked staleness the bean was right to refuse.
+{%- endcomment -%}
+<meta name="fa-search-index" content="{{ site.data.build.search_index }}">
+
+{%- comment -%}
+  A page left out of the search index ON PURPOSE (`search_exclude: true`)
+  says so in what is built, so `publish:verify`'s search-index check can tell
+  a deliberate exclusion from a truncated index (#2233). Front matter is gone
+  once Jekyll has run; without this marker the ~2,800 IG artefact pages that
+  #2194 excluded read as "4,189 pages offer a search box, 1,003 indexed".
+{%- endcomment -%}
+{% if page.search_exclude %}<meta name="fa-search-exclude" content="true">{% endif %}
+{% comment %} A themed RENDERING names the asset it renders: its JSON-LD,
+  relative to the page (gen-library-viz.ts libraryPageHtml, #1881). {% endcomment %}
+{% if page.alternate_jsonld %}<link rel="alternate" type="application/ld+json" href="{{ page.alternate_jsonld }}">{% endif %}
+
+{%- comment -%}
+  The bean index — the AGENT work plan, published by the same generator beside
+  the todo index above, for the same reason and read the same way. Separate
+  files rather than one combined document because the two stores are separate
+  graphs with separate declarations, and a consumer that wants only the human
+  half should not fetch 239 beans to get three todos.
+{%- endcomment -%}
+<meta name="fa-beans-src" content="{{ '/assets/beans/index.json' | relative_url }}">
+{%- comment -%}
+  The process index's entry point — the REPOSITORY's named-subgraph index,
+  whose children are the harness roots this site frames (`bun run
+  subgraph:jsonld`; bean `ax6r`, owner 2026-10-03: "Move to JSON-LD").
+  Read by assets/js/process-index.js on the page carrying
+  `[data-fa-process-index]` (the publication-workflow page), which walks it
+  down to every `processes` subgraph's `index.hydrated.jsonld`.
+{%- endcomment -%}
+<meta name="fa-processes-src" content="{{ '/subgraph/index.jsonld' | relative_url }}">
+{%- comment -%}
+  The deploy's stamp — when it was built and from which commit — which the
+  work-plan dashboard turns into "generated … · N commits behind main".
+  `build.json` on the main site, `staging.json` on a preview; written by the
+  deploy, never committed, because a committed timestamp is a merge conflict
+  on every pair of concurrent changes (bean `y7b3`).
+{%- endcomment -%}
+<meta name="fa-build-src" content="{{ '/build.json' | relative_url }}">
+
+{%- comment -%}
+  The discarded-items document — `fsh-guts.jsonld`, published at the base by
+  `docs-site.yml`. A URL and not inline JSON, for the todo index's reason and
+  then some: it carries every node's BODY, which is 64 KB against a 5 KB
+  document without them. Inlining that into every page's <head> would be
+  absurd for content reached through one control inside Settings.
+
+  `.json` rather than `.jsonld`. Both are published and they are the same
+  bytes; Pages has no media type for `.jsonld` and serves it as
+  octet-stream. `fetch().json()` would parse it anyway, but every other
+  rendering here uses the alias and one that did not would be the odd case a
+  later reader has to work out.
+
+  The viewer fetches this WHEN SETTINGS OPENS, never on page load, and a
+  fetch that fails is reported rather than shown as an empty trashcan —
+  "nothing discarded" and "could not read the document" are opposite facts.
+{%- endcomment -%}
+{%- comment -%}
+  NOT on a folio's site that does not link its OWN fsh-guts (#2263 follow-up):
+  there this path is the folio's, where no document is published, and the
+  fetch's 404 painted "?" -- an error -- on the fish. With no meta the count is
+  ABSENT, and the row's fish is a link or an inert icon saying why
+  (`foreignSite.absent.fshGuts`, `lib/foreign-site-scope.ts`).
+{%- endcomment -%}
+{%- unless site.data.harness.foreignSite.absent.fshGuts %}
+<meta name="fa-fsh-guts-src" content="{{ '/fsh-guts.json' | relative_url }}">
+{%- endunless %}
+{%- comment -%}
+  ?v=<content hash> ON EVERY FIRST-PARTY ASSET — and the reason is a REVIEW
+  failure, not a performance one.
+
+  These five are served from stable paths with no hash in the name, so a
+  browser that has the page cached keeps the old CSS and JS until its
+  `max-age` runs out. On the live site that is invisible. On a branches/
+  preview it is the whole point of the deployment: the reviewer opens the URL
+  they opened an hour ago, gets yesterday's stylesheet, and reports "i dont
+  see changes" — which is indistinguishable from a deploy that never
+  happened, and sends the next hour after the wrong cause. Measured
+  2026-09-21 on this branch: every byte of the change was verified present in
+  the publish ref while the page rendered the previous build.
+
+  The query is a HASH OF THE ASSET (`fa_asset_version`,
+  `_plugins/fa-asset-version.rb`), so it changes exactly when the served bytes
+  do. It was `site.time` until 2026-10-23, and the build time is new on every
+  build: every page then differed on every rebuild, so each re-push of a
+  preview stored a whole new copy of its HTML (bean `g196`).
+
+  NOT a cache-busting strategy for third-party assets, and not applied to
+  them: those are versioned in their own URLs already.
+{%- endcomment -%}
+{%- comment -%} The harness icon row's own style, which railed pages load without docs-ui.css (beans `lhvt`, `9rq1`). {%- endcomment -%}
+<link rel="stylesheet" href="{{ '/assets/css/navbar-row.css' | relative_url }}?v={{ '/assets/css/navbar-row.css' | fa_asset_version }}">
+<link rel="stylesheet" href="{{ '/assets/css/docs-ui.css' | relative_url }}?v={{ '/assets/css/docs-ui.css' | fa_asset_version }}">
+{%- comment -%} Narrow viewports: wide content scrolls in its own box, never the page
+     (bean `2r2n`). The standalone viewers inline the same file through
+     `withViewerNav`, so both kinds of page read one set of rules. {%- endcomment -%}
+<link rel="stylesheet" href="{{ '/assets/css/narrow-viewport.css' | relative_url }}?v={{ '/assets/css/narrow-viewport.css' | fa_asset_version }}">
+
+{%- comment -%}
+  The work-plan dashboard's styles, split from docs-ui.css so that
+  `state-visualizer.ts` can inline exactly these bytes into the generated
+  `<base>/<stub>/state-visualizer/` pages. One rule, two surfaces.
+{%- endcomment -%}
+{%- comment -%}
+  ONLY ON A PAGE THAT HAS A DASHBOARD (owner, 2026-11-14: "do lazy load content
+  and libs"): 25 KB of render-blocking CSS every other page paid for nothing.
+  `content` is the page's rendered body here, as in
+  `components/mermaid.html`, and the dashboard's container is in it.
+{%- endcomment -%}
+{%- if content contains 'data-fa-workplan' %}
+<link rel="stylesheet" href="{{ '/assets/css/work-plan.css' | relative_url }}?v={{ '/assets/css/work-plan.css' | fa_asset_version }}">
+{%- endif -%}
+{%- comment -%} Sticky themes. GENERATED from the theme nodes in `schemas/ui/themes.ts` by
+     `bun run cat themes:css`; `themes:css:check` fails the build when it is stale.
+     Loaded AFTER docs-ui.css deliberately: it supplies the `--fa-sticky-*`
+     roles that docs-ui.css consumes, and a custom property has to be set on a
+     matching element before the rule reading it takes effect. {%- endcomment -%}
+<link rel="stylesheet" href="{{ '/assets/css/themes.css' | relative_url }}?v={{ '/assets/css/themes.css' | fa_asset_version }}">
+{%- comment -%} UML overview colours: one class per graph typology, set on the Mermaid nodes
+     that `scripts/gen-uml-overview.ts` writes into docs/uml/overview/. {%- endcomment -%}
+<link rel="stylesheet" href="{{ '/assets/css/uml.css' | relative_url }}?v={{ '/assets/css/uml.css' | fa_asset_version }}">
+{%- comment -%} Kind avatars. GENERATED from `schemas/content/avatars.ts` by `bun run cat avatars:css`;
+     `avatars:css:check` fails the build when it is stale. One stylesheet
+     rather than 68 assets: the glyph is a mask and the colour is a property,
+     so a scheme swap is a custom property and the trash state is a selector. {%- endcomment -%}
+<link rel="stylesheet" href="{{ '/assets/css/avatars.css' | relative_url }}?v={{ '/assets/css/avatars.css' | fa_asset_version }}">
+
+{%- comment -%}
+  The kinds THIS INSTANCE DECLARES, for the avatar fan.
+
+  Owner: "shows the DECLared kinds for that instance, not inheritance." Written
+  by `sync-docs-harness.ts` from the instance's own `harness.json`, BEFORE
+  `resolveDirectories` overlays a dependency's. The effective set is strictly
+  larger, and showing it would name kinds this repository never claimed.
+
+  Inline rather than a fetched URL, unlike the todo index and the discarded
+  document: this is a dozen short strings, it is needed to render the fan at
+  all, and a fetch for that would put a spinner in front of a badge.
+{%- endcomment -%}
+{%- comment -%} NOT MOVED: same reason as fa-site-links above. {%- endcomment -%}
+<script type="application/json" id="fa-declared-kinds">{{ site.data.harness.declaredKinds | jsonify }}</script>
+{%- comment -%}
+  FIRST of the deferred scripts: it fills `#fa-navbar-row` and
+  `meta[name=fa-tiles]` before any reader runs (bean `gp2f`).
+
+  NO VERSION QUERY, unlike every other first-party asset here. This file carries LIVE
+  COUNTS (open beans, todos), so it changes whenever one bean opens or closes.
+  A version query naming its content would write that change into every page: two
+  previews built 25 minutes apart differed on 1,351 pages for one count going
+  133 -> 132 (bean `g196`, 2026-10-23). Unversioned, a stale copy lives only as
+  long as GitHub Pages' cache (about 10 minutes), and the pages stay the same.
+{%- endcomment -%}
+<script src="{{ '/assets/js/harness-data.js' | relative_url }}" defer></script>
+{%- comment -%}
+  NO QR ENCODER HERE (owner, 2026-11-14: "do lazy load content and libs").
+  vendor/qrcode.js and qrcode_UTF8.js (59 KB) were loaded on every page for a
+  code most readers never open; `navbar-row.js` loads them the first time a QR
+  code is shown (`window.faEnsureQrcode`), for its row and for the
+  `docs-ui.js` tile alike. The sidebar holding both is not printed.
+{%- endcomment %}
+{%- comment -%} BEFORE docs-ui.js and work-plan.js (where a page loads it): both read window.faRender. {%- endcomment -%}
+<script src="{{ '/assets/js/kg-render.js' | relative_url }}" defer></script>
+{%- comment -%} BEFORE docs-ui.js, which calls it: the one drawing of the harness icon row (beans `lhvt`, `9rq1`). {%- endcomment -%}
+<script src="{{ '/assets/js/navbar-row.js' | relative_url }}?v={{ '/assets/js/navbar-row.js' | fa_asset_version }}" defer></script>
+<script src="{{ '/assets/js/docs-ui.js' | relative_url }}?v={{ '/assets/js/docs-ui.js' | fa_asset_version }}" defer></script>
+{%- comment -%} The edit, source and feedback links of every page, from the platform's one
+  recipe (cat-harness-tools/src/core/edit-links.ts, bean v433): links carry their
+  facts and this builds the hrefs. {%- endcomment -%}
+<script src="{{ '/assets/js/edit-links.js' | relative_url }}?v={{ '/assets/js/edit-links.js' | fa_asset_version }}" defer></script>
+{%- comment -%} AFTER edit-links.js, whose block panel it extends: on a translated page, each
+  block's panel shows that block's translation state and files a translation
+  review issue (translation-review.js). It does nothing on a source-language page. {%- endcomment -%}
+<script src="{{ '/assets/js/translation-review.js' | relative_url }}?v={{ '/assets/js/translation-review.js' | fa_asset_version }}" defer></script>
+{%- comment -%} Syntax colours for JSON and XML blocks, including those a script fills
+  after load (cat-harness#1241). It loads highlight.js and its stylesheet only on a
+  page that shows such a block. {%- endcomment -%}
+<script src="{{ '/assets/js/code-highlight.js' | relative_url }}?v={{ '/assets/js/code-highlight.js' | fa_asset_version }}" defer></script>
+
+{%- comment -%}
+  The work-plan dashboard. SELF-MOUNTING on any page carrying
+  `[data-fa-workplan]`, so docs-ui.js neither calls it nor knows it exists; a
+  page without that container pays one failed querySelector. The same file is
+  inlined verbatim into the generated state-visualiser pages.
+{%- endcomment -%}
+{%- comment -%} ONLY where a page carries the container (owner, 2026-11-14), as work-plan.css above. {%- endcomment -%}
+{%- if content contains 'data-fa-workplan' %}
+<script src="{{ '/assets/js/work-plan.js' | relative_url }}" defer></script>
+{%- endif -%}
+{%- comment -%}
+  The process index, self-mounting on `[data-fa-process-index]` the same way.
+  Its rows are the diagrams' own documentation, from the published subgraph JSON-LD.
+{%- endcomment -%}
+{%- if content contains 'data-fa-process-index' %}
+<script src="{{ '/assets/js/process-index.js' | relative_url }}" defer></script>
+{%- endif -%}
+
+{%- comment -%}
+  The landing panel — the instance's declared description drawn inside the
+  quiet part of its declared backdrop. Markup: `_includes/landing.html`.
+
+  The region comes in as custom properties (`--fl-x` …) set per instance from
+  `harness.json`, so this stylesheet knows nothing about where any
+  particular picture is quiet. That is the whole design: a downstream folio
+  swaps the art and the numbers and needs no CSS.
+{%- endcomment -%}
+<style>
+  .folio-landing { position: relative; margin: 0 0 2rem; }
+
+  /* WHAT IS LEFT HERE, AND WHY IT IS SO LITTLE.
+     `landing.html` emits exactly one folio-landing class —
+     `folio-landing folio-landing--plain` — the no-stickies fallback, which
+     renders the description and no art. The art path moved to the sticky
+     board (`fa-sticky--backdrop` in docs-ui.css), which composites text into
+     the picture through a declared `textRegion` and a scrim.
+
+     So this block used to carry fourteen selectors of which ELEVEN matched
+     nothing: every rule reaching for `folio-landing__art`,
+     `folio-landing__text` or `folio-landing--no-region`. Measured before they
+     were cut — those three classes appear in no markup in this repository and
+     on none of the 331 published pages that were inlining the CSS for them.
+     CSS has no error for a selector that matches nothing, which is the same
+     silence that let `.fa-sticky--backdrop > .fa-sticky-art` ship wrong.
+
+     The reasoning did not go with them. The blend-direction argument for the
+     fade is now at `.fa-sticky--backdrop::before`, where a scrim replaces it;
+     the region, overflow and breakpoint-parity lessons were already
+     re-derived and better stated on `.fa-landing-sticky--fixed`. What is NOT
+     carried over is the `cqw` container-query sizing: the successor scales
+     through `--fa-text-scale` rather than container queries, so a note about
+     `container-type` not being its own query container would be advice about
+     a mechanism nothing here uses. Bean `alox`, issue #873. */
+  .folio-landing--plain {
+    position: static; width: auto; height: auto; color: inherit;
+  }
+  .folio-landing--plain p { font-size: inherit; font-weight: inherit; }
+</style>
+
+{%- comment -%}
+  AN INSTANCE'S OWN WEBPAGE THEME, scoped to its pages.
+
+  Bean `7h3u`, on the owner's 2026-09-30 ruling to wire this at the PLATFORM
+  layer so every ingested IG gets it, rather than in one instance's page
+  generator.
+
+  WHY LIQUID AND NOT CSS. A webpage theme dresses one instance's pages, so it
+  has to be scoped by URL — and CSS cannot select on a URL. Jekyll is what
+  knows which page is rendering, so the scope is applied here and the VALUES
+  come from `_data/instance-themes.json`, written by `gen-themes-css.ts` from
+  each instance's declared `themes/`. That is the `site.data` pass-through bean
+  `kott` settled, and the owner's own instruction for this work: "reuse all
+  existing justthedocs infra".
+
+  WHY INLINE AND NOT A LINKED STYLESHEET. The same first-paint reasoning this
+  file already carries for the colour scheme: a sheet arriving after first
+  paint flashes the unthemed colours, which is the defect this file was
+  rewritten to remove.
+
+  WHAT IT RETHEMES, AND WHAT IT CANNOT. These three names are read by
+  `docs-ui.css` at 29 of its 33 `var(--x, #literal)` sites and DEFINED by
+  nothing — just-the-docs is Sass, so its own chrome compiles to literals and
+  no custom property can reach it. So this dresses the surfaces the site owns,
+  the left-hand nav among them, and leaves just-the-docs' compiled chrome
+  alone. Stated here because the alternative is a reader concluding the theme
+  is broken when it is doing exactly what it can.
+{%- endcomment -%}
+{%- assign fa_page_url = page.url | default: '' -%}
+{%- for fa_inst in site.data.instance-themes.instances -%}
+  {%- if fa_page_url contains fa_inst.prefix -%}
+<style id="fa-instance-theme" data-instance="{{ fa_inst.instance }}">
+  /* {{ fa_inst.name }} — declared by instance {{ fa_inst.instance }}, theme {{ fa_inst.themeId }}. */
+  :root {
+  {{ fa_inst.declarations }}
+  }
+</style>
+  {%- endif -%}
+{%- endfor -%}
+
+{%- comment -%}
+  THE PAGE GROUND: a harness's theme art behind every one of its docs pages.
+
+  Bean `yj32`, owner card Q-DEP-2 A (2026-11-01): the avatar is "the default
+  display background for their corresponding docs/ (ghpages) rendering".
+
+  WHICH HARNESS. Each tile in `_data/harness.json` carries `pageGround`
+  (cat-harness-tools `harness-tiles.ts`): the URL segments that make a page
+  that instance's, and its three crops. The FIRST tile whose scope the URL
+  contains wins; tiles come dependents first, so the content instance a page
+  is about beats the platform that renders it. The site owner is the fallback
+  (`siteDefault`), never a `/` scope, because `/` is in every URL. A tile with
+  no `art` gets no ground: a palette-only theme is a choice, not a gap.
+
+  A CSS BACKGROUND HERE, where the stickies use `<picture>`. A sticky places
+  words inside a measured quiet region of one crop, so the crop must be the
+  file. The page ground places nothing on the art, so a media query choosing
+  the crop is exact, and no markup is added to any page.
+
+  TWO SCRIMS, both the page's own background colour (not the theme's sticky
+  scrim, because the ink they protect is the page's ink). The page gets 85%,
+  so the art shows in the margins and under the header. The text column,
+  `.main-content`, gets a second layer at 96%, so the words sit on 99.4% page
+  colour. The art runs the full range (measured: every crop of the three
+  grounds has pixels at luminance 0.000 and 1.000), so the bound is the worst
+  pixel: text and links stay within 0.1:1 of the plain page in both schemes
+  (light links 4.94:1 against 5.03:1, dark links 4.09:1 against 4.14:1, dark body text 11.5:1 against 11.7:1).
+  A single 92% layer was measured first and dropped: it took dark-scheme
+  links from 4.14:1 to 3.35:1.
+{%- endcomment -%}
+{%- comment -%}
+  The harness is chosen by its INDEX, and bound by a one-item `for`, not by
+  `assign`: Liquid 4's `assign` walks the value it binds to score it, so
+  binding a harness entry costs its whole size, on every page.
+{%- endcomment -%}
+{%- assign fa_ground_i = nil -%}
+{%- assign fa_ground_default_i = nil -%}
+{%- for fa_t in site.data.harness.harnesses -%}
+  {%- if fa_t.pageGround.siteDefault -%}{%- assign fa_ground_default_i = forloop.index0 -%}{%- endif -%}
+  {%- if fa_ground_i == nil -%}
+    {%- for fa_sc in fa_t.pageGround.scopes -%}
+      {%- if fa_page_url contains fa_sc -%}{%- assign fa_ground_i = forloop.parentloop.index0 -%}{%- break -%}{%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- if fa_ground_i == nil -%}{%- assign fa_ground_i = fa_ground_default_i -%}{%- endif -%}
+{%- if fa_ground_i != nil -%}
+{%- for fa_ground in site.data.harness.harnesses offset: fa_ground_i limit: 1 -%}
+{%- assign fa_art = fa_ground.pageGround.art -%}
+{%- if fa_art.laptop and fa_art.mobile and fa_art.card -%}
+<style id="fa-page-ground" data-instance="{{ fa_ground.name }}">
+  /* {{ fa_ground.pageGround.title }}, the theme of {{ fa_ground.name }}. */
+  :root { --fa-page-scrim: rgba(39, 38, 43, 0.85); --fa-text-scrim: rgba(39, 38, 43, 0.96); }
+  :root[data-fa-scheme="light"] { --fa-page-scrim: rgba(255, 255, 255, 0.85); --fa-text-scrim: rgba(255, 255, 255, 0.96); }
+  /* The root carries the art, so it covers the whole viewport however short
+     the page; the body is made see-through so the art is not painted over. */
+  html:root body { background-color: transparent; }
+  html body .main-content { background-color: var(--fa-text-scrim); border-radius: 6px; }
+  html:root {
+    background-image:
+      linear-gradient(var(--fa-page-scrim), var(--fa-page-scrim)),
+      url("{{ fa_art.laptop | relative_url }}");
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: cover;
+    background-attachment: fixed;
+  }
+  @media (max-width: 48rem) {
+    html:root {
+      background-image:
+        linear-gradient(var(--fa-page-scrim), var(--fa-page-scrim)),
+        url("{{ fa_art.card | relative_url }}");
+    }
+  }
+  @media (max-width: 30rem) {
+    html:root {
+      background-image:
+        linear-gradient(var(--fa-page-scrim), var(--fa-page-scrim)),
+        url("{{ fa_art.mobile | relative_url }}");
+    }
+  }
+  /* Print and forced colours get the plain page: art is decoration. */
+  @media print, (forced-colors: active) {
+    html:root { background-image: none; }
+  }
+</style>
+{%- endif -%}
+{%- endfor -%}
+{%- endif -%}

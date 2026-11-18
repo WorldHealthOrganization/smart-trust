@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "Where does this PR go?" — GW_Placement in merge-train.bpmn.
+
+  Bean `hfag` (merge-pipeline epic), owner's ruling 2026-10-02. The steward's
+  ordering was prose until now (merge-manager SOP step 2, PR #1802: "oldest
+  first, unless the owner names an order"), so the reason one PR jumped
+  another was in a chat nobody else could read. This table is that reason,
+  computed.
+
+  FACTS ARE READ LIVE, NEVER STORED. Every input below is computed at decision
+  time from GitHub and the checkout (`scripts/merge-queue.ts` `deriveFacts`,
+  names fixed by `MemberFactsSchema` in `schemas/sdlc/merge-queue.ts`). The queue
+  entry stores only what this table RETURNED, the rule that fired, and who
+  acted on it.
+
+  Inputs, in the owner's letters:
+
+    ownerOverride  (e) the owner placed it by hand. Wins, and the queue entry
+                   is refused without a reason (MergeQueueEntrySchema). This is
+                   the ONLY way a hand-chosen placement enters: as an INPUT to
+                   the table, never as a hand-supplied outcome, which the
+                   engine refuses at a decision gateway.
+    refused        a declared merge pattern refuses a conflicted path against
+                   current main, or the entry carries an un-cleared ejection
+                   (T1). Goes to merge-refusal.bpmn (#1888), never into a train.
+    seedsStaging   (a) an AUTHORED path under cat-harness/ or its tools layer
+                   AND a linked bean in the separation arc. See the note below:
+                   the path test alone was measured to select 11 of 11 PRs.
+    unblocks       (b) open PRs or beans this unblocks, or tangle edges removed.
+    mvp            (c) tagged MVP / feature-priority, by epic or label.
+    sizeBand       (d) "small" or "large", from authored paths and changed lines.
+    conflictRisk   (d) + T3: "high" when it shares an authored path, or the
+                   same shared declaration, with another queued PR (SQ19 §5.2,
+                   pp. 7-8; R6, R7 of the requirements note on
+                   claude/merge-pipeline-library). Generated paths excluded.
+
+    readiness      bean `uoob`: has the OWNING session signalled this PR is
+                   finished, against main? `ready`, or one of `draft`,
+                   `not-main`, `no-marker`, `foreign-marker`, `stale-marker`.
+                   Read by Rule_NotReady. The full test, at the moment of
+                   merging, is `bun run cat merge:guard`, the only way a PR lands.
+
+  Outputs:
+
+    route   "admit" or "hand back" — the gateway's branch, so FIRST output.
+    class   one of PRIORITY_CLASSES in schemas/sdlc/merge-queue.ts.
+    rank    lower goes first; ties break on PR number, oldest first.
+    train   "shared", or "alone" for a high-conflict-risk member, which T3
+            says to put in a train of its own rather than risk the others.
+
+  WITHIN A CLASS: small-and-low-risk (x0) before low-risk (x1) before
+  high-risk-alone (x2). That is (d).
+
+  WHY (a) IS NOT A BARE PATH TEST. Measured 2026-10-02 over the eleven PRs in
+  the steward's queue that day: every one of them had authored paths under
+  cat-harness/, including a PR that only adds a skill (#1880). A path test
+  therefore selects all eleven and cannot reproduce the order the steward
+  ran. What #1812 and #1875 shared, and the others did not, is that their
+  beans descend from the separation goal (`wggr -> vke6 -> vuip`,
+  `63wl -> iirv -> vuip`): they SEED THE branches/ REPOS, which is the reason
+  the owner gave for input (a). The test in scripts/tests/merge-queue.test.ts
+  pins both halves: the order, and that the path test alone fails it.
+
+  Hit policy FIRST: override outranks refusal (the owner may hold a refused PR
+  at a position while its author fixes it), refusal outranks every class.
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_MergePriority"
+             name="Merge priority"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_MergePriority" name="Where does this PR go?">
+    <decisionTable id="Table_MergePriority" hitPolicy="FIRST">
+      <input id="In_Override" label="(e) owner override, with a reason">
+        <inputExpression id="Expr_Override" typeRef="boolean"><text>ownerOverride</text></inputExpression>
+      </input>
+      <input id="In_Refused" label="a declared pattern refuses, or an un-cleared ejection">
+        <inputExpression id="Expr_Refused" typeRef="boolean"><text>refused</text></inputExpression>
+      </input>
+      <input id="In_Seeds" label="(a) seeds the staging repos">
+        <inputExpression id="Expr_Seeds" typeRef="boolean"><text>seedsStaging</text></inputExpression>
+      </input>
+      <input id="In_Unblocks" label="(b) PRs, beans or tangle edges it unblocks">
+        <inputExpression id="Expr_Unblocks" typeRef="number"><text>unblocks</text></inputExpression>
+      </input>
+      <input id="In_Mvp" label="(c) MVP / feature-priority">
+        <inputExpression id="Expr_Mvp" typeRef="boolean"><text>mvp</text></inputExpression>
+      </input>
+      <input id="In_Size" label="(d) size band">
+        <inputExpression id="Expr_Size" typeRef="string"><text>sizeBand</text></inputExpression>
+      </input>
+      <input id="In_Risk" label="(d) conflict risk, T3">
+        <inputExpression id="Expr_Risk" typeRef="string"><text>conflictRisk</text></inputExpression>
+      </input>
+      <input id="In_HeadRun" label="(T2) the owed CI runs on the head">
+        <inputExpression id="Expr_HeadRun" typeRef="string"><text>ownCi</text></inputExpression>
+      </input>
+      <input id="In_Ready" label="the owning session signalled ready, against main">
+        <inputExpression id="Expr_Ready" typeRef="string"><text>readiness</text></inputExpression>
+      </input>
+      <output id="Out_Route" name="route" typeRef="string" />
+      <output id="Out_Class" name="class" typeRef="string" />
+      <output id="Out_Rank" name="rank" typeRef="number" />
+      <output id="Out_Train" name="train" typeRef="string" />
+
+      <rule id="Rule_Override">
+        <description>(e) The owner placed it. The queue entry carries the position and the reason; a reason is required by the schema.</description>
+        <inputEntry id="IE_Ov_1"><text>true</text></inputEntry>
+        <inputEntry id="IE_Ov_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Ov_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Ov_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Ov_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Ov_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Ov_7"><text>-</text></inputEntry>
+        <inputEntry id="IE_Ov_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_Ov_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_Ov_1"><text>"admit"</text></outputEntry>
+        <outputEntry id="OE_Ov_2"><text>"override"</text></outputEntry>
+        <outputEntry id="OE_Ov_3"><text>0</text></outputEntry>
+        <outputEntry id="OE_Ov_4"><text>"shared"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Refused">
+        <description>A declared pattern refuses a path, or the PR was ejected and not since fixed. Handed back through merge-refusal.bpmn (#1888) with a fail condition: no class outranks this, because a train that admits it is a train that aborts.</description>
+        <inputEntry id="IE_Rf_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Rf_2"><text>true</text></inputEntry>
+        <inputEntry id="IE_Rf_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Rf_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Rf_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Rf_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Rf_7"><text>-</text></inputEntry>
+        <inputEntry id="IE_Rf_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_Rf_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_Rf_1"><text>"hand back"</text></outputEntry>
+        <outputEntry id="OE_Rf_2"><text>"hand-back"</text></outputEntry>
+        <outputEntry id="OE_Rf_3"><text>90</text></outputEntry>
+        <outputEntry id="OE_Rf_4"><text>"alone"</text></outputEntry>
+      </rule>
+      <rule id="Rule_HeadNotGreen">
+        <description>T2. The head does NOT carry every CI run owed for its event, so the train has no evidence about it. Handed back rather than admitted: a member admitted on an absence of red is a member nobody judged. `green` is the ONLY admitting value and the other four are kept apart on purpose -- `red` (an owed run failed), `missing-required` (it HAS runs, but not the owed ones), `none` (GitHub answered and nothing names this head) and `unknown` (could not ask: no network, rate limit, HTTP error). Measured 2026-10-02 on #1889's head 7ab6119405: 9 runs present and all 9 gating job NAMES matching, yet 3 runs `in_progress` with a null conclusion and 3 check SUITES completed as `action_required` having executed nothing -- so a filter for conclusion = failure finds zero. Counting the runs does not catch it; only asking which runs are OWED does, which is `check:head-has-run` (bean `3pqn`). `unknown` is handed back too, never admitted and never reported as red (bean `0qjq`): telling somebody their head is unverified when you merely could not look trains them to ignore the signal.</description>
+        <inputEntry id="IE_Hng_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Hng_2"><text>false</text></inputEntry>
+        <inputEntry id="IE_Hng_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Hng_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Hng_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Hng_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Hng_7"><text>-</text></inputEntry>
+        <inputEntry id="IE_Hng_8"><text>not("green")</text></inputEntry>
+        <inputEntry id="IE_Hng_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_Hng_1"><text>"hand back"</text></outputEntry>
+        <outputEntry id="OE_Hng_2"><text>"ci-not-green"</text></outputEntry>
+        <outputEntry id="OE_Hng_3"><text>91</text></outputEntry>
+        <outputEntry id="OE_Hng_4"><text>"alone"</text></outputEntry>
+      </rule>
+      <rule id="Rule_NotReady">
+        <description>Bean `uoob` (merge gate (f), epic `nok9`), owner ruling 2026-10-03. The owning session has not signalled that this PR is finished, against `main`, so nobody may land it -- not the train, and not a steward acting alone. `ready` is the ONLY admitting value; the others are kept apart because each has a different remedy: `draft` (still a draft), `not-main` (based on another branch: #1937 merged into the head of #1764 after #1764 had landed), `no-marker` (no `ready: &lt;sha&gt;` comment: #1960, #1957), `foreign-marker` (the marker is signed by no session, or by a session other than the PR's own: #1937's was unsigned) and `stale-marker` (the head moved past the marker). Derived by `deriveFacts` from LivePr's draft, baseRef, readySha and readyBy. `merge:guard` asks the full question at the moment of merging, including whether the commits after a stale marker are all merge-main bot merges; this table cannot, so it is the more conservative of the two, and a PR it hands back for `stale-marker` may still pass the guard after the bot merges main in.</description>
+        <inputEntry id="IE_Nr_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Nr_2"><text>false</text></inputEntry>
+        <inputEntry id="IE_Nr_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Nr_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Nr_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Nr_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Nr_7"><text>-</text></inputEntry>
+        <inputEntry id="IE_Nr_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_Nr_9"><text>"draft","not-main","no-marker","foreign-marker","stale-marker"</text></inputEntry>
+        <outputEntry id="OE_Nr_1"><text>"hand back"</text></outputEntry>
+        <outputEntry id="OE_Nr_2"><text>"hand-back"</text></outputEntry>
+        <outputEntry id="OE_Nr_3"><text>92</text></outputEntry>
+        <outputEntry id="OE_Nr_4"><text>"alone"</text></outputEntry>
+      </rule>
+
+      <rule id="Rule_SeedSmallClean">
+        <description>(a) Seeds the staging repos, small, no predicted conflict.</description>
+        <inputEntry id="IE_S0_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_S0_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_S0_3"><text>true</text></inputEntry>
+        <inputEntry id="IE_S0_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_S0_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_S0_6"><text>"small"</text></inputEntry>
+        <inputEntry id="IE_S0_7"><text>"low"</text></inputEntry>
+        <inputEntry id="IE_S0_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_S0_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_S0_1"><text>"admit"</text></outputEntry>
+        <outputEntry id="OE_S0_2"><text>"harness-seed"</text></outputEntry>
+        <outputEntry id="OE_S0_3"><text>10</text></outputEntry>
+        <outputEntry id="OE_S0_4"><text>"shared"</text></outputEntry>
+      </rule>
+      <rule id="Rule_SeedLowRisk">
+        <description>(a) Seeds the staging repos, large, no predicted conflict.</description>
+        <inputEntry id="IE_S1_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_S1_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_S1_3"><text>true</text></inputEntry>
+        <inputEntry id="IE_S1_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_S1_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_S1_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_S1_7"><text>"low"</text></inputEntry>
+        <inputEntry id="IE_S1_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_S1_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_S1_1"><text>"admit"</text></outputEntry>
+        <outputEntry id="OE_S1_2"><text>"harness-seed"</text></outputEntry>
+        <outputEntry id="OE_S1_3"><text>11</text></outputEntry>
+        <outputEntry id="OE_S1_4"><text>"shared"</text></outputEntry>
+      </rule>
+      <rule id="Rule_SeedHighRisk">
+        <description>(a) Seeds the staging repos, predicted to conflict with another queued PR (T3): still first, but in a train of its own.</description>
+        <inputEntry id="IE_S2_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_S2_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_S2_3"><text>true</text></inputEntry>
+        <inputEntry id="IE_S2_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_S2_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_S2_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_S2_7"><text>-</text></inputEntry>
+        <inputEntry id="IE_S2_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_S2_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_S2_1"><text>"admit"</text></outputEntry>
+        <outputEntry id="OE_S2_2"><text>"harness-seed"</text></outputEntry>
+        <outputEntry id="OE_S2_3"><text>12</text></outputEntry>
+        <outputEntry id="OE_S2_4"><text>"alone"</text></outputEntry>
+      </rule>
+
+      <rule id="Rule_UnblockSmallClean">
+        <description>(b) Unblocks other work, small, no predicted conflict.</description>
+        <inputEntry id="IE_U0_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_U0_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_U0_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_U0_4"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_U0_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_U0_6"><text>"small"</text></inputEntry>
+        <inputEntry id="IE_U0_7"><text>"low"</text></inputEntry>
+        <inputEntry id="IE_U0_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_U0_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_U0_1"><text>"admit"</text></outputEntry>
+        <outputEntry id="OE_U0_2"><text>"unblocker"</text></outputEntry>
+        <outputEntry id="OE_U0_3"><text>20</text></outputEntry>
+        <outputEntry id="OE_U0_4"><text>"shared"</text></outputEntry>
+      </rule>
+      <rule id="Rule_UnblockLowRisk">
+        <description>(b) Unblocks other work, large, no predicted conflict.</description>
+        <inputEntry id="IE_U1_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_U1_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_U1_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_U1_4"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_U1_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_U1_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_U1_7"><text>"low"</text></inputEntry>
+        <inputEntry id="IE_U1_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_U1_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_U1_1"><text>"admit"</text></outputEntry>
+        <outputEntry id="OE_U1_2"><text>"unblocker"</text></outputEntry>
+        <outputEntry id="OE_U1_3"><text>21</text></outputEntry>
+        <outputEntry id="OE_U1_4"><text>"shared"</text></outputEntry>
+      </rule>
+      <rule id="Rule_UnblockHighRisk">
+        <description>(b) Unblocks other work, predicted to conflict (T3): its own train.</description>
+        <inputEntry id="IE_U2_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_U2_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_U2_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_U2_4"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_U2_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_U2_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_U2_7"><text>-</text></inputEntry>
+        <inputEntry id="IE_U2_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_U2_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_U2_1"><text>"admit"</text></outputEntry>
+        <outputEntry id="OE_U2_2"><text>"unblocker"</text></outputEntry>
+        <outputEntry id="OE_U2_3"><text>22</text></outputEntry>
+        <outputEntry id="OE_U2_4"><text>"alone"</text></outputEntry>
+      </rule>
+
+      <rule id="Rule_MvpSmallClean">
+        <description>(c) MVP / feature-priority, small, no predicted conflict.</description>
+        <inputEntry id="IE_M0_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_M0_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_M0_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_M0_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_M0_5"><text>true</text></inputEntry>
+        <inputEntry id="IE_M0_6"><text>"small"</text></inputEntry>
+        <inputEntry id="IE_M0_7"><text>"low"</text></inputEntry>
+        <inputEntry id="IE_M0_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_M0_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_M0_1"><text>"admit"</text></outputEntry>
+        <outputEntry id="OE_M0_2"><text>"mvp"</text></outputEntry>
+        <outputEntry id="OE_M0_3"><text>30</text></outputEntry>
+        <outputEntry id="OE_M0_4"><text>"shared"</text></outputEntry>
+      </rule>
+      <rule id="Rule_MvpLowRisk">
+        <description>(c) MVP / feature-priority, large, no predicted conflict.</description>
+        <inputEntry id="IE_M1_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_M1_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_M1_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_M1_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_M1_5"><text>true</text></inputEntry>
+        <inputEntry id="IE_M1_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_M1_7"><text>"low"</text></inputEntry>
+        <inputEntry id="IE_M1_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_M1_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_M1_1"><text>"admit"</text></outputEntry>
+        <outputEntry id="OE_M1_2"><text>"mvp"</text></outputEntry>
+        <outputEntry id="OE_M1_3"><text>31</text></outputEntry>
+        <outputEntry id="OE_M1_4"><text>"shared"</text></outputEntry>
+      </rule>
+      <rule id="Rule_MvpHighRisk">
+        <description>(c) MVP / feature-priority, predicted to conflict (T3): its own train.</description>
+        <inputEntry id="IE_M2_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_M2_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_M2_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_M2_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_M2_5"><text>true</text></inputEntry>
+        <inputEntry id="IE_M2_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_M2_7"><text>-</text></inputEntry>
+        <inputEntry id="IE_M2_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_M2_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_M2_1"><text>"admit"</text></outputEntry>
+        <outputEntry id="OE_M2_2"><text>"mvp"</text></outputEntry>
+        <outputEntry id="OE_M2_3"><text>32</text></outputEntry>
+        <outputEntry id="OE_M2_4"><text>"alone"</text></outputEntry>
+      </rule>
+
+      <rule id="Rule_StandardSmallClean">
+        <description>Everything else, small and no predicted conflict: the "small clean ones" of 2026-10-02.</description>
+        <inputEntry id="IE_D0_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_D0_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_D0_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_D0_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_D0_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_D0_6"><text>"small"</text></inputEntry>
+        <inputEntry id="IE_D0_7"><text>"low"</text></inputEntry>
+        <inputEntry id="IE_D0_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_D0_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_D0_1"><text>"admit"</text></outputEntry>
+        <outputEntry id="OE_D0_2"><text>"standard"</text></outputEntry>
+        <outputEntry id="OE_D0_3"><text>40</text></outputEntry>
+        <outputEntry id="OE_D0_4"><text>"shared"</text></outputEntry>
+      </rule>
+      <rule id="Rule_StandardLowRisk">
+        <description>Everything else, large, no predicted conflict.</description>
+        <inputEntry id="IE_D1_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_D1_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_D1_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_D1_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_D1_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_D1_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_D1_7"><text>"low"</text></inputEntry>
+        <inputEntry id="IE_D1_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_D1_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_D1_1"><text>"admit"</text></outputEntry>
+        <outputEntry id="OE_D1_2"><text>"standard"</text></outputEntry>
+        <outputEntry id="OE_D1_3"><text>41</text></outputEntry>
+        <outputEntry id="OE_D1_4"><text>"shared"</text></outputEntry>
+      </rule>
+      <rule id="Rule_StandardHighRisk">
+        <description>Everything else, predicted to conflict (T3): last of the admitted, in its own train. The catch-all, so the table has no gap.</description>
+        <inputEntry id="IE_D2_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_D2_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_D2_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_D2_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_D2_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_D2_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_D2_7"><text>-</text></inputEntry>
+        <inputEntry id="IE_D2_8"><text>-</text></inputEntry>
+        <inputEntry id="IE_D2_9"><text>-</text></inputEntry>
+        <outputEntry id="OE_D2_1"><text>"admit"</text></outputEntry>
+        <outputEntry id="OE_D2_2"><text>"standard"</text></outputEntry>
+        <outputEntry id="OE_D2_3"><text>42</text></outputEntry>
+        <outputEntry id="OE_D2_4"><text>"alone"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

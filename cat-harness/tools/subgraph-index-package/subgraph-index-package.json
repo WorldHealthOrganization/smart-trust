@@ -1,0 +1,105 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "subgraph-index-package",
+    "title": "Package one pin's subgraph index files for a hydrated mount",
+    "description": "Pack every built `index.jsonld` and `index.hydrated.jsonld` under a layer's `<docs>/subgraph/<harness>/` into ONE npm package for one pin — `<harness>-subgraph-index@0.0.0-pin.<sha>`, with a `folio-subgraph-index/v1` manifest giving each file's sha256 — through `pack-tarball` (`bun pm pack`), which also writes the tarball's `folio-binary-release/v1` record. The reusable workflow `layer-publish-subgraph-index.yml` attaches both to the GitHub release `subgraph-index-<sha>`, where `remote-mount` finds them for a `hydrated` source whose pin's git tree holds no index file (they are `builtAtPublish`, so none does). It builds nothing: run `subgraph:jsonld` first. No subgraph files under the layer is a refusal, never an empty package.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat subgraph-index:pack"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "root",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The layer root whose `<docs>/subgraph/<name>/` is packed.",
+          "required": true,
+          "arg": {
+            "flag": "--root"
+          }
+        },
+        {
+          "name": "repository",
+          "schema": {
+            "$type": "RepoFullName"
+          },
+          "description": "owner/name of the repository the pin is a commit of.",
+          "required": true,
+          "arg": {
+            "flag": "--repository"
+          }
+        },
+        {
+          "name": "ref",
+          "schema": {
+            "$type": "CommitSha"
+          },
+          "description": "The pin: the full 40-character commit the files were built from.",
+          "required": true,
+          "arg": {
+            "flag": "--ref"
+          }
+        },
+        {
+          "name": "outDir",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Where the tarball and its release record are written.",
+          "required": true,
+          "arg": {
+            "flag": "--out-dir"
+          }
+        },
+        {
+          "name": "builtIn",
+          "schema": {
+            "$type": "PinnedRepo"
+          },
+          "description": "`<owner/name>@<40-char sha>` of the checkout the files were built in, recorded as provenance.",
+          "required": false,
+          "arg": {
+            "flag": "--built-in"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tarball",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The package `.tgz`."
+        },
+        {
+          "name": "release",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Its `folio-binary-release/v1` record."
+        }
+      ]
+    },
+    "satisfies": [
+      "npm-kg-distribution",
+      "remote-mount"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "Bean `mo75` G2b. Owner, 2026-10-24 (decision card, option A): the subgraph\nindex files are published per pin in a package, and a hydrated mount\nfetches them through the Tool its source names. This is the PUBLISH half;\nthe fetch half is `remote-mount`, the default `tool` of a `hydrated` source.\nThe package's names are `subgraphIndexPackage` in\n`schemas/kg/subgraph-manifest.ts`."
+    }
+  ]
+}

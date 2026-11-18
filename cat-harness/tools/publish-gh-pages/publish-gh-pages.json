@@ -1,0 +1,93 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "publish-gh-pages",
+    "title": "Publish a built site to gh-pages as a full replace",
+    "description": "Lay a built `_site` onto a `gh-pages` checkout as a FULL REPLACE and push it, keeping the open pull requests' staging previews: each attempt re-reads the branch, re-runs restore-staging and keep-shared-payloads against what is on it now, replaces the tree, commits `docs(gh-pages): site from <sha>` and pushes. A rejected push is rebuilt, never rebased (a rebase would re-apply the replace over a preview a sibling just deployed), up to three attempts. A restore that cannot read the branch stops the publish. A site that matches the branch is a no-op, not a failure. It publishes and does not verify: the workflow's verify step runs after it.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat pages:publish"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "site",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The built site to publish (env SITE).",
+          "required": true,
+          "arg": {
+            "flag": "--site"
+          }
+        },
+        {
+          "name": "state",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "restore-staging's record file; keep-shared-payloads keeps its directory at `<state>.keep` (env STATE).",
+          "required": true,
+          "arg": {
+            "flag": "--state"
+          }
+        },
+        {
+          "name": "commit",
+          "schema": {
+            "$type": "CommitSha"
+          },
+          "description": "The commit the site was built from, named in the pages commit message (env COMMIT_SHA).",
+          "required": true,
+          "arg": {
+            "flag": "--commit"
+          }
+        },
+        {
+          "name": "pagesDir",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A git checkout whose `origin` holds the `gh-pages` branch (env PAGES_DIR).",
+          "required": true,
+          "arg": {
+            "flag": "--pages-dir"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "`published on attempt <n>`, or `nothing to publish`; any other exit is a publish that did not happen."
+        }
+      ]
+    },
+    "satisfies": [
+      "render-kg-to-cdn"
+    ],
+    "selection": {
+      "when": "The deploy step of a site publish: after the site is built and checked, to replace the live `gh-pages` tree without dropping the previews on it.",
+      "limits": "A full replace of the whole branch. A branch preview (`branches/<branch>/`) is published by the staging route, which replaces only its own directory.",
+      "cost": "A shallow fetch, a copy of the site and a push, repeated on a lost race."
+    },
+    "requires": {
+      "runtime": [
+        "bash",
+        "bun",
+        "git"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "The branch is read and pushed on the git host; with no host there is nothing to publish to."
+      }
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+---
+doc_id: 10665-381036
+doc_title: "WHO consolidated guidelines on tuberculosis. Module 3: Diagnosis"
+section_id: page-957
+section_title: "Page 957"
+section_number: null
+pages: 957-957
+source_pdf: 10665-381036.pdf
+source_sha256: 83e481b3ccc61cf4
+toc_source: undetermined
+---
+Abbreviations  
+BCG: Bacillus Calmette-Guérin 
+CBA: Cost-benefit analysis 
+CUA: Cost-utility analysis  
+CEA: Cost-effective analysis 
+DOT: Directly observed therapy 
+HICs: High-income countries 
+HIV: Human immunodeficiency virus 
+ICER: incremental cost-effectiveness ratios 
+IGRA: interferon-gamma release assays 
+LMICs: Low- and middle-income countries 
+PPD: purified protein derivative 
+PRISMA – Preferred Reporting Items for Systematic Reviews and Meta-Analyses 
+PSA: probabilistic sensitivity analysis 
+QALYS: Quality Adjusted Life Years 
+QFT: QuantiFERON-TB Gold 
+TB: Tuberculosis 
+TBI: Latent tuberculosis infection 
+TBST: Mycobacterium tuberculosis specific antigen-based skin tests 
+TPT: Tuberculosis preventive treatment 
+TST: Tuberculin skin tests 
+USD: United states dollars 
+WHO: World Health Organization

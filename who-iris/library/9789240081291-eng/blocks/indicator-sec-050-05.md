@@ -1,0 +1,3 @@
+Sub-indicator 4-01.4
+Existence of national/subnational policies/laws regulating dual practice (Yes/Partial/No)
+Guiding questions: Is there a national policy or programme regarding • health workers working in a public service provision role and a role external to public services, i.e. in a completely separate private environment? • health workers working in a public service provision role and a parallel role, i.e. in a private ward or clinic physically associated with a public facility but run as a separate business? • health workers working in a public service provision role and another role within the public service, i.e. where private services are offered inside a public facility but outside public service operating hours or space?

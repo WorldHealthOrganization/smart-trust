@@ -1,0 +1,102 @@
+name: Public comment — tags, change-sets and their issues
+
+# The record of a public review moves here, from GitHub (folio-assistant issue
+# #2183; skill `public-comment`, process `public-comment.bpmn`):
+#
+#   a comment anywhere      `pc: PC-0042` / `cs: CS-012` / nothing, then
+#                           `recommend: …` (committee) or `decide: …` (editor):
+#                           recorded. In a change-set's issue a bare verb means
+#                           that change-set.
+#   cs-add / cs-remove / cs-title / cs-requirements / cs-merge / cs-split /
+#   cs-close / cs-new       change a change-set's record (committee, editor)
+#   a mention               of CS-012 or PC-0042, in any issue: linked to it
+#   an issue form           Discuss / New change-set / Recommend or decide
+#   a PR with Closes #N     the change-set's accepted comments: editing, and
+#                           incorporated when it merges
+#
+# A change-set gets its GitHub issue the first time somebody engages with it,
+# never before. The change-set record is the only record: issue bodies are
+# rendered from it, and an edit to the rendered section is put back.
+#
+# The editor is the repository's owner and the committee its collaborators; an
+# `editors` or `committee` list in review/public-comment/config.json overrides
+# either. Anyone may discuss; only they move the record.
+
+on:
+  issue_comment:
+    types: [created, edited]
+  issues:
+    types: [opened, edited, closed, reopened]
+  # _target, so a PR from a fork can still move the record. Safe here: the job
+  # checks out the DEFAULT branch and never runs the PR's code; it reads only
+  # the PR's body, branch name and merge state from the event file.
+  pull_request_target:
+    types: [opened, edited, reopened, closed]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  # One record update at a time, never cancelled half-way.
+  group: public-comment-record
+  cancel-in-progress: false
+
+jobs:
+  record:
+    # `contains` is case-insensitive: 'pc-' also matches PC-0042, 'cs-' CS-012.
+    if: >-
+      github.event.sender.type != 'Bot' && (
+      (github.event_name == 'issue_comment' && (contains(github.event.comment.body, 'pc-') || contains(github.event.comment.body, 'cs-') || contains(github.event.comment.body, 'cs:') || contains(github.event.comment.body, 'decide:') || contains(github.event.comment.body, 'recommend:'))) ||
+      (github.event_name == 'issues' && (github.event.action == 'closed' || github.event.action == 'reopened' || contains(github.event.issue.body, 'pc-') || contains(github.event.issue.body, 'cs-') || contains(github.event.issue.body, 'decide:') || contains(github.event.issue.body, 'recommend:'))) ||
+      (github.event_name == 'pull_request_target' && (contains(github.event.pull_request.body, '#') || contains(github.event.pull_request.body, 'cs-'))))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          submodules: recursive
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Install the platform's dependencies
+        run: cd {{assistant}} && bash .github/mount-from-lock.sh --root . && bun install --frozen-lockfile
+
+      - name: Record the event, and bring the issues into line
+        # The event's text is untrusted. The tool reads it from the event FILE,
+        # never from this shell, and answers on the thread itself.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: bun run {{assistant}}/folio-assistant-core/scripts/public-comment-changesets.ts github --event "$GITHUB_EVENT_PATH"
+
+      - name: Commit the record
+        id: commit
+        env:
+          ACTOR: ${{ github.actor }}
+          URL: ${{ github.event.comment.html_url || github.event.issue.html_url || github.event.pull_request.html_url }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if git diff --quiet -- review/public-comment && [ -z "$(git ls-files --others --exclude-standard review/public-comment)" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add review/public-comment
+          git commit -m "public comment: record $EVENT by $ACTOR" -m "$URL"
+          for attempt in 1 2 3 4; do
+            git push origin HEAD && break
+            git pull --rebase origin "${{ github.event.repository.default_branch }}"
+          done
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Republish the site
+        # A push made with GITHUB_TOKEN starts no workflow; a dispatch does.
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run staging.yml --ref "${{ github.event.repository.default_branch }}" || echo "no staging.yml to dispatch"
