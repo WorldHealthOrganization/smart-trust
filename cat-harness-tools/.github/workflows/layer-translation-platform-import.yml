@@ -1,0 +1,190 @@
+# Rewrite a translation platform's pull request into CANDIDATES — ONE
+# reusable workflow every layer with translations may call. Inert until a
+# layer adds a caller AND the owner connects a platform.
+#
+# Weblate, Crowdin and Transifex each have a GitHub integration that opens a
+# pull request with the translations done there, as edits to the `.po`
+# catalogues. A platform is never an adjudicator (owner, 2026-11-14): its
+# strings — approved there or not — must not land as `msgstr`. This workflow
+# runs on such a PR and pushes ONE commit to the same branch that:
+#   - puts every `.po` back to the base branch's text, except that an empty
+#     `msgstr` takes the first candidate, marked `#, fuzzy`;
+#   - appends the platform's strings to `<locale>/<catalogue>.candidates.json`
+#     (`translation-candidates/v1`), source `{kind: "web-service", id:
+#     "weblate"|"crowdin"|"transifex"}`, with the platform's own state
+#     (approved / translated / fuzzy) as `metadata.platformState`;
+# and comments a summary. A person then adjudicates on the translation review
+# page; only their GitHub issue records a verdict.
+#
+# A caller is a few lines, in the repository holding the catalogues:
+#
+#   name: Translation platform import
+#   on:
+#     pull_request: { types: [opened, synchronize, reopened] }
+#   permissions: { contents: write, pull-requests: write }
+#   jobs:
+#     import:
+#       uses: litlfred/cat-harness-tools/.github/workflows/layer-translation-platform-import.yml@<lock sha> # index.lock.json
+#       with:
+#         platform: crowdin          # or weblate, transifex
+#         branch-prefix: l10n_       # the branch the platform's integration pushes
+#
+# Why rewrite on the platform's own branch, rather than import by API: the
+# platforms' GitHub integrations already deliver exactly the files the
+# exported layout names, on a branch, reviewed as a PR — no platform token or
+# network host is needed in this repository's CI. The rewrite reads the
+# changed `.po` files only as data, with the script from the caller's lock
+# pin; nothing from the PR branch is executed.
+#
+# Only a PR whose head branch is in THIS repository is rewritten: the token
+# cannot push to a fork. A platform configured to open its PR from a fork is
+# reported in the job summary and left alone — configure it to push a branch
+# here (see `scripts/translation/PLATFORMS.md`).
+#
+# The platform pushes again on its next sync and overwrites the files; the
+# next run re-imports, and an identical candidate is not added twice.
+
+name: Layer translation platform import
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        description: "weblate, crowdin or transifex."
+        required: true
+        type: string
+      branch-prefix:
+        description: "The head-branch prefix the platform's integration pushes (Crowdin `l10n_`, Weblate the component's push branch, Transifex `transifex`)."
+        required: true
+        type: string
+      export-mode:
+        description: "'all' (default), or 'approved' when the platform is set to export only strings approved there (their state is then recorded as approved)."
+        required: false
+        type: string
+        default: "all"
+      path-in-repo:
+        description: "Where the layer sits in the calling repository; '.' for the repository root."
+        required: false
+        type: string
+        default: "."
+      index-ref:
+        description: "The folio-assistant ref whose lock mounts the platform's layers."
+        required: false
+        type: string
+        default: "main"
+      tools-ref:
+        description: "'lock' (the caller's index.lock.json pin of cat-harness-tools, or the index's mount when it has none), or a 40-hex commit."
+        required: false
+        type: string
+        default: "lock"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: translation-platform-import-${{ github.repository }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  import:
+    name: Rewrite the platform's translations as candidates
+    if: >-
+      github.event_name == 'pull_request' &&
+      startsWith(github.event.pull_request.head.ref, inputs.branch-prefix) &&
+      contains(fromJSON('["weblate","crowdin","transifex"]'), inputs.platform)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Only a branch in this repository
+        id: same
+        env:
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REPO" = "$REPO" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "The platform opened this PR from a fork; the workflow token cannot push there, so nothing was rewritten. Configure the platform to push a branch in this repository." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Check out the folio-assistant index
+        if: steps.same.outputs.ok == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: litlfred/folio-assistant
+          ref: ${{ inputs.index-ref }}
+          path: fa
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        if: steps.same.outputs.ok == 'true'
+        with:
+          bun-version: 1.4.4
+      - name: Mount every layer from the index's lock, and install
+        if: steps.same.outputs.ok == 'true'
+        run: |
+          set -euo pipefail
+          bash fa/.github/mount-from-lock.sh --root fa
+          (cd fa && bun install)
+      - name: Check out the platform's branch
+        if: steps.same.outputs.ok == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          path: src
+      - name: Take the import script at the caller's pin
+        # As in layer-translation-adjudication.yml: a lock, never a branch.
+        if: steps.same.outputs.ok == 'true'
+        env:
+          TOOLS_REF: ${{ inputs.tools-ref }}
+        run: |
+          set -euo pipefail
+          T=fa/.platform-tools
+          ref="$TOOLS_REF"
+          if [ "$ref" = lock ]; then
+            if [ -f src/index.lock.json ]; then
+              ref=$(python3 -c "import json;print(next(m['ref'] for m in json.load(open('src/index.lock.json'))['mounts'] if m['harness']=='cat-harness-tools'))")
+            else
+              cp -R fa/cat-harness-tools "$T"
+              exit 0
+            fi
+          fi
+          [[ "$ref" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::tools-ref must be 'lock' or a 40-hex commit, not '$ref'"; exit 1; }
+          git init -q "$T"
+          git -C "$T" fetch -q --depth 1 https://github.com/litlfred/cat-harness-tools.git "$ref"
+          git -C "$T" checkout -q FETCH_HEAD
+      - name: Rewrite the platform's strings as candidates
+        id: rewrite
+        if: steps.same.outputs.ok == 'true'
+        env:
+          LAYER: ${{ inputs.path-in-repo }}
+          PLATFORM: ${{ inputs.platform }}
+          MODE: ${{ inputs.export-mode }}
+          BASE: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set +e
+          CAT_HARNESS_ROOT="$PWD/fa/cat-harness" bun run fa/.platform-tools/scripts/translation-platforms.ts import \
+            --platform "$PLATFORM" --base "origin/$BASE" --export-mode "$MODE" \
+            --root "src/$LAYER" --repo-root src --summary "$RUNNER_TEMP/summary.md"
+          code=$?
+          set -e
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          if [ "$code" = 2 ]; then exit 1; fi
+      - name: Commit to the platform's branch, and say what changed
+        if: steps.same.outputs.ok == 'true' && steps.rewrite.outputs.code == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          N: ${{ github.event.pull_request.number }}
+          PLATFORM: ${{ inputs.platform }}
+          LAYER: ${{ inputs.path-in-repo }}
+        run: |
+          set -euo pipefail
+          cd src
+          git add -- "$LAYER"
+          if git diff --cached --quiet; then exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Rewrite $PLATFORM translations as candidates" \
+            -m "A platform is a source, not an adjudicator: its strings are candidates in translation-candidates/v1; the .po keeps the base text, and an empty msgstr takes the first candidate as fuzzy."
+          git push origin HEAD
+          gh pr comment "$N" --body-file "$RUNNER_TEMP/summary.md"

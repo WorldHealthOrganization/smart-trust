@@ -1,0 +1,76 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "translation-adjudication-workflow",
+    "title": "Translation adjudication workflow (reusable)",
+    "description": "The tools layer's reusable `layer-translation-adjudication.yml`, called by a layer on `issues` events: runs once per issue labelled `translation-adjudication` or titled `[translation review] …`, mounts the platform's layers, runs `translation:adjudicate` on the event, and either commits the records on `translation-adjudication/issue-<n>` (authored by the issue's author) and opens a ready PR, or comments why nothing was recorded. It never merges.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "manual": true
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "path_in_repo",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Where the layer sits in the calling repository; `.` for the root.",
+          "required": false
+        },
+        {
+          "name": "index_ref",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "The folio-assistant ref whose lock mounts the platform's layers. Default `main`.",
+          "required": false
+        },
+        {
+          "name": "tools_ref",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "`lock` (the caller's lock pin of the tools layer) or a 40-hex commit.",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "pull_request",
+          "schema": {
+            "$type": "Url"
+          },
+          "description": "The ready PR carrying the records, when anything was recorded."
+        },
+        {
+          "name": "summary",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "The comment on the issue: what was recorded and what was refused."
+        }
+      ]
+    },
+    "satisfies": [
+      "translation-adjudication"
+    ],
+    "requires": {
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "It is a GitHub Actions workflow; it runs on GitHub or not at all. `translation-adjudicate` plans and writes the same records in a checkout, given the event file."
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "/invoke",
+      "comment": "`manual`, honestly: a reusable workflow is not dispatched; a layer's caller (`on: issues`, `uses: <tools layer>/.github/workflows/layer-translation-adjudication.yml@<lock sha>`) runs it when an issue is filed. The `ig-folio-site-workflow` node is the precedent for a node over a workflow."
+    }
+  ]
+}

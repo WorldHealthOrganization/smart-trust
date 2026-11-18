@@ -1,0 +1,649 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — editing a content block and its HCI validation gate.
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool. The SVG under docs/assets/img/workflows/ is generated from it
+  by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  The <bootstrap.processes:skill> extension on an activity names the folio-assistant skill
+  that implements it; <cat-harness.processes:bean> marks a step that reads or writes the shared
+  work plan in beans/.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_FolioEditing"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="author" name="Author"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="corpus" name="Corpus"/>
+  <bpmn:resource id="reviewer" name="Reviewer / SME"/>
+  <bpmn:resource id="validation-pipeline" name="Validation pipeline"/>
+  <bpmn:resource id="work-plan" name="Work plan (beans)"/>
+
+  <bpmn:collaboration id="Collaboration_FolioEditing">
+    <bpmn:participant id="Participant_FolioEditing" name="Folio editing — one proposed change to a content block" processRef="Process_Editing" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Editing" name="Editing and HCI validation" isExecutable="false">
+    <bpmn:documentation>
+      What happens to one proposed change to one content block: drafted, validated mechanically and by review, shown to the editor, and committed to the corpus only if accepted.
+    </bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict" />
+      <!-- Capture ON: the HCI validation gate is the step whose outcome a reviewer
+           is most often asked to justify after the fact, and the editor's decision
+           is the thing a log can evidence and prose cannot. -->
+      <cat-harness.processes:log capture="on" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_Editing_LaneSet">
+      <bpmn:lane id="Lane_Editor" name="Editor / author (person)" partitionElementRef="author">
+        <bpmn:documentation>Every act the requesting party performs personally rather than through the agent lands here: stating the change, retrieving its evidence, and — once every validation path has reported — ruling on it. The gate sits at Task_ReviewFindings, once the findings exist.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_EditRequested</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DescribeChange</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewFindings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RecordDecision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_EditorDecision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Discarded</bpmn:flowNodeRef>
+              <bpmn:flowNodeRef>CallActivity_Evidence</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Authoring agent (system)" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Produces the proposed change and, once findings exist, weighs the options for it — accept, revise, discard — but stops short of choosing: Call_OptionsAnalysis records that the options were weighed, Task_RecordDecision in the editor's lane records what was chosen, so one party never both analyses and decides.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_DraftEdit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ProposalReady</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviseEdit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_OptionsAnalysis</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ClaimBean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_BeanYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_BeanNotYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LogFindings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ResolveBean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_BeanClosedHow</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Commit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_InCorpus</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pipeline" name="HCI validation pipeline (system)" partitionElementRef="validation-pipeline">
+        <bpmn:documentation>Forks validation into its four parallel paths and, once every one reports, collates mechanical results and review findings into a single report. It checks nothing itself; it makes sure none of the four is missing before the editor sees anything.</bpmn:documentation>
+        <bpmn:flowNodeRef>Gateway_ValidationFork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ValidationJoin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CollateFindings</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Mechanical" name="Mechanical validation (system)" partitionElementRef="validation-pipeline">
+        <bpmn:documentation>Runs the three checks that need no judgement call — schema and constraints, syntax and link resolution, build and QA gates — in parallel with the non-mechanical review rather than gating on it.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_SchemaValidate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SyntaxSpell</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BuildGates</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_NonMechanical" name="Non-mechanical validation (review agent or SME)" partitionElementRef="reviewer">
+        <bpmn:documentation>Supplies the half of validation no checker can perform: whether the change says what the editor meant. Gateway_ReviewerKind escalates from agent review to a human SME specifically when the judgement needed turns clinical or scientific rather than editorial.</bpmn:documentation>
+        <bpmn:flowNodeRef>Gateway_ReviewerKind</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AgentReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SmeReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ReviewerJoin</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_EditRequested" name="Edit requested">
+      <bpmn:outgoing>Flow_01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_DescribeChange" name="Describe the intended change">
+      <bpmn:documentation>The editor states the change in natural language; no content has moved yet.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="The editor states the change they intend. Origination of intent, not execution of a method — nothing for an instruction body to say." />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_01</bpmn:incoming>
+      <bpmn:outgoing>Flow_02</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:callActivity id="Task_ClaimBean" name="Open the bean" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Process_BeanOpen: check before you create, find out whose the bean is, and claim it — or leave it alone when it is someone else's. The one place a claim is drawn; the gateway after this reads which end it reached.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+          <bpmn:incoming>Flow_02</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_1</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="CallActivity_Evidence" name="Gather and verify the evidence" calledElement="Process_EvidenceRetrieval">
+      <bpmn:documentation>Before anything is drafted: the author reads the guidance ALREADY in this content, frames the question as PICO, retrieves candidates across the three evidence classes, and has each candidate's authority resolved against its publisher's own API. A recommendation reaches the drafting step with its evidence attached, or with the gap recorded.
+
+This step has nothing to do for content that carries no recommendations -- a mathematics folio has none, and a figure redrawn from its own source adds none -- and the subprocess's first gateway (Gateway_RecommendationInPlay) ends it there at its own event, recording the answer, rather than satisfying the search vacuously.</bpmn:documentation>
+      <bpmn:incoming>Flow_03</bpmn:incoming>
+      <bpmn:outgoing>Flow_Evidence</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:serviceTask id="Task_DraftEdit" name="Draft the block edit">
+      <bpmn:documentation>The authoring agent produces a PROPOSED change. Nothing is written to the corpus yet. For a rendered change it also produces the before/after preview (skill before-after-preview) here, before Gateway_ValidationFork, so the preview exists when the parallel review starts.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-author" />
+        <bootstrap.processes:skill ref="before-after-preview"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Evidence</bpmn:incoming>
+      <bpmn:outgoing>Flow_04</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_ProposalReady" name="Proposed change ready">
+      <bpmn:incoming>Flow_04</bpmn:incoming>
+      <bpmn:incoming>Flow_23</bpmn:incoming>
+      <bpmn:outgoing>Flow_05</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:parallelGateway id="Gateway_ValidationFork" name="Run HCI validation">
+      <bpmn:incoming>Flow_05</bpmn:incoming>
+      <bpmn:outgoing>Flow_06</bpmn:outgoing>
+      <bpmn:outgoing>Flow_07</bpmn:outgoing>
+      <bpmn:outgoing>Flow_08</bpmn:outgoing>
+      <bpmn:outgoing>Flow_09</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="Task_SchemaValidate" name="Schema and constraint checks">
+      <bpmn:documentation>Block schema, label prefixes, required fields, constraint rules.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-validate" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_06</bpmn:incoming>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_SyntaxSpell" name="Syntax, spelling and links">
+      <bpmn:documentation>Syntax, spelling, cross-references, citation and link resolution.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-validate" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_07</bpmn:incoming>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_BuildGates" name="Build and QA gates">
+      <bpmn:documentation>Lean build and proof status, LaTeX compile, FHIR/SUSHI validation, QA axes.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-test" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_08</bpmn:incoming>
+      <bpmn:outgoing>Flow_16</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_ReviewerKind" name="Judgement call?">
+      <bpmn:documentation>Does this change need a judgement call? `no` goes to agent review; `yes` goes to a human or SME. The question is about the change, not about who is available.</bpmn:documentation>
+      <bpmn:incoming>Flow_09</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_AgentReview" name="Agent review of the change">
+      <bpmn:documentation>A review agent judges what no checker can: accuracy, voice, exposition, whether the change says what the editor meant.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_SmeReview" name="Human / SME review">
+      <bpmn:documentation>Escalated to a human reviewer or subject-matter expert when the change turns on clinical or scientific judgement. A rendered change reaches the reviewer with its before/after preview (skill before-after-preview).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_ReviewerJoin" name="">
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_17</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:parallelGateway id="Gateway_ValidationJoin" name="All checks reported">
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+      <bpmn:incoming>Flow_16</bpmn:incoming>
+      <bpmn:incoming>Flow_17</bpmn:incoming>
+      <bpmn:outgoing>Flow_18</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="Task_CollateFindings" name="Collate findings into a report">
+      <bpmn:documentation>Mechanical results and review findings are merged into one report against the proposed change.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-validate" />
+        <bootstrap.processes:skill ref="content-validate" />
+        <bootstrap.processes:skill ref="content-validate" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_18</bpmn:incoming>
+      <bpmn:outgoing>Flow_19</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_LogFindings" name="Log findings on the bean">
+      <bpmn:documentation>Findings are appended to the bean, so the next agent or human sees what is outstanding.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_19</bpmn:incoming>
+      <bpmn:outgoing>Flow_20</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_LogFindings">
+        <bpmn:targetRef>DSR_work_plan</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_ReviewFindings" name="Review the findings">
+      <bpmn:documentation>THE GATE: the editor sees every finding BEFORE anything reaches the corpus.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="decision-audit" />
+        <bootstrap.processes:skill ref="decision-audit" />
+        <bootstrap.processes:skill ref="decision-audit" />
+        <cat-harness.processes:policy relaxable="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_20</bpmn:incoming>
+      <bpmn:outgoing>Flow_21</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:callActivity id="Call_OptionsAnalysis" name="Options analysis&#10;accept · revise · discard" calledElement="Process_OptionsAnalysis">
+      <bpmn:documentation>On the edge out of `Task_ReviewFindings` and before `Task_RecordDecision`: the findings are the evidence, so the options can only be weighed once they exist, and after `Task_RecordDecision` the decision is already written down.
+
+Not between `Gateway_EditorDecision` and `Task_RecordDecision`: `Flow_21b` runs `Task_RecordDecision` -&gt; `Gateway_EditorDecision`, so the gateway reads a decision already recorded.
+
+In the Agent lane: the subprocess records that the options were WEIGHED (its own `decision-audit` note), and `Task_RecordDecision` in `Lane_Editor` records WHAT WAS CHOSEN. The analyst is not the decider. (`CallActivity_Evidence` is in `Lane_Editor` because the author performs the retrieval.)
+
+On the trigger: `A_Frame` opens the subprocess on `opening-brief`'s trigger — irreversibility and surprise — and leaving there is a correct outcome. A spelling fix that reached `Task_ReviewFindings` with one mechanical finding exits immediately; a revise-or-discard on a block other content depends on does not.</bpmn:documentation>
+    </bpmn:callActivity>
+    <bpmn:userTask id="Task_RecordDecision" name="Record the decision and audit note">
+      <bpmn:documentation>A decision is an act ABOUT the findings, not a finding. Record the outcome, every finding it weighed, every finding it overrules — and an audit note saying why it was made, or why a finding in it was left. Each note cites corpus evidence: a witness, another finding, a QA report, a block, a file range. An overruled mechanical finding stays on the record; a gate whose findings vanish when somebody disagrees with them cannot be audited. An agent may assemble the citations and is recorded as `proposed_by`; the author is whoever decided.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="decision-audit" />
+        <cat-harness.processes:policy relaxable="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_21</bpmn:incoming>
+      <bpmn:outgoing>Flow_21b</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_EditorDecision" name="Accept, revise or discard?">
+      <bpmn:documentation>The editor's recorded decision, with its audit note. `revise` reworks the proposed change; `discard` ends with the change dropped; `accept` commits it into the corpus.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:policy relaxable="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_21b</bpmn:incoming>
+      <bpmn:outgoing>Flow_22</bpmn:outgoing>
+      <bpmn:outgoing>Flow_24</bpmn:outgoing>
+      <bpmn:outgoing>Flow_25</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_ReviseEdit" name="Revise the proposed change">
+      <bpmn:documentation>The editor chose revise: rework the proposed change against the findings the editor reviewed, then send it back through validation as a new proposal. The before/after preview is refreshed with it (skill before-after-preview).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-author" />
+        <bootstrap.processes:skill ref="before-after-preview"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_22</bpmn:incoming>
+      <bpmn:outgoing>Flow_23</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Discarded" name="Change discarded">
+      <bpmn:incoming>SF_Bean_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_Commit" name="Commit into the corpus">
+      <bpmn:documentation>Only now does the change become corpus content, together with its QA sidecars. Subject to the commit-hygiene requirement.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:policy relaxable="false" />
+        <bootstrap.processes:skill ref="corpus-commit-contract" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_25</bpmn:incoming>
+      <bpmn:outgoing>Flow_26</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_Commit">
+        <bpmn:targetRef>DSR_corpus</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:callActivity id="Task_ResolveBean" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>Process_BeanClose: end the bean in a state that says why — complete and archive it, scrap it with its reasons and archive it, or record the blocker and hand it back. The one place resolve and archive are drawn; placed straight before the end so the engine's resolve sees nothing left but the archive step.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_BeanClosedHow" name="How did it end?">
+      <bpmn:documentation>Which outcome the bean was closed with, so each ends at its own named end event. The bean is closed once, on every path (bpmn-authoring: open and close the bean at the top, once).</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_InCorpus" name="Change is in the corpus">
+      <bpmn:incoming>Flow_27</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="GW_BeanYours" name="Bean claimed?">
+      <bpmn:documentation>Reads which end Process_BeanOpen reached. `claimed`: the bean is in progress and this process works it. `not yours`: a sibling session or a human holds it, nothing was written to it, and this process stops here rather than work a bean it does not own (bean-coordination).</bpmn:documentation>
+      <bpmn:outgoing>Flow_03</bpmn:outgoing>
+      <bpmn:incoming>SF_Bean_1</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_2</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_BeanNotYours" name="Not yours —&#10;left alone">
+      <bpmn:documentation>Someone else holds the bean; this run stops without touching it.</bpmn:documentation>
+      <bpmn:incoming>SF_Bean_2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_01" sourceRef="StartEvent_EditRequested" targetRef="Task_DescribeChange" />
+    <bpmn:sequenceFlow id="Flow_02" sourceRef="Task_DescribeChange" targetRef="Task_ClaimBean" />
+    <bpmn:sequenceFlow id="Flow_03" name="claimed" sourceRef="GW_BeanYours" targetRef="CallActivity_Evidence" />
+    <bpmn:sequenceFlow id="Flow_Evidence" sourceRef="CallActivity_Evidence" targetRef="Task_DraftEdit" />
+    <bpmn:sequenceFlow id="Flow_04" sourceRef="Task_DraftEdit" targetRef="Gateway_ProposalReady" />
+    <bpmn:sequenceFlow id="Flow_05" sourceRef="Gateway_ProposalReady" targetRef="Gateway_ValidationFork" />
+    <bpmn:sequenceFlow id="Flow_06" name="mechanical" sourceRef="Gateway_ValidationFork" targetRef="Task_SchemaValidate" />
+    <bpmn:sequenceFlow id="Flow_07" sourceRef="Gateway_ValidationFork" targetRef="Task_SyntaxSpell" />
+    <bpmn:sequenceFlow id="Flow_08" sourceRef="Gateway_ValidationFork" targetRef="Task_BuildGates" />
+    <bpmn:sequenceFlow id="Flow_09" name="non-mechanical" sourceRef="Gateway_ValidationFork" targetRef="Gateway_ReviewerKind" />
+    <bpmn:sequenceFlow id="Flow_10" name="no" sourceRef="Gateway_ReviewerKind" targetRef="Task_AgentReview" />
+    <bpmn:sequenceFlow id="Flow_11" name="yes" sourceRef="Gateway_ReviewerKind" targetRef="Task_SmeReview" />
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="Task_AgentReview" targetRef="Gateway_ReviewerJoin" />
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="Task_SmeReview" targetRef="Gateway_ReviewerJoin" />
+    <bpmn:sequenceFlow id="Flow_14" sourceRef="Task_SchemaValidate" targetRef="Gateway_ValidationJoin" />
+    <bpmn:sequenceFlow id="Flow_15" sourceRef="Task_SyntaxSpell" targetRef="Gateway_ValidationJoin" />
+    <bpmn:sequenceFlow id="Flow_16" sourceRef="Task_BuildGates" targetRef="Gateway_ValidationJoin" />
+    <bpmn:sequenceFlow id="Flow_17" sourceRef="Gateway_ReviewerJoin" targetRef="Gateway_ValidationJoin" />
+    <bpmn:sequenceFlow id="Flow_18" sourceRef="Gateway_ValidationJoin" targetRef="Task_CollateFindings" />
+    <bpmn:sequenceFlow id="Flow_19" sourceRef="Task_CollateFindings" targetRef="Task_LogFindings" />
+    <bpmn:sequenceFlow id="Flow_20" sourceRef="Task_LogFindings" targetRef="Task_ReviewFindings" />
+    <bpmn:sequenceFlow id="Flow_21" sourceRef="Task_ReviewFindings" targetRef="Call_OptionsAnalysis" />
+    <bpmn:sequenceFlow id="Flow_21a" sourceRef="Call_OptionsAnalysis" targetRef="Task_RecordDecision" />
+    <bpmn:sequenceFlow id="Flow_21b" sourceRef="Task_RecordDecision" targetRef="Gateway_EditorDecision" />
+    <bpmn:sequenceFlow id="Flow_22" name="revise" sourceRef="Gateway_EditorDecision" targetRef="Task_ReviseEdit" />
+    <bpmn:sequenceFlow id="Flow_23" name="re-validate" sourceRef="Task_ReviseEdit" targetRef="Gateway_ProposalReady" />
+    <bpmn:sequenceFlow id="Flow_24" name="discard" sourceRef="Gateway_EditorDecision" targetRef="Task_ResolveBean" />
+    <bpmn:sequenceFlow id="Flow_25" name="accept" sourceRef="Gateway_EditorDecision" targetRef="Task_Commit" />
+    <bpmn:sequenceFlow id="Flow_26" sourceRef="Task_Commit" targetRef="Task_ResolveBean" />
+    <bpmn:sequenceFlow id="Flow_GW_BeanClosedHow" sourceRef="Task_ResolveBean" targetRef="GW_BeanClosedHow"/>
+    <bpmn:sequenceFlow name="in the corpus" id="Flow_27" sourceRef="GW_BeanClosedHow" targetRef="EndEvent_InCorpus" />
+    <bpmn:sequenceFlow id="SF_Bean_1" sourceRef="Task_ClaimBean" targetRef="GW_BeanYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_2" name="not yours" sourceRef="GW_BeanYours" targetRef="End_BeanNotYours"/>
+    <bpmn:sequenceFlow name="discarded" id="SF_Bean_3" sourceRef="GW_BeanClosedHow" targetRef="EndEvent_Discarded"/>
+    <bpmn:dataStoreReference id="DSR_work_plan" name="Work plan (beans)" dataStoreRef="work-plan"/>
+    <bpmn:dataStoreReference id="DSR_corpus" name="Corpus" dataStoreRef="corpus"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_FolioEditing">
+      <bpmndi:BPMNShape id="Participant_FolioEditing_di" bpmnElement="Participant_FolioEditing" isHorizontal="true">
+        <dc:Bounds x="40" y="20" width="1380" height="855" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Editor_di" bpmnElement="Lane_Editor" isHorizontal="true">
+        <dc:Bounds x="70" y="20" width="1350" height="155" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Agent_di" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="70" y="175" width="1350" height="270" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Pipeline_di" bpmnElement="Lane_Pipeline" isHorizontal="true">
+        <dc:Bounds x="70" y="445" width="1350" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Mechanical_di" bpmnElement="Lane_Mechanical" isHorizontal="true">
+        <dc:Bounds x="70" y="595" width="620" height="280" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_NonMechanical_di" bpmnElement="Lane_NonMechanical" isHorizontal="true">
+        <dc:Bounds x="690" y="595" width="730" height="280" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_EditRequested_di" bpmnElement="StartEvent_EditRequested">
+        <dc:Bounds x="108" y="84" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="102" y="124" width="60" height="38" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DescribeChange_di" bpmnElement="Task_DescribeChange">
+        <dc:Bounds x="165" y="42" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_Evidence_di" bpmnElement="CallActivity_Evidence">
+        <dc:Bounds x="320" y="42" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReviewFindings_di" bpmnElement="Task_ReviewFindings">
+        <dc:Bounds x="640" y="42" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RecordDecision_di" bpmnElement="Task_RecordDecision">
+        <dc:Bounds x="830" y="42" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_EditorDecision_di" bpmnElement="Gateway_EditorDecision" isMarkerVisible="true">
+        <dc:Bounds x="980" y="77" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1034" y="131" width="180" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Discarded_di" bpmnElement="EndEvent_Discarded">
+        <dc:Bounds x="1337" y="84" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1310" y="42" width="90" height="38" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ClaimBean_di" bpmnElement="Task_ClaimBean">
+        <dc:Bounds x="165" y="195" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_BeanYours_di" bpmnElement="GW_BeanYours" isMarkerVisible="true">
+        <dc:Bounds x="302" y="245" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="290" y="198" width="74" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_BeanNotYours_di" bpmnElement="End_BeanNotYours">
+        <dc:Bounds x="312" y="340" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="290" y="382" width="85" height="38" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DraftEdit_di" bpmnElement="Task_DraftEdit">
+        <dc:Bounds x="370" y="195" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ProposalReady_di" bpmnElement="Gateway_ProposalReady" isMarkerVisible="true">
+        <dc:Bounds x="405" y="355" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="459" y="409" width="100" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReviseEdit_di" bpmnElement="Task_ReviseEdit">
+        <dc:Bounds x="505" y="195" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_LogFindings_di" bpmnElement="Task_LogFindings">
+        <dc:Bounds x="640" y="195" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_DSR_work_plan" bpmnElement="DSR_work_plan">
+        <dc:Bounds x="655" y="360" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="558" y="368" width="90" height="38" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_OptionsAnalysis_di" bpmnElement="Call_OptionsAnalysis">
+        <dc:Bounds x="780" y="195" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Commit_di" bpmnElement="Task_Commit">
+        <dc:Bounds x="1040" y="195" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_DSR_corpus" bpmnElement="DSR_corpus">
+        <dc:Bounds x="1075" y="360" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1132" y="375" width="60" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ResolveBean_di" bpmnElement="Task_ResolveBean">
+        <dc:Bounds x="1185" y="195" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_BeanClosedHow" bpmnElement="GW_BeanClosedHow" isMarkerVisible="true">
+        <dc:Bounds x="1330" y="230" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1312" y="182" width="82" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_InCorpus_di" bpmnElement="EndEvent_InCorpus">
+        <dc:Bounds x="1337" y="367" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1235" y="366" width="95" height="38" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ValidationFork_di" bpmnElement="Gateway_ValidationFork">
+        <dc:Bounds x="325" y="495" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="215" y="485" width="105" height="38" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CollateFindings_di" bpmnElement="Task_CollateFindings">
+        <dc:Bounds x="920" y="460" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ValidationJoin_di" bpmnElement="Gateway_ValidationJoin">
+        <dc:Bounds x="1210" y="495" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1190" y="453" width="90" height="38" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SchemaValidate_di" bpmnElement="Task_SchemaValidate">
+        <dc:Bounds x="120" y="665" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SyntaxSpell_di" bpmnElement="Task_SyntaxSpell">
+        <dc:Bounds x="290" y="665" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_BuildGates_di" bpmnElement="Task_BuildGates">
+        <dc:Bounds x="460" y="665" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ReviewerKind_di" bpmnElement="Gateway_ReviewerKind" isMarkerVisible="true">
+        <dc:Bounds x="750" y="700" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="722.09" y="773.5" width="105" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AgentReview_di" bpmnElement="Task_AgentReview">
+        <dc:Bounds x="840" y="610" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SmeReview_di" bpmnElement="Task_SmeReview">
+        <dc:Bounds x="990" y="715" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ReviewerJoin_di" bpmnElement="Gateway_ReviewerJoin" isMarkerVisible="true">
+        <dc:Bounds x="1140" y="700" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_01_di" bpmnElement="Flow_01">
+        <di:waypoint x="144" y="102" />
+        <di:waypoint x="165" y="102" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02_di" bpmnElement="Flow_02">
+        <di:waypoint x="225" y="162" />
+        <di:waypoint x="225" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_1_di" bpmnElement="SF_Bean_1">
+        <di:waypoint x="285" y="270" />
+        <di:waypoint x="302" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_2_di" bpmnElement="SF_Bean_2">
+        <di:waypoint x="327" y="295" />
+        <di:waypoint x="327" y="340" />
+        <bpmndi:BPMNLabel><dc:Bounds x="331" y="319.75" width="68" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_03_di" bpmnElement="Flow_03">
+        <di:waypoint x="352" y="270" />
+        <di:waypoint x="360" y="270" />
+        <di:waypoint x="360" y="162" />
+        <bpmndi:BPMNLabel><dc:Bounds x="365" y="178" width="55" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Evidence_di" bpmnElement="Flow_Evidence">
+        <di:waypoint x="430" y="162" />
+        <di:waypoint x="430" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04_di" bpmnElement="Flow_04">
+        <di:waypoint x="430" y="315" />
+        <di:waypoint x="430" y="355" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05_di" bpmnElement="Flow_05">
+        <di:waypoint x="430" y="405" />
+        <di:waypoint x="430" y="470" />
+        <di:waypoint x="350" y="470" />
+        <di:waypoint x="350" y="495" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06_di" bpmnElement="Flow_06">
+        <di:waypoint x="325" y="520" />
+        <di:waypoint x="180" y="520" />
+        <di:waypoint x="180" y="665" />
+        <bpmndi:BPMNLabel><dc:Bounds x="200" y="530" width="80" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_07_di" bpmnElement="Flow_07">
+        <di:waypoint x="350" y="545" />
+        <di:waypoint x="350" y="665" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_08_di" bpmnElement="Flow_08">
+        <di:waypoint x="365" y="545" />
+        <di:waypoint x="365" y="625" />
+        <di:waypoint x="520" y="625" />
+        <di:waypoint x="520" y="665" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09_di" bpmnElement="Flow_09">
+        <di:waypoint x="375" y="520" />
+        <di:waypoint x="775" y="520" />
+        <di:waypoint x="775" y="700" />
+        <bpmndi:BPMNLabel><dc:Bounds x="520" y="495" width="110" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="775" y="700" />
+        <di:waypoint x="775" y="670" />
+        <di:waypoint x="840" y="670" />
+        <bpmndi:BPMNLabel><dc:Bounds x="795" y="646" width="25" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+        <di:waypoint x="775" y="750" />
+        <di:waypoint x="775" y="775" />
+        <di:waypoint x="990" y="775" />
+        <bpmndi:BPMNLabel><dc:Bounds x="850" y="782" width="30" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12_di" bpmnElement="Flow_12">
+        <di:waypoint x="960" y="670" />
+        <di:waypoint x="1165" y="670" />
+        <di:waypoint x="1165" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13_di" bpmnElement="Flow_13">
+        <di:waypoint x="1110" y="775" />
+        <di:waypoint x="1165" y="775" />
+        <di:waypoint x="1165" y="750" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_17_di" bpmnElement="Flow_17">
+        <di:waypoint x="1190" y="725" />
+        <di:waypoint x="1215" y="725" />
+        <di:waypoint x="1215" y="545" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16_di" bpmnElement="Flow_16">
+        <di:waypoint x="520" y="785" />
+        <di:waypoint x="520" y="840" />
+        <di:waypoint x="1235" y="840" />
+        <di:waypoint x="1235" y="545" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15_di" bpmnElement="Flow_15">
+        <di:waypoint x="350" y="785" />
+        <di:waypoint x="350" y="852" />
+        <di:waypoint x="1250" y="852" />
+        <di:waypoint x="1250" y="545" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14_di" bpmnElement="Flow_14">
+        <di:waypoint x="180" y="785" />
+        <di:waypoint x="180" y="864" />
+        <di:waypoint x="1270" y="864" />
+        <di:waypoint x="1270" y="520" />
+        <di:waypoint x="1260" y="520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18_di" bpmnElement="Flow_18">
+        <di:waypoint x="1210" y="520" />
+        <di:waypoint x="1040" y="520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19_di" bpmnElement="Flow_19">
+        <di:waypoint x="920" y="520" />
+        <di:waypoint x="820" y="520" />
+        <di:waypoint x="820" y="340" />
+        <di:waypoint x="700" y="340" />
+        <di:waypoint x="700" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_LogFindings" bpmnElement="DOA_Task_LogFindings">
+        <di:waypoint x="680" y="315" />
+        <di:waypoint x="680" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_20_di" bpmnElement="Flow_20">
+        <di:waypoint x="700" y="195" />
+        <di:waypoint x="700" y="162" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_21_di" bpmnElement="Flow_21">
+        <di:waypoint x="760" y="102" />
+        <di:waypoint x="805" y="102" />
+        <di:waypoint x="805" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_21a_di" bpmnElement="Flow_21a">
+        <di:waypoint x="865" y="195" />
+        <di:waypoint x="865" y="162" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_21b_di" bpmnElement="Flow_21b">
+        <di:waypoint x="950" y="102" />
+        <di:waypoint x="980" y="102" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_22_di" bpmnElement="Flow_22">
+        <di:waypoint x="1005" y="77" />
+        <di:waypoint x="1005" y="28" />
+        <di:waypoint x="565" y="28" />
+        <di:waypoint x="565" y="195" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1009" y="44" width="50" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_23_di" bpmnElement="Flow_23">
+        <di:waypoint x="565" y="315" />
+        <di:waypoint x="565" y="380" />
+        <di:waypoint x="455" y="380" />
+        <bpmndi:BPMNLabel><dc:Bounds x="475" y="355" width="80" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_25_di" bpmnElement="Flow_25">
+        <di:waypoint x="1005" y="127" />
+        <di:waypoint x="1005" y="255" />
+        <di:waypoint x="1040" y="255" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1012" y="180" width="50" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_Commit" bpmnElement="DOA_Task_Commit">
+        <di:waypoint x="1100" y="315" />
+        <di:waypoint x="1100" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_26_di" bpmnElement="Flow_26">
+        <di:waypoint x="1160" y="255" />
+        <di:waypoint x="1185" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_24_di" bpmnElement="Flow_24">
+        <di:waypoint x="1030" y="102" />
+        <di:waypoint x="1245" y="102" />
+        <di:waypoint x="1245" y="195" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1110" y="78" width="55" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_GW_BeanClosedHow" bpmnElement="Flow_GW_BeanClosedHow">
+        <di:waypoint x="1305" y="255" />
+        <di:waypoint x="1330" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_3_di" bpmnElement="SF_Bean_3">
+        <di:waypoint x="1380" y="255" />
+        <di:waypoint x="1398" y="255" />
+        <di:waypoint x="1398" y="102" />
+        <di:waypoint x="1373" y="102" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1315" y="135" width="72" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_27_di" bpmnElement="Flow_27">
+        <di:waypoint x="1355" y="280" />
+        <di:waypoint x="1355" y="367" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1255" y="330" width="92" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

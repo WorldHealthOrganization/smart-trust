@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_MergeTrain" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="merge-steward" name="Merge steward"/>
+  <bpmn:resource id="sibling-session" name="Sibling session"/>
+  <bpmn:resource id="user" name="User"/>
+  <bpmn:collaboration id="Collaboration_Process_MergeTrain">
+    <bpmn:participant id="Participant_Process_MergeTrain" name="A merge train" processRef="Process_MergeTrain"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_MergeTrain" name="A merge train" isExecutable="false">
+    <bpmn:documentation>Land the ready pull requests as one train: place each by the merge-priority decision table, merge the members with `merge-base`, run the gate set on the combination, and on red eject the culprit rather than reject the train. A TRAIN OF PULL REQUESTS, landed together. Bean `hfag` (merge-pipeline epic), owner's ruling 2026-10-02. One instance per train run, committed under `beans/workflows/` like every other instance, so a sibling steward sees the same position and the run's record is what T4 will later be tuned from (R10).
+
+IT LINKS THE EXISTING PROCESSES AND DUPLICATES NONE. Each member is merged by `merge-base.bpmn` (`Process_MergeBase`); the train is gated by `code-quality-gates.bpmn` and `pr-checks-present.bpmn`; a refused or ejected member is handed back by `merge-refusal.bpmn` (`Process_MergeRefusal`, draft PR #1888 — until it lands the call stays opaque, which the engine permits). The ORDER is computed by `decisions/merge-priority.dmn`, whose inputs come from the ordering processes: `graph-detanglement.bpmn` (a PR that removes tangle edges unblocks others, input b) and `kg-separation.bpmn` (a PR that seeds the staging repos, input a; `seed:ready` on branch `claude/seed-ready` reports which). A landed member's preview is taken down by `feature-staging.bpmn`, which this process does not repeat.
+
+THE QUEUE STORES DECISIONS, NEVER GITHUB'S FACTS. CI status, mergeability, labels and head SHA are read live at each step (`schemas/sdlc/merge-queue.ts`). What this instance records is what the steward decided and the dated evidence it acted on.
+
+FROM THE LITERATURE (requirements note `cat-harness/docs/proposals/merge-pipeline-requirements.md`, branch `claude/merge-pipeline-library`): T3 cheap conflict prediction on authored paths (R6, R7; SQ19 §5.2 pp. 7-8) feeds the placement table; T7 retries a declared-flaky gate once (R11; TAP17 Table II p. 5); T2 attributes a red train from each member's own CI before bisecting (SQ19 §2.1 pp. 2-3); T1 ejects the culprit and re-runs the rest rather than rejecting the whole train (R3; SQ19 §2.2 p. 3), handing it back with the reason (R4; SQ19 §3.2 p. 4). The tools behind the steps are `merge:overlap`, `merge:train` and `merge:leftover`, on branch `claude/merge-pipeline-tools`.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- STRICT: the train ends in a write to `main`. Advisory would permit
+           landing without the gate set, or without the owner's release. -->
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_MergeTrain">
+      <bpmn:lane id="Lane_Steward" name="Merge steward" partitionElementRef="merge-steward">
+        <bpmn:documentation>Composes the train from the queue, decides nothing the placement table or the owner has not, attributes and ejects on red, and lands at the tested SHA.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Train</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReadLive</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TakeNext</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Placement</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Admit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_HandBack</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>PG_HandBack</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Next</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_More</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Attribute</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Culprit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Bisect</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Eject</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_EjectHandBack</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_MergeToMain</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Landed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Sibling" name="Sibling session" partitionElementRef="sibling-session">
+        <bpmn:documentation>The session that owns a handed-back PR. Fixes it on its own branch and re-signals ready; never merged on its behalf.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_SiblingFix</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Requeued</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pipeline" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Mechanical: merges, regenerates and runs the gates, and reports. Judges nothing a declaration has not decided.</bpmn:documentation>
+        <bpmn:flowNodeRef>Call_ChecksPresent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_MergeMembers</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_AllMerged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Gates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Green</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RetryFlaky</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_StillRed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Owner" name="Owner" partitionElementRef="user">
+        <bpmn:documentation>May override a placement, always with a reason. Releasing a merge to `main` is no longer drawn here: it is the Owner lane of `merge-to-main.bpmn`, which `Call_MergeToMain` descends into, so the owner's release has one definition for every process that merges rather than one per diagram.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Override</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Override</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_OverrideRecorded</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Train" name="Admitted PRs&#10;waiting">
+      <bpmn:outgoing>t1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_ReadLive" name="Read each queued PR's&#10;live facts">
+      <bpmn:documentation>From GitHub and the checkout, now: authored paths, shared declarations, size, conflict risk and overlap KIND against the other queued PRs (T3), own CI and whether it ran on the head (T2). Tools: `merge:overlap` for the overlap facts, `check:head-has-run` for `ownCi`. Nothing read here is written to a queue entry; it is the input to the placement table.&#10;&#10;`ownCi` IS NOT A VERDICT READ. Never ask whether anything is red: ask which workflow runs are OWED for the head's event and whether each one is present and successful. The two readings come apart, measured 2026-10-02 on #1889's head 7ab6119405 -- 9 runs present, all 9 gating job NAMES matching, 3 of them in_progress with a null conclusion, and 3 check SUITES completed as `action_required` having executed nothing. A filter for conclusion = failure finds zero, and counting the runs does not catch it either. `check:head-has-run` is the only thing here that asks the owed question (bean `3pqn`), and the five states it distinguishes are the five values of `ownCi`. `Rule_HeadNotGreen` in merge-priority.dmn then hands back anything but `green`, so this is a gate the engine applies rather than advice a steward remembers.&#10;&#10;Overlap kind matters as much as overlap: `merge:overlap` over all 36 open PRs on 2026-10-02 (459 pairs) found #1907 x #1909 NOT independent on `package.json` alone, with zero authored content shared. `generated-only` needs a regeneration and `shared-declaration` needs ordering; only `authored` needs a train.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-queue"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t1</bpmn:incoming>
+      <bpmn:outgoing>t2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_TakeNext" name="Take the next PR&#10;in queue order">
+      <bpmn:documentation>Owner overrides at their positions first, then by the table's rank, then by PR number, oldest first (`scripts/merge-queue.ts` `orderQueue`).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-queue"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t2</bpmn:incoming>
+      <bpmn:incoming>t9</bpmn:incoming>
+      <bpmn:outgoing>t3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Placement" name="Where does&#10;this PR go?">
+      <bpmn:documentation>Computed, not chosen: decisions/merge-priority.dmn (hit policy FIRST) over the live facts plus `ownerOverride`. An owner override is an INPUT to the table, never a hand-supplied outcome, which the engine refuses here. `hand back` when a declared merge pattern refuses a path or the PR carries an un-cleared ejection; otherwise `admit`, with the class, rank and whether it rides alone (T3) recorded on its queue entry.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:decision ref="decisions/merge-priority.dmn#Decision_MergePriority"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t3</bpmn:incoming>
+      <bpmn:outgoing>t4</bpmn:outgoing>
+      <bpmn:outgoing>t5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Admit" name="Admit it to the train,&#10;record the train id">
+      <bpmn:documentation>Writes the queue entry's `trainId` and `placement` (rule, class, rank) with who decided and when. A decision, so it is stored; the facts it was decided on are not.&#10;&#10;PRECONDITION, CHECKED RATHER THAN ASSUMED: the worktree carries no untracked, non-ignored file before the member is merged and the tree regenerated. `git status --porcelain` must be empty. The reason is specific: generated directory READMEs carry a per-subdirectory file count, and the writer counts the files GIT WOULD COMMIT -- `git ls-files --cached --others --exclude-standard` (bootstrap-tools/scripts/git-files.ts:23). `--exclude-standard` already keeps IGNORED junk out, which is the `__pycache__` case that drove that line, but `--others` still counts an untracked file nobody has ignored. So a transient written by an earlier train step moves a committed count, `readme:subgraphs:check` goes red, and the red belongs to nobody. Train 6 hit this.&#10;&#10;The count is volatile for a second reason the precondition cannot fix: two members each adding a file write different integers to one line. Measured in bean `y7b3` -- 76 of 300 replayed merges conflicted on `beans/README.md`, every one on the `| defs/ | N files |` line -- and the exposure is wider than that bean states: 54 generated READMEs across 14 layers carry 207 such rows (measured 2026-10-02). `merge:main` already resolves them (`readme-generated-regions`), so the cost falls on merges made by plain git. The chosen fix is bean `ba9e`: take the integer off `main` into the KG's `_data` layer, which classifies `take-base` and is therefore auto-resolved, leaving the README with a marker that is invariant until the directory crosses LIST_LIMIT. Not done here -- it spans the pinned `bootstrap-tools` submodule.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-queue"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t4</bpmn:incoming>
+      <bpmn:outgoing>t6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_HandBack" name="Hand it back" calledElement="Process_MergeRefusal">
+      <bpmn:documentation>`merge-refusal.bpmn` (PR #1888, bean `zacz`): a bean under the right epic, a hand-back to the owning session with a fail condition (agent-handoff, #1884), or a dispatch when nobody owns it. R4: the PR returns with its reason.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-conflict-patterns"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t5</bpmn:incoming>
+      <bpmn:outgoing>t7</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:parallelGateway id="PG_HandBack" name="Train goes on;&#10;sibling fixes">
+      <bpmn:incoming>t7</bpmn:incoming>
+      <bpmn:outgoing>t8</bpmn:outgoing>
+      <bpmn:outgoing>t20</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:exclusiveGateway id="GW_Next" name="">
+      <bpmn:incoming>t6</bpmn:incoming>
+      <bpmn:incoming>t8</bpmn:incoming>
+      <bpmn:outgoing>t10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="GW_More" name="Train full, or&#10;queue empty?">
+      <bpmn:documentation>`more` while the queue has admissible PRs and the train is under its cap; `full` otherwise. The cap is fixed for now: T4 (risk-based size) waits for this process's own run records (R10). `merge:leftover` reports what a train left behind.</bpmn:documentation>
+      <bpmn:incoming>t10</bpmn:incoming>
+      <bpmn:outgoing>t9</bpmn:outgoing>
+      <bpmn:outgoing>t11</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_SiblingFix" name="Fix the PR, then&#10;re-signal ready">
+      <bpmn:documentation>On the sibling's own branch: merge main in, fix, push, and re-mark ready (`ready: &lt;head sha&gt;`). It re-enters the queue as a new placement; the ejection stays on its entry until a later train lands it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="bean-coordination"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t20</bpmn:incoming>
+      <bpmn:outgoing>t21</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Requeued" name="Back in&#10;the queue">
+      <bpmn:incoming>t21</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:callActivity id="Call_ChecksPresent" name="Find members with no CI on their head" calledElement="Process_PrChecksPresent">
+      <bpmn:documentation>GitHub runs no `pull_request` CI while a PR conflicts, so a member can arrive with nothing on its head (bean `u7be` item 3). That member is T2's first suspect if the train goes red.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ci-health"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t11</bpmn:incoming>
+      <bpmn:outgoing>t12</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_MergeMembers" name="Merge each member&#10;onto the base" calledElement="Process_MergeBase">
+      <bpmn:documentation>`merge-base.bpmn` once per member, in order, `--no-regen`; then ONE `bun run cat regen` over the result. Tool: `merge:train`. Always onto the current base, never a cached one (R5).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="prepare-merge"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t12</bpmn:incoming>
+      <bpmn:incoming>t31</bpmn:incoming>
+      <bpmn:outgoing>t13</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_AllMerged" name="Every member&#10;merged?">
+      <bpmn:documentation>`refused` when `merge-base` refused a member's conflict: that member is ejected (T1) rather than the whole train aborted. `merged` otherwise.</bpmn:documentation>
+      <bpmn:incoming>t13</bpmn:incoming>
+      <bpmn:outgoing>t14</bpmn:outgoing>
+      <bpmn:outgoing>t15</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_Gates" name="Run the gate set on the train" calledElement="Process_CodeQualityGates">
+      <bpmn:documentation>Every gate CI runs, on the combination (R2): a member that passes alone can still break `main` with another. The merge-gate epic (`nok9`, #1887) adds its gates here when they land. The release security gate (`bun run cat security:gate`, bean `ieum`) is one of them: it runs inside the gate set, so no train merges past a blocking security finding or a security check that could not run.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="platform-gates"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t14</bpmn:incoming>
+      <bpmn:outgoing>t16</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Green" name="Train&#10;green?">
+      <bpmn:documentation>Read per job from the check runs on the train's head, never from the legacy status API. `green` goes to the owner's release; `red` to a single retry of declared-flaky gates.</bpmn:documentation>
+      <bpmn:incoming>t16</bpmn:incoming>
+      <bpmn:outgoing>t17</bpmn:outgoing>
+      <bpmn:outgoing>t18</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_RetryFlaky" name="Retry a declared-flaky&#10;gate once">
+      <bpmn:documentation>T7, narrow (R11; TAP17 Table II p. 5): only gates on a declared flaky list (browser e2e), once, both outcomes recorded. A deterministic gate is never retried: that would spend a CI cycle to learn nothing.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ci-health"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t18</bpmn:incoming>
+      <bpmn:outgoing>t19</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_StillRed" name="Still&#10;red?">
+      <bpmn:documentation>`green` if the only red gate was a declared flake that passed on retry; `red` otherwise, and a member is to blame.</bpmn:documentation>
+      <bpmn:incoming>t19</bpmn:incoming>
+      <bpmn:outgoing>t22</bpmn:outgoing>
+      <bpmn:outgoing>t23</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_Attribute" name="Attribute the failure:&#10;each member's own CI first">
+      <bpmn:documentation>T2 (SQ19 §2.1 pp. 2-3). A member whose own PR CI is red, or never ran on its head, is the prime suspect, and the evidence is already on GitHub. Only when every member is green alone is the failure a real conflict between them.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-queue"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t23</bpmn:incoming>
+      <bpmn:outgoing>t24</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Culprit" name="Culprit&#10;evident?">
+      <bpmn:documentation>`evidence` when exactly the suspects' own CI explains the red; `bisect` when every member is green alone.</bpmn:documentation>
+      <bpmn:incoming>t24</bpmn:incoming>
+      <bpmn:outgoing>t25</bpmn:outgoing>
+      <bpmn:outgoing>t26</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Bisect" name="Bisect the train">
+      <bpmn:documentation>Halve the members and re-run the gates on each half until the conflicting one is found: two or three CI runs for three to six members. Only reached when the cheap evidence is silent.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-queue"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t26</bpmn:incoming>
+      <bpmn:outgoing>t27</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Eject" name="Eject the culprit,&#10;record why">
+      <bpmn:documentation>T1 (R3; SQ19 §2.2 p. 3): the culprit leaves, the rest re-run. Writes `ejection` on its queue entry (train id, reason, evidence URL, when) and a dated evidence snapshot on this instance. The train is never rejected whole for one member.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-queue"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t15</bpmn:incoming>
+      <bpmn:incoming>t25</bpmn:incoming>
+      <bpmn:incoming>t27</bpmn:incoming>
+      <bpmn:outgoing>t30</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_EjectHandBack" name="Hand the culprit back" calledElement="Process_MergeRefusal">
+      <bpmn:documentation>The same hand-back as a refused placement (#1888), carrying the ejection's evidence (R4). Then the train re-runs without it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-conflict-patterns"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t30</bpmn:incoming>
+      <bpmn:outgoing>t31</bpmn:outgoing>
+    </bpmn:callActivity>
+
+    <bpmn:callActivity id="Call_MergeToMain" name="Land each member" calledElement="Process_MergeToMain">
+      <bpmn:documentation>Once per member, in train order, at the SHA the train's gate set tested. `merge-to-main.bpmn` is where merging is a step with its own gate: it reads the head's evidence live (the train's green run is that evidence, and `merge:guard` re-evaluates it), establishes that the owner authorised THIS merge (explicitly, or by a standing ruling quoted verbatim with its date, e.g. 2026-10-01 "you may merge green PRs", which covers green heads only and only the queue as it stood), records the authorisation, merges pinned to the head, and then confirms `main`, re-pins downstream mounts and notes the bean. Until 2026-10-09 this was two steps here, `Task_Release` in the owner's lane bound to interaction-modality and `Task_Land` bound to prepare-merge; neither could refuse a merge, and neither said what happens when a repository has no CI. R1 still holds: what lands is exactly what CI tested. If `main` moved after the train's CI started, re-run rather than land. Each member's `trainId` is cleared, and its preview is then taken down by `feature-staging.bpmn`. A member the sub-process does not merge (held, refused, handed back) leaves the train with its reason on its queue entry.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="merge-to-main"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>t17</bpmn:incoming>
+      <bpmn:incoming>t22</bpmn:incoming>
+      <bpmn:outgoing>t29</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_Landed" name="Landed">
+      <bpmn:incoming>t29</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:startEvent id="Start_Override" name="Owner wants&#10;a PR moved">
+      <bpmn:outgoing>o1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_Override" name="Place it by hand,&#10;with a reason">
+      <bpmn:documentation>Recorded as a queue entry whose placement is `override` with a position and a reason; the schema refuses one without a reason. It enters the next placement as the table's `ownerOverride` input.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="interaction-modality"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>o1</bpmn:incoming>
+      <bpmn:outgoing>o2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_OverrideRecorded" name="Override&#10;recorded">
+      <bpmn:incoming>o2</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="t1" sourceRef="Start_Train" targetRef="Task_ReadLive"/>
+    <bpmn:sequenceFlow id="t2" sourceRef="Task_ReadLive" targetRef="Task_TakeNext"/>
+    <bpmn:sequenceFlow id="t3" sourceRef="Task_TakeNext" targetRef="GW_Placement"/>
+    <bpmn:sequenceFlow id="t4" name="admit" sourceRef="GW_Placement" targetRef="Task_Admit"/>
+    <bpmn:sequenceFlow id="t5" name="hand back" sourceRef="GW_Placement" targetRef="Call_HandBack"/>
+    <bpmn:sequenceFlow id="t6" sourceRef="Task_Admit" targetRef="GW_Next"/>
+    <bpmn:sequenceFlow id="t7" sourceRef="Call_HandBack" targetRef="PG_HandBack"/>
+    <bpmn:sequenceFlow id="t8" sourceRef="PG_HandBack" targetRef="GW_Next"/>
+    <bpmn:sequenceFlow id="t9" name="more" sourceRef="GW_More" targetRef="Task_TakeNext"/>
+    <bpmn:sequenceFlow id="t10" sourceRef="GW_Next" targetRef="GW_More"/>
+    <bpmn:sequenceFlow id="t11" name="full" sourceRef="GW_More" targetRef="Call_ChecksPresent"/>
+    <bpmn:sequenceFlow id="t12" sourceRef="Call_ChecksPresent" targetRef="Call_MergeMembers"/>
+    <bpmn:sequenceFlow id="t13" sourceRef="Call_MergeMembers" targetRef="GW_AllMerged"/>
+    <bpmn:sequenceFlow id="t14" name="merged" sourceRef="GW_AllMerged" targetRef="Call_Gates"/>
+    <bpmn:sequenceFlow id="t15" name="refused" sourceRef="GW_AllMerged" targetRef="Task_Eject"/>
+    <bpmn:sequenceFlow id="t16" sourceRef="Call_Gates" targetRef="GW_Green"/>
+    <bpmn:sequenceFlow id="t17" name="green" sourceRef="GW_Green" targetRef="Call_MergeToMain"/>
+    <bpmn:sequenceFlow id="t18" name="red" sourceRef="GW_Green" targetRef="Task_RetryFlaky"/>
+    <bpmn:sequenceFlow id="t19" sourceRef="Task_RetryFlaky" targetRef="GW_StillRed"/>
+    <bpmn:sequenceFlow id="t20" sourceRef="PG_HandBack" targetRef="Task_SiblingFix"/>
+    <bpmn:sequenceFlow id="t21" sourceRef="Task_SiblingFix" targetRef="End_Requeued"/>
+    <bpmn:sequenceFlow id="t22" name="green" sourceRef="GW_StillRed" targetRef="Call_MergeToMain"/>
+    <bpmn:sequenceFlow id="t23" name="red" sourceRef="GW_StillRed" targetRef="Task_Attribute"/>
+    <bpmn:sequenceFlow id="t24" sourceRef="Task_Attribute" targetRef="GW_Culprit"/>
+    <bpmn:sequenceFlow id="t25" name="evidence" sourceRef="GW_Culprit" targetRef="Task_Eject"/>
+    <bpmn:sequenceFlow id="t26" name="bisect" sourceRef="GW_Culprit" targetRef="Task_Bisect"/>
+    <bpmn:sequenceFlow id="t27" sourceRef="Task_Bisect" targetRef="Task_Eject"/>
+    <bpmn:sequenceFlow id="t29" sourceRef="Call_MergeToMain" targetRef="End_Landed"/>
+    <bpmn:sequenceFlow id="t30" sourceRef="Task_Eject" targetRef="Call_EjectHandBack"/>
+    <bpmn:sequenceFlow id="t31" name="re-run without it" sourceRef="Call_EjectHandBack" targetRef="Call_MergeMembers"/>
+    <bpmn:sequenceFlow id="o1" sourceRef="Start_Override" targetRef="Task_Override"/>
+    <bpmn:sequenceFlow id="o2" sourceRef="Task_Override" targetRef="End_OverrideRecorded"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_Process_MergeTrain">
+    <bpmndi:BPMNPlane id="Plane_Process_MergeTrain" bpmnElement="Collaboration_Process_MergeTrain">
+      <bpmndi:BPMNShape id="Shape_Participant" bpmnElement="Participant_Process_MergeTrain" isHorizontal="true">
+        <dc:Bounds x="0" y="0" width="1380" height="860" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Sibling" bpmnElement="Lane_Sibling" isHorizontal="true">
+        <dc:Bounds x="30" y="0" width="1350" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Steward" bpmnElement="Lane_Steward" isHorizontal="true">
+        <dc:Bounds x="30" y="150" width="1350" height="310" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Pipeline" bpmnElement="Lane_Pipeline" isHorizontal="true">
+        <dc:Bounds x="30" y="460" width="1350" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Owner" bpmnElement="Lane_Owner" isHorizontal="true">
+        <dc:Bounds x="30" y="710" width="1350" height="150" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start_Train" bpmnElement="Start_Train">
+        <dc:Bounds x="72" y="207" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="50" y="248" width="80" height="30" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReadLive" bpmnElement="Task_ReadLive"><dc:Bounds x="140" y="165" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_TakeNext" bpmnElement="Task_TakeNext"><dc:Bounds x="290" y="165" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Placement" bpmnElement="GW_Placement" isMarkerVisible="true">
+        <dc:Bounds x="440" y="200" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="420" y="160" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Admit" bpmnElement="Task_Admit"><dc:Bounds x="525" y="310" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_HandBack" bpmnElement="Call_HandBack"><dc:Bounds x="530" y="185" width="130" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_PG_HandBack" bpmnElement="PG_HandBack">
+        <dc:Bounds x="680" y="200" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="734" y="160" width="135" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Next" bpmnElement="GW_Next" isMarkerVisible="true"><dc:Bounds x="680" y="345" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_More" bpmnElement="GW_More" isMarkerVisible="true">
+        <dc:Bounds x="760" y="345" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="814" y="352" width="128" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Bisect" bpmnElement="Task_Bisect"><dc:Bounds x="1080" y="165" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_EjectHandBack" bpmnElement="Call_EjectHandBack"><dc:Bounds x="775" y="210" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Eject" bpmnElement="Task_Eject"><dc:Bounds x="940" y="330" width="130" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Culprit" bpmnElement="GW_Culprit" isMarkerVisible="true">
+        <dc:Bounds x="1135" y="345" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1120" y="400" width="80" height="30" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Attribute" bpmnElement="Task_Attribute"><dc:Bounds x="1210" y="330" width="130" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_MergeToMain" bpmnElement="Call_MergeToMain"><dc:Bounds x="1220" y="165" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Landed" bpmnElement="End_Landed">
+        <dc:Bounds x="1262" y="100" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1205" y="108" width="50" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Task_SiblingFix" bpmnElement="Task_SiblingFix"><dc:Bounds x="680" y="35" width="130" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Requeued" bpmnElement="End_Requeued">
+        <dc:Bounds x="850" y="57" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="833" y="98" width="70" height="30" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Call_ChecksPresent" bpmnElement="Call_ChecksPresent"><dc:Bounds x="410" y="475" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_MergeMembers" bpmnElement="Call_MergeMembers"><dc:Bounds x="570" y="475" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_AllMerged" bpmnElement="GW_AllMerged" isMarkerVisible="true">
+        <dc:Bounds x="730" y="510" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="710" y="565" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Gates" bpmnElement="Call_Gates"><dc:Bounds x="835" y="475" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Green" bpmnElement="GW_Green" isMarkerVisible="true">
+        <dc:Bounds x="980" y="510" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="960" y="470" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RetryFlaky" bpmnElement="Task_RetryFlaky"><dc:Bounds x="1065" y="565" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_StillRed" bpmnElement="GW_StillRed" isMarkerVisible="true">
+        <dc:Bounds x="1225" y="600" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1215" y="655" width="70" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start_Override" bpmnElement="Start_Override">
+        <dc:Bounds x="80" y="767" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="60" y="808" width="85" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Override" bpmnElement="Task_Override"><dc:Bounds x="155" y="725" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_OverrideRecorded" bpmnElement="End_OverrideRecorded">
+        <dc:Bounds x="320" y="767" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="303" y="808" width="70" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_t1" bpmnElement="t1">
+        <di:waypoint x="108" y="225" />
+        <di:waypoint x="140" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t2" bpmnElement="t2">
+        <di:waypoint x="260" y="225" />
+        <di:waypoint x="290" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t3" bpmnElement="t3">
+        <di:waypoint x="410" y="225" />
+        <di:waypoint x="440" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t4" bpmnElement="t4">
+        <di:waypoint x="465" y="250" />
+        <di:waypoint x="465" y="370" />
+        <di:waypoint x="525" y="370" />
+        <bpmndi:BPMNLabel><dc:Bounds x="470" y="305" width="40" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t5" bpmnElement="t5">
+        <di:waypoint x="490" y="225" />
+        <di:waypoint x="530" y="225" />
+        <bpmndi:BPMNLabel><dc:Bounds x="535" y="162" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t6" bpmnElement="t6">
+        <di:waypoint x="645" y="370" />
+        <di:waypoint x="680" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t7" bpmnElement="t7">
+        <di:waypoint x="660" y="225" />
+        <di:waypoint x="680" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t8" bpmnElement="t8">
+        <di:waypoint x="705" y="250" />
+        <di:waypoint x="705" y="345" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t9" bpmnElement="t9">
+        <di:waypoint x="768" y="395" />
+        <di:waypoint x="768" y="440" />
+        <di:waypoint x="350" y="440" />
+        <di:waypoint x="350" y="285" />
+        <bpmndi:BPMNLabel><dc:Bounds x="719" y="409" width="45" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t10" bpmnElement="t10">
+        <di:waypoint x="730" y="370" />
+        <di:waypoint x="760" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t11" bpmnElement="t11">
+        <di:waypoint x="785" y="395" />
+        <di:waypoint x="785" y="455" />
+        <di:waypoint x="470" y="455" />
+        <di:waypoint x="470" y="475" />
+        <bpmndi:BPMNLabel><dc:Bounds x="474" y="459" width="35" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t12" bpmnElement="t12">
+        <di:waypoint x="530" y="535" />
+        <di:waypoint x="570" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t13" bpmnElement="t13">
+        <di:waypoint x="690" y="535" />
+        <di:waypoint x="730" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t14" bpmnElement="t14">
+        <di:waypoint x="780" y="535" />
+        <di:waypoint x="835" y="535" />
+        <bpmndi:BPMNLabel><dc:Bounds x="782" y="512" width="48" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t15" bpmnElement="t15">
+        <di:waypoint x="755" y="510" />
+        <di:waypoint x="755" y="468" />
+        <di:waypoint x="990" y="468" />
+        <di:waypoint x="990" y="410" />
+        <bpmndi:BPMNLabel><dc:Bounds x="759" y="480.5" width="55" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t16" bpmnElement="t16">
+        <di:waypoint x="955" y="535" />
+        <di:waypoint x="980" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t17" bpmnElement="t17">
+        <di:waypoint x="1005" y="560" />
+        <di:waypoint x="1005" y="700" />
+        <di:waypoint x="1365" y="700" />
+        <di:waypoint x="1365" y="210" />
+        <di:waypoint x="1340" y="210" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1012" y="676" width="45" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t18" bpmnElement="t18">
+        <di:waypoint x="1030" y="535" />
+        <di:waypoint x="1045" y="535" />
+        <di:waypoint x="1045" y="625" />
+        <di:waypoint x="1065" y="625" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1010" y="580" width="35" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t19" bpmnElement="t19">
+        <di:waypoint x="1185" y="625" />
+        <di:waypoint x="1225" y="625" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t20" bpmnElement="t20">
+        <di:waypoint x="705" y="200" />
+        <di:waypoint x="705" y="115" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t21" bpmnElement="t21">
+        <di:waypoint x="810" y="75" />
+        <di:waypoint x="850" y="75" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t22" bpmnElement="t22">
+        <di:waypoint x="1275" y="625" />
+        <di:waypoint x="1350" y="625" />
+        <di:waypoint x="1350" y="245" />
+        <di:waypoint x="1340" y="245" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1280" y="600" width="45" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t23" bpmnElement="t23">
+        <di:waypoint x="1250" y="600" />
+        <di:waypoint x="1250" y="410" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1256" y="500" width="35" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t24" bpmnElement="t24">
+        <di:waypoint x="1210" y="370" />
+        <di:waypoint x="1185" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t25" bpmnElement="t25">
+        <di:waypoint x="1135" y="370" />
+        <di:waypoint x="1070" y="370" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1075" y="346" width="55" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t26" bpmnElement="t26">
+        <di:waypoint x="1160" y="345" />
+        <di:waypoint x="1160" y="285" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1166" y="305" width="45" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t27" bpmnElement="t27">
+        <di:waypoint x="1080" y="225" />
+        <di:waypoint x="1025" y="225" />
+        <di:waypoint x="1025" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t29" bpmnElement="t29">
+        <di:waypoint x="1280" y="165" />
+        <di:waypoint x="1280" y="136" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t30" bpmnElement="t30">
+        <di:waypoint x="940" y="340" />
+        <di:waypoint x="925" y="340" />
+        <di:waypoint x="925" y="250" />
+        <di:waypoint x="915" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_t31" bpmnElement="t31">
+        <di:waypoint x="815" y="290" />
+        <di:waypoint x="815" y="468" />
+        <di:waypoint x="630" y="468" />
+        <di:waypoint x="630" y="475" />
+        <bpmndi:BPMNLabel><dc:Bounds x="822" y="388" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_o1" bpmnElement="o1">
+        <di:waypoint x="116" y="785" />
+        <di:waypoint x="155" y="785" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_o2" bpmnElement="o2">
+        <di:waypoint x="275" y="785" />
+        <di:waypoint x="320" y="785" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

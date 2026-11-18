@@ -1,0 +1,500 @@
+@prefix sgkg: <http://smart.who.int/kg/> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<http://smart.who.int/kg/l2> a owl:Ontology ;
+  owl:imports <http://smart.who.int/kg/l1> ;
+  rdfs:label "WHO SMART Guidelines L2 ontology" ;
+  rdfs:comment "The DAK component layer. DAK.fsh declares NINE components and this layer carries all of them -- eight as classes here, and healthInterventions as l1:health-intervention, which L1 already declares as its hinge to L2 -- plus a TENTH, scheduling-logic, which DAK.fsh omits and the published SOP treats as an active L2 input. The internals of BPMN and DMN files are NOT here: they are separate subgraphs, l2-bpmn and l2-dmn, because a DAK component points at a file by URI and what is inside that file is a different question with a different vocabulary, a different extractor and a different failure mode. This layer also carries the L1->L2 hop, because l1 cannot name an l2 class without a circular import. Pairwise licensing is carried as sub-properties, because a relationship is licensed between specific class pairs while an OWL object property has one global domain and range." .
+
+### Node kinds
+
+sgkg:Component a owl:Class ; rdfs:label "Component" ; rdfs:comment "One of the nine components DAK.fsh declares a kit must be able to hold. It points at the file that defines it and does not describe that file's interior." .
+sgkg:Element a owl:Class ; rdfs:label "Element" ; rdfs:comment "A structured part of a component -- a requirement statement, a task entry. It exists as a node only where something outside its component needs to reach it." .
+sgkg:Kit a owl:Class ; rdfs:label "Kit" ; rdfs:comment "A Digital Adaptation Kit as a whole: metadata, and the nine components it contains." .
+sgkg:Reference a owl:Class ; rdfs:label "Reference" ; rdfs:comment "A pointer out of this graph. Carries identity only; asserts nothing about the target." .
+
+### Classes
+
+sgkg:DigitalAdaptationKit a owl:Class ;
+  rdfs:subClassOf sgkg:Kit ;
+  rdfs:label "Digital Adaptation Kit" ;
+  skos:notation "dak" ;
+  rdfs:comment "The kit itself. Properties are exactly the metadata fields DAK.fsh declares and dak.json carries -- no more, so that a dak node can be produced from a real file without anything being invented." .
+
+sgkg:GenericPersona a owl:Class ;
+  rdfs:subClassOf sgkg:Component ;
+  rdfs:label "Generic Persona" ;
+  skos:notation "persona" ;
+  rdfs:comment "DAK component 2. Grounded in GenericPersona.fsh -- title, id, description, otherNames, iscoCode bound to ISCO08ValueSet -- and in the 22 committed ActorDefinition instances that carry name, title, type and description. The two disagree about where ISCO lives, which the properties record rather than smooth over." .
+
+sgkg:UserScenario a owl:Class ;
+  rdfs:subClassOf sgkg:Component ;
+  rdfs:label "User Scenario" ;
+  skos:notation "user-scenario" ;
+  rdfs:comment "DAK component 3. A narrative describing how personas interact. Carries `personas 0..* id`, which is the only structured link between the narrative layer and the personas it names." .
+
+sgkg:BusinessProcessWorkflow a owl:Class ;
+  rdfs:subClassOf sgkg:Component ;
+  rdfs:label "Business Process Workflow" ;
+  skos:notation "business-process" ;
+  rdfs:comment "DAK component 4. NOT the BPMN file -- the component that points at one. `source 1..1 uri` is that pointer, and the BPMN's interior is the l2-bpmn subgraph, reached through the external-artifact this sourcedFrom targets." .
+
+sgkg:TaskEntry a owl:Class ;
+  rdfs:subClassOf sgkg:Element ;
+  rdfs:label "Task Entry" ;
+  skos:notation "dak-task" ;
+  rdfs:comment "One entry of BusinessProcessWorkflow's `task 0..*` backbone: identifier, name, description. A node rather than a property because the same task is also drawn in the BPMN file, and the two lists have to be joinable to be checkable against each other." .
+
+sgkg:CoreDataElement a owl:Class ;
+  rdfs:subClassOf sgkg:Component ;
+  rdfs:label "Core Data Element" ;
+  skos:notation "data-element" ;
+  rdfs:comment "DAK component 5. CoreDataElement.fsh calls itself \"the ONE EXCEPTION to allowing FHIR R4 models into the DAK LMs\": `type` is one of valueset | codesystem | conceptmap | logicalmodel and `canonical 1..1 uri` points at it. The canonical is recorded; nothing inside it is copied, because FHIR is its own query layer." .
+
+sgkg:DecisionSupportLogic a owl:Class ;
+  rdfs:subClassOf sgkg:Component ;
+  rdfs:label "Decision-Support Logic" ;
+  skos:notation "decision-support-logic" ;
+  rdfs:comment "DAK component 6. The whole model is an id, an optional description and `source 1..1 uri` to a DMN file. Nothing about the decision itself -- which is the gap the l2-dmn subgraph fills." .
+
+sgkg:SchedulingLogic a owl:Class ;
+  rdfs:subClassOf sgkg:Component ;
+  rdfs:label "Scheduling Logic" ;
+  skos:notation "scheduling-logic" ;
+  rdfs:comment "When an intervention is due, as a DAK component. NOT declared by DAK.fsh -- it is added here because the published SOP lists Scheduling Logic as an active L2 input (spreadsheets under input/scheduling-logic), WHO's ArchiMate model declares it a BusinessObject realised by PlanDefinition, and L1's schedules needed an L2 component to reach (since L1 3.0, a recommendation's timing slot). Note that the SOP's own L3 row for scheduling is present but HTML-commented-out and there is no l3_schedulinglogic.md page, so WHO has drafted the mapping and not activated it; the L3 edge is licensed here as a deliberate departure, recorded rather than hidden." .
+
+sgkg:ProgramIndicator a owl:Class ;
+  rdfs:subClassOf sgkg:Component ;
+  rdfs:label "Program Indicator" ;
+  skos:notation "program-indicator" ;
+  rdfs:comment "DAK component 7. Named program-indicator and not `indicator` because L1 already declares an `indicator` -- one normatively defined in a publication. They are different things: this is the DAK's operational measure, and `derivedFrom` is how it points at the normative one. Collapsing them would silently merge a WHO definition with a country's implementation of it." .
+
+sgkg:FunctionalRequirement a owl:Class ;
+  rdfs:subClassOf sgkg:Component ;
+  rdfs:label "Functional Requirement" ;
+  skos:notation "functional-requirement" ;
+  rdfs:comment "DAK component 8, first half. The as-a/I-want/so-that shape: `activity`, `capability[x]`, `benefit[x]`, and `actor 0..* Reference(SGActor)`. The 41 committed instances use the R5 SGRequirements profile rather than this logical model, so a real instance carries `statement` entries and a userstory extension; both shapes are accommodated and `profile` records which was read." .
+
+sgkg:NonFunctionalRequirement a owl:Class ;
+  rdfs:subClassOf sgkg:Component ;
+  rdfs:label "Non-Functional Requirement" ;
+  skos:notation "non-functional-requirement" ;
+  rdfs:comment "DAK component 8, second half. `requirement 1..1 markdown`, an optional category and classification codings. Kept separate from the functional half because the fields genuinely differ -- a non-functional requirement has no actor and no benefit." .
+
+sgkg:RequirementStatement a owl:Class ;
+  rdfs:subClassOf sgkg:Element ;
+  rdfs:label "Requirement Statement" ;
+  skos:notation "requirement-statement" ;
+  rdfs:comment "One numbered, labelled statement inside a requirement, with a conformance verb. A node rather than a property because conformance is queried across a whole DAK -- 'every SHALL in this kit, and what fulfils it' is the question requirements exist to answer. It also carries its own success criteria, so 'what would show this SHALL is met' is answerable per statement rather than per requirement." .
+
+sgkg:TestScenario a owl:Class ;
+  rdfs:subClassOf sgkg:Component ;
+  rdfs:label "Test Scenario" ;
+  skos:notation "test-scenario" ;
+  rdfs:comment "DAK component 9. `feature 1..1 uri` to a Gherkin feature file, plus an optional description. The feature file's interior is not modelled: no DAK in this estate ships one yet, so a subgraph for it would have no instance to check it against." .
+
+sgkg:ExternalArtefact a owl:Class ;
+  rdfs:subClassOf sgkg:Reference ;
+  rdfs:label "External artefact" ;
+  skos:notation "external-artifact" ;
+  rdfs:comment "A DAK file addressed by canonical URL: a BPMN process, a DMN decision table, a FHIR resource, a workbook. Deliberately opaque: it carries an IRI and a kind, and nothing about its interior. The L2-BPMN, L2-DMN and L3 classes that describe a file's interior elaborate this class at the same IRI. Moved here from L1 in 3.0 unchanged: a DAK file is the DAK's material, not WHO content." .
+
+### Value sets
+# Closed code lists bound to class properties. validate.ts rejects any other value.
+
+<http://smart.who.int/kg/valueset/artifact-kind> a skos:ConceptScheme ;
+  skos:notation "artifact-kind" ;
+  skos:note "source: Files observed in smart-base and in WHO's immunizations DAK (canonical http://smart.who.int/immunizations)" ;
+  skos:note "bound to: external-artifact.targetKind" ;
+  rdfs:comment "What kind of file an external artefact is. Moved with the class from L1, where it was free text." .
+<http://smart.who.int/kg/valueset/artifact-kind#dmn> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/artifact-kind> ; skos:notation "dmn" ; skos:definition "A DMN decision table." .
+<http://smart.who.int/kg/valueset/artifact-kind#bpmn> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/artifact-kind> ; skos:notation "bpmn" ; skos:definition "A BPMN process." .
+<http://smart.who.int/kg/valueset/artifact-kind#fhir-resource> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/artifact-kind> ; skos:notation "fhir-resource" ; skos:definition "A FHIR resource, addressed by canonical URL." .
+<http://smart.who.int/kg/valueset/artifact-kind#spreadsheet> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/artifact-kind> ; skos:notation "spreadsheet" ; skos:definition "A workbook, such as the decision-support logic or indicators workbook." .
+<http://smart.who.int/kg/valueset/artifact-kind#feature-file> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/artifact-kind> ; skos:notation "feature-file" ; skos:definition "A Gherkin feature file." .
+<http://smart.who.int/kg/valueset/artifact-kind#document> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/artifact-kind> ; skos:notation "document" ; skos:definition "Any other document." .
+
+<http://smart.who.int/kg/valueset/publication-status> a skos:ConceptScheme ;
+  skos:notation "publication-status" ;
+  skos:note "source: http://hl7.org/fhir/ValueSet/publication-status" ;
+  skos:note "bound to: dak.status" ;
+  rdfs:comment "FHIR PublicationStatus, which DAK.fsh's status and every L3 resource's status take. Added by the smart-base migration: smart-kg named these properties without binding them." .
+<http://smart.who.int/kg/valueset/publication-status#draft> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-status> ; skos:notation "draft" ; skos:definition "This resource is still under development and is not yet considered to be ready for normal use." .
+<http://smart.who.int/kg/valueset/publication-status#active> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-status> ; skos:notation "active" ; skos:definition "This resource is ready for normal use." .
+<http://smart.who.int/kg/valueset/publication-status#retired> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-status> ; skos:notation "retired" ; skos:definition "This resource has been withdrawn or superseded and should no longer be used." .
+<http://smart.who.int/kg/valueset/publication-status#unknown> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/publication-status> ; skos:notation "unknown" ; skos:definition "The authoring system does not know which of the status values currently applies for this resource." .
+
+<http://smart.who.int/kg/valueset/conformance-expectation> a skos:ConceptScheme ;
+  skos:notation "conformance-expectation" ;
+  skos:note "source: http://hl7.org/fhir/ValueSet/conformance-expectation" ;
+  skos:note "bound to: requirement-statement.conformance" ;
+  rdfs:comment "The conformance verb of a requirement statement. Added by the smart-base migration from smart-kg's propertyNote, which named the four values in prose." .
+<http://smart.who.int/kg/valueset/conformance-expectation#SHALL> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/conformance-expectation> ; skos:notation "SHALL" ; skos:definition "Support for the specified capability is required to be considered conformant." .
+<http://smart.who.int/kg/valueset/conformance-expectation#SHOULD> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/conformance-expectation> ; skos:notation "SHOULD" ; skos:definition "Support for the specified capability is strongly encouraged." .
+<http://smart.who.int/kg/valueset/conformance-expectation#MAY> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/conformance-expectation> ; skos:notation "MAY" ; skos:definition "Support for the specified capability is not necessary to be considered conformant." .
+<http://smart.who.int/kg/valueset/conformance-expectation#SHOULD-NOT> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/conformance-expectation> ; skos:notation "SHOULD-NOT" ; skos:definition "Support for the specified capability is strongly discouraged." .
+
+<http://smart.who.int/kg/valueset/verification-method> a skos:ConceptScheme ;
+  skos:notation "verification-method" ;
+  skos:note "source: folio-assistant-core schemas requirement.ts successCriteria.verification" ;
+  rdfs:comment "How a success criterion is verified: the classic verification methods, the same field name and codes as folio-assistant's requirement.ts `successCriteria`, so the two map 1:1. From litlfred/smart-kg main (folio-assistant#2406)." .
+<http://smart.who.int/kg/valueset/verification-method#test> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/verification-method> ; skos:notation "test" ; skos:definition "Verified by executing a test." .
+<http://smart.who.int/kg/valueset/verification-method#inspection> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/verification-method> ; skos:notation "inspection" ; skos:definition "Verified by examining the artefact." .
+<http://smart.who.int/kg/valueset/verification-method#review> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/verification-method> ; skos:notation "review" ; skos:definition "Verified by a person's review." .
+<http://smart.who.int/kg/valueset/verification-method#analysis> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/verification-method> ; skos:notation "analysis" ; skos:definition "Verified by analysis or calculation." .
+
+### Object properties
+
+sgkg:hasComponent a owl:ObjectProperty ;
+  rdfs:label "hasComponent" ;
+  rdfs:comment "A DAK contains one of its nine components. The qualifier carries the component name from DAK.fsh, so `dak hasComponent persona` and `dak hasComponent program-indicator` stay distinguishable when a query walks the kit." .
+
+sgkg:sourcedFrom a owl:ObjectProperty ;
+  rdfs:label "sourcedFrom" ;
+  rdfs:comment "A component points at the file that defines it. TWO TARGETS ARE LICENSED, and which one an instance uses says how much is known about the file. Where a subgraph models that file type, the target is the file itself -- `business-process sourcedFrom bpmn-definitions`, licensed in l2-bpmn -- and the graph walks straight on into the file's contents. Where none does (a Gherkin feature, a FHIR canonical, or a BPMN this graph simply does not hold), the target is an l1:external-artifact carrying a URI and nothing else. Prefer the first: routing through external-artifact when the file IS modelled adds a hop through a node that, at instance level, is the same node." .
+
+sgkg:realises a owl:ObjectProperty ;
+  rdfs:label "realises" ;
+  rdfs:comment "A business process realises a user scenario. From `scenario 0..* id` on BusinessProcessWorkflow -- a bare id string, so an instance carries a resolutionStatus." .
+
+sgkg:involves a owl:ObjectProperty ;
+  rdfs:label "involves" ;
+  rdfs:comment "A user scenario involves a persona. From `personas 0..* id` on UserScenario -- again bare ids, again a resolutionStatus." .
+
+sgkg:fulfilledBy a owl:ObjectProperty ;
+  rdfs:label "fulfilledBy" ;
+  rdfs:comment "A functional requirement is fulfilled by a persona. THE ONE JOIN IN THIS LAYER THAT IS NOT STRING MATCHING: the committed instances write `actor[+] = Canonical(SGAuthoring.Persona.BusinessAnalyst)`, a canonical reference that resolves without guessing. It is the counter-example that shows the other joins are a choice, not a necessity." .
+
+sgkg:hasStatement a owl:ObjectProperty ;
+  rdfs:label "hasStatement" ;
+  rdfs:comment "A requirement carries numbered, labelled statements with a conformance verb. 170 of them exist today." .
+
+sgkg:listsTask a owl:ObjectProperty ;
+  rdfs:label "listsTask" ;
+  rdfs:comment "BusinessProcessWorkflow declares `task 0..*` with identifier, name and description -- the same tasks the BPMN file draws. Two representations of one list, joined by identifier, which is why dak-task exists as a node rather than a property." .
+
+sgkg:references a owl:ObjectProperty ;
+  rdfs:label "references" ;
+  rdfs:comment "A program indicator names the health interventions that give it context. From `references 0..* id` on ProgramIndicator -- bare id strings again, so an instance carries a resolutionStatus. Distinct from derivedFrom: referencing an intervention for context is not the same claim as restating a normative indicator." .
+
+sgkg:describes a owl:ObjectProperty ;
+  rdfs:label "describes" ;
+  rdfs:comment "A DAK-level task entry describes an element of a BPMN file. Declared here and licensed in l2-bpmn, where the target class lives. -- declared but unused by the current model" .
+
+sgkg:implementedBy a owl:ObjectProperty ;
+  rdfs:label "implementedBy" ;
+  rdfs:comment "Reused from l1, and licensed here for the L1->L2 hop that L1 could not declare itself: l1 cannot name an l2 class without a circular import, but l2 imports l1 and sees both ends. A recommendation is implemented by the DAK component that realises it. Always `inferred`, never `derived` -- deciding that a process realises a recommendation is adaptation, the judgement a DAK exists to record, and it carries a resolutionStatus like every other cross-artefact claim. Note health-intervention has NO implementedBy edge: the published SOP gives Health Interventions an L3 row of `n/a / n/a / n/a` and calls L1 recommendations inputs rather than outputs, so the trace runs through processes, decisions and indicators instead." .
+
+sgkg:derivedFrom a owl:ObjectProperty ;
+  rdfs:label "derivedFrom" ;
+  rdfs:comment "This normative content restates or operationalises that recommendation." .
+
+sgkg:appearsIn a owl:ObjectProperty ;
+  rdfs:label "appearsIn" ;
+  rdfs:comment "A citation string appears in an L2 or L3 artefact at a stated location." .
+
+sgkg:verifiedBy a owl:ObjectProperty ;
+  rdfs:label "verifiedBy" ;
+  rdfs:comment "A requirement statement is verified by a test scenario. The statement is the granularity at which conformance is asserted, so it is also the granularity at which a test is claimed to check it. The edge records the claim that a scenario exists for the statement; whether the scenario actually exercises each success criterion is a review question, recorded per criterion by `verification` on successCriteria, not by this edge." .
+
+### Licensed edges, as qualified sub-properties
+# One per (source class, predicate, target class) triple the layer licenses.
+# Domain and range on the sub-property is what preserves pairwise licensing: a single global
+# domain/range on the predicate would be a union of everything and would permit pairs the
+# model does not.
+
+sgkg:hasComponent_DigitalAdaptationKit_HealthIntervention a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasComponent ;
+  rdfs:domain sgkg:DigitalAdaptationKit ;
+  rdfs:range sgkg:HealthIntervention ;
+  skos:note "qualifier: healthInterventions" ;
+  rdfs:label "Digital Adaptation Kit healthInterventions Health intervention" .
+
+sgkg:hasComponent_DigitalAdaptationKit_GenericPersona a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasComponent ;
+  rdfs:domain sgkg:DigitalAdaptationKit ;
+  rdfs:range sgkg:GenericPersona ;
+  skos:note "qualifier: personas" ;
+  rdfs:label "Digital Adaptation Kit personas Generic Persona" .
+
+sgkg:hasComponent_DigitalAdaptationKit_UserScenario a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasComponent ;
+  rdfs:domain sgkg:DigitalAdaptationKit ;
+  rdfs:range sgkg:UserScenario ;
+  skos:note "qualifier: userScenarios" ;
+  rdfs:label "Digital Adaptation Kit userScenarios User Scenario" .
+
+sgkg:hasComponent_DigitalAdaptationKit_BusinessProcessWorkflow a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasComponent ;
+  rdfs:domain sgkg:DigitalAdaptationKit ;
+  rdfs:range sgkg:BusinessProcessWorkflow ;
+  skos:note "qualifier: businessProcesses" ;
+  rdfs:label "Digital Adaptation Kit businessProcesses Business Process Workflow" .
+
+sgkg:hasComponent_DigitalAdaptationKit_CoreDataElement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasComponent ;
+  rdfs:domain sgkg:DigitalAdaptationKit ;
+  rdfs:range sgkg:CoreDataElement ;
+  skos:note "qualifier: dataElements" ;
+  rdfs:label "Digital Adaptation Kit dataElements Core Data Element" .
+
+sgkg:hasComponent_DigitalAdaptationKit_DecisionSupportLogic a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasComponent ;
+  rdfs:domain sgkg:DigitalAdaptationKit ;
+  rdfs:range sgkg:DecisionSupportLogic ;
+  skos:note "qualifier: decisionLogic" ;
+  rdfs:label "Digital Adaptation Kit decisionLogic Decision-Support Logic" .
+
+sgkg:hasComponent_DigitalAdaptationKit_ProgramIndicator a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasComponent ;
+  rdfs:domain sgkg:DigitalAdaptationKit ;
+  rdfs:range sgkg:ProgramIndicator ;
+  skos:note "qualifier: indicators" ;
+  rdfs:label "Digital Adaptation Kit indicators Program Indicator" .
+
+sgkg:hasComponent_DigitalAdaptationKit_FunctionalRequirement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasComponent ;
+  rdfs:domain sgkg:DigitalAdaptationKit ;
+  rdfs:range sgkg:FunctionalRequirement ;
+  skos:note "qualifier: requirements" ;
+  rdfs:label "Digital Adaptation Kit requirements Functional Requirement" .
+
+sgkg:hasComponent_DigitalAdaptationKit_NonFunctionalRequirement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasComponent ;
+  rdfs:domain sgkg:DigitalAdaptationKit ;
+  rdfs:range sgkg:NonFunctionalRequirement ;
+  skos:note "qualifier: requirements" ;
+  rdfs:label "Digital Adaptation Kit requirements Non-Functional Requirement" .
+
+sgkg:hasComponent_DigitalAdaptationKit_TestScenario a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasComponent ;
+  rdfs:domain sgkg:DigitalAdaptationKit ;
+  rdfs:range sgkg:TestScenario ;
+  skos:note "qualifier: testScenarios" ;
+  rdfs:label "Digital Adaptation Kit testScenarios Test Scenario" .
+
+sgkg:hasComponent_DigitalAdaptationKit_SchedulingLogic a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasComponent ;
+  rdfs:domain sgkg:DigitalAdaptationKit ;
+  rdfs:range sgkg:SchedulingLogic ;
+  skos:note "qualifier: schedulingLogic" ;
+  rdfs:label "Digital Adaptation Kit schedulingLogic Scheduling Logic" .
+
+sgkg:sourcedFrom_SchedulingLogic_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:sourcedFrom ;
+  rdfs:domain sgkg:SchedulingLogic ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "Scheduling Logic sourcedFrom External artefact" .
+
+sgkg:implementedBy_Recommendation_BusinessProcessWorkflow a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:BusinessProcessWorkflow ;
+  rdfs:label "Recommendation implementedBy Business Process Workflow" .
+
+sgkg:implementedBy_Recommendation_DecisionSupportLogic a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:DecisionSupportLogic ;
+  rdfs:label "Recommendation implementedBy Decision-Support Logic" .
+
+sgkg:implementedBy_Recommendation_GenericPersona a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:GenericPersona ;
+  rdfs:label "Recommendation implementedBy Generic Persona" .
+
+sgkg:implementedBy_Recommendation_UserScenario a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:UserScenario ;
+  rdfs:label "Recommendation implementedBy User Scenario" .
+
+sgkg:implementedBy_Indicator_ProgramIndicator a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:Indicator ;
+  rdfs:range sgkg:ProgramIndicator ;
+  rdfs:label "Indicator implementedBy Program Indicator" .
+
+sgkg:sourcedFrom_BusinessProcessWorkflow_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:sourcedFrom ;
+  rdfs:domain sgkg:BusinessProcessWorkflow ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "Business Process Workflow sourcedFrom External artefact" .
+
+sgkg:sourcedFrom_DecisionSupportLogic_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:sourcedFrom ;
+  rdfs:domain sgkg:DecisionSupportLogic ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "Decision-Support Logic sourcedFrom External artefact" .
+
+sgkg:sourcedFrom_TestScenario_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:sourcedFrom ;
+  rdfs:domain sgkg:TestScenario ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "Test Scenario sourcedFrom External artefact" .
+
+sgkg:sourcedFrom_CoreDataElement_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:sourcedFrom ;
+  rdfs:domain sgkg:CoreDataElement ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "Core Data Element sourcedFrom External artefact" .
+
+sgkg:sourcedFrom_GenericPersona_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:sourcedFrom ;
+  rdfs:domain sgkg:GenericPersona ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "Generic Persona sourcedFrom External artefact" .
+
+sgkg:sourcedFrom_UserScenario_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:sourcedFrom ;
+  rdfs:domain sgkg:UserScenario ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "User Scenario sourcedFrom External artefact" .
+
+sgkg:sourcedFrom_ProgramIndicator_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:sourcedFrom ;
+  rdfs:domain sgkg:ProgramIndicator ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "Program Indicator sourcedFrom External artefact" .
+
+sgkg:sourcedFrom_FunctionalRequirement_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:sourcedFrom ;
+  rdfs:domain sgkg:FunctionalRequirement ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "Functional Requirement sourcedFrom External artefact" .
+
+sgkg:sourcedFrom_NonFunctionalRequirement_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:sourcedFrom ;
+  rdfs:domain sgkg:NonFunctionalRequirement ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "Non-Functional Requirement sourcedFrom External artefact" .
+
+sgkg:realises_BusinessProcessWorkflow_UserScenario a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:realises ;
+  rdfs:domain sgkg:BusinessProcessWorkflow ;
+  rdfs:range sgkg:UserScenario ;
+  rdfs:label "Business Process Workflow realises User Scenario" .
+
+sgkg:involves_UserScenario_GenericPersona a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:involves ;
+  rdfs:domain sgkg:UserScenario ;
+  rdfs:range sgkg:GenericPersona ;
+  rdfs:label "User Scenario involves Generic Persona" .
+
+sgkg:fulfilledBy_FunctionalRequirement_GenericPersona a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:fulfilledBy ;
+  rdfs:domain sgkg:FunctionalRequirement ;
+  rdfs:range sgkg:GenericPersona ;
+  rdfs:label "Functional Requirement fulfilledBy Generic Persona" .
+
+sgkg:hasStatement_FunctionalRequirement_RequirementStatement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasStatement ;
+  rdfs:domain sgkg:FunctionalRequirement ;
+  rdfs:range sgkg:RequirementStatement ;
+  rdfs:label "Functional Requirement hasStatement Requirement Statement" .
+
+sgkg:hasStatement_NonFunctionalRequirement_RequirementStatement a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:hasStatement ;
+  rdfs:domain sgkg:NonFunctionalRequirement ;
+  rdfs:range sgkg:RequirementStatement ;
+  rdfs:label "Non-Functional Requirement hasStatement Requirement Statement" .
+
+sgkg:listsTask_BusinessProcessWorkflow_TaskEntry a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:listsTask ;
+  rdfs:domain sgkg:BusinessProcessWorkflow ;
+  rdfs:range sgkg:TaskEntry ;
+  rdfs:label "Business Process Workflow listsTask Task Entry" .
+
+sgkg:references_ProgramIndicator_HealthIntervention a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:references ;
+  rdfs:domain sgkg:ProgramIndicator ;
+  rdfs:range sgkg:HealthIntervention ;
+  rdfs:label "Program Indicator references Health intervention" .
+
+sgkg:derivedFrom_ProgramIndicator_Indicator a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:derivedFrom ;
+  rdfs:domain sgkg:ProgramIndicator ;
+  rdfs:range sgkg:Indicator ;
+  rdfs:label "Program Indicator derivedFrom Indicator" .
+
+sgkg:crossReferences_GenericPersona_TerminologyCode a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:GenericPersona ;
+  rdfs:range sgkg:TerminologyCode ;
+  rdfs:label "Generic Persona crossReferences Terminology code" .
+
+sgkg:crossReferences_CoreDataElement_TerminologyCode a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:CoreDataElement ;
+  rdfs:range sgkg:TerminologyCode ;
+  rdfs:label "Core Data Element crossReferences Terminology code" .
+
+sgkg:crossReferences_ProgramIndicator_TerminologyCode a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:ProgramIndicator ;
+  rdfs:range sgkg:TerminologyCode ;
+  rdfs:label "Program Indicator crossReferences Terminology code" .
+
+sgkg:crossReferences_FunctionalRequirement_TerminologyCode a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:FunctionalRequirement ;
+  rdfs:range sgkg:TerminologyCode ;
+  rdfs:label "Functional Requirement crossReferences Terminology code" .
+
+sgkg:crossReferences_NonFunctionalRequirement_TerminologyCode a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:NonFunctionalRequirement ;
+  rdfs:range sgkg:TerminologyCode ;
+  rdfs:label "Non-Functional Requirement crossReferences Terminology code" .
+
+sgkg:appearsIn_Citation_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:appearsIn ;
+  rdfs:domain sgkg:Citation ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "Citation appearsIn External artefact" .
+
+sgkg:implementedBy_Recommendation_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "Recommendation implementedBy External artefact" .
+
+sgkg:implementedBy_Indicator_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:Indicator ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "Indicator implementedBy External artefact" .
+
+sgkg:implementedBy_HealthIntervention_ExternalArtefact a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:HealthIntervention ;
+  rdfs:range sgkg:ExternalArtefact ;
+  rdfs:label "Health intervention implementedBy External artefact" .
+
+sgkg:implementedBy_Recommendation_SchedulingLogic a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:Recommendation ;
+  rdfs:range sgkg:SchedulingLogic ;
+  rdfs:label "Recommendation implementedBy Scheduling Logic" .
+
+sgkg:derivedFrom_FunctionalRequirement_Recommendation a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:derivedFrom ;
+  rdfs:domain sgkg:FunctionalRequirement ;
+  rdfs:range sgkg:Recommendation ;
+  rdfs:label "Functional Requirement derivedFrom Recommendation" .
+
+sgkg:derivedFrom_NonFunctionalRequirement_Recommendation a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:derivedFrom ;
+  rdfs:domain sgkg:NonFunctionalRequirement ;
+  rdfs:range sgkg:Recommendation ;
+  rdfs:label "Non-Functional Requirement derivedFrom Recommendation" .
+
+sgkg:verifiedBy_RequirementStatement_TestScenario a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:verifiedBy ;
+  rdfs:domain sgkg:RequirementStatement ;
+  rdfs:range sgkg:TestScenario ;
+  rdfs:label "Requirement Statement verifiedBy Test Scenario" .
+

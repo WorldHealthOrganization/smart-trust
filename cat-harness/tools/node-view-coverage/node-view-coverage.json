@@ -1,0 +1,95 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "node-view-coverage",
+    "title": "Does every node have an IRI, a .jsonld, a page and a row?",
+    "description": "For each node a declared directory holds, per layer × folder × kind: whether it has an IRI in its layer's export (extensionless), its JSON-LD at `<iri>.jsonld` (and `.json` where its source is JSON), a view page at `<locale>/<harness>/<vis>/<instance>/<id>/`, and a row on its folder page that links to it; plus the folder page's dead links and raw-repository links, and whether a viewer is declared. Folder pages are read with their data files, so rows drawn by JavaScript count. Writes `node-view-coverage/v1`, one file per layer, under `test/results/node-views/`.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat node-views:report"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "site",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--site"
+          },
+          "description": "`--site <dir>`: a built site (`_site`, or a preview's `branches/<slug>/`). With `--site-url`, the URL that directory is served at."
+        },
+        {
+          "name": "base",
+          "schema": {
+            "$type": "Url"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--base"
+          },
+          "description": "`--base <url>`: a live site to probe instead of a directory. Optional; one of `site` or `base` is needed, or pages, rows and links are unknown."
+        },
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          },
+          "description": "`--check` (`node-views:judge`): write nothing and judge. Exit 0 when no finding is new, 1 when one is new against the baseline, 2 when the run could not ask (JUDGEMENT_EXIT)."
+        },
+        {
+          "name": "against",
+          "schema": {
+            "$type": "Branch"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--against"
+          },
+          "description": "`--against <ref>`: the `qa-reports` entry to judge against (`main`, `main/<sha>`, `pr/<n>/<sha>`). Absent, the working copy; a missing baseline is UNKNOWN and not gated."
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "`<layer qa home>/node-views/<layer>.node-views.qa.json` (`node-view-coverage/v1`), and a Markdown summary table on stdout. Always exit 0: reports, never gates. Published to `qa-reports` by `qa:publish`, and read by each layer's QA page."
+        }
+      ]
+    },
+    "satisfies": [
+      "kg-viewer"
+    ],
+    "selection": {
+      "when": "After a site build, before the review of a preview: to see which nodes of which folders have no IRI, no .jsonld, no page or no row, and which folder links are dead or point at the raw repository.",
+      "limits": "It needs a built site or a live base; without one, pages, rows and links are unknown, never 0. Rows drawn in the browser are read from the folder's data files (`assets/<vis>/*.json`, inline JSON), not by running the page, so a row built from another source is not seen. The census per kind is a declared file rule (`CENSUS_RULES`) or the layer's export, recorded on each row. Counts past `--probe-limit` are unknown.",
+      "cost": "Building each layer's export in memory (minutes over a whole composition), then one request per node page and IRI: thousands against a live base."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/requires",
+      "comment": "`network` is false for `--site` and true for `--base` (and for `--site --network`, which fetches off-site IRIs). Declared false because the default input is a built directory."
+    },
+    {
+      "at": "/satisfies",
+      "comment": "`kg-viewer` states the rule this measures: every asset has its own IRI, its JSON-LD and a page, and the asset and its rendering are two resources."
+    }
+  ]
+}

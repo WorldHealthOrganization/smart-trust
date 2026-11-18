@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_Process_IgAstDeltaReview" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:dataStore id="work-plan" name="Work plan (beans)"/>
+  <bpmn:collaboration id="Collaboration_Process_IgAstDeltaReview">
+    <bpmn:participant id="Participant_Process_IgAstDeltaReview" name="Is the incremental IG AST what a full build would have produced?" processRef="Process_IgAstDeltaReview"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_IgAstDeltaReview" name="Is the incremental IG AST what a full build would have produced?" isExecutable="false">
+    <bpmn:documentation>The review step of an incremental FHIR IG build, as its own subprocess: list and inspect the differences between the incremental IG AST and what a full build would have produced, then accept them or raise a finding.
+
+WHERE IT SITS. In `ig-incremental-build.bpmn` it belongs between Task_Merge and Task_Qa: after the restored and rebuilt records are merged, before the QC gates read the aggregate. That diagram does not call it yet; `ig-ast-delta` §"Where this sits in a process" states the placement.
+
+WHAT IT GUARDS. An incremental build rebuilds only the cone of a change, computed on the BASE edges. If the cone rules miss a coupling, a resource that should have changed does not, and nothing downstream can tell: the merged AST looks exactly like a correct one. So a person reads the delta, and a difference nobody can explain is treated as a missed coupling.
+
+WHAT IT DOES NOT CLAIM. A clean review says the delta is explained, not that the IG is correct. The AST stays a cache: every rendered page carries the provisional mark, and a release is still cut from a full build (`ig-publisher-reduction` P4).</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- ADVISORY, as ig-incremental-build is: this is the review step of an
+           experimental path whose tool chain has not been measured on a real
+           IG. -->
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_IgAstDeltaReview">
+      <bpmn:lane id="Lane_Build" name="Incremental build (system)">
+        <bpmn:documentation>Checks that the base AST still matches the IG's inputs, then diffs base against head and renders the delta pages. Both steps are mechanical and read files only. A stale or undeterminable base ends here, before any delta is shown, because a delta against the wrong base explains nothing.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="build-pipeline"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_Ready</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Validity</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Valid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Stale</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Diff</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Review" name="QC reviewer">
+        <bpmn:documentation>Reads the rendered delta and answers one question: is every difference explained by the change? This is the only judgement in the subprocess, and it is a person's (or a reviewing agent acting in this role): "explained" depends on what the change was meant to do.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="qc-reviewer"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Explained</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Accepted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FileCoupling</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_FullBuild</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Ready" name="Base AST and merged&#10;head AST exist">
+      <bpmn:documentation>Reached after an incremental build (IncrementalBuildCli) has merged the rebuilt cone into the base, or after a full build when comparing an incremental AST with a full one.</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_Validity" name="Check the base AST against the inputs">
+      <bpmn:documentation>`ig-ast.ts validity &lt;base&gt; --ig &lt;root&gt;`: folio-assistant-core's compiledValidity on the manifest's inputs, with the input digest recomputed by the same algorithm as the Java writer. Exit 0 valid, 1 stale-inputs (names which input), 2 cannot-tell. Run against the BASE revision's checkout.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-ast-delta"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_Valid" name="Base AST valid&#10;for its inputs?">
+      <bpmn:documentation>Answered by Task_Validity's exit code. 0 takes `yes`, into the diff. 1 (stale-inputs) and 2 (cannot-tell) both take `no`: cannot-tell is never a pass, and a delta against a base that may not be what it claims explains nothing.</bpmn:documentation>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Stale" name="Base stale — run&#10;a full build">
+      <bpmn:documentation>No delta is shown. The caller runs a full build, whose AST becomes the next base.</bpmn:documentation>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_Diff" name="Diff the two ASTs">
+      <bpmn:documentation>`ig-ast.ts diff &lt;base&gt; &lt;head&gt; --plan plan.json --site &lt;site&gt;/ast-delta/`: resources added, removed, changed (with an element-level differential) and version-changed; edges added and removed; the plan's decision. Every page opens with the provisional mark and is wrapped in raw so narrative Liquid is not executed.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-ast-delta"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_Review" name="Read the delta">
+      <bpmn:documentation>Start at the delta index; open each changed resource's page. Check `builtAt` before judging: a resource carried from the base was not rebuilt, so a difference there is the change itself or a missed coupling, never noise. The differential is structural: a reordered repeating element shows at every index.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-ast-delta"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_Explained" name="Every difference&#10;explained?">
+      <bpmn:documentation>Answered by the reviewer in Task_Review. `yes` when every added, removed and changed resource is accounted for by the change. `no` when any is not, including a resource that SHOULD have changed and did not, which the delta shows as absent rather than as a row.</bpmn:documentation>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Accepted" name="Delta accepted —&#10;on to the QC gates">
+      <bpmn:documentation>Hands back to ig-incremental-build at Task_Qa. The merged AST is still a cache; its pages keep the provisional mark.</bpmn:documentation>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_FileCoupling" name="Note the missed coupling&#10;on the work plan">
+      <bpmn:documentation>Append to the IG AST work-plan item: the resource key, the differential path, and why it is unexplained. A note on the existing item, not a new one unless the owner asks; creating an item is not idempotent, so check before creating.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_FileCoupling">
+        <bpmn:targetRef>DSR_work_plan</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:endEvent id="End_FullBuild" name="Coupling filed —&#10;run a full build">
+      <bpmn:documentation>The incremental result is not used. A full build produces the next base, and the filed coupling is what the cone rules are fixed against.</bpmn:documentation>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_Ready" targetRef="Task_Validity"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Validity" targetRef="GW_Valid"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="GW_Valid" targetRef="Task_Diff" name="yes"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="GW_Valid" targetRef="End_Stale" name="no — stale or&#10;cannot tell"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_Diff" targetRef="Task_Review"/>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_Review" targetRef="GW_Explained"/>
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="GW_Explained" targetRef="End_Accepted" name="yes"/>
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="GW_Explained" targetRef="Task_FileCoupling" name="no"/>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_FileCoupling" targetRef="End_FullBuild"/>
+    <bpmn:dataStoreReference id="DSR_work_plan" name="Work plan (beans)" dataStoreRef="work-plan"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_IgAstDeltaReview">
+    <bpmndi:BPMNPlane id="Plane_Process_IgAstDeltaReview" bpmnElement="Collaboration_Process_IgAstDeltaReview">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_IgAstDeltaReview" bpmnElement="Participant_Process_IgAstDeltaReview" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="1560" height="898" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Build" bpmnElement="Lane_Build" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="1530" height="364" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Review" bpmnElement="Lane_Review" isHorizontal="true">
+        <dc:Bounds x="90" y="424" width="1530" height="534" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Ready" bpmnElement="Start_Ready">
+        <dc:Bounds x="192" y="139" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="119.5" y="167.5" width="90" height="71" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Validity" bpmnElement="Task_Validity">
+        <dc:Bounds x="330" y="97" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Valid" bpmnElement="GW_Valid" isMarkerVisible="true">
+        <dc:Bounds x="595" y="132" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="400" y="67" width="90" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Stale" bpmnElement="End_Stale">
+        <dc:Bounds x="602" y="309" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="288" y="197" width="135" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Diff" bpmnElement="Task_Diff">
+        <dc:Bounds x="790" y="97" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Review" bpmnElement="Task_Review">
+        <dc:Bounds x="970" y="461" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Explained" bpmnElement="GW_Explained" isMarkerVisible="true">
+        <dc:Bounds x="1235" y="496" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="910" y="247" width="90" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Accepted" bpmnElement="End_Accepted">
+        <dc:Bounds x="1472" y="503" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_FileCoupling" bpmnElement="Task_FileCoupling">
+        <dc:Bounds x="1200" y="631" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_FullBuild" bpmnElement="End_FullBuild">
+        <dc:Bounds x="1472" y="673" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="228" y="157" />
+        <di:waypoint x="330" y="157" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_2" bpmnElement="Flow_2">
+        <di:waypoint x="450" y="157" />
+        <di:waypoint x="595" y="157" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_3" bpmnElement="Flow_3">
+        <di:waypoint x="645" y="157" />
+        <di:waypoint x="790" y="157" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_4" bpmnElement="Flow_4">
+        <di:waypoint x="620" y="182" />
+        <di:waypoint x="620" y="309" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_5" bpmnElement="Flow_5">
+        <di:waypoint x="850" y="217" />
+        <di:waypoint x="850" y="521" />
+        <di:waypoint x="970" y="521" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_6" bpmnElement="Flow_6">
+        <di:waypoint x="1090" y="521" />
+        <di:waypoint x="1235" y="521" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_7" bpmnElement="Flow_7">
+        <di:waypoint x="1285" y="521" />
+        <di:waypoint x="1472" y="521" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_8" bpmnElement="Flow_8">
+        <di:waypoint x="1260" y="546" />
+        <di:waypoint x="1260" y="631" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_9" bpmnElement="Flow_9">
+        <di:waypoint x="1320" y="691" />
+        <di:waypoint x="1472" y="691" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_DSR_work_plan" bpmnElement="DSR_work_plan"><dc:Bounds x="1235" y="836" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="984" y="647" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_FileCoupling" bpmnElement="DOA_Task_FileCoupling">
+        <di:waypoint x="1260" y="751" />
+        <di:waypoint x="1260" y="836" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

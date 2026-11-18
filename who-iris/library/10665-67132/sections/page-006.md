@@ -1,0 +1,42 @@
+---
+doc_id: 10665-67132
+doc_title: "Breastfeeding and replacement feeding practices in the context of mother-to-child transmission of HIV : an assessment tool for research"
+section_id: page-006
+section_title: "Page 6"
+pages: 6-6
+pdf_page: 6
+source_pdf: 10665-67132.pdf
+source_sha256: 2c2fb689392e00e3
+text_source: ocr
+granularity: page
+---
+months exclusively breastfed infants compared to 35.9% among non-exclusively breastfed
+infants. 13
+
+This analysis was performed on HIV-infected women and babies participating in a vitamin A
+supplementation trial. Women in this study received advice about infant feeding, but self-
+selected their feeding practices. Other risk factors for MTCT, such as maternal CD4/CD8 cell
+tatio, syphilis screening test results, and pre-term delivery were controlled for in the analysis.
+The morbidity (diarrhoea, lower respiratory tract infection, candidiasis) in children prior to
+detection of HIV was similar in infants who were exclusively breastfed and in infants who were
+mixed fed. This addresses some of the concerns raised about this observational study, in
+particular the issue of reverse causality, whereby a change in infant feeding pattern may
+result from an infection. HIV acquisition may be wrongly ascribed to the change in feeding
+pattern rather than to the underlying infection that could have facilitated the acquisition of HIV
+infection. It is plausible that primary HIV infection in children may be associated with signs
+and symptoms, and result in a change of feeding pattern to which the infant HIV’s acquisition
+can be wrongly attributed.
+
+Potential mechanisms that could explain a reduced risk of MTCT when children are
+exclusively breastfed include: 14
+
+« Reduction in dietary antigens and enteric pathogens that may maintain integrity of the
+intestinal mucosal barrier and limit inflammatory responses to the gut mucosa;
+
+« Promotion of beneficial intestinal microflora that may increase resistance to infection and
+modulate the infant's immune response; ,
+
+® Modulation of anti-microbial, anti-inflammatory and immuno-modulating properties of
+breast milk;
+
+e Maintenance of mammary epithelial integrity that may reduce viral load in breast milk.
