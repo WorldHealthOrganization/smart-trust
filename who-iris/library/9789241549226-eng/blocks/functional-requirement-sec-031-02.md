@@ -1,0 +1,1 @@
+For general management of health workforce data, it is recommended that the health workforce registry be placed at national level with adequate access at sub-national levels for both authorized data access and data submission.

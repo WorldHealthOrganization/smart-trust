@@ -1,0 +1,277 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://litlfred.github.io/folio-assistant/skills/bean-drain/output.schema.json",
+  "title": "Bean Drain Output",
+  "description": "What a drain produces: the queue, one claim check per bean taken, and what each bean ended as. The three definitions are also the outputs of the drain-queue, bean-claim-check and open-work-lookup Tools. Skill work-plan/skills/work-plan/bean-drain.md, bean n7x7.",
+  "type": "object",
+  "required": ["queue", "checks", "results"],
+  "properties": {
+    "queue": { "$ref": "#/definitions/queue" },
+    "checks": { "type": "array", "items": { "$ref": "#/definitions/claimCheck" }, "description": "One per bean a drainer tried to take, skips included." },
+    "results": {
+      "type": "array",
+      "description": "What each claimed bean ended as.",
+      "items": {
+        "type": "object",
+        "required": ["bean", "outcome"],
+        "properties": {
+          "bean": { "$ref": "#/definitions/beanId" },
+          "outcome": { "type": "string", "enum": ["completed", "scrapped", "asked-owner", "returned-to-todo", "blocked"], "description": "asked-owner: an ask-the-person question is open and its link is in the bean." },
+          "prs": { "type": "array", "items": { "type": "string", "format": "uri" } },
+          "question": { "type": "string", "format": "uri", "description": "asked-owner only: the chat message holding the full question." }
+        },
+        "additionalProperties": false
+      }
+    },
+    "stagingLinks": {
+      "$ref": "#/definitions/stagingLinks",
+      "description": "The staging preview behind any request the drain puts to the owner (an asked-owner question, a PR left for review): one deep link per changed page, with the same page on main. Required whenever a preview exists; when it does not, say so in `missing`. Rule: cat-harness skills/authoring/content-lifecycle/feedback-deep-links.md."
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "stagingLinks": {
+      "title": "Staging links",
+      "description": "The staging preview of the work a request for feedback is about: one deep link per changed page (the page and the anchor where the change sits) with the same page on main as `before`. Mirrors StagingComparison in schemas/sdlc/staging.ts. The rule is skills/authoring/content-lifecycle/feedback-deep-links.md. Copied inline as `definitions.stagingLinks` into every skill contract that carries it; schemas/staging.test.ts fails when a copy drifts.",
+      "type": "object",
+      "required": [
+        "branch",
+        "slug",
+        "branchUrl",
+        "mainBaseUrl",
+        "stagingBaseUrl",
+        "pages"
+      ],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "Feature branch name."
+        },
+        "slug": {
+          "type": "string",
+          "description": "Branch slug used in the staging URL path."
+        },
+        "branchUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pr": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mainBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "stagingBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pages": {
+          "type": "array",
+          "description": "One entry per changed page, deep-linked; from the change's rendered-impact list, never chosen by judgement.",
+          "items": {
+            "type": "object",
+            "required": [
+              "title"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string",
+                "format": "uri",
+                "description": "Same page on main; absent for a new page."
+              },
+              "after": {
+                "type": "string",
+                "format": "uri",
+                "description": "The page on the staging preview, with the anchor where the change sits; absent for a deleted page."
+              },
+              "summary": {
+                "type": "string",
+                "description": "What to look at on this page."
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What could not be linked, said rather than hidden: no preview yet (and when it will exist), no page list computed, or a changed page the publish ref does not hold."
+        }
+      },
+      "$comment": "Copy of cat-harness schemas/staging-comparison.schema.json; cat-harness schemas/staging.test.ts fails when a copy drifts."
+    },
+    "beanId": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "queueEntry": {
+      "type": "object",
+      "required": ["id", "title", "status", "type", "priority"],
+      "properties": {
+        "id": { "$ref": "#/definitions/beanId" },
+        "title": { "type": "string" },
+        "status": { "type": "string", "enum": ["todo", "in-progress"] },
+        "type": { "type": "string", "enum": ["task", "bug", "feature"] },
+        "priority": { "type": "string" },
+        "lastTouch": {
+          "type": "object",
+          "required": ["author", "at", "agent"],
+          "properties": {
+            "author": { "type": "string" },
+            "at": { "$ref": "#/definitions/timestamp" },
+            "agent": { "type": "string", "description": "The input agent this author matched, or 'other'." }
+          },
+          "description": "The newest commit to the bean across every copy."
+        },
+        "skip": { "type": "string", "description": "Set when another agent holds it: who, and the evidence (a commit within the window, a claim note, an open PR)." }
+      },
+      "additionalProperties": false
+    },
+    "queue": {
+      "title": "Drain queue",
+      "description": "Output of the drain-queue Tool. Nothing is dropped silently: every open bean is either in byOwner, in spare, or in excluded with its reason.",
+      "type": "object",
+      "required": ["refreshedAt", "sources", "byOwner", "spare", "excluded", "disagreements"],
+      "properties": {
+        "refreshedAt": { "$ref": "#/definitions/timestamp" },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["repo", "ref", "sha"],
+            "properties": { "repo": { "type": "string" }, "ref": { "type": "string" }, "sha": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" } },
+            "additionalProperties": false
+          },
+          "description": "The tip each copy was read at, so a reader can tell how fresh the queue is."
+        },
+        "byOwner": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["owner", "beans"],
+            "properties": { "owner": { "type": "string" }, "beans": { "type": "array", "items": { "$ref": "#/definitions/queueEntry" }, "description": "Priority order." } },
+            "additionalProperties": false
+          }
+        },
+        "spare": { "type": "array", "items": { "$ref": "#/definitions/queueEntry" }, "description": "Drainable, and no owner fits yet. The next refill comes from here." },
+        "excluded": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "reason"],
+            "properties": {
+              "id": { "$ref": "#/definitions/beanId" },
+              "reason": { "type": "string", "enum": ["goal", "epic", "blocked", "completed", "scrapped", "draft", "owner-held", "not-drainable-here"] },
+              "detail": { "type": "string", "description": "blocked: the open blockers. owner-held: the note saying so. not-drainable-here: what is missing and which agent has it." }
+            },
+            "additionalProperties": false
+          }
+        },
+        "disagreements": {
+          "type": "array",
+          "description": "Beans whose copies disagree. The newest updated_at wins in the queue; these need a sync commit.",
+          "items": {
+            "type": "object",
+            "required": ["id", "byCopy", "used"],
+            "properties": {
+              "id": { "$ref": "#/definitions/beanId" },
+              "byCopy": { "type": "object", "additionalProperties": { "type": "string" }, "description": "repo to the status it holds there, or 'absent'." },
+              "used": { "type": "string", "description": "The repo whose copy was used." }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "claimCheck": {
+      "title": "Claim check",
+      "description": "Output of the bean-claim-check Tool: may this agent take the bean, and if so, the claim commit on every copy. Exactly one of claimed or skip-* or unknown.",
+      "type": "object",
+      "required": ["bean", "state", "copies", "openWork"],
+      "properties": {
+        "bean": { "$ref": "#/definitions/beanId" },
+        "state": {
+          "type": "string",
+          "enum": ["claimed", "would-claim", "skip-recent-commit", "skip-claim-note", "skip-open-pr", "skip-closed", "unknown"],
+          "description": "claimed: a plain commit set in-progress on every copy and was pushed. would-claim: --dry-run. skip-*: someone else holds it, with the evidence. unknown: a copy or a repo could not be read, never reported as free."
+        },
+        "copies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["repo", "ref", "recent"],
+            "properties": {
+              "repo": { "type": "string" },
+              "ref": { "type": "string" },
+              "recent": {
+                "type": "array",
+                "maxItems": 3,
+                "items": {
+                  "type": "object",
+                  "required": ["author", "at", "subject", "agent"],
+                  "properties": { "author": { "type": "string" }, "at": { "$ref": "#/definitions/timestamp" }, "subject": { "type": "string" }, "agent": { "type": "string" } },
+                  "additionalProperties": false
+                },
+                "description": "git log -3 on the bean's file at the fetched tip."
+              },
+              "status": { "type": "string" },
+              "claimCommit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$", "description": "claimed only." },
+              "pushAttempts": { "type": "integer", "minimum": 0, "description": "A rejected push is fetched, rebased and retried, never forced." }
+            },
+            "additionalProperties": false
+          }
+        },
+        "openWork": { "$ref": "#/definitions/lookup" },
+        "reason": { "type": "string", "description": "One line a person can read: who holds it and why that was decided." }
+      },
+      "additionalProperties": false
+    },
+    "lookup": {
+      "title": "Open work lookup",
+      "description": "Output of the open-work-lookup Tool (bean pomp): does a path, a path prefix or a bean id appear on the default branch or on any open PR head, and where. Answers 'does this exist anywhere reachable', not 'is it in my checkout'.",
+      "type": "object",
+      "required": ["query", "checkedAt", "hits", "unread"],
+      "properties": {
+        "query": {
+          "type": "object",
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": { "type": "string", "enum": ["path", "prefix", "bean"] },
+            "value": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        },
+        "checkedAt": { "$ref": "#/definitions/timestamp" },
+        "hits": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["repo", "where", "match"],
+            "properties": {
+              "repo": { "type": "string" },
+              "where": { "type": "string", "enum": ["default-branch", "open-pr"] },
+              "pr": { "type": "integer", "minimum": 1 },
+              "head": { "type": "string", "description": "The PR's head branch." },
+              "author": { "type": "string", "description": "The PR's first commit author, so the agent can be told apart." },
+              "createdAt": { "$ref": "#/definitions/timestamp" },
+              "match": { "type": "string", "enum": ["file", "title", "body", "branch"], "description": "file: the path exists on the default branch, or an open PR changes a file at that path or under that prefix. title, body, branch: the bean id appears there." },
+              "paths": { "type": "array", "items": { "type": "string" } }
+            },
+            "additionalProperties": false
+          }
+        },
+        "unread": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Repos or PRs that could not be read. Non-empty means the answer is incomplete, and an empty hits list is then NOT 'does not exist'."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

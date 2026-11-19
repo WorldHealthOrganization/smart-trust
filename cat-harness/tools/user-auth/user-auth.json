@@ -1,0 +1,93 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "user-auth",
+    "title": "Who is asking, and what may they do",
+    "description": "User authentication and authorization. Asks GitHub for the caller's login and repository role, maps the role to a gateway actor, and answers from the ODRL policies — for an action, or for a BPMN step. Always states that GitHub's role covers the whole repository, not a sub-graph, node or query path.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "mcp": {
+        "tool": "auth_whoami"
+      },
+      "inProcess": {
+        "module": "src/tools/auth.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "actor",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "A declared actor the caller is acting as.",
+          "required": false
+        },
+        {
+          "name": "action",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "An ODRL action to ask about, e.g. content-authoring.",
+          "required": false
+        },
+        {
+          "name": "process",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Process id, to scope the question or check a task.",
+          "required": false
+        },
+        {
+          "name": "task",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Node id; with process, runs the task-authorization check.",
+          "required": false
+        },
+        {
+          "name": "role",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The role the lane binds.",
+          "required": false
+        },
+        {
+          "name": "target",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The content acted on.",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "answer",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "Identity, GitHub role, ODRL grants and decisions, and what GitHub's grain cannot express."
+        }
+      ]
+    },
+    "satisfies": [
+      "task-authorization",
+      "deployment-auth"
+    ],
+    "requires": {
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "api.github.com",
+        "none": "The caller's GitHub role is GitHub's answer; without it the role is unknown and nothing is granted on it."
+      }
+    ]
+  }
+}

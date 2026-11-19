@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_MultiLocaleTranslation" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="user" name="User"/>
+  <bpmn:resource id="translation-source-lead" name="Source-language lead"/>
+  <bpmn:resource id="locale-translator" name="Locale translator"/>
+
+  <bpmn:collaboration id="Collaboration_MultiLocaleTranslation">
+    <bpmn:participant id="Participant_MultiLocaleTranslation" name="Multi-locale translation" processRef="Process_MultiLocaleTranslation"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_MultiLocaleTranslation" name="Multi-locale translation" isExecutable="false">
+    <bpmn:documentation>Translate one or more layers into several locales at once, as a team: one source-language lead, one translator per locale, an untainted round trip, and the owner's merge window. The result is unofficial, on main, and kept current by a watcher.
+
+You are in this process when more than one locale is being produced from the same source at the same time. `translation-workflow` is the machine half for one catalogue and `human-translation-workflow` is the path to an official, signed-off translation; this process is the team around them. It extracts ONCE: every locale starts from the same templates, merged to main in one source PR before any locale begins, and no translator re-extracts. Each locale then lands as its own PR to main, never into the source branch, and a source PR's branch receives nothing after it merges.
+
+Two things are never done in a translation: fixing the source (a source-text error is reported as one issue to the lead), and editing a FHIR resource inline (terms go into one CodeSystem supplement per locale). Officiality is not decided here: every catalogue is written unofficial, and a person makes it official through human-translation-workflow.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_MultiLocaleTranslation">
+      <bpmn:lane id="Lane_ML_Owner" name="Owner" partitionElementRef="user">
+        <bpmn:documentation>Decides which layers and locales are translated, and when locale PRs may be merged. The merge window set here binds the lead's merge step and the refresh watcher alike. Official sign-off is also this person's, and is a separate process.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_ML</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ML_Scope</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_ML_Lead" name="Source-language lead" partitionElementRef="translation-source-lead">
+        <bpmn:documentation>The one party that touches the source. It extracts every template once, merges that source PR first, collects source-text errors into one issue, validates and merges each locale PR inside the owner's window, and keeps the watcher that runs `translation-refresh`.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ML_Extract</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ML_SourcePR</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ML_Watcher</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ML_SourceIssue</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ML_Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_ML</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_ML_Translator" name="Locale translator (one per locale)" partitionElementRef="locale-translator">
+        <bpmn:documentation>One lane for every locale: each step here runs once per locale, in parallel, and each locale's work is its own branch and its own PR. A translator starts from the merged templates, never from its own extraction, and reports a source error rather than translating around it.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ML_Translate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ML_SourceError</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ML_Gates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ML_Gates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_ML_RoundTrip</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ML_Glossary</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ML_QAReport</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ML_LocalePR</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ML_Drift</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ML_FixDrift</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_ML" name="Locales requested">
+      <bpmn:outgoing>Flow_ML_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_ML_Scope" name="Set locales, scope and merge window">
+      <bpmn:documentation>Which layers, which locales, which assets (pages, diagrams, glossary, FHIR terms), and the window in which locale PRs may be merged.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="The owner's decision about what is wanted and when. The skills govern what the lead and the translators do with the answer."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ML_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_2</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:callActivity id="Task_ML_Extract" calledElement="GT_ExtractPot" name="Extract every template once">
+      <bpmn:documentation>Once, for every locale: the `.pot` templates for the pages, the diagrams (`translate-bpmn --extract`) and the glossary schemes, each by the layer's own extractor. A locale that would need a different template is a defect in the extraction, not a reason to extract again.</bpmn:documentation>
+      <bpmn:incoming>Flow_ML_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_3</bpmn:outgoing>
+    </bpmn:callActivity>
+
+    <bpmn:serviceTask id="Task_ML_SourcePR" name="Merge the one source PR to main">
+      <bpmn:documentation>All the templates in one PR to main, merged before any locale starts, so every translator branches from the same main. Once it has merged, its branch receives nothing more: a later fix to the source is a new PR.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ML_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_ML_Watcher" name="Schedule the refresh watcher">
+      <bpmn:documentation>Schedule a fresh session that follows `translation-refresh` on each layer, so a template that moves after today is caught by its check failing, not by a reader.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-refresh"/>
+        <cat-harness.processes:no-call reason="This step arms the watcher; it does not run it. translation-refresh starts on its own timer, in a fresh session, after this process has ended."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ML_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_ML_Translate" name="Translate one locale">
+      <bpmn:documentation>From the merged templates, with the locale term base: `translations/&lt;locale&gt;/**.po`, a translation-node manifest beside each (`official: false`, `generatedBy: "agent"`, or `"machine"` where `translation:candidates` filled an empty entry with its first candidate, which stays fuzzy; no `status.json`), and the FHIR terms as CodeSystem supplements, all in one file for the locale rather than edits inside the resources.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ML_5</bpmn:incoming>
+      <bpmn:incoming>Flow_ML_GatesNo</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_6</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics isSequential="false"/>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_ML_SourceError" name="Source-text error found?">
+      <bpmn:documentation>Did translating show a mistake in the source text? `Yes` reports it to the lead; the translation still renders the source as it stands.</bpmn:documentation>
+      <bpmn:incoming>Flow_ML_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_ErrYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ML_ErrNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_ML_SourceIssue" name="File the source errors as one issue">
+      <bpmn:documentation>One issue for every source-text error the translators found, each with its location and the reading the translator took. Never fixed in a translation: a fix to the source is a source PR, and the next refresh carries it to every locale.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ML_ErrYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_7</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_ML_Gates" name="Run the deterministic gates">
+      <bpmn:documentation>Template currency, catalogue coverage, placeholder, tag and URL preservation, officiality, `kg:locale`, and the locale's supplements compiling with no SUSHI error and passing their structural checks.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ML_ErrNo</bpmn:incoming>
+      <bpmn:incoming>Flow_ML_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_8</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics isSequential="false"/>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_ML_Gates" name="Gates pass?">
+      <bpmn:documentation>Answered by the gates' own exit codes, never by reading their output. `Yes` only when every gate exits 0; a gate that exits 2 (could not determine) is a `No`. `No` fixes the catalogue, manifest or supplement and runs the gates again.</bpmn:documentation>
+      <bpmn:incoming>Flow_ML_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_GatesYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ML_GatesNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:callActivity id="Call_ML_RoundTrip" calledElement="Process_TranslationRoundTrip" name="Untainted round trip on a sample">
+      <bpmn:documentation>The sample: every diagram label, the personas and scenarios, and a seeded random fraction of the rest.</bpmn:documentation>
+      <bpmn:incoming>Flow_ML_GatesYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_9</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics isSequential="false"/>
+    </bpmn:callActivity>
+
+    <bpmn:serviceTask id="Task_ML_Glossary" name="Check glossary consistency">
+      <bpmn:documentation>`translation:glossary:check`, against the layered term base: the normative reference glossaries first, then each layer in the order the index config lists it, the layer's own glossary last and never overriding. A platform term found in text of another subject area is a sense check for a person, not a violation.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ML_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_10</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics isSequential="false"/>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_ML_QAReport" name="Write the locale's QA report">
+      <bpmn:documentation>One report per locale under `test/results/translation-qa/`: coverage, the gates, the round trip with its counts and every drift ruling, the glossary violations and sense checks, and the source errors reported.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ML_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_11</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics isSequential="false"/>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_ML_LocalePR" name="Open the locale PR to main">
+      <bpmn:documentation>One PR per locale, based on and targeting main. Never into the source branch.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ML_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_12</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics isSequential="false"/>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_ML_Drift" name="Drift ruled?">
+      <bpmn:documentation>Answered by the round-trip adjudicator's recorded verdicts for this locale: did it rule any pair drift? `Yes` fixes each one on the locale PR before the lead merges it. A "could not dispatch" record is not `No`: the PR says the round trip was not verified.</bpmn:documentation>
+      <bpmn:incoming>Flow_ML_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_DriftYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ML_DriftNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_ML_FixDrift" name="Fix each drift on the PR">
+      <bpmn:documentation>Correct each string the adjudicator ruled drift, on the locale PR, and note the fix beside the ruling in the QA report.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ML_DriftYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_13</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics isSequential="false"/>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_ML_Merge" name="Validate and merge in the window">
+      <bpmn:documentation>Read each locale's QA report, confirm the PR is green, and merge it inside the owner's merge window. Outside the window it waits.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ML_DriftNo</bpmn:incoming>
+      <bpmn:incoming>Flow_ML_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_ML_14</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="End_ML" name="On main">
+      <bpmn:incoming>Flow_ML_14</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_ML_1" sourceRef="Start_ML" targetRef="Task_ML_Scope"/>
+    <bpmn:sequenceFlow id="Flow_ML_2" sourceRef="Task_ML_Scope" targetRef="Task_ML_Extract"/>
+    <bpmn:sequenceFlow id="Flow_ML_3" sourceRef="Task_ML_Extract" targetRef="Task_ML_SourcePR"/>
+    <bpmn:sequenceFlow id="Flow_ML_4" sourceRef="Task_ML_SourcePR" targetRef="Task_ML_Watcher"/>
+    <bpmn:sequenceFlow id="Flow_ML_5" sourceRef="Task_ML_Watcher" targetRef="Task_ML_Translate"/>
+    <bpmn:sequenceFlow id="Flow_ML_6" sourceRef="Task_ML_Translate" targetRef="Gateway_ML_SourceError"/>
+    <bpmn:sequenceFlow id="Flow_ML_ErrYes" name="Yes" sourceRef="Gateway_ML_SourceError" targetRef="Task_ML_SourceIssue"/>
+    <bpmn:sequenceFlow id="Flow_ML_ErrNo" name="No" sourceRef="Gateway_ML_SourceError" targetRef="Task_ML_Gates"/>
+    <bpmn:sequenceFlow id="Flow_ML_7" sourceRef="Task_ML_SourceIssue" targetRef="Task_ML_Gates"/>
+    <bpmn:sequenceFlow id="Flow_ML_8" sourceRef="Task_ML_Gates" targetRef="Gateway_ML_Gates"/>
+    <bpmn:sequenceFlow id="Flow_ML_GatesYes" name="Yes" sourceRef="Gateway_ML_Gates" targetRef="Call_ML_RoundTrip"/>
+    <bpmn:sequenceFlow id="Flow_ML_GatesNo" name="No: fix, re-run" sourceRef="Gateway_ML_Gates" targetRef="Task_ML_Translate"/>
+    <bpmn:sequenceFlow id="Flow_ML_9" sourceRef="Call_ML_RoundTrip" targetRef="Task_ML_Glossary"/>
+    <bpmn:sequenceFlow id="Flow_ML_10" sourceRef="Task_ML_Glossary" targetRef="Task_ML_QAReport"/>
+    <bpmn:sequenceFlow id="Flow_ML_11" sourceRef="Task_ML_QAReport" targetRef="Task_ML_LocalePR"/>
+    <bpmn:sequenceFlow id="Flow_ML_12" sourceRef="Task_ML_LocalePR" targetRef="Gateway_ML_Drift"/>
+    <bpmn:sequenceFlow id="Flow_ML_DriftYes" name="Yes" sourceRef="Gateway_ML_Drift" targetRef="Task_ML_FixDrift"/>
+    <bpmn:sequenceFlow id="Flow_ML_DriftNo" name="No" sourceRef="Gateway_ML_Drift" targetRef="Task_ML_Merge"/>
+    <bpmn:sequenceFlow id="Flow_ML_13" sourceRef="Task_ML_FixDrift" targetRef="Task_ML_Merge"/>
+    <bpmn:sequenceFlow id="Flow_ML_14" sourceRef="Task_ML_Merge" targetRef="End_ML"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_MultiLocaleTranslation">
+    <bpmndi:BPMNPlane id="Plane_MultiLocaleTranslation" bpmnElement="Collaboration_MultiLocaleTranslation">
+      <bpmndi:BPMNShape id="Participant_MultiLocaleTranslation_di" bpmnElement="Participant_MultiLocaleTranslation" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1340" height="700"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_ML_Owner_di" bpmnElement="Lane_ML_Owner" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1310" height="150"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_ML_Lead_di" bpmnElement="Lane_ML_Lead" isHorizontal="true">
+        <dc:Bounds x="190" y="230" width="1310" height="170"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_ML_Translator_di" bpmnElement="Lane_ML_Translator" isHorizontal="true">
+        <dc:Bounds x="190" y="400" width="1310" height="380"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Start_ML_di" bpmnElement="Start_ML">
+        <dc:Bounds x="230" y="137" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="222.5" y="177.5" width="68" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ML_Scope_di" bpmnElement="Task_ML_Scope">
+        <dc:Bounds x="290" y="95" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_ML_Extract_di" bpmnElement="Task_ML_Extract">
+        <dc:Bounds x="440" y="255" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ML_SourcePR_di" bpmnElement="Task_ML_SourcePR">
+        <dc:Bounds x="590" y="255" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ML_Watcher_di" bpmnElement="Task_ML_Watcher">
+        <dc:Bounds x="740" y="255" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ML_SourceIssue_di" bpmnElement="Task_ML_SourceIssue">
+        <dc:Bounds x="1005" y="255" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ML_Merge_di" bpmnElement="Task_ML_Merge">
+        <dc:Bounds x="290" y="255" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_ML_di" bpmnElement="End_ML">
+        <dc:Bounds x="238" y="297" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="228" y="338" width="56" height="20"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_ML_Translate_di" bpmnElement="Task_ML_Translate">
+        <dc:Bounds x="890" y="420" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ML_SourceError_di" bpmnElement="Gateway_ML_SourceError" isMarkerVisible="true">
+        <dc:Bounds x="1040" y="455" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1025" y="510" width="80" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ML_Gates_di" bpmnElement="Task_ML_Gates">
+        <dc:Bounds x="1120" y="420" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ML_Gates_di" bpmnElement="Gateway_ML_Gates" isMarkerVisible="true">
+        <dc:Bounds x="1270" y="455" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1250" y="425" width="90" height="20"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_ML_RoundTrip_di" bpmnElement="Call_ML_RoundTrip">
+        <dc:Bounds x="1350" y="420" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ML_Glossary_di" bpmnElement="Task_ML_Glossary">
+        <dc:Bounds x="1350" y="590" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ML_QAReport_di" bpmnElement="Task_ML_QAReport">
+        <dc:Bounds x="1190" y="590" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ML_LocalePR_di" bpmnElement="Task_ML_LocalePR">
+        <dc:Bounds x="1030" y="590" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ML_Drift_di" bpmnElement="Gateway_ML_Drift" isMarkerVisible="true">
+        <dc:Bounds x="930" y="625" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="905" y="590" width="100" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ML_FixDrift_di" bpmnElement="Task_ML_FixDrift">
+        <dc:Bounds x="770" y="590" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Flow_ML_1_di" bpmnElement="Flow_ML_1">
+        <di:waypoint x="266" y="155"/>
+        <di:waypoint x="290" y="155"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_2_di" bpmnElement="Flow_ML_2">
+        <di:waypoint x="410" y="155"/>
+        <di:waypoint x="500" y="155"/>
+        <di:waypoint x="500" y="255"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_3_di" bpmnElement="Flow_ML_3">
+        <di:waypoint x="560" y="315"/>
+        <di:waypoint x="590" y="315"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_4_di" bpmnElement="Flow_ML_4">
+        <di:waypoint x="710" y="315"/>
+        <di:waypoint x="740" y="315"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_5_di" bpmnElement="Flow_ML_5">
+        <di:waypoint x="860" y="315"/>
+        <di:waypoint x="950" y="315"/>
+        <di:waypoint x="950" y="420"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_6_di" bpmnElement="Flow_ML_6">
+        <di:waypoint x="1010" y="480"/>
+        <di:waypoint x="1040" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_ErrYes_di" bpmnElement="Flow_ML_ErrYes">
+        <di:waypoint x="1065" y="455"/>
+        <di:waypoint x="1065" y="375"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1070" y="410" width="28" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_ErrNo_di" bpmnElement="Flow_ML_ErrNo">
+        <di:waypoint x="1090" y="480"/>
+        <di:waypoint x="1120" y="480"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1092" y="486" width="24" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_7_di" bpmnElement="Flow_ML_7">
+        <di:waypoint x="1125" y="315"/>
+        <di:waypoint x="1180" y="315"/>
+        <di:waypoint x="1180" y="420"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_8_di" bpmnElement="Flow_ML_8">
+        <di:waypoint x="1240" y="480"/>
+        <di:waypoint x="1270" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_GatesYes_di" bpmnElement="Flow_ML_GatesYes">
+        <di:waypoint x="1320" y="480"/>
+        <di:waypoint x="1350" y="480"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1320" y="486" width="28" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_GatesNo_di" bpmnElement="Flow_ML_GatesNo">
+        <di:waypoint x="1295" y="505"/>
+        <di:waypoint x="1295" y="560"/>
+        <di:waypoint x="950" y="560"/>
+        <di:waypoint x="950" y="540"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1150" y="564" width="110" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_9_di" bpmnElement="Flow_ML_9">
+        <di:waypoint x="1410" y="540"/>
+        <di:waypoint x="1410" y="590"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_10_di" bpmnElement="Flow_ML_10">
+        <di:waypoint x="1350" y="650"/>
+        <di:waypoint x="1310" y="650"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_11_di" bpmnElement="Flow_ML_11">
+        <di:waypoint x="1190" y="650"/>
+        <di:waypoint x="1150" y="650"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_12_di" bpmnElement="Flow_ML_12">
+        <di:waypoint x="1030" y="650"/>
+        <di:waypoint x="980" y="650"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_DriftYes_di" bpmnElement="Flow_ML_DriftYes">
+        <di:waypoint x="930" y="650"/>
+        <di:waypoint x="890" y="650"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="894" y="628" width="28" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_DriftNo_di" bpmnElement="Flow_ML_DriftNo">
+        <di:waypoint x="955" y="675"/>
+        <di:waypoint x="955" y="740"/>
+        <di:waypoint x="320" y="740"/>
+        <di:waypoint x="320" y="375"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="960" y="700" width="24" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_13_di" bpmnElement="Flow_ML_13">
+        <di:waypoint x="770" y="650"/>
+        <di:waypoint x="380" y="650"/>
+        <di:waypoint x="380" y="375"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ML_14_di" bpmnElement="Flow_ML_14">
+        <di:waypoint x="290" y="315"/>
+        <di:waypoint x="274" y="315"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

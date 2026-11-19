@@ -1,0 +1,1 @@
+In addition, a health workforce registry can ensure quality control, provide easy access to information on production, distribution and utilization of health personnel, and assist in budgeting, research development and advocacy.

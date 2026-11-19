@@ -1,0 +1,84 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "package-release-workflow",
+    "title": "Release package via GitHub Actions release workflow",
+    "description": "Build, tag, and publish an npm package tarball to GitHub Releases and GitHub Packages registry via workflow_dispatch across any repository.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "gh workflow run release-npm.yml"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "package",
+          "schema": {
+            "$type": "PackageName"
+          },
+          "description": "The package being released. Default: root package in the target repository.",
+          "required": false
+        },
+        {
+          "name": "version",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The semver version string to release (e.g. '0.1.0').",
+          "required": true
+        },
+        {
+          "name": "repo",
+          "schema": {
+            "$type": "RepoFullName"
+          },
+          "description": "Target repository full name (e.g. 'litlfred/cat-harness', 'litlfred/bootstrap-tools'). If omitted, runs in the current repository.",
+          "required": false,
+          "arg": {
+            "flag": "-R"
+          }
+        },
+        {
+          "name": "workflow",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The workflow file to trigger (default: 'release-npm.yml').",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tag",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The tag created by the workflow, e.g. `<package>-v<version>` or `v<version>`."
+        },
+        {
+          "name": "status",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Workflow dispatch status and run URL."
+        }
+      ]
+    },
+    "satisfies": [
+      "npm-kg-distribution"
+    ],
+    "requires": {
+      "runtime": [
+        "gh"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "api.github.com",
+        "tool": "package-release-manual"
+      }
+    ]
+  }
+}

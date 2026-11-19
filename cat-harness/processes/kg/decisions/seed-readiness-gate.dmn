@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "Ready to seed?" — GW_SeedReady in kg-separation-move.bpmn, in front of `Seed both repositories`.
+
+  A seed is a snapshot: one commit naming the source sha, no history (bean
+  `iai8`). Two different things make a snapshot wrong, and this table asks
+  both AT SEED TIME, because the tree has moved since `8 · Rehearse`:
+
+  1. THE SOURCE IS STILL MOVING. Every open PR touching the layer when the
+     snapshot is taken is orphaned into the monorepo. These four rows are the
+     criteria the steward applied by hand before each seeding review
+     (2026-10-02), generalised per layer. The layer map (which directory is L,
+     which layers are the next layer) comes from the layer declarations,
+     `livesAt.path` and `needs`, never from this table.
+
+  2. THE LAYER CANNOT STAND ALONE YET. `8 · Rehearse` / `Green alone?` asked
+     it once; it is re-asked here because main has moved since.
+
+  Facts (`seed:ready`, given the layer's name, computes every one):
+
+    heavyMoversOpen         open PRs labelled `heavy-mover` that touch L or L+1
+    nextLayerPrs            open PRs touching the next layer (L+1)
+    layerPrs                open PRs touching L
+    layerMovingPrs          open PRs that rename or delete a file in L, not
+                            counting a generator's own names (`owned-tree`
+                            in merge-conflict-patterns.ts: content-hashed
+                            payloads and rail data, which every regen
+                            renames; owner 2026-10-06)
+    standaloneRed           checks red in the sibling-layout rehearsal of L
+    upwardPaths             paths DECLARED in L that resolve only in an
+                            layer above L — each one breaks the day L
+                            stands alone (replaced siblingDiscoveryMisses,
+                            owner 2026-10-04: discovery is checkout-local by
+                            the cmsl ruling, so that count could never pass)
+    undetermined            criteria the run could not decide
+
+  THE "NOT YET" ROWS COME FIRST, deliberately. An undetermined criterion can
+  only withhold `settled`; it must never hide a finding that is already
+  certain on the part that WAS seen. A lower-bound count already over its
+  limit is `not yet` whatever the unseen part holds.
+
+  `layerPrs > 5` is the one threshold. It lives here and nowhere else: the
+  script judges each criterion by evaluating THIS table with the other facts
+  at zero, so changing the limit is a one-line edit to this file.
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_SeedReadiness"
+             name="Seed readiness gate"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_SeedReadiness" name="Ready to seed?">
+    <decisionTable id="Table_SeedReadiness" hitPolicy="FIRST">
+      <input id="In_Heavy" label="open heavy-mover PRs touching L or L+1">
+        <inputExpression id="Expr_Heavy" typeRef="number"><text>heavyMoversOpen</text></inputExpression>
+      </input>
+      <input id="In_Next" label="open PRs touching the next layer">
+        <inputExpression id="Expr_Next" typeRef="number"><text>nextLayerPrs</text></inputExpression>
+      </input>
+      <input id="In_Layer" label="open PRs touching the layer">
+        <inputExpression id="Expr_Layer" typeRef="number"><text>layerPrs</text></inputExpression>
+      </input>
+      <input id="In_Moves" label="open PRs moving files in the layer">
+        <inputExpression id="Expr_Moves" typeRef="number"><text>layerMovingPrs</text></inputExpression>
+      </input>
+      <input id="In_Standalone" label="checks red in the sibling-layout rehearsal">
+        <inputExpression id="Expr_Standalone" typeRef="number"><text>standaloneRed</text></inputExpression>
+      </input>
+      <input id="In_Upward" label="paths declared in L that resolve only above L">
+        <inputExpression id="Expr_Upward" typeRef="number"><text>upwardPaths</text></inputExpression>
+      </input>
+      <input id="In_Undetermined" label="criteria that could not be decided">
+        <inputExpression id="Expr_Undetermined" typeRef="number"><text>undetermined</text></inputExpression>
+      </input>
+      <output id="Out_SeedReadiness" name="outcome" typeRef="string" />
+
+      <rule id="Rule_HeavyMover">
+        <description>A PR marked as moving much of the tree is still open over this layer: the seed would snapshot one side of it.</description>
+        <inputEntry id="IE_Heavy_1"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_Heavy_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Heavy_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Heavy_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Heavy_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Heavy_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Heavy_7"><text>-</text></inputEntry>
+        <outputEntry id="OE_Heavy"><text>"not yet"</text></outputEntry>
+      </rule>
+      <rule id="Rule_NextLayer">
+        <description>The layer above is being edited. It imports this one, so its open work is the work most likely to need this layer changed.</description>
+        <inputEntry id="IE_Next_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Next_2"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_Next_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Next_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Next_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Next_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Next_7"><text>-</text></inputEntry>
+        <outputEntry id="OE_Next"><text>"not yet"</text></outputEntry>
+      </rule>
+      <rule id="Rule_LayerLoad">
+        <description>More than five open PRs over the layer: each one's diff would be orphaned into the monorepo by the snapshot.</description>
+        <inputEntry id="IE_Load_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Load_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Load_3"><text>&gt; 5</text></inputEntry>
+        <inputEntry id="IE_Load_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Load_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Load_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Load_7"><text>-</text></inputEntry>
+        <outputEntry id="OE_Load"><text>"not yet"</text></outputEntry>
+      </rule>
+      <rule id="Rule_LayerMoves">
+        <description>An open PR renames or deletes a file in the layer. A content edit can be replayed on the seeded repository; a move changes what the seed's paths mean.</description>
+        <inputEntry id="IE_Moves_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Moves_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Moves_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Moves_4"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_Moves_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Moves_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Moves_7"><text>-</text></inputEntry>
+        <outputEntry id="OE_Moves"><text>"not yet"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Standalone">
+        <description>Red in a sibling layout with nothing else present: the seeded repository would be red on its first day.</description>
+        <inputEntry id="IE_Alone_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Alone_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Alone_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Alone_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Alone_5"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_Alone_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Alone_7"><text>-</text></inputEntry>
+        <outputEntry id="OE_Alone"><text>"not yet"</text></outputEntry>
+      </rule>
+      <rule id="Rule_UpwardPaths">
+        <description>A path declared in this layer resolves only in a layer above it, so it fails the day the layer stands alone.</description>
+        <inputEntry id="IE_Upward_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Upward_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Upward_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Upward_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Upward_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Upward_6"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_Upward_7"><text>-</text></inputEntry>
+        <outputEntry id="OE_Upward"><text>"not yet"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Undetermined">
+        <description>Nothing seen fails, but something could not be seen. Could-not-determine is never settled: stop, and do not seed.</description>
+        <inputEntry id="IE_Und_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Und_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Und_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Und_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Und_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Und_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Und_7"><text>&gt; 0</text></inputEntry>
+        <outputEntry id="OE_Und"><text>"unknown"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Settled">
+        <description>Every criterion decided and clean: the snapshot orphans nothing and the layer stands alone.</description>
+        <inputEntry id="IE_Ok_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Ok_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Ok_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Ok_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Ok_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Ok_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Ok_7"><text>-</text></inputEntry>
+        <outputEntry id="OE_Ok"><text>"settled"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

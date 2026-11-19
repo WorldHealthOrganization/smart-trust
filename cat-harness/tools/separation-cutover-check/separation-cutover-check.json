@@ -1,0 +1,103 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "separation-cutover-check",
+    "title": "Is this repository's cutover from the monorepo complete? Measured, condition by condition",
+    "description": "Run in a separated repository. Six conditions, each decided by an existing gate: `mounts` (every declared layer on disk at its pin — `remote-mount --check`), `declarations` (every path a declaration names resolves — `declaration-resolution`), `monorepo-paths` (no wiring still names the monorepo: `livesAt` on it, a submodule of it, a reusable workflow called from it, a path into its old checkout — the one condition implemented here), `import-direction` and `reference-direction` (no layer reaches a layer above it), and `site` (the site builds from the mounts alone, every link resolving — `build-instance-site --no-mount`, only with `--site`). Findings inside a MOUNTED layer are listed and not counted: a defect in a layer pinned from upstream is fixed upstream and re-pinned. Exit 0 complete, 1 a condition failed, 2 a condition could not be determined or was not run — without `--site` the answer is never 0.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat separation:cutover:check"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "root",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The separated checkout. Default: the working directory.",
+          "required": false,
+          "arg": {
+            "flag": "--root"
+          }
+        },
+        {
+          "name": "site",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Build the site from the mounts on disk (minutes); without it the `site` condition is not run and the verdict cannot be complete.",
+          "required": false,
+          "arg": {
+            "flag": "--site"
+          }
+        },
+        {
+          "name": "monorepo",
+          "schema": {
+            "$type": "RepoFullName"
+          },
+          "description": "The repository the separation left, `<owner>/<repo>`. Default: litlfred/folio-assistant.",
+          "required": false,
+          "arg": {
+            "flag": "--monorepo"
+          }
+        },
+        {
+          "name": "monorepoDir",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "Its old checkout directory name, as paths spell it. Default: the repository's name.",
+          "required": false,
+          "arg": {
+            "flag": "--monorepo-dir"
+          }
+        },
+        {
+          "name": "json",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Print the report as JSON, mounted-layer findings included.",
+          "required": false,
+          "arg": {
+            "flag": "--json"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "conditions",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "Per condition: pass, fail, could-not-determine or not-run, the gate that decided it, and its findings."
+        }
+      ]
+    },
+    "satisfies": [
+      "kg-separation"
+    ],
+    "selection": {
+      "when": "Before calling a separation's cutover (kg-separation stage 13) done, and after any re-pin of a separated repository's layers.",
+      "limits": "It judges ONE repository. A downstream's own CI and the parent repository's retirement are not observed from here.",
+      "cost": "Seconds without `--site`; a full Jekyll build with it."
+    },
+    "requires": {
+      "runtime": [
+        "bun",
+        "git"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "Owner, 2026-10-12 (task 6): \"a check that proves a repo's cutover from\nthe monorepo is complete — measure it, do not assume it\". The gate after\nkg-separation stage 13 (processes/kg/kg-separation-cutover.bpmn, GW_CutoverComplete)."
+    }
+  ]
+}

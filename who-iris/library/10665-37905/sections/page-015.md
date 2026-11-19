@@ -1,0 +1,57 @@
+---
+doc_id: 10665-37905
+doc_title: "Accélération des activités de vaccination : principes de planification / déclaration conjointe OMS/FISE"
+section_id: page-015
+section_title: "Page 15"
+pages: 15-15
+pdf_page: 15
+source_pdf: 10665-37905.pdf
+source_sha256: 9ca36288eaaca93f
+text_source: ocr
+granularity: page
+---
+-15-
+
+>
+
+Les efforts destinés à améliorer les services
+existants doivent notamment viser à renforcer les
+services eux-mêmes, à assurer que les personnels
+sont correctement formés et encadrés et qu'ils
+bénéficient d'un appui logistique adéquat. Les
+dispensaires font trop souvent attendre longtemps
+les patients et, trop souvent encore, les person-
+nels ne précisent pas assez clairement aux mêres
+quand elles doivent revenir pour faire faire les
+autres vaccinations à leurs enfants. Tous les
+services de santé ne dispensent pas des vaccina-
+tions et de nombreux dispensaires de vaccina-
+tion/SMI continuent à tort de refuser de vacciner
+les enfants atteints de maladie bénigne ou de
+malnutrition. Les dispensaires mobiles et péri-
+phériques sont souvent trop peu nombreux et même
+ceux qui existent sont souvent irréguliers ou sont
+organisés à des moments ou en des endroits peu
+commodes. Toutes les intallations de santé et les
+dispensaires doivent être propres et accueillants
+
+et donner l'image de la santé plus que de la
+maladie.
+
+Une partie des efforts, cependant, doit être
+axée sur la mobilisation des ressources communau-
+taires. Leur potentiel est énorme et elles
+doivent absolument être utilisées dans les pays où
+l'infrastructure sanitaire demeure faible. L'avis
+de la communauté devrait être prépondérant
+lorsqu'il s'agit de décider du lieu et du moment
+où le dispensaire de vaccination sera organisé.
+Les aides communautaires peuvent recenser les
+enfants qui ont besoin d'être vaccinés et les
+"canaliser" vers les services de santé. En
+Colombie, cette “canalisation” a été confiée à un
+membre respecté de la communauté, accompagné dans
+ses visites dans les foyers d'un agent de santé,
+et chargé de recenser les enfants, de les inscrire
+en vue du programme et de leur fournir l'éducation
+sanitaire et la motivation requises. A Madras
