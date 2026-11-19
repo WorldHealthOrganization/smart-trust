@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                   xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_RenderLog" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:collaboration id="Collaboration_Process_RenderLog">
+    <bpmn:participant id="Participant_Process_RenderLog" name="Render log — the publish branch keeps its own history" processRef="Process_RenderLog"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_RenderLog" name="Render log — the publish branch keeps its own history" isExecutable="false">
+    <bpmn:documentation>Every change to the publish branch appends an entry to `_render-log/&lt;day&gt;.jsonl`. A removal is a NEW entry, never the erasure of the `rendered` one before it — the pair is the history. The lane is the build pipeline because every writer is a workflow job; no agent decides what goes in this log. A system lane runs a fixed program and exercises no judgement, which is exactly what an append-only log wants.
+
+The question it exists to answer: what happened to branches/&lt;slug&gt;, and why. The publish branch has several publishers and one of them replaces the whole branch, which is why a removed preview needs a record of its own.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_RenderLog">
+      <bpmn:lane id="Lane_Pipeline" name="CI/CD Pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Every branch of GW_What — deploy, takedown, full-replace — is logged by this same lane regardless of which is firing, and the ORDER matters as much as the fact: A_LogRemoved happens before A_Remove specifically so a job that dies mid-step leaves a record of intent rather than an artefact that vanished with nothing said about it.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Process_RenderLog</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_What</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_LogRendered</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Preflight</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Live</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_LogRetained</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_LogRemoved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Remove</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_LogRestored</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Process_RenderLog</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Process_RenderLog" name="Publish branch
+is about to change"/>
+
+    <bpmn:exclusiveGateway id="GW_What" name="What is
+happening?">
+      <bpmn:documentation>What is about to happen to the publish branch? A `deploy` appends `rendered`; a `takedown` first preflights whether the preview is live; a `full-replace deploy` appends `restored` for the previews it put back.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_LogRendered" name="Append `rendered`">
+      <bpmn:documentation>A re-deploy is a rendering, so it gets its own entry rather than overwriting the last. "When was this last built" is then answerable without diffing commits.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="render-logging"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_Preflight" name="Preflight:
+is the preview live?">
+      <bpmn:documentation>`previewLiveness` — a disjunction over open-pr, unmerged-branch and recent-commit, shared with the health sweep so the two cannot disagree. A preview whose pull request is closed is NOT necessarily an abandoned one.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="render-logging"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Live" name="Any liveness
+signal fired?">
+      <bpmn:documentation>Answered by the preflight: did any liveness signal fire for this preview? `yes — refuse` keeps it and appends `retained` with the reason; `no` removes it and appends `removed` with the reason.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:callActivity id="A_LogRetained" name="Append `retained`
+with the reason" calledElement="GT_LogRetained"/>
+
+    <bpmn:task id="A_LogRemoved" name="Append `removed`
+with the reason">
+      <bpmn:documentation>BEFORE the removal, not after: a job that dies mid-step must leave a record of the intent rather than an artefact that vanished with no entry. A reason is REQUIRED — an entry saying an artefact went and not why is the ambiguity this log exists to prevent.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="render-logging"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_Remove" name="Remove the artefact">
+      <bpmn:documentation>`rm -rf branches/&lt;slug&gt;`. Cannot reach the log, which lives outside branches/ — structural rather than guarded, because a branch named to collide with a directory under branches/ slugifies to exactly that name and git permits the ref.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="render-logging"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_LogRestored" name="Append `restored`">
+      <bpmn:documentation>A full-replace deploy (`docs-site.yml`, the only publisher without keep_files) wipes the branch; `restore-staging` carries the previews AND this log back in. Its own event rather than a second `rendered`, because "somebody pushed this branch" and "an unrelated merge nearly deleted it" are different facts.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="render-logging"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Process_RenderLog" name="Entry appended;
+history intact"/>
+
+    <bpmn:sequenceFlow id="SF_Process_RenderLog_1" sourceRef="Start_Process_RenderLog" targetRef="GW_What"/>
+    <bpmn:sequenceFlow id="SF_Process_RenderLog_2" name="deploy" sourceRef="GW_What" targetRef="A_LogRendered"/>
+    <bpmn:sequenceFlow id="SF_Process_RenderLog_3" name="takedown" sourceRef="GW_What" targetRef="A_Preflight"/>
+    <bpmn:sequenceFlow id="SF_Process_RenderLog_4" name="full-replace deploy" sourceRef="GW_What" targetRef="A_LogRestored"/>
+    <bpmn:sequenceFlow id="SF_Process_RenderLog_5" sourceRef="A_Preflight" targetRef="GW_Live"/>
+    <bpmn:sequenceFlow id="SF_Process_RenderLog_6" name="yes — refuse" sourceRef="GW_Live" targetRef="A_LogRetained"/>
+    <bpmn:sequenceFlow id="SF_Process_RenderLog_7" name="no" sourceRef="GW_Live" targetRef="A_LogRemoved"/>
+    <bpmn:sequenceFlow id="SF_Process_RenderLog_8" sourceRef="A_LogRemoved" targetRef="A_Remove"/>
+    <bpmn:sequenceFlow id="SF_Process_RenderLog_9" sourceRef="A_LogRendered" targetRef="End_Process_RenderLog"/>
+    <bpmn:sequenceFlow id="SF_Process_RenderLog_10" sourceRef="A_LogRetained" targetRef="End_Process_RenderLog"/>
+    <bpmn:sequenceFlow id="SF_Process_RenderLog_11" sourceRef="A_Remove" targetRef="End_Process_RenderLog"/>
+    <bpmn:sequenceFlow id="SF_Process_RenderLog_12" sourceRef="A_LogRestored" targetRef="End_Process_RenderLog"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_Process_RenderLog">
+    <bpmndi:BPMNPlane id="Plane_Process_RenderLog" bpmnElement="Collaboration_Process_RenderLog">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_RenderLog" bpmnElement="Participant_Process_RenderLog" isHorizontal="true">
+        <dc:Bounds x="160" y="30" width="1120" height="600" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Pipeline_Process_RenderLog" bpmnElement="Lane_Pipeline" isHorizontal="true">
+        <dc:Bounds x="190" y="30" width="1090" height="600" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Process_RenderLog" bpmnElement="Start_Process_RenderLog">
+        <dc:Bounds x="242" y="242" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="283" width="84" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_What" bpmnElement="GW_What" isMarkerVisible="true">
+        <dc:Bounds x="322" y="235" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="360" y="192" width="84" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_LogRendered" bpmnElement="A_LogRendered">
+        <dc:Bounds x="452" y="60" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Preflight" bpmnElement="A_Preflight">
+        <dc:Bounds x="452" y="200" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Live" bpmnElement="GW_Live" isMarkerVisible="true">
+        <dc:Bounds x="612" y="235" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="592" y="180" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_LogRetained" bpmnElement="A_LogRetained">
+        <dc:Bounds x="782" y="200" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_LogRemoved" bpmnElement="A_LogRemoved">
+        <dc:Bounds x="782" y="340" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Remove" bpmnElement="A_Remove">
+        <dc:Bounds x="942" y="340" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_LogRestored" bpmnElement="A_LogRestored">
+        <dc:Bounds x="452" y="480" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Process_RenderLog" bpmnElement="End_Process_RenderLog">
+        <dc:Bounds x="1102" y="242" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1186" y="232" width="90" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RenderLog_1" bpmnElement="SF_Process_RenderLog_1">
+        <di:waypoint x="278" y="260" />
+        <di:waypoint x="322" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RenderLog_2" bpmnElement="SF_Process_RenderLog_2">
+        <di:waypoint x="347" y="235" />
+        <di:waypoint x="347" y="120" />
+        <di:waypoint x="452" y="120" />
+        <bpmndi:BPMNLabel><dc:Bounds x="352" y="170" width="50" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RenderLog_3" bpmnElement="SF_Process_RenderLog_3">
+        <di:waypoint x="372" y="260" />
+        <di:waypoint x="452" y="260" />
+        <bpmndi:BPMNLabel><dc:Bounds x="380" y="238" width="66" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RenderLog_4" bpmnElement="SF_Process_RenderLog_4">
+        <di:waypoint x="347" y="285" />
+        <di:waypoint x="347" y="540" />
+        <di:waypoint x="452" y="540" />
+        <bpmndi:BPMNLabel><dc:Bounds x="352" y="440" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RenderLog_5" bpmnElement="SF_Process_RenderLog_5">
+        <di:waypoint x="572" y="260" />
+        <di:waypoint x="612" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RenderLog_6" bpmnElement="SF_Process_RenderLog_6">
+        <di:waypoint x="662" y="260" />
+        <di:waypoint x="782" y="260" />
+        <bpmndi:BPMNLabel><dc:Bounds x="670" y="238" width="96" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RenderLog_7" bpmnElement="SF_Process_RenderLog_7">
+        <di:waypoint x="637" y="285" />
+        <di:waypoint x="637" y="400" />
+        <di:waypoint x="782" y="400" />
+        <bpmndi:BPMNLabel><dc:Bounds x="642" y="330" width="25" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RenderLog_8" bpmnElement="SF_Process_RenderLog_8">
+        <di:waypoint x="902" y="400" />
+        <di:waypoint x="942" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RenderLog_9" bpmnElement="SF_Process_RenderLog_9">
+        <di:waypoint x="572" y="120" />
+        <di:waypoint x="1120" y="120" />
+        <di:waypoint x="1120" y="242" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RenderLog_10" bpmnElement="SF_Process_RenderLog_10">
+        <di:waypoint x="902" y="260" />
+        <di:waypoint x="1102" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RenderLog_11" bpmnElement="SF_Process_RenderLog_11">
+        <di:waypoint x="1062" y="400" />
+        <di:waypoint x="1120" y="400" />
+        <di:waypoint x="1120" y="278" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RenderLog_12" bpmnElement="SF_Process_RenderLog_12">
+        <di:waypoint x="572" y="540" />
+        <di:waypoint x="1170" y="540" />
+        <di:waypoint x="1170" y="260" />
+        <di:waypoint x="1138" y="260" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,55 @@
+---
+doc_id: 10665-37905
+doc_title: "Accélération des activités de vaccination : principes de planification / déclaration conjointe OMS/FISE"
+section_id: page-022
+section_title: "Page 22"
+pages: 22-22
+pdf_page: 22
+source_pdf: 10665-37905.pdf
+source_sha256: 9ca36288eaaca93f
+text_source: ocr
+granularity: page
+---
+- 22 -
+
+fortement encouragé), il est absolument indispen-
+sable de tenir trés soigneusement des registres et
+de vacciner en tenant compte de l'état vaccinal
+antérieur de manière à n'administrer ni trop ni
+trop peu de doses, Une limite d'âge supérieure
+générale pourra être appliquée pour tous les
+vaccins (d'ordinaire deux ans mais plus si la
+situation épidémiologique le justifie). En règle
+générale, le DIC ne doit pas être administré aux
+enfants de moins de six semaines et le vaccin
+antirougeoleux aux enfants de moins de neuf mois.
+
+Pendant la deuxiéme année ou le deuxiéme cycle
+des journées de vaccination, le nombre des enfants
+justiciables de vaccination ira en décroissant
+pour avoisiner le nombre des enfants nés depuis le
+début de l'année ou du cycle précédent, auxquels
+s'ajouteront ceux qui n'ont pas atteint l'âge
+plafond et n'ont pas encore été vaccinés. Si le
+cycle initial a été mené à bien, le nombre des
+enfants justiciables de vaccination baissera de
+manière sensible. Pour que les cycles annuels
+ultérieurs demeurent efficaces, il pourra être
+nécessaire de recourir à un systéme de canali-
+sation permettant la recherche active des enfants
+justiciables de vaccination.
+
+Le rôle des agents bénévoles doit être
+soigneusement défini. S'il est relativement
+facile de leur apprendre à administrer convena-
+blement le vaccin antipoliomyélitique buccal, la
+manipulation des vaccins injectables est nettement
+plus complexe et elle peut s'assortir d'un gaspil-
+lage inacceptable des vaccins et d'abcés trop
+nombreux. On aura peut-être avantage à utiliser
+les agents bénévoles sans formation à l'enregis-
+trement de la population cible avant le début du
+programme et leur faire vérifier que les enfants
+inscrits sont effectivement amenés pour la vacci-
+
+nation lorsque les services sont offerts. Si les

@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://litlfred.github.io/folio-assistant/cat-harness/skills/ask-the-person/input.schema.json",
+  "title": "Ask The Person Input",
+  "description": "One question for a person, complete enough to answer without opening anything. The same fields as DecisionRequestSchema in schemas/process/decision-request.ts, plus a letter per option so the chat text and the card use the same handles. Every field is required: a question with no comparison, no recommendation or no default does not validate.",
+  "type": "object",
+  "required": ["decides", "context", "glossary", "options", "recommends", "because", "ifSilent", "question", "othersPending", "reversible"],
+  "properties": {
+    "decides": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What is being decided, stated as what will DIFFER depending on the answer. Not the name of the decision."
+    },
+    "context": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Why it is being asked now and what happens next: the PRs, beans and pages it touches, each named in words. Links are for more, never where terms are defined."
+    },
+    "glossary": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Every id, path and coined name used above, glossed. {} means nothing needs a gloss."
+    },
+    "options": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["letter", "label", "does", "pro", "con", "downstream", "reversibility"],
+        "properties": {
+          "letter": { "type": "string", "pattern": "^[A-D]$", "description": "The handle shown in BOTH the chat text and the card." },
+          "label": { "type": "string", "minLength": 1, "description": "Short noun phrase the person taps." },
+          "does": { "type": "string", "minLength": 1 },
+          "pro": { "type": "string", "minLength": 1 },
+          "con": { "type": "string", "minLength": 1, "description": "What it costs to do." },
+          "downstream": { "type": "string", "minLength": 1, "description": "What it changes for everything else, afterwards." },
+          "reversibility": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "recommends": { "type": "string", "pattern": "^[A-D]$", "description": "The letter of the recommended option; it is shown first and marked." },
+    "because": { "type": "string", "minLength": 1 },
+    "ifSilent": { "type": "string", "minLength": 1, "description": "What will be done if no answer comes. Then it is done." },
+    "question": { "type": "string", "minLength": 1, "description": "The question itself, last." },
+    "othersPending": { "type": "integer", "minimum": 0, "description": "How many other decisions wait; given as a count, never as a list of option names." },
+    "reversible": { "type": "boolean", "description": "false when acting on the answer cannot be undone. Then the default is never taken on silence: the step waits." }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_OptionsAnalysis" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="business-analyst" name="Business analyst"/>
+  <bpmn:collaboration id="Collaboration_Process_OptionsAnalysis">
+    <bpmn:participant id="Participant_Process_OptionsAnalysis" name="Options analysis" processRef="Process_OptionsAnalysis"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_OptionsAnalysis" name="Options analysis" isExecutable="false">
+    <bpmn:documentation>A decision reached by a NAMED methodology, with its rejected options recorded. Called as a subprocess, never run on its own.
+
+WHEN IT APPLIES: the trigger is `opening-brief`'s — IRREVERSIBILITY AND SURPRISE, not size. A reversible choice needs no subprocess; an irreversible one cannot skip it. A subprocess fired on every decision becomes ceremony, and ceremony is how a gate stops being read.
+
+WHY IT IS ONE SUBPROCESS AND NOT A BRANCH PER METHODOLOGY: the methodologies are parallel tracks selected by context, and the selection is a judgement made inside A_Select rather than a gateway. A gateway per methodology would assert the choice is computable from data, which is the claim `dmn` says to make only when the criteria recur.
+
+WHAT IT DOES NOT DO: it does not decide. It produces the options, their trade-offs and a recommendation; the decision and its authorisation belong to whoever owns the calling step.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_OptionsAnalysis">
+      <bpmn:lane id="Lane_BusinessAnalyst" name="Business analyst" partitionElementRef="business-analyst">
+        <bpmn:documentation>This lane's deliverable is the recommendation together with the rejected options — a rejected option with no record is a dead end the next agent walks back into — but it never authorises anything; A_Record hands both to whoever called the subprocess, and the decision stays theirs. Answering GW_Trigger `no` is not a skipped step either: End_TriggerNotMet is recorded as a distinct outcome from a completed comparison, because a caller unable to tell "not needed" from "we chose X" cannot audit either one.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Process_OptionsAnalysis</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Frame</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Trigger</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Select</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_CheckEvidence</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Apply</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Record</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Process_OptionsAnalysis</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_TriggerNotMet</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Process_OptionsAnalysis" name="A decision is in play"/>
+    <bpmn:task id="A_Frame" name="Frame the decision
+and check the trigger">
+      <bpmn:documentation>One sentence naming the KIND of thing being chosen, not the options — "which cache strategy", never "A or B". Then the trigger: is this irreversible, or would the answer surprise someone? If neither, say so and stop; the calling step decides without this subprocess. Stopping here is a correct outcome, not a skipped step.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="opening-brief"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Trigger" name="Irreversible&#10;or surprising?">
+      <bpmn:documentation>`A_Frame` has always ENDED with this question — "is this irreversible, or would the answer surprise someone? If neither, say so and stop; the calling step decides without this subprocess. Stopping here is a correct outcome, not a skipped step." Until this gateway existed, the diagram gave it NO WAY TO STOP: `A_Frame`'s only outgoing edge went to `A_Select`, so the prose promised a branch the model did not have.
+
+Found by adding the second caller, not by reading. With one caller the straight line looked fine; wiring `editing-hci-validation` made every write in that process run all four activities, and its corpus-gate tests failed with "Task_RecordDecision is not enabled. Enabled now: A_Frame." That is the ceremony this process's own documentation refuses — "a subprocess fired on every decision becomes ceremony, and ceremony is how a gate stops being read" — and it was unreachable as a criticism while the subprocess had a single caller.
+
+DELIBERATELY NOT DMN-BACKED, unlike the gateways that are. Irreversibility and surprise are judged, not computed: `dmn` says to claim computability only when the criteria recur with the same inputs having to produce the same answer, and "would this surprise someone" does not. So the outcome is supplied by whoever is at the step, exactly as `Gateway_EditorDecision` takes one.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="A_Select" name="Select the methodology
+by context">
+      <bpmn:documentation>Ask the selection question in order, first yes decides: do the criteria RECUR with the same inputs having to produce the same answer; is this the CERTAINTY of a body of evidence behind a recommendation; is the context a BEAN recording a decision; otherwise a one-off choice among candidates. If none fits, that is a finding — say which question the decision is and that no adopted methodology covers it. Do not improvise one and do not stretch the nearest fit.
+
+The declared set is the contents of the `methodology` graph. Ask for it; do not remember it.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="methodology-adoption"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_CheckEvidence" name="Check the selected&#10;methodology&apos;s evidence base">
+      <bpmn:documentation>Before applying a methodology, establish that the thing being applied is what it claims to be. A methodology is adopted because it is somebody else&apos;s named, external work; this step checks that the `origin` it cites resolves to a source in a declared library, and reads the `methodology-evidence` QA sidecar for it.
+
+WHY THE CHECK IS HERE AND NOT AT ADOPTION. Adoption happens once; selection happens every time a decision is made. A source that was reachable when the methodology was adopted can stop being so, and a methodology adopted before this axis existed was never checked at all. Measured 2026-09-22: six methodologies cited an origin and NONE had that source in any library, so every selection made until then rested on an unverifiable citation.
+
+WHAT A GAP DOES AND DOES NOT DO. A missing source does NOT block the decision, and this step has no branch that stops the process — that would make a documentation gap into an outage, and the owner decides whether an unbacked methodology may still be used. It does two things: it runs `literature-search` to try to close the gap, and it puts the evidence state into the record `A_Record` writes, so a reader can tell a decision made on a verified method from one made on a citation nobody could follow.
+
+The third state is the one that matters. &quot;Source ingested&quot;, &quot;source located but unreachable from here&quot; and &quot;no source found&quot; are three different facts, and `literature-search` exists largely to stop the middle one being reported as the last.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="literature-search"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Apply" name="Apply it, and state
+each option's trade-offs">
+      <bpmn:documentation>Follow the selected methodology as written — adopted whole, not blended with another. At least two real options: one option is not a choice, and a straw option is worse than a short list because it makes the analysis look thorough while narrowing it.
+
+Never quantify the comparison to make it look measured. Where a method scores and sums, this platform takes the structure and refuses the arithmetic: the weights are invented and a total reads as a measurement.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="methodology-adoption"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Record" name="Record the chosen option
+AND the rejected ones">
+      <bpmn:documentation>The rejected options and why they lost are part of the output, not an appendix. A rejected option with no record is a dead end nobody marked, and the next agent walks into it — the same argument `bean-coordination` makes for `scrapped` over deleted.
+
+In a bean context the form is MADR's. Which methodology was followed is named here, so a reader can check the method rather than take the conclusion.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="decision-audit"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Process_OptionsAnalysis" name="Options and recommendation recorded"/>
+    <bpmn:endEvent id="End_TriggerNotMet" name="Trigger not met — the caller decides without an analysis">
+      <bpmn:documentation>A SEPARATE end event, rather than a short-circuit into the other one, because the two outcomes are different facts for the caller: "no analysis was needed" is not "the analysis recommends X". Collapsing them would leave a caller unable to tell a considered skip from a completed comparison — the same reason a could-not-determine is never reported as a pass.</bpmn:documentation>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SF_Process_OptionsAnalysis_1" sourceRef="Start_Process_OptionsAnalysis" targetRef="A_Frame"/>
+    <bpmn:sequenceFlow id="SF_Process_OptionsAnalysis_2" sourceRef="A_Frame" targetRef="GW_Trigger"/>
+    <bpmn:sequenceFlow id="SF_Process_OptionsAnalysis_2b" name="yes" sourceRef="GW_Trigger" targetRef="A_Select"/>
+    <bpmn:sequenceFlow id="SF_Process_OptionsAnalysis_2c" name="no" sourceRef="GW_Trigger" targetRef="End_TriggerNotMet"/>
+    <bpmn:sequenceFlow id="SF_Process_OptionsAnalysis_3" sourceRef="A_Select" targetRef="A_CheckEvidence"/>
+    <bpmn:sequenceFlow id="SF_Process_OptionsAnalysis_3b" sourceRef="A_CheckEvidence" targetRef="A_Apply"/>
+    <bpmn:sequenceFlow id="SF_Process_OptionsAnalysis_4" sourceRef="A_Apply" targetRef="A_Record"/>
+    <bpmn:sequenceFlow id="SF_Process_OptionsAnalysis_5" sourceRef="A_Record" targetRef="End_Process_OptionsAnalysis"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_OptionsAnalysis">
+    <bpmndi:BPMNPlane id="Plane_Process_OptionsAnalysis" bpmnElement="Collaboration_Process_OptionsAnalysis">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_OptionsAnalysis" bpmnElement="Participant_Process_OptionsAnalysis" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="1210" height="290" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_BusinessAnalyst" bpmnElement="Lane_BusinessAnalyst" isHorizontal="true">
+        <dc:Bounds x="190" y="60" width="1180" height="290" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Process_OptionsAnalysis" bpmnElement="Start_Process_OptionsAnalysis">
+        <dc:Bounds x="236" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="234" y="183" width="52" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Frame" bpmnElement="A_Frame">
+        <dc:Bounds x="302" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Trigger" bpmnElement="GW_Trigger" isMarkerVisible="true">
+        <dc:Bounds x="462" y="135" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="442" y="74" width="90" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_TriggerNotMet" bpmnElement="End_TriggerNotMet">
+        <dc:Bounds x="469" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="515" y="262" width="200" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Select" bpmnElement="A_Select">
+        <dc:Bounds x="552" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_CheckEvidence" bpmnElement="A_CheckEvidence">
+        <dc:Bounds x="712" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Apply" bpmnElement="A_Apply">
+        <dc:Bounds x="872" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Record" bpmnElement="A_Record">
+        <dc:Bounds x="1032" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Process_OptionsAnalysis" bpmnElement="End_Process_OptionsAnalysis">
+        <dc:Bounds x="1192" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1238" y="151" width="124" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_OptionsAnalysis_1" bpmnElement="SF_Process_OptionsAnalysis_1">
+        <di:waypoint x="272" y="160" />
+        <di:waypoint x="302" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_OptionsAnalysis_2" bpmnElement="SF_Process_OptionsAnalysis_2">
+        <di:waypoint x="422" y="160" />
+        <di:waypoint x="462" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_OptionsAnalysis_2b" bpmnElement="SF_Process_OptionsAnalysis_2b">
+        <di:waypoint x="512" y="160" />
+        <di:waypoint x="552" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_OptionsAnalysis_2c" bpmnElement="SF_Process_OptionsAnalysis_2c">
+        <di:waypoint x="487" y="185" />
+        <di:waypoint x="487" y="262" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_OptionsAnalysis_3" bpmnElement="SF_Process_OptionsAnalysis_3">
+        <di:waypoint x="672" y="160" />
+        <di:waypoint x="712" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_OptionsAnalysis_3b" bpmnElement="SF_Process_OptionsAnalysis_3b">
+        <di:waypoint x="832" y="160" />
+        <di:waypoint x="872" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_OptionsAnalysis_4" bpmnElement="SF_Process_OptionsAnalysis_4">
+        <di:waypoint x="992" y="160" />
+        <di:waypoint x="1032" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_OptionsAnalysis_5" bpmnElement="SF_Process_OptionsAnalysis_5">
+        <di:waypoint x="1152" y="160" />
+        <di:waypoint x="1192" y="160" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

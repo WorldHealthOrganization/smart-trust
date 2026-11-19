@@ -1,0 +1,117 @@
+{
+  "id": "req:serving-a-rendering",
+  "title": "Serving a rendering",
+  "description": "What a server must do to publish a layer's renderings truthfully. Derived from skills/ui/ui-core/serving-renderings.md, which settles the contract and deliberately specifies no tool. Opened for bean folio-assistant-0hi8 / issue #363, where topologies whose `publication host` axis is not `github-pages` have no publication mechanism at all.",
+  "derivedFrom": [
+    "req:agent-workflow"
+  ],
+  "actors": [
+    "viewer",
+    "author",
+    "admin"
+  ],
+  "_comment": "A requirement rather than prose in the skill because more than one tool may satisfy it, and #363 asks for 'several options'. Stating the obligations separately is what makes a second implementation checkable against the first instead of against the first's source.",
+  "statements": [
+    {
+      "key": "declared-media-type",
+      "label": "Serve each rendering with its declared media type",
+      "conformance": "SHALL",
+      "requirement": "A server MUST set Content-Type from the declared table in RENDERING_MEDIA_TYPES, not from the filesystem's extension map.",
+      "_comment": "Measured 2026-09-19: python3 `mimetypes` and `Bun.file().type` BOTH already resolve .jsonld to application/ld+json, so the common claim that a general-purpose server cannot serve a rendering is FALSE and is not stated here. The real gap is `longest-extension-first`, below.",
+      "successCriteria": [
+        {
+          "key": "content-type-matches-declared",
+          "criterion": "HTTP response Content-Type header matches the MIME type specified in RENDERING_MEDIA_TYPES for the requested resource.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "compound-extension-wins",
+      "label": "`.schema.json` resolves before `.json`",
+      "conformance": "SHALL",
+      "requirement": "A server MUST resolve the longest matching extension first, so that `<stub>.schema.json` is served as application/schema+json and not as application/json.",
+      "dependsOn": [
+        "declared-media-type"
+      ],
+      "_comment": "The one row no OS media-type table carries, because `.json` is a suffix of `.schema.json` and nothing knows the compound extension means a schema. This is the whole substantive difference between a conforming server and `python3 -m http.server`.",
+      "successCriteria": [
+        {
+          "key": "schema-json-media-type",
+          "criterion": "Requests for files ending in .schema.json return Content-Type application/schema+json.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "bare-stub-opens",
+      "label": "The bare stub resolves to the viewer",
+      "conformance": "SHALL",
+      "requirement": "A request for `<stub>/` MUST return that directory's index as text/html.",
+      "_comment": "GitHub Pages resolves an extensionless URL only to a directory index, which is why the viewer is a directory at all. A local server that 404s here makes the two hosts disagree about a URL the documentation prints.",
+      "successCriteria": [
+        {
+          "key": "bare-stub-html",
+          "criterion": "GET request to a directory path ending with / returns HTTP 200 with Content-Type text/html.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "alias-is-byte-identical",
+      "label": "`<stub>.json` is the same bytes as `<stub>.jsonld`",
+      "conformance": "SHALL",
+      "requirement": "Where both are published they MUST be byte-identical; a server MUST NOT synthesise one from the other.",
+      "_comment": "An alias is only an alias while it is byte-identical. Two documents asserting the same IRIs is the defect --base-url exists to prevent.",
+      "successCriteria": [
+        {
+          "key": "alias-payload-identical",
+          "criterion": "Payload hashes of <stub>.json and <stub>.jsonld responses match byte-for-byte.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "undeclared-is-not-forced",
+      "label": "An undeclared file keeps the server's own inference",
+      "conformance": "SHALL",
+      "requirement": "For a path the declaration says nothing about, a server MUST fall back to its normal inference and MUST NOT force application/octet-stream.",
+      "_comment": "The third state. 'The declaration says nothing about this file' is not 'this file has no type' — the same rule as readme-sections' skip and ci-health's could-not-check.",
+      "successCriteria": [
+        {
+          "key": "default-mime-fallback",
+          "criterion": "Responses for undeclared file extensions return standard MIME types inferred from extension rather than application/octet-stream.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "contained",
+      "label": "Never serve outside the served root",
+      "conformance": "SHALL",
+      "requirement": "A server MUST NOT serve a file outside the directory it was pointed at, including via a symbolic link inside that directory.",
+      "_comment": "Not inherited from the skill — added because the reference implementation failed it. Its own test pointed a link inside the root at a file outside and got 200: a lexical path check passes a clean URL, and resolve() never touches the filesystem. Real paths must be compared. This matters most for `self-sovereign`, which is `outward facing: no` and whose published directory sits next to data nobody intends to publish.",
+      "successCriteria": [
+        {
+          "key": "no-directory-traversal",
+          "criterion": "HTTP requests attempting to traverse outside the served root directory return HTTP 403 or 404.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "loopback-by-default",
+      "label": "Bind loopback unless told otherwise",
+      "conformance": "SHOULD",
+      "requirement": "A server SHOULD bind a loopback interface by default, and expose a network interface only on explicit request.",
+      "_comment": "SHOULD, not SHALL: a sovereign-cloud deployment is `outward facing: yes` and legitimately binds a public interface. Making this SHALL would encode a rule against a working setup.",
+      "successCriteria": [
+        {
+          "key": "binds-to-loopback",
+          "criterion": "Server socket listens exclusively on 127.0.0.1 or localhost when started without host configuration flags.",
+          "verification": "inspection"
+        }
+      ]
+    }
+  ]
+}

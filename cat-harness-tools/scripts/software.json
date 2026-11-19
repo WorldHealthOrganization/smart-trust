@@ -1,0 +1,144 @@
+{
+  "$schema": "cat-harness-software/v1",
+  "_comment": "WHAT THE HARNESS'S SCRIPTS NEED THAT THE CONTAINER MAY NOT HAVE, and how to get each. Read by `scripts/ensure-software.ts` (`bun run cat software:ensure`), which tries, in order: already present -> apt -> pip -> a pinned GitHub release asset (sha256 required). Owner, 2026-10-09: \"update skills and tools on finding software\" and \"also add apt\" -- an agent that meets a missing program installs it rather than routing around it (skill `finding-software`). One entry per thing a script CHECKS FOR, named the way the script names it; `usedBy` is the scripts that check, so `--for <script>` installs exactly what that script needs.",
+  "software": [
+    {
+      "name": "tesseract",
+      "provides": {
+        "command": "tesseract"
+      },
+      "apt": [
+        "tesseract-ocr",
+        "tesseract-ocr-eng",
+        "tesseract-ocr-osd",
+        "tesseract-ocr-ara",
+        "tesseract-ocr-chi-sim",
+        "tesseract-ocr-chi-tra",
+        "tesseract-ocr-fra",
+        "tesseract-ocr-rus",
+        "tesseract-ocr-spa",
+        "tesseract-ocr-por",
+        "tesseract-ocr-fas"
+      ],
+      "licence": "Apache-2.0",
+      "usedBy": [
+        "scripts/pdf-ocr.py",
+        "scripts/pdf-extract.py"
+      ],
+      "why": "OCR for scanned PDFs (the pdf-ocr+pdf-pages rung). The language packs are the six UN languages plus Portuguese and Persian, which WHO IRIS publishes in; pdf-ocr.py refuses a hinted language whose pack is missing rather than reading it as English (owner, 2026-11-10)."
+    },
+    {
+      "name": "pdftoppm",
+      "provides": {
+        "command": "pdftoppm"
+      },
+      "apt": [
+        "poppler-utils",
+        "poppler-data"
+      ],
+      "licence": "GPL-2.0",
+      "usedBy": [
+        "scripts/pdf-ocr.py"
+      ],
+      "why": "Renders PDF pages to images for OCR."
+    },
+    {
+      "name": "pdftotext",
+      "provides": {
+        "command": "pdftotext"
+      },
+      "apt": [
+        "poppler-utils"
+      ],
+      "licence": "GPL-2.0",
+      "usedBy": [
+        "scripts/pdf-extract.py"
+      ],
+      "why": "The text-layer rung of pdf-extract's ladder."
+    },
+    {
+      "name": "pandoc",
+      "provides": {
+        "command": "pandoc"
+      },
+      "apt": [
+        "pandoc"
+      ],
+      "licence": "GPL-2.0-or-later",
+      "usedBy": [
+        "scripts/latex-math-overlay.py"
+      ],
+      "why": "Converts an arXiv paper's own LaTeX sections to markdown with the mathematics kept as $...$. Without it the overlay keeps the raw LaTeX, which still carries the maths."
+    },
+    {
+      "name": "pymupdf",
+      "provides": {
+        "python": "pymupdf"
+      },
+      "pip": "pymupdf",
+      "licence": "AGPL-3.0 -- installed into the environment to RUN the tools, never vendored or imported by committed code that ships (see pdf-structure.py's licence note)",
+      "usedBy": [
+        "scripts/ingest-document.ts",
+        "scripts/pdf-structure.py",
+        "scripts/pdf-pages.py",
+        "scripts/pdf-cover.py",
+        "scripts/pdf-images.py",
+        "scripts/pdf-vector-figures.py",
+        "scripts/pdf-vector-labels.py",
+        "scripts/pdf-footnotes.py"
+      ],
+      "why": "The PDF backend ingest-document probes with; without it every PDF's rung is `undetermined`."
+    },
+    {
+      "name": "pypdf",
+      "provides": {
+        "python": "pypdf"
+      },
+      "pip": "pypdf",
+      "licence": "BSD-3-Clause",
+      "usedBy": [
+        "scripts/pdf-structure.py",
+        "scripts/_pypdf_compat.py"
+      ],
+      "why": "pdf-structure's permissive fallback backend."
+    },
+    {
+      "name": "pdfplumber",
+      "provides": {
+        "python": "pdfplumber"
+      },
+      "pip": "pdfplumber",
+      "licence": "MIT",
+      "usedBy": [
+        "scripts/pdf-tables.py"
+      ],
+      "why": "pdf-tables' default table extractor."
+    },
+    {
+      "name": "beans",
+      "provides": {
+        "command": "beans"
+      },
+      "github": {
+        "repo": "hmans/beans",
+        "tag": "v0.4.2",
+        "bin": "beans",
+        "assets": {
+          "linux-x64": {
+            "asset": "beans_Linux_x86_64.tar.gz",
+            "sha256": "266d1e4dc7392c38131c4842c60cbd2f14d5e5f7a520bc297a9b9056fda7fcd0"
+          },
+          "linux-arm64": {
+            "asset": "beans_Linux_arm64.tar.gz",
+            "sha256": "fc5ede1fd605963cd575d2577a9c8c3cf89abc8d60e9787a1f0390e2067f20df"
+          }
+        }
+      },
+      "licence": "MIT",
+      "usedBy": [
+        "scripts/install-beans.sh"
+      ],
+      "why": "The work-plan CLI. `install-beans.sh` builds it with `go install`; this is the route when Go is absent. Checksums from the release's own beans_0.4.2_checksums.txt (measured 2026-10-09)."
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "_comment": "Filed at adjudication, not at completion (owner, 2026-10-30, option E on cat-harness#686): a spec-kit spec's success criteria become criterion keys here with `status: proposed`, so a test plan can cite `req:model-benchmark#<statement>/SC-NNN` before the feature ships. Graduation flips `status` to `in-force`. Spec: cat-harness#686 (beans folio-assistant-amom, folio-assistant-oz9e, epic 5a3l). FR-011 (ARG-Designer comparability) was dropped at adjudication.",
+  "id": "req:model-benchmark",
+  "title": "Models and configurations can be compared on one test plan, honestly",
+  "description": "The test process (arc 3fva: test-plan/v1, folio-test-run/v1, test-report/v1) is extended so one plan can be run against several systems under test, each a model plus a configuration, and the results set side by side. Runs are manual for now, cost is never invented, a benchmark never writes to beans/, and fixed machine findings become test cases with known answers.",
+  "status": "proposed",
+  "proposedIn": "https://github.com/litlfred/cat-harness/issues/686",
+  "derivedFrom": ["req:agent-workflow"],
+  "actors": ["programme-manager", "untainted-checker", "authoring-agent"],
+  "statements": [
+    {
+      "key": "system-names-model",
+      "label": "An agent under test names its model and configuration",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "A folio-test-run/v1 record's system under test SHALL say its kind. An agent SHALL carry a model (a ModelIdSchema id) and a named configuration (at least \"harness\" or \"bare\"), and an agent's run record without a model SHALL be refused. A system of any other kind runs deterministic code and SHALL name no model (owner, 2026-10-30, FR-002 option A; FR-001, FR-002).",
+      "successCriteria": [
+        { "key": "SC-002", "criterion": "Every agent run record without a model is refused when validated, and a model on any other kind is refused.", "verification": "test" }
+      ]
+    },
+    {
+      "key": "side-by-side",
+      "label": "One plan, N systems, one side-by-side report",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "The test process SHALL run one plan against N systems under test and report each case's verdicts side by side, and SHALL refuse a comparison whose systems under test do not differ (FR-003, FR-004).",
+      "successCriteria": [
+        { "key": "SC-001", "criterion": "One report compares one plan across at least two models and two configurations.", "verification": "test" }
+      ]
+    },
+    {
+      "key": "cost-unknown-not-zero",
+      "label": "Missing cost reads unknown",
+      "conformance": "SHALL",
+      "kind": "non-functional",
+      "category": "honesty of evidence",
+      "requirement": "A run SHALL accept optional tokens in, tokens out, wall-clock time and cost, and a missing value SHALL read unknown, never 0 (FR-005).",
+      "successCriteria": [
+        { "key": "SC-003", "criterion": "No report shows a cost of 0 where no cost was recorded.", "verification": "test" }
+      ]
+    },
+    {
+      "key": "independent-run-leaves-beans",
+      "label": "An independent-queue run leaves beans/ alone",
+      "conformance": "SHALL NOT",
+      "kind": "functional",
+      "requirement": "An independent-queue benchmark run SHALL NOT create or change anything under beans/ (FR-006).",
+      "successCriteria": [
+        { "key": "SC-004", "criterion": "After an independent run over N systems, beans/ is byte-identical to before.", "verification": "test" }
+      ]
+    },
+    {
+      "key": "run-asked-for",
+      "label": "Every benchmark run is asked for",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "Every benchmark run SHALL be asked for, with its own estimate, before it starts, and no trigger SHALL start one on a schedule (FR-007).",
+      "successCriteria": [
+        { "key": "asked-before-start", "criterion": "No benchmark run record exists without an approval that precedes it and carries an estimate.", "verification": "inspection" }
+      ]
+    },
+    {
+      "key": "findings-become-cases",
+      "label": "Fixed machine findings become test cases",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "A generator SHALL turn script QA findings that a later commit fixed into test-plan/v1 cases, citing the finding and the before and after commits, and SHALL emit nothing for agent or human findings (FR-008).",
+      "successCriteria": [
+        { "key": "SC-005", "criterion": "The generator yields at least one case from the real history under test/results/.", "verification": "test" }
+      ]
+    },
+    {
+      "key": "plan-cites-proposed-criteria",
+      "label": "A plan can cite a proposed requirement's criteria",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "A test plan's requirements[] SHALL accept a req: reference to a proposed requirement's statement or criterion, so a spec's success criteria are testable before graduation (FR-009, as adjudicated 2026-10-30: no separate spec: id form).",
+      "successCriteria": [
+        { "key": "cites-criterion", "criterion": "A plan citing req:model-benchmark#side-by-side/SC-001 validates, and one citing a malformed reference is refused.", "verification": "test" }
+      ]
+    },
+    {
+      "key": "report-in-qa-reports",
+      "label": "Results are a test report, not graph content",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "A benchmark's result SHALL be a test-report/v1 in qa-reports, and nothing SHALL be added to a folio's graph (FR-010).",
+      "successCriteria": [
+        { "key": "no-graph-writes", "criterion": "A benchmark run changes no file under a folio's declared graph paths.", "verification": "inspection" }
+      ]
+    }
+  ]
+}

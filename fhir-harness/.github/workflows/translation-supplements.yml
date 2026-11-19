@@ -1,0 +1,111 @@
+# Compile an IG's translation CodeSystem supplements with SUSHI and check
+# them: `fhir-harness/scripts/check-translation-supplements.ts` (Tool
+# `check-translation-supplements`). Reusable: an IG repository calls it with a
+# short caller (template: `templates/ig-repo-site/translation-supplements.yml`)
+# and carries no copy of these steps, as with `ig-ast-refresh.yml`.
+#
+# What a run does, and nothing else:
+#   1. checks out the CALLING repository (the event's ref, or `ref`);
+#   2. mounts the layers the caller's index.lock.json pins, and installs the
+#      ones the check imports;
+#   3. installs the SUSHI `ig-toolchain.env` pins, from
+#      `fhir-harness/scripts/sushi/package-lock.json` with `npm ci
+#      --ignore-scripts`, on the Node `ig-toolchain.env` pins;
+#   4. runs the check on `ig-root`. It reads only the paths the IG declares in
+#      `contentTypes.ig.include`, lays down the FHIR core package pinned by
+#      sha512 in `scripts/sushi/fhir-packages.lock.json`, and runs SUSHI with
+#      no network. An IG with no `input/fsh/translations/` passes as not
+#      applicable.
+#
+# Read-only: no cache branch, no gh-pages, no dispatch. Nothing here may know
+# about any one IG or publisher (fhir-harness/AGENTS.md).
+name: Translation supplements
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "The caller's ref to check (default: the ref of the event that called it)"
+        type: string
+        default: ""
+      ig-root:
+        description: "The IG's root, relative to the caller's checkout"
+        type: string
+        default: "."
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4  # the platform's CI version
+
+      - name: Cache remote mounts (bean cis1)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /home/runner/.cache/cat-mount
+          key: cat-mount-v1-${{ hashFiles('index.lock.json') }}
+          restore-keys: |
+            cat-mount-v1-
+
+      - name: Mount the layers index.lock.json pins
+        env:
+          CAT_MOUNT_CACHE_DIR: /home/runner/.cache/cat-mount
+        run: |
+          [ -f index.lock.json ] || { echo "::error::no index.lock.json: the caller must mount fhir-harness (templates/ig-repo-site)"; exit 2; }
+          ref=$(python3 -c "import json;print(next(m['ref'] for m in json.load(open('index.lock.json'))['mounts'] if m['harness']=='cat-harness-tools'))")
+          M="$RUNNER_TEMP/mounter"
+          git init -q "$M"
+          git -C "$M" fetch -q --depth 1 https://github.com/litlfred/cat-harness-tools.git "$ref"
+          git -C "$M" checkout -q FETCH_HEAD
+          # --no-install: only the mounts the check imports are installed, below.
+          bun run "$M/scripts/mount-from-lock.ts" --root . --no-install
+          for d in fhir-harness cat-harness-tools cat-harness bootstrap-tools; do
+            [ -f "$d/package.json" ] && (cd "$d" && bun install --no-save)
+          done
+          # A mount imports another by its package name; an IG repository has
+          # no root workspace to resolve it, so each mounted package is linked
+          # into the root's node_modules.
+          mkdir -p node_modules/@litlfred
+          for f in */package.json; do
+            d=${f%/package.json}
+            n=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('name',''))" "$f")
+            case "$n" in @litlfred/*) ln -sfn "../../$d" "node_modules/$n" ;; esac
+          done
+          [ -f fhir-harness/scripts/check-translation-supplements.ts ] \
+            || { echo "::error::the lock mounts a fhir-harness without scripts/check-translation-supplements.ts: repin fhir-harness in index.config.json"; exit 2; }
+
+      - name: The IG toolchain's pins
+        id: toolchain
+        run: grep -E '^[A-Z_]+=[^ ]+$' fhir-harness/scripts/ig-toolchain.env >> "$GITHUB_OUTPUT"
+
+      - name: Node for SUSHI
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          package-manager-cache: false
+          node-version: ${{ steps.toolchain.outputs.NODE_VERSION }}
+
+      - name: SUSHI, from its lockfile
+        run: npm ci --ignore-scripts --no-audit --no-fund --prefix fhir-harness/scripts/sushi
+
+      # The kept tarball is verified against its pinned sha512 on every run,
+      # so a cache entry can only save a download, never change what is used.
+      - name: Keep the pinned FHIR core tarball
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/fhir-tarballs
+          key: fhir-core-tarballs-v1-${{ hashFiles('fhir-harness/scripts/sushi/fhir-packages.lock.json') }}
+
+      - name: Compile and check the translation supplements
+        env:
+          IG_ROOT: ${{ inputs.ig-root }}
+        run: bun run fhir-harness/scripts/check-translation-supplements.ts "$IG_ROOT" --tarballs "$RUNNER_TEMP/fhir-tarballs"

@@ -1,0 +1,61 @@
+---
+doc_id: 10665-58534
+doc_title: "Counselling for HIV/AIDS : a key to caring, for policy-makers, planners and implementors of counselling activities"
+section_id: page-014
+section_title: "Page 14"
+pages: 14-14
+pdf_page: 14
+source_pdf: 10665-58534.pdf
+source_sha256: 79af009d1163712c
+text_source: ocr
+granularity: page
+---
+Counselling for HIV/AIDS: A key to caring
+
+his co-workers and this, in turn, meant that his colleagues were available to
+provide him with social support at critical times during his illness.
+
+At his home, a social worker on the home-based care team provided him and
+his wife with ongoing supportive counselling that helped them to cope with the
+many crises that had arisen during his long illness.
+
+At the hospital, religious workers not only attended to his spiritual needs but
+also helped him to make practical preparations relating to the material and
+spiritual needs of is wife and children after his death.
+
+In addition to counselling, individuals affected by HIV/AIDS need to receive social
+support from workmates, from members of their family, from members of local voluntary
+organizations that provide social support for people in need and from members of specific
+AIDS support organizations that communities may initiate.
+
+What are the main components of the HIV/AIDS counselling process?
+
+The two main components of HIV/AIDS counselling sessions, are:
+
+the provision of emotional support, including helping the client to cope with
+stress and plan for the future; and
+
+the assessment of risks and planning for risk reduction, including the
+development of decision-making capacity about options for prevention.
+
+These. are supplemented, as necessary, by personalized information-giving. For
+example:
+
+A health worker who expresses the fear that he or she is at risk of acquiring
+HIV in the work setting may, as part of the counselling process, be provided
+with scientifically-based information that:
+
+* confirms that these fears are a logical response and are not abnormal.
+Such information is reassuring to the client and can assist in the
+process of providing the client with emotional support;
+
+* informs about risks of HIV transmission from various medical
+procedures. Such information is provided to help the client plan ways
+of minimizing the risk of being infected with HIV,
+
+A person with multiple sexual partners who is,considering ways of changing
+his or her behaviour may: .
+
+* be provided with scientifically-based information regarding the extent
+to which abstinence, mutual fidelity or the consistent use of condoms
+may reduce the risk of HIV transmission and. about ways in which

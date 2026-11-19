@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_NarrativeReview"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="narrative-reviewer" name="Narrative reviewer"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Narrative review — a SUBPROCESS, called never inherited.
+
+       The counterpart of Process_CodeReview. An actor already acting as a
+       reviewer descends here and takes on the `narrative-reviewer` lane for
+       this call path only, so the voice, editorial-dependency and translation
+       skills are scoped to reviewing PROSE rather than carried by every
+       reviewer in every diagram.
+
+       The mechanical half of each axis is a checker (`qa-checkers-voice.ts`,
+       `qa-checkers-uses.ts`, `translation-block-qa.ts`); this lane is the half
+       that decides what a match MEANS. A phrase-list match is a question, not
+       a verdict.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:process id="Process_NarrativeReview" name="Narrative review" isExecutable="false">
+    <bpmn:documentation>Judging changed PROSE: read what the mechanical checkers flagged, decide which findings are real, then look at the two things no checker can judge — whether the editorial dependencies still hold and whether a translation still says what the source does.
+
+You are in this process when prose changed. `review-code` is its sibling for code nodes and `review-task` is what dispatches to either, so arriving here means somebody has already decided the change is narrative.
+
+Everything this lane produces is ADVICE. The reviewer records findings; accepting or refusing the change belongs to the editor's lane in `review-task`, so a review can be thorough without being a veto.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_NarrativeReview">
+      <bpmn:lane id="Lane_NarrativeReviewer" name="Narrative reviewer" partitionElementRef="narrative-reviewer">
+        <bpmn:documentation>Turns mechanical matches into verdicts, not the other way round: `qa-checkers-voice.ts`, `qa-checkers-uses.ts` and `translation-block-qa.ts` produce candidates, and this lane is the only place a phrase-list hit becomes a wrong-register finding, an out-of-genre criterion, a stated exception, or nothing at all. House voice is adjudicated before any activated overlay is even reached, because an overlay adds to the house judgement rather than replacing it.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_ProseChanged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReadFindings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AdjudicateVoice</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_VoiceOverlay</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Translated</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewTranslation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RecordFindings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NarrativeReviewed</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_ProseChanged" name="Prose&#10;changed"/>
+
+    <bpmn:task id="Task_ReadFindings" name="Read the sidecar findings">
+      <bpmn:documentation>
+        Open the block's `.qa.json`, not just the evidence line: register is a
+        property of the passage, and the sidecar quotes one line of it.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-review"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:callActivity id="Task_AdjudicateVoice" calledElement="Process_CriterionAdjudication" name="Adjudicate the voice findings">
+      <bpmn:documentation>
+        Three outcomes, all legitimate: the register is wrong for this genre;
+        the criterion does not belong in this genre and should carry `profiles`;
+        or the block is a stated exception and a reviewer entry records why.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="voice-editorial-review"/><bootstrap.processes:skill ref="adjudication"/><cat-harness.processes:adjudication accepts="stands scope dispensation"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+
+    <bpmn:callActivity id="Call_VoiceOverlay" name="Voice overlay review" calledElement="Process_VoiceReview">
+      <bpmn:documentation>Descend into Process_VoiceReview for whichever named voices the folio has ACTIVATED — the WHO editorial style, the guideline-development register, the publication design conventions, the Milnor exposition standard. No new role is taken on: register is what this lane already judges, and a voice is a register.
+
+Placed after the base voice adjudication because a voice OVERLAYS the house voice rather than replacing it, so the house finding has to be settled first. Its own first gateway leaves immediately when no voice is active, which is this layer's case and the default everywhere.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="voice-overlay-review"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+
+    <bpmn:exclusiveGateway id="GW_Translated" name="Translated?">
+      <bpmn:documentation>Does this block have translations? `yes` reviews the translation too; `no` skips straight to the join.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_ReviewTranslation" name="Review the translation">
+      <bpmn:documentation>
+        Coverage, preserved terms and echoes are mechanical. A semantic round
+        trip needs a back-translator that has not seen the original; where none
+        has run, the criterion carries no verdict and that is the honest state.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="translation-manager"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Join"/>
+
+    <bpmn:task id="Task_RecordFindings" name="Record findings as advice">
+      <bpmn:documentation>
+        A reviewer cannot accept a change — that is the editor's lane — so the
+        output is findings on the sidecar, not a commit.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-feedback"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_NarrativeReviewed" name="Narrative&#10;reviewed"/>
+
+    <bpmn:sequenceFlow id="F_N1" sourceRef="Start_ProseChanged" targetRef="Task_ReadFindings"/>
+    <bpmn:sequenceFlow id="F_N2" sourceRef="Task_ReadFindings" targetRef="Task_AdjudicateVoice"/>
+    <bpmn:sequenceFlow id="F_N3" sourceRef="Task_AdjudicateVoice" targetRef="Call_VoiceOverlay"/>
+    <bpmn:sequenceFlow id="F_N3b" sourceRef="Call_VoiceOverlay" targetRef="GW_Translated"/>
+    <bpmn:sequenceFlow id="F_N5" name="yes" sourceRef="GW_Translated" targetRef="Task_ReviewTranslation"/>
+    <bpmn:sequenceFlow id="F_N6" name="no" sourceRef="GW_Translated" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow id="F_N7" sourceRef="Task_ReviewTranslation" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow id="F_N8" sourceRef="GW_Join" targetRef="Task_RecordFindings"/>
+    <bpmn:sequenceFlow id="F_N9" sourceRef="Task_RecordFindings" targetRef="End_NarrativeReviewed"/>
+
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_NarrativeReview">
+    <bpmndi:BPMNPlane id="Plane_NarrativeReview" bpmnElement="Process_NarrativeReview">
+      <bpmndi:BPMNShape id="S_Lane_NarrativeReviewer" bpmnElement="Lane_NarrativeReviewer" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1360" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Start_ProseChanged" bpmnElement="Start_ProseChanged">
+        <dc:Bounds x="200" y="192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_ReadFindings" bpmnElement="Task_ReadFindings">
+        <dc:Bounds x="295" y="150" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_AdjudicateVoice" bpmnElement="Task_AdjudicateVoice">
+        <dc:Bounds x="490" y="150" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Call_VoiceOverlay" bpmnElement="Call_VoiceOverlay">
+        <dc:Bounds x="695" y="150" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_GW_Translated" bpmnElement="GW_Translated" isMarkerVisible="true">
+        <dc:Bounds x="890" y="185" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="944" y="218" width="90" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_ReviewTranslation" bpmnElement="Task_ReviewTranslation">
+        <dc:Bounds x="1005" y="92" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_GW_Join" bpmnElement="GW_Join" isMarkerVisible="true">
+        <dc:Bounds x="1190" y="185" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_RecordFindings" bpmnElement="Task_RecordFindings">
+        <dc:Bounds x="1305" y="150" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_End_NarrativeReviewed" bpmnElement="End_NarrativeReviewed">
+        <dc:Bounds x="1470" y="192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="E_F_N1" bpmnElement="F_N1">
+        <di:waypoint x="236" y="210" />
+        <di:waypoint x="295" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_N2" bpmnElement="F_N2">
+        <di:waypoint x="415" y="210" />
+        <di:waypoint x="490" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_N3" bpmnElement="F_N3">
+        <di:waypoint x="610" y="210" />
+        <di:waypoint x="695" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_N3b" bpmnElement="F_N3b">
+        <di:waypoint x="815" y="210" />
+        <di:waypoint x="890" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_N5" bpmnElement="F_N5">
+        <di:waypoint x="915" y="185" />
+        <di:waypoint x="915" y="152" />
+        <di:waypoint x="1005" y="152" />
+        <bpmndi:BPMNLabel><dc:Bounds x="930" y="130" width="35" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_N6" bpmnElement="F_N6">
+        <di:waypoint x="915" y="235"/>
+        <di:waypoint x="915" y="260"/>
+        <di:waypoint x="1215" y="260"/>
+        <di:waypoint x="1215" y="235"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="930" y="238" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_N7" bpmnElement="F_N7">
+        <di:waypoint x="1125" y="152" />
+        <di:waypoint x="1215" y="152" />
+        <di:waypoint x="1215" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_N8" bpmnElement="F_N8">
+        <di:waypoint x="1240" y="210" />
+        <di:waypoint x="1305" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_N9" bpmnElement="F_N9">
+        <di:waypoint x="1425" y="210" />
+        <di:waypoint x="1470" y="210" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

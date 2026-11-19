@@ -1,0 +1,70 @@
+# TEMPLATE — an IG repository's OWN site: the platform's just-the-docs folio
+# site with the IG composed at its root, published to that repository's
+# gh-pages on every push to main (a merged PR) and by hand. Copy to
+# `.github/workflows/site-publish.yml` unchanged, then run
+# `bun run cat workflow-pins` to pin it to the commit index.lock.json names.
+#
+# This is the platform's CANONICAL caller, the same file every harnessed
+# repository carries (cat-harness-tools
+# templates/document/github/workflows/site-publish.yml; owner, 2026-11-11: "i
+# want that it publishes once merge to main, update QA reports etc.",
+# litlfred/cat-harness-tools#1879). The steps live in ONE reusable workflow,
+# cat-harness-tools' `folio-site-publish.yml`, which runs the agent's own
+# `stage-local.ts` on a runner. Before this, the IG template carried its own
+# copy of those steps, ran only by hand, and every smart-* repository copied
+# it. `check:site-publish-caller` reports a copy that differs from this one
+# other than in comments and the pinned commit.
+#
+# What the repository needs, and nothing else from the platform (owner,
+# 2026-10-14: an IG repository "doesn't need its own harness. It can just
+# define index.config.json and reference [its base harness] as a dependency"):
+#
+#   index.config.json   mounts the harness the IG is built on (and its
+#                       closure), and names it as the site's landing:
+#                         "site": { "landing": "<that harness>",
+#                                   "publishAfter": ["ig-ast-refresh.yml"] }
+#                       `publishAfter` makes the publish wait for this
+#                       commit's AST refresh (below), so the site is built
+#                       from a current AST. A repository that also declares
+#                       a folio `site.build` recipe adds "publisher": "ig".
+#                       The site's TITLE is the IG's own, from
+#                       sushi-config.yaml `title`.
+#   index.lock.json     written by the platform's `remote-mount.ts` from it.
+#   a workflow that calls the base harness's IG build (`ghbuild.yml`, or a
+#                       `fhirbuild.yml` beside one): `stage-local.ts` reads
+#                       from it that this repository is an IG.
+#   ig-ast-refresh.yml  this directory's template: it seeds the AST cache on
+#                       the push that changes the IG's inputs. The publish
+#                       restores the AST from that cache and judges it
+#                       (`ig-site:ast`); no IG Publisher runs in the publish.
+#
+# On the default branch it publishes the gh-pages ROOT, keeping branches/ and
+# _render-log/; on any other branch (by hand) the preview at
+# branches/<branch>/. On a push to main the same run refreshes the layer's QA
+# reports when the repository declares an instance (`<repo>.json`). `plan`
+# prints what would run and publishes nothing.
+name: Site publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      plan:
+        description: "Only print what would run (--plan)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  # A preview reads the cone run's report (`preview-qa-<sha>`, an artifact of
+  # the PR's `preview` checks run) to put "This change (preview)" on top of
+  # its QA pages (scripts/preview-qa.ts). Granted here first: the reusable
+  # workflow can only ask for it once every caller grants it.
+  actions: read
+
+jobs:
+  publish:
+    uses: litlfred/cat-harness-tools/.github/workflows/folio-site-publish.yml@main
+    with:
+      plan: ${{ inputs.plan == true }}

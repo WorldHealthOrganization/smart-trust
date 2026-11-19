@@ -1,0 +1,60 @@
+# Lay down a harnessed repository's layers as the remote mounts its
+# index.lock.json pins, and install their dependencies. Use after
+# actions/checkout of the calling repository.
+#
+# ONE copy, here, instead of one per repository: smart-ra and dth-hrh each
+# carried their own, and they drifted (dth-hrh's grew a root install,
+# both pinned a Bun the platform had left behind). Callers write
+#   uses: litlfred/cat-harness-tools/.github/actions/mount-layers@main
+# and the folio-* reusable workflows in this repository use it the same way.
+#
+# mount-from-lock.ts imports only node:*, so it runs before anything else is
+# installed. It is taken from cat-harness-tools at the commit the CALLER'S
+# lock pins (not this action's ref), so a repository's mount is the one its
+# lock describes. Sets FA_TOOLS to the cat-harness-tools mount.
+name: Mount the platform's layers
+description: Mount every layer index.lock.json pins, install their dependencies and the root's own, and set FA_TOOLS.
+inputs:
+  root:
+    description: "The harnessed repository's root, relative to the workspace."
+    required: false
+    default: "."
+runs:
+  using: composite
+  steps:
+    - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      with:
+        bun-version: 1.4.4  # the platform's CI version; layer-pr-checks.yml installs the same
+
+    - name: Mount the layers index.lock.json pins
+      shell: bash
+      working-directory: ${{ inputs.root }}
+      run: |
+        if [ ! -f index.lock.json ]; then
+          echo "::error::no index.lock.json at '${{ inputs.root }}': this action mounts a harnessed repository's locked layers"
+          exit 1
+        fi
+        ref=$(python3 -c "import json;print(next(m['ref'] for m in json.load(open('index.lock.json'))['mounts'] if m['harness']=='cat-harness-tools'))")
+        M="$RUNNER_TEMP/mounter"
+        rm -rf "$M"
+        git init -q "$M"
+        git -C "$M" fetch -q --depth 1 https://github.com/litlfred/cat-harness-tools.git "$ref"
+        git -C "$M" checkout -q FETCH_HEAD
+        bun run "$M/scripts/mount-from-lock.ts" --root .
+        echo "FA_TOOLS=cat-harness-tools" >> "$GITHUB_ENV"
+
+    - name: Install the root's own dependencies
+      # A root that declares workspaces (the mounted layers) or dependencies
+      # resolves them through ONE root node_modules (bunfig.toml, hoisted
+      # linker), so a mount's scripts find each other by package name. Frozen
+      # when the root commits a bun.lock.
+      shell: bash
+      working-directory: ${{ inputs.root }}
+      run: |
+        if [ ! -f package.json ]; then exit 0; fi
+        if ! python3 -c "import json,sys;d=json.load(open('package.json'));sys.exit(0 if (d.get('workspaces') or d.get('dependencies')) else 1)"; then exit 0; fi
+        if git ls-files --error-unmatch bun.lock >/dev/null 2>&1; then
+          bun install --frozen-lockfile
+        else
+          bun install --no-save
+        fi

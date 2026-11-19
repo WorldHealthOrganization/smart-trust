@@ -1,0 +1,59 @@
+---
+doc_id: 10665-58534
+doc_title: "Counselling for HIV/AIDS : a key to caring, for policy-makers, planners and implementors of counselling activities"
+section_id: page-026
+section_title: "Page 26"
+pages: 26-26
+pdf_page: 26
+source_pdf: 10665-58534.pdf
+source_sha256: 79af009d1163712c
+text_source: ocr
+granularity: page
+---
+Counselling for HIV/AIDS: A key to caring
+
+of HIV test results by telephone should be discouraged. Box 2 illustrates an example of
+anonymous counselling provided by means of a “hotline”.
+
+Box 2. The AIDS hotline: anonymous counselling
+
+Peter left home at the age of twenty and moved to the city. This was a liberating
+experience for Peter, who had known for several years that he had a sexual preference for
+other men. His formative years had been spent in an environment where intense
+stigmatization against those who practised a homosexual lifestyle and against those who
+might be HIV-positive was the norm. Soon after he arrived in the city, he established 4
+permanent relationship with another man with whom he lived in a committed relationship for
+the next six years. During these six years, Peter never communicated with his parents, who
+did not even know where he was living, because he knew that his father, a senior military
+officer, would be appalled by the fact that he was living with another man.
+
+During these six years, several friends of Peter and his partner became HIV-positive.
+
+Peter started to worry that he too might be HIV-positive. However, since he was well aware
+of the high level of stigma towards homosexuality, he was reluctant to meet any health
+officials in order to discuss this risk. He was delighted to learn of the availability of a
+telephone hotline, through which he could discuss his HIV worries without being identified.
+
+After discussing his sexual history over the telephone with a staff member of an AIDS
+hotline, Peter decided to go for an HIV test at a local counselling and testing centre where he
+was assured of receiving an anonymous HIV test. The result of the test was positive.
+
+The counsellor who gave him the news of his HIV-positive status provided Peter with
+emotional support and then referred him to a counselling service, and to an AIDS support
+organization, that were both nearer to his home, After several months of counselling, and as
+a result of considering all of the options that were presented to him by the counsellor, Peter
+decided to make contact with his parents again.
+
+How are providers of HIV/AIDS counselling services trained?
+
+The design of training programmes is based on the specific objectives of counselling
+service provision in a particular setting and on the pattern of service delivery that is most
+appropriate for meeting these objectives.
+
+Effective training of providers of HIV/AIDS counselling services always has a
+closely-supervised practical component. Therefore, counselling training programmes should
+be designed in such a way that ample opportunity is provided for trainee counsellors to
+receive this practical training and to learn by sharing their experience with the help of a
+supervisor. —_
+
+18

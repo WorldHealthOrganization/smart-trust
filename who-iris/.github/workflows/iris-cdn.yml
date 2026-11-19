@@ -1,0 +1,103 @@
+# The IRIS CDN Exporter's runner (owner, 2026-10-30: "GitHub Actions runs it").
+# Processes: processes/iris-cdn-nightly.bpmn, processes/iris-cdn-reconcile.bpmn.
+# Setup and where each secret lives: docs/iris-cdn-deployment.md.
+#
+# GitHub only RUNS this. Everything it exports goes to Cloudflare: bytes to R2,
+# release history to a git repository on Cloudflare Artifacts. Nothing is
+# written to this repository or its Pages site.
+#
+# Off until the owner sets the repository variable IRIS_CDN_ENABLED=true, so a
+# scheduled run never fails nightly for want of secrets.
+name: IRIS CDN export
+
+on:
+  schedule:
+    - cron: "0 2 * * *"   # nightly change ingest
+    - cron: "0 4 * * 0"   # weekly reconciliation (Sunday)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "nightly or reconcile"
+        required: true
+        default: nightly
+        type: choice
+        options: [nightly, reconcile]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: iris-cdn-export   # never two runs writing the same release history
+  cancel-in-progress: false
+
+jobs:
+  export:
+    if: vars.IRIS_CDN_ENABLED == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    environment: iris-cdn-release   # secrets readable only from main
+    env:
+      MODE: ${{ inputs.mode || (github.event.schedule == '0 4 * * 0' && 'reconcile') || 'nightly' }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      ARTIFACTS_NAMESPACE: ${{ vars.IRIS_CDN_ARTIFACTS_NAMESPACE }}
+      ARTIFACTS_REPO: ${{ vars.IRIS_CDN_ARTIFACTS_REPO }}
+      R2_BUCKET: ${{ vars.IRIS_CDN_R2_BUCKET }}
+      IRIS_CDN_DID: ${{ vars.IRIS_CDN_DID }}
+      IRIS_CDN_KEY_ID: ${{ vars.IRIS_CDN_KEY_ID }}
+      # WHO's signing-DID public key. Verify refuses to run without it.
+      IRIS_CDN_TRUST_ANCHOR_JWK: ${{ vars.IRIS_CDN_TRUST_ANCHOR_JWK }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Mint a one-hour Artifacts write token
+        id: token
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          tok="$(npx --yes wrangler@4.156.0 artifacts repos issue-token "$ARTIFACTS_REPO" --namespace "$ARTIFACTS_NAMESPACE" --scope write --ttl 3600 | grep -o 'art_v1_[0-9a-f]*' | head -1)"
+          [ -n "$tok" ] || { echo "no token issued" >&2; exit 1; }
+          echo "::add-mask::$tok"
+          echo "token=$tok" >> "$GITHUB_OUTPUT"
+
+      - name: Clone the release history from Cloudflare git
+        env:
+          ARTIFACTS_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          set -euo pipefail
+          # The token travels in git's environment config, not on the command line.
+          export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.extraHeader GIT_CONFIG_VALUE_0="Authorization: Bearer $ARTIFACTS_TOKEN"
+          git clone --depth 1 \
+            "https://${CLOUDFLARE_ACCOUNT_ID}.artifacts.cloudflare.net/git/${ARTIFACTS_NAMESPACE}/${ARTIFACTS_REPO}.git" release
+
+      - name: Run the exporter (${{ env.MODE }})
+        env:
+          IRIS_CDN_SIGNING_JWK: ${{ secrets.IRIS_CDN_SIGNING_JWK }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: bun scripts/iris-cdn/run.ts "$MODE" --release release
+
+      - name: Commit and push, only if something changed
+        env:
+          ARTIFACTS_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          set -euo pipefail
+          cd release
+          if [ -z "$(git status --porcelain)" ]; then echo "no change: nothing committed"; exit 0; fi
+          git -c user.name="who-iris CDN exporter" -c user.email="iris-cdn@users.noreply.github.com" \
+            add -A
+          git -c user.name="who-iris CDN exporter" -c user.email="iris-cdn@users.noreply.github.com" \
+            commit -q -m "IRIS CDN ${MODE} $(date -u +%Y-%m-%d)" -m "Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.extraHeader GIT_CONFIG_VALUE_0="Authorization: Bearer $ARTIFACTS_TOKEN"
+          git push origin HEAD
+
+      # Task_Verify. A failure here is reported loudly; reverting the release
+      # (Task_Revert) is a manual step for now: git revert in the release repo.
+      - name: Verify the published release (did:web + JWS + tag digests)
+        run: |
+          set -euo pipefail
+          if [ ! -f release/tagmanifest-sha256.txt.jws ]; then echo "no release yet"; exit 0; fi
+          bun scripts/iris-cdn/run.ts verify --release release

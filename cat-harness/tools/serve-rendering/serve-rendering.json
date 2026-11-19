@@ -1,0 +1,77 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "serve-rendering",
+    "title": "Local rendering server",
+    "description": "Serve a layer's renderings over local HTTP with their declared media types. The publication host wherever GitHub Pages is absent, and the only host that can enforce `application/ld+json` at all.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat serve:rendering"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "directory",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Tree to serve; defaults to the built site when present.",
+          "required": false,
+          "arg": {
+            "flag": "--dir"
+          }
+        },
+        {
+          "name": "port",
+          "schema": {
+            "$type": "Port"
+          },
+          "description": "0 binds a free port, which is what the tests use.",
+          "required": false,
+          "arg": {
+            "flag": "--port"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "url",
+          "schema": {
+            "$type": "Url"
+          },
+          "description": "Where the tree is being served.",
+          "render": {
+            "as": "url",
+            "reason": "a reader opens it; the scheme is checked before it reaches an href"
+          }
+        }
+      ]
+    },
+    "satisfies": [
+      "serving-renderings"
+    ],
+    "selection": {
+      "when": "Serving renderings in a Bun / JavaScript / TypeScript runtime environment.",
+      "limits": "Requires Bun runtime. For Python-only environments without Bun, use `serve-rendering-py`.",
+      "cost": "Zero install cost when Bun is already present."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/requires",
+      "comment": "No network: it BINDS one, it does not reach out. `requires.network`\nmeans \"needs egress\", and conflating the two would mark this\nunavailable on exactly the air-gapped topology it exists for."
+    },
+    {
+      "at": "",
+      "comment": "── The other publication host ────────────────────────────────────────\n\n`pages-publish` above is one value of the `publication host` axis in\n`docs/proposals/deployment-topologies.md`. Four topologies in #363 do\nnot have it at all — local git only, private repo, developer and\nself-sovereign — and before this node they had no publication\nmechanism, only a skill saying what one would have to do.\n\nTWO tools satisfy `serving-renderings` (discharging bean `0hi8` Done-when\nitem 2: \"at least two tools satisfy it, because one is an assertion and\ntwo is a demonstration\"):\n1. `serve-rendering` (Bun / TypeScript)\n2. `serve-rendering-py` (Python 3 standard library)\n\nBoth conform to `skills/requirements/serving-a-rendering.json` and share\nthe same signature, so they are derived alternatives with explicit\n`selection` records."
+    }
+  ]
+}
