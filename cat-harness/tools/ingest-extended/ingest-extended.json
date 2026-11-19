@@ -1,0 +1,80 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "ingest-extended",
+    "title": "Ingest, with PDF and image extensions",
+    "description": "Ingest a PDF into `library/` — embedded outline, page text, OCR for scans, and image extraction — using PyMuPDF, tesseract and pypdf with Pillow.",
+    "install": {
+      "cli": "bun run cat ingest:install-extended"
+    },
+    "invoke": {
+      "shell": "bun run cat ingest"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "file",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The PDF to ingest, under the declared `uploads` graph.",
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "outdir",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--outdir"
+          }
+        },
+        {
+          "name": "dryRun",
+          "schema": {
+            "$type": "Flag"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--dry-run"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "slug",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "The library entry written."
+        }
+      ]
+    },
+    "satisfies": [
+      "library-ingestion"
+    ],
+    "selection": {
+      "when": "Reach for this when the upload is a PDF and you need its CONTENT — an outline-bearing document read at chapter granularity, a text-layer document read at page granularity, or a scan that must be OCR'd first. Confirm the backend is present before relying on it: `bun run cat check-deps`, or simply run the pair's entry point, which reports `no PDF backend` rather than guessing.",
+      "limits": "It adds nothing for archives, spreadsheets or metadata — `ingest-stdlib` does those, and does them where this cannot run. Its PDF rungs are tested in CI, which installs the lean set; the table rung (`pdf-tables.py`, camelot) is not, so anything gated on it is a path CI cannot exercise.",
+      "cost": "The lean set is 144 MB and CI installs it. `camelot-py` for `pdf-tables.py` is the part CI skips — 912 KB itself, but 323 MB with numpy, pandas and OpenCV, more than the whole lean set. The dependencies are not independent either: `pypdf` image extraction needs `Pillow`, and `cryptography` panics under pyo3 on IMPORT when `cffi` is missing. All of it is declared in `schemas/sdlc/python-deps.ts`, so the cost is read rather than rediscovered."
+    },
+    "requires": {
+      "runtime": [
+        "python3",
+        "pymupdf",
+        "tesseract"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/install",
+      "comment": "The requirements file, NOT a pip line spelled out here. That line was\na second spelling of `schemas/sdlc/python-deps.ts` and would have drifted\nfrom it — it already omitted `cryptography`, which the declaration's\nown checker caught. `requirements.txt` is generated from the\ndeclaration; the apt packages are not pip-installable and stay named."
+    }
+  ]
+}

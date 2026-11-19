@@ -1,0 +1,77 @@
+---
+doc_id: 10665-67132
+doc_title: "Breastfeeding and replacement feeding practices in the context of mother-to-child transmission of HIV : an assessment tool for research"
+section_id: page-032
+section_title: "Page 32"
+pages: 32-32
+pdf_page: 32
+source_pdf: 10665-67132.pdf
+source_sha256: 2c2fb689392e00e3
+text_source: ocr
+granularity: page
+---
+10 References
+4. UNAIDS/WHO. AIDS epidemic update: December 2000. 2000.
+
+2. De Cock KM, Fowler MG, Mercier E, et al. Prevention of mother-to-child HIV transmission
+in resource-poor countries - Translating research into policy and practice. JAMA
+2000;283(9):1175-1182.
+
+3. John GC, Nduati RW, MboriNgacha DA, et al. Correlates of mother-to-child human
+immunodeficiency virus type 1 (HIV-1) transmission: Association with maternal plasma
+HIV-1 RNA load, genital HIV-1 DNA shedding, and breast infections. J Infec Dis
+2001;183(2):206-212.
+
+4. Semba RD, Kumwenda N, Hoover DR, et al. Human immunodeficiency virus load in
+breast milk, mastitis, and mother- to-child transmission of human immunodeficiency virus
+type 1..J Infect Dis 1999;180(1):93-8.
+
+5. Miotti PG, Taha TE, Kumwenda NI, et al. HIV transmission through breastfeeding: a study
+in Malawi. Jama 1999;282(8):744-9.
+
+6. Nduati R, John G, MboriNgacha D, et al. Effect of breastfeeding and formula feeding on
+transmission of HIV-1 - A randomized clinical trial. JAMA 2000;283(9):1167-1174.
+
+7. Leroy V, Newell ML, Dabis F, et al. International multicentre pooled analysis of late
+postnatal mother-to- child transmission of HIV-1 infection. Ghent International Working
+Group on Mother-to-Child Transmission of HIV. Lancet 1998;352(9128):597-600.
+
+8. Embree JE, Njenga S, Datta P, et al. Risk factors for postnatal mother-child transmission
+of HIV-1. Aids 2000;14(16):2535-2541.
+
+9. Richardson B, John G, Hughes J, Nduati R, Mbori Ngacha D, Kreiss J. Breast milk
+infectivity of HIV-1 infected mothers. 13th International AIDS Conference 2000, Durban,
+South Africa.
+
+40.Ekpini ER, Wiktor SZ, Satten GA, et al. Late postnatal mother-to-child transmission of HIV-
+1 in Abidjan, Cote d'lvoire. Lancet 1997;349(9058):1054-9.
+
+11.Filteau SM, Lietz G, Mulokozi G, Bilotta S, Henry CJ, Tomkins AM. Milk cytokines and
+subclinical breast inflammation in Tanzanian women: effects of dietary red palm oil or
+sunflower oil supplementation. Immunology 1999;97(4):595-600.
+
+142.Coutsoudis A, Pillay K, Spooner E, Kuhn L, Coovadia HM. Influence of infant-feeding
+patterns on early mother-to-child transmission of HIV-1 in Durban, South Africa: a
+prospective cohort study. South African Vitamin A Study Group. Lancet
+1999;354(9177):471-6.
+
+13.Coutsoudis A, Pillay K, Kuhn L, Spooner E, Tsai WY, Coovadia HM. Method of feeding
+and transmission of HIV-1 from mothers to children by 15 months of age: prospective
+cohort study from Durban, South Africa. Aids 2001;15(3):379-387.
+
+14.Smith MM, Kuhn L. Exclusive breast-feeding: Does it have the potential to reduce breast-
+feeding transmission of HIV-1? Nutr Rev 2000;58(11):333-340.
+
+15.Preble E, Piwoz E. HIV and infant feeding: a Chronology and Research and Policy
+Advances and their Implications for Programs. Academy for Educational Development,
+Washington D.C. 1998.
+
+16.WHO. Indicators for assessing breastfeeding practices. 1991. WHO/CDD/SER/91.4
+
+47.WHO. 1981. International Code of Marketing of Breast-milk Substitutes.
+http://www.who.int/nut/documents/code_english.PDF
+
+18.WHO/UNICEF/UNAIDS. HIV and Infant Feeding: guidelines for decision makers.
+1998: WHO/FRH/NUT/CHD/98.1.
+
+32

@@ -1,0 +1,42 @@
+{
+  "$schema": "folio-vocab-mapping/v1",
+  "id": "licence-naming",
+  "title": "Licensed resource → its licence (glossary and library item alike)",
+  "status": "active",
+  "description": "How a published resource names the licence it is under, for every emitter that has one: an authored glossary's concept scheme (folio-assistant-core/schemas/glossary.ts toSkos) and a library item's manifest (cat-harness-tools/pipeline/gen-library-jsonld.ts). One row for both, so an RDF reader finds the licence as dcterms:license on either (finding D4 of docs/proposals/vocabulary-mappings-2026-10-02.md, bean gzkt). Before it, a library item's licence was meta.licence inside an opaque @json literal, which no graph reader can see. Owner ruling, 2026-10-03: move it. The value is the licence's identifier as written (an SPDX expression or a URL), a literal, as the glossary has always written it. A licence that is not known is never named: an `unknown` record writes no dcterms:license, and an absent record writes nothing at all. How the licence was established (status, basis, the places searched) is the record, kept verbatim under licenceRecord, because the three-state rule lives in it and only an @json literal keeps it whole.",
+  "group": [
+    {
+      "source": "dcterms:LicenseDocument",
+      "target": "dcterms:",
+      "element": [
+        {
+          "code": "license",
+          "target": [
+            {
+              "code": "license",
+              "relationship": "equivalent",
+              "transform": "code",
+              "comment": "Prepared in code. A glossary copies its `license` field. A library item writes its licence.json `id` only when `status` is `stated`; an `unknown` record has no licence to name, so nothing is written rather than a value invented."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source": "dcterms:LicenseDocument",
+      "target": "cat-harness:",
+      "element": [
+        {
+          "code": "licenceRecord",
+          "target": [
+            {
+              "code": "licenceRecord",
+              "relationship": "related-to",
+              "comment": "A library item's authored licence.json, verbatim (schemas/library/source-licence.ts): the record check:source-licence judges. An @json literal on purpose, by the split CONTENT_CONTEXT states: a fact queried across documents gets a real term (dcterms:license, above); a nested structure that is ours keeps its nulls and its `unknown` state only as @json. A glossary has no such record and writes nothing here."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

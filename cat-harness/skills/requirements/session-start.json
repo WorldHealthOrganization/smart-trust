@@ -1,0 +1,66 @@
+{
+  "id": "req:session-start",
+  "title": "Session Start Protocol",
+  "description": "Every agent session must detect the user role and check environment capabilities before proceeding.",
+  "derivedFrom": [
+    "req:agent-workflow"
+  ],
+  "actors": [
+    "viewer",
+    "reviewer",
+    "author",
+    "admin"
+  ],
+  "statements": [
+    {
+      "key": "detect-role",
+      "label": "Detect user role",
+      "conformance": "SHALL",
+      "requirement": "The agent MUST determine the user's role at session start by checking identity sources against the role assignment table.",
+      "_comment": "Was `capability:role-detection`, which has never existed. Capabilities in this layer are ENVIRONMENT PROBES — `detection: { method: \"command\" }` — and role detection is not one: it is the actor registry plus `role-assignments.json` read against the session's identity. The skill that documents that mechanism is what an agent opens to satisfy this statement. Corrected 2026-09-18, bean m4zg.",
+      "successCriteria": [
+        {
+          "key": "role-resolved-from-table",
+          "criterion": "The agent session log records the resolved user role derived from role-assignments.json.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "check-capabilities",
+      "label": "Check environment capabilities",
+      "conformance": "SHALL",
+      "requirement": "The agent MUST probe for all capabilities referenced by skills the user's role can access.",
+      "dependsOn": [
+        "detect-role"
+      ],
+      "successCriteria": [
+        {
+          "key": "capabilities-probed",
+          "criterion": "Capability probes execute for all capabilities required by skills available to the detected role.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "check-todos",
+      "label": "Check open todos",
+      "conformance": "SHOULD",
+      "requirement": "The agent SHOULD check for open todos and present a summary to the user.",
+      "dependsOn": [
+        "detect-role"
+      ],
+      "successCriteria": [
+        {
+          "key": "todos-checked-at-startup",
+          "criterion": "The session initialization output includes an open todo count or work plan summary.",
+          "verification": "inspection"
+        }
+      ]
+    }
+  ],
+  "tags": [
+    "common",
+    "session"
+  ]
+}

@@ -1,0 +1,69 @@
+---
+doc_id: 10665-58534
+doc_title: "Counselling for HIV/AIDS : a key to caring, for policy-makers, planners and implementors of counselling activities"
+section_id: page-043
+section_title: "Page 43"
+pages: 43-43
+pdf_page: 43
+source_pdf: 10665-58534.pdf
+source_sha256: 79af009d1163712c
+text_source: ocr
+granularity: page
+---
+WHO/GPA/TCO/HCS/9S. 15
+
+Step Two:
+
+The coordinator will also be responsible for preparing or commissioning the
+preparation of a report on the current status of counselling services in the
+country, region or institution for which policies are to be developed. This
+report will include:
+
+- up-to-date epidemiological information on HIV/AIDS and a brief
+discussion of the implications of this information for the policy-makers
+and planners of HIV/AIDS counselling services;
+
+- an assessment of the existing, and likely future, demand for HIV/AIDS
+counselling services;
+
+- a description of existing services including:
+
+* details of institutions providing services;
+
+* details of existing counselling training programmes; and
+
+* an assessment of the strengths and weaknesses of existing
+services,
+
+Annexes to the report will include copies of relevant documents that help to
+describe the current status of services such as:
+
+- written counselling policies that are already operative;
+
+= written procedures that are already in place in locations where
+HIV/AIDS counselling is being undertaken;
+
+- current counselling training programmes;
+
+- summaries of any reports or evaluations of services that are available.
+
+Identification and prioritization of issues in HIV/AIDS counselling that
+require policy development or amendment.
+
+Each of the participants in the policy-making process (such as those listed in
+step one) should be asked to submit a list of priority issues that require policy
+development or amendment. This is done after they have read these
+guidelines and have had the opportunity to consult. with colleagues and
+constituents. It may be appropriate to organize a short workshop at which
+clarification of some of the issues that are discussed in these guidelines, and of
+issues that are raised by the participants, is undertaken before a final list of
+critical policy issues is drawn up and agreed. It is to be expected that issues
+raised during this step will vary greatly from setting to setting depending on
+the local context. For example, in a setting where HIV prevalence is high,
+there may be a need for policy development, particularly as regards the
+question of “who are the counsellors?” In a setting where HIV prevalence is
+low, but where levels of potential discrimination against HIV-infected persons
+may be higher, the main issue may relate to the need for firmly-stated policies
+on issues of confidentiality and partner notification.
+
+35

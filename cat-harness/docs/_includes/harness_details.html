@@ -1,0 +1,202 @@
+{%- comment -%}
+  WHAT EACH HARNESS HOLDS — the counts and the viewers, on the page the
+  sidebar tab opens.
+
+  Owner, 2026-09-21, having seen the fat tiles: *"those are too much like a
+  dashboard, i want them to be more like diverders"*, and, asked where the
+  counts and viewer links should go rather than be dropped: **inside the
+  section it opens**. So the sidebar became purely navigational and this is
+  the other half of that move. Nothing was deleted.
+
+  ANCHORED per instance — `#harness-<name>` — so a tab can point at a section
+  rather than only at a page. Both instantiated harnesses in this repository
+  resolve their folio view to the site root, which is why this is included
+  from `index.md`; an instance that generates its own docs publishes its own
+  page, and `harness-tiles.ts` reports that as a finding rather than this
+  template guessing.
+
+  Every value is GENERATED into `docs/_data/harness.json` and gated by
+  `docs:harness:check`. This template decides nothing.
+
+  `instance=<name>` renders ONE harness's section, for the landing page an
+  instance generates for itself (`fhir-harness/scripts/gen-ig-pages.ts
+  --summary`; #1767). Same data, same markup, so the site root and the
+  instance's own page cannot describe the instance two ways. The heading does
+  not link there, because "there" is the page it is on.
+{%- endcomment -%}
+{%- assign tiles = site.data.harness.harnesses -%}
+{%- if include.instance -%}
+{%- assign instantiated = tiles | where: "name", include.instance -%}
+{%- else -%}
+{%- assign instantiated = tiles | where: "instantiated", true -%}
+{%- endif -%}
+{%- comment -%} `lang="en" dir="ltr"` (bean `giiw`): this section is English
+  on every locale's page — the heading and lead here, the instances' own
+  labels and summaries in `harness.json` — and nothing translates it. On the
+  Arabic home page it inherited `dir="rtl"`, so each sentence's full stop and
+  each count's colon were laid out at the wrong end. The attributes say what
+  the text IS, so they hold on an English page too. {%- endcomment -%}
+{%- if instantiated.size > 0 -%}
+<section class="fa-harness-sections" id="harnesses" lang="en" dir="ltr">
+  {%- unless include.instance -%}
+  <h2 id="harnesses-heading">What each harness holds</h2>
+  <p class="fa-harness-sections__lead">
+    One section per instantiated harness, in the same order as the dividers in
+    the sidebar — the floor last.
+  </p>
+  {%- endunless -%}
+  {%- for t in instantiated -%}
+  <section class="fa-harness-section" id="harness-{{ t.name }}"
+           style="--fa-tile-tone: {{ t.tone }}; --fa-tile-on: {% if t.genericAvatar %}0{% else %}1{% endif %}">
+    <h3 class="fa-harness-section__title" id="harness-{{ t.name }}-heading">
+      {%- if t.href and include.instance == nil -%}
+      <a href="{{ t.href | relative_url }}">{{ t.label | default: t.title }}</a>
+      {%- else -%}
+      {{ t.label | default: t.title }}
+      {%- endif -%}
+    </h3>
+    {%- comment -%} The READER's line: `summary` when the instance declares
+    one, else the description (`ob3m` 4/5 — a description is written for an
+    author). Backtick spans render as <code> rather than showing their markers
+    (bean `mylx`). `markdownify` wraps its output in one <p>, which the
+    existing paragraph already is.
+    {%- endcomment -%}
+    {%- assign t_line = t.summary | default: t.description -%}
+    {%- if t_line and t_line != "" -%}
+    <p class="fa-harness-section__description">{{ t_line | markdownify | remove: "<p>" | remove: "</p>" | strip }}</p>
+    {%- endif -%}
+    {%- if t.alsoWritten and t.alsoWritten.size > 0 -%}
+    <p class="fa-harness-section__also">Also written:
+      {%- for w in t.alsoWritten %} <code>{{ w }}</code>{% unless forloop.last %},{% endunless %}{%- endfor -%}
+    </p>
+    {%- endif -%}
+    {%- if t.stats.size > 0 -%}
+    <dl class="fa-harness-section__stats">
+      {%- for s in t.stats -%}
+      <div class="fa-harness-section__stat" data-fa-stat="{{ s.id }}">
+        <dt>{{ s.label }}</dt>
+        <dd>{{ s.value }}</dd>
+      </div>
+      {%- endfor -%}
+    </dl>
+    {%- endif -%}
+    {%- comment -%} ONE NAME PER DESTINATION (bean `ob3m` finding 6): a kind
+    whose page is another kind's row carries `sameAs` and is listed once,
+    under the label `harness-tiles.ts` gave it. {%- endcomment -%}
+    {%- assign open = t.visualisations | where_exp: "v", "v.path" | where_exp: "v", "v.sameAs == nil" -%}
+    {%- comment -%}
+      A `publish: staging-only` viewer (fsh-guts) is withheld from the
+      canonical deploy, so it opens only on a staging preview: the rule
+      `gen-navbar-include.ts` already applies to the navbar, read from the
+      same `site.data.build.staging_slug`. Without it the home page linked
+      `/en/cat-harness/fsh-guts/`, which the canonical site never serves
+      (fa#2739).
+    {%- endcomment -%}
+    {%- assign _fa_staging = site.data.build.staging_slug | default: '' -%}
+    {%- if _fa_staging == '' -%}
+    {%- assign open = open | where_exp: "v", "v.stagingOnly != true" -%}
+    {%- endif -%}
+    {%- comment -%}
+      The viewers, which are NOT the same thing as the tab's target and the
+      split is the owner's: `/who-iris/` is who-iris presenting itself,
+      `/library/who-iris/` is the cat-harness handler's default rendering of
+      its library. The tab opens the first; these reach the second.
+    {%- endcomment -%}
+    {%- if open.size > 0 -%}
+    {%- comment -%}
+      THE TWO GREYS, on the surface where they actually occur.
+
+      A kind with no `path` is already excluded above — there is nothing to
+      open. A kind that IS published and `readOnly` opens perfectly and refuses
+      an edit, and it is the one that offers the copy-out. Marking it here and
+      not only on the graph-tile surface is a correction: the mark shipped on
+      the tiles first, and `readOnly` is never populated on that surface in
+      this repository, so the CSS and the JS were live and the mark appeared
+      ZERO times on any deployed page. Caught by reading the staging deploy
+      rather than by re-reading the diff.
+
+      `== true`, not truthiness: absent means NOT DECLARED — a third state,
+      and not a claim that the kind is writable.
+
+      AND THIS MARK IS ITSELF UNEXERCISED TODAY, which is said here rather
+      than discovered later. This list holds only kinds WITH a `path`, and no
+      kind in this repository is both published and read-only — all three
+      frozen ones lack a viewer. So the fact is also stated as a FINDING by
+      `harness-tiles.ts`, where the gap cannot hide it, and that is what a
+      reader sees now. This branch is kept because it is correct the moment a
+      frozen kind gains a viewer, and because the alternative — adding it then
+      — is how the first attempt came to ship a mark with nothing to style.
+    {%- endcomment -%}
+    <ul class="fa-harness-section__viewers">
+      {%- for v in open -%}
+      <li>
+        <a href="{{ v.path | relative_url }}"
+           {%- if v.readOnly == true %} data-fa-readonly
+           title="materialized content: readable, not editable here"{% endif -%}
+        >{{ v.label | default: v.kind }}</a>
+        {%- if v.readOnly == true -%}
+        <span class="fa-readonly-note">read-only</span>
+        {%- endif -%}
+      </li>
+      {%- endfor -%}
+    </ul>
+    {%- else -%}
+    <p class="fa-harness-section__gap">Nothing published to open yet.</p>
+    {%- endif -%}
+    {%- comment -%}
+      LOCAL AND REMOTE — `603s`'s last item: *"a tab for all materizled local
+      subgraphs and declared remote graphs. opening up content should indicate
+      if local or remote"*. Here, on the page the harness tab OPENS, and not in
+      the sidebar: the owner's `owt6` ruling, "dividers, not a dashboard".
+
+      Folded on arrival — the viewers above are what a reader came for — and a
+      `<details>` so it opens from the keyboard and announces its own state.
+      The where-tag is TEXT inside the row, not a colour: "local" and "remote"
+      read the same with no stylesheet and to a screen reader (`gjli`).
+      A remote row links OUT and says so; a local row names its path and
+      links nowhere, because a directory is not a page.
+    {%- endcomment -%}
+    {%- if t.subgraphs and t.subgraphs.size > 0 -%}
+    {%- assign t_local = t.subgraphs | where: "where", "local" -%}
+    {%- assign t_remote = t.subgraphs | where: "where", "remote" -%}
+    <details class="fa-harness-section__subgraphs">
+      <summary>Subgraphs — {{ t_local.size }} local, {{ t_remote.size }} remote</summary>
+      <ul>
+        {%- for g in t.subgraphs -%}
+        <li data-fa-where="{{ g.where }}">
+          <span class="fa-harness-section__where">{{ g.where }}</span>
+          {%- if g.where == "remote" %}
+          <a href="{{ g.url }}" rel="noopener">{{ g.id }}</a>
+          {%- if g.via == "subscription" %} <span class="fa-harness-section__via">subscribed at <code>{{ g.ref }}</code></span>{% endif -%}
+          {%- if g.materialised and g.materialised.size > 0 %} <span class="fa-harness-section__via">materialised here: {{ g.materialised | join: ", " }}</span>{% endif -%}
+          {%- else %}
+          <code>{{ g.id }}</code> <span class="fa-harness-section__via">{{ g.path }}</span>
+          {%- endif -%}
+          {%- if g.kinds.size > 0 %} <span class="fa-harness-section__kinds">· {{ g.kinds | join: ", " }}</span>{% endif -%}
+        </li>
+        {%- endfor -%}
+      </ul>
+    </details>
+    {%- endif -%}
+    {%- comment -%}
+      THE FINDINGS, shown rather than kept in the data file. Each one names
+      something a reader can act on — a graph declared with no viewer, a
+      viewer published for a graph nobody declared, an icon that cannot be
+      turned into a published path. Hiding them would make "declared and not
+      rendered" and "rendered and not declared" both invisible, which is the
+      state they were in before `harness-tiles.ts` reported them at all.
+    {%- endcomment -%}
+    {%- if t.findings.size > 0 -%}
+    <details class="fa-harness-section__findings">
+      <summary>Gaps in this instance's declaration ({{ t.findings.size }})</summary>
+      <ul>
+        {%- for f in t.findings -%}
+        <li>{{ f | markdownify | remove: "<p>" | remove: "</p>" | strip }}</li>
+        {%- endfor -%}
+      </ul>
+    </details>
+    {%- endif -%}
+  </section>
+  {%- endfor -%}
+</section>
+{%- endif -%}

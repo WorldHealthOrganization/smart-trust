@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_Process_QuestionnaireWireframeReview" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:collaboration id="Collaboration_Process_QuestionnaireWireframeReview">
+    <bpmn:participant id="Participant_Process_QuestionnaireWireframeReview" name="Is the Questionnaire the form its users and its wireframe need?" processRef="Process_QuestionnaireWireframeReview"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_QuestionnaireWireframeReview" name="Questionnaire wireframe review" isExecutable="false">
+    <bpmn:documentation>A built FHIR Questionnaire shown the way a person will meet it — a mid-fidelity wireframe at web and mobile width, and a live LHC-Forms form view — checked field for field against the L2 wireframe it was derived from, reviewed as a design, staged with deep links, and changed through requests that say which side was edited. Operating skill: fhir-questionnaire-wireframe.
+
+WHERE IT SITS. After SUSHI has compiled the Questionnaire to JSON (l3-fhir-pipeline, Task_Sushi), and wherever a layer above reviews a Questionnaire's fidelity to its wireframe. It reads JSON only, so it can run on any IG that produces a Questionnaire.
+
+WHAT IT DOES NOT CLAIM. A faithful Questionnaire is not therefore a good form, and an accepted form is not therefore conformant: wireframe-design-review judges the first and fhir-validation the second.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_QuestionnaireWireframeReview">
+      <bpmn:lane id="Lane_Modeller" name="FHIR modeller">
+        <bpmn:documentation>Owns the Questionnaire end to end: reads the BUILT JSON, draws the wireframe and the form view, asks for review with deep links, triages the change requests that come back and applies each to the side the request did not touch, so the Questionnaire and its L2 wireframe agree again. It is also the only lane with a path back to the start: every accepted change re-enters at Task_Read, so a change is rendered, checked and reviewed exactly as the first version was.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="fhir-modeller"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_Built</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Read</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Render</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AskReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Triage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Apply</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Build" name="Build pipeline — rendering, screenshots, fidelity">
+        <bpmn:documentation>The mechanical steps: screenshots at both viewports (wireframe-check), the field-for-field fidelity check against the L2 wireframe when there is one, and the staging build. A fidelity finding does not stop the run here; it travels into the review as evidence, because whether a mismatch is the wireframe's fault or the Questionnaire's is the change request's call, not the checker's.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="build-pipeline"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_Screens</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_L2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Fidelity</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Stage</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_BA" name="Business analyst — design review">
+        <bpmn:documentation>Reviews the rendered form as a design against the workflow it serves, through wireframe-design-review: blind, per criterion, at web and mobile width, adjudicated where reviewers disagree. Whether the form lets its user do the task is the business analyst's question, not the modeller's, who drew it.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="business-analyst"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Call_Review</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Clinical" name="Clinical reviewer — the staged form">
+        <bpmn:documentation>Reads the staged form view and wireframe at the deep links Task_AskReview sent, and judges what the form asks and in what order. The only lane that can send the Questionnaire back: a change is requested through ✍ suggest or the questionnaire-change issue form, on either side, and nothing else re-opens the loop.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="clinical-sme"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_ReviewStaged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Change</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Accepted</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Built" name="Questionnaire built">
+      <bpmn:documentation>Reached after SUSHI has compiled the Questionnaire to JSON (l3-fhir-pipeline, Task_Sushi), or when a published Questionnaire is reviewed as-is.</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_Read" name="Read the built&#10;Questionnaire JSON">
+      <bpmn:documentation>fsh-generated/resources/Questionnaire-&lt;id&gt;.json, or the IG's published Questionnaire-&lt;id&gt;.json — never FSH. The JSON is what every renderer and reader receives, so it is what is judged.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="fhir-questionnaire-wireframe"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Render" name="Render the wireframe&#10;and the LHC-Forms view">
+      <bpmn:documentation>A mid-fidelity wireframe with one field per answerable item, each carrying data-element and sitting in a data-layout web or mobile subtree; and the form view, the same JSON in the vendored &lt;lhc-forms&gt; web component on the IG site's form page. Never loaded from a CDN at runtime.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="fhir-questionnaire-wireframe"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:serviceTask id="Task_Screens" name="Screenshots, web and mobile">
+      <bpmn:documentation>cat-harness Tool wireframe-check: 1280×800 and 390×844; renders, no-overflow and no-placeholder, each a script entry. A rendering missing either viewport does not enter review.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="wireframe-design-review"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_L2" name="L2 wireframe&#10;exists?">
+      <bpmn:documentation>Answered by the input: was this Questionnaire derived from an L2 wireframe (a chosen wireframe-design-review candidate)? `yes` runs the fidelity check; `no` goes straight to review.</bpmn:documentation>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Fidelity" name="Check field for field">
+      <bpmn:documentation>fhir-harness/scripts/check-wireframe-questionnaire.ts &lt;wireframe.html&gt; &lt;Questionnaire.json&gt;, per layout. Exit 0 faithful, 1 a finding, 2 cannot tell, which is never a pass. The findings become the output's fidelity[] and are shown to the reviewers.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="fhir-questionnaire-wireframe"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:callActivity id="Call_Review" name="Design review" calledElement="Process_WireframeDesignReview">
+      <bpmn:documentation>cat-harness Process_WireframeDesignReview: as-is use for a form that exists, design use for one being designed. This process does not restate the method.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="wireframe-design-review"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:serviceTask id="Task_Stage" name="Stage the renderings">
+      <bpmn:documentation>The branch's wireframes and form pages published under branches/&lt;slug&gt;/ by feature-staging.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="feature-staging"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:task id="Task_AskReview" name="Ask for review with&#10;deep links">
+      <bpmn:documentation>One deep link per rendered Questionnaire and wireframe, before and after. Where the request goes — the conversation, an issue, the pull request — is a judgement, and more than one may be right: staging-review's deep-link rule, point 5.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="staging-review"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Task_ReviewStaged" name="Review the staged&#10;form and wireframe">
+      <bpmn:documentation>At the deep links. A change is requested through ✍ suggest in its Questionnaire mode, or the questionnaire-change issue form, and says which side was edited: the Questionnaire or the wireframe.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="fhir-questionnaire-wireframe"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_Change" name="Change&#10;requested?">
+      <bpmn:documentation>Answered by whether a change request (an issue) was opened against this Questionnaire during the review. `no` accepts; `yes` goes to triage.</bpmn:documentation>
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Accepted" name="Form accepted">
+      <bpmn:documentation>The Questionnaire and its wireframe agree and the reviewers raised no change. Conformance is still fhir-validation's to decide.</bpmn:documentation>
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_Triage" name="Triage the change&#10;request">
+      <bpmn:documentation>content-feedback triages the issue; when a review round is open it joins a change-set through public-comment instead.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-feedback"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Task_Apply" name="Apply it to the other side">
+      <bpmn:documentation>The side the request edited is the source of the change. An edited Questionnaire is applied as an FSH edit and the wireframe is redrawn to match; an edited wireframe is kept and the Questionnaire re-derived from it. Then back to Task_Read.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_Built" targetRef="Task_Read"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Read" targetRef="Task_Render"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_Render" targetRef="Task_Screens"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_Screens" targetRef="GW_L2"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="GW_L2" targetRef="Task_Fidelity" name="yes"/>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="GW_L2" targetRef="Call_Review" name="no"/>
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_Fidelity" targetRef="Call_Review"/>
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Call_Review" targetRef="Task_Stage"/>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_Stage" targetRef="Task_AskReview"/>
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Task_AskReview" targetRef="Task_ReviewStaged"/>
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Task_ReviewStaged" targetRef="GW_Change"/>
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="GW_Change" targetRef="End_Accepted" name="no"/>
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="GW_Change" targetRef="Task_Triage" name="yes"/>
+    <bpmn:sequenceFlow id="Flow_14" sourceRef="Task_Triage" targetRef="Task_Apply"/>
+    <bpmn:sequenceFlow id="Flow_15" sourceRef="Task_Apply" targetRef="Task_Read"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_QuestionnaireWireframeReview">
+    <bpmndi:BPMNPlane id="Plane_Process_QuestionnaireWireframeReview" bpmnElement="Collaboration_Process_QuestionnaireWireframeReview">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_QuestionnaireWireframeReview" bpmnElement="Participant_Process_QuestionnaireWireframeReview" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="1860" height="680" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Modeller" bpmnElement="Lane_Modeller" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="1830" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Build" bpmnElement="Lane_Build" isHorizontal="true">
+        <dc:Bounds x="90" y="230" width="1830" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_BA" bpmnElement="Lane_BA" isHorizontal="true">
+        <dc:Bounds x="90" y="400" width="1830" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Clinical" bpmnElement="Lane_Clinical" isHorizontal="true">
+        <dc:Bounds x="90" y="570" width="1830" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Built" bpmnElement="Start_Built">
+        <dc:Bounds x="122" y="127" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="119" y="162.5" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Read" bpmnElement="Task_Read">
+        <dc:Bounds x="210" y="85" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Render" bpmnElement="Task_Render">
+        <dc:Bounds x="390" y="85" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Screens" bpmnElement="Task_Screens">
+        <dc:Bounds x="570" y="255" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_L2" bpmnElement="GW_L2" isMarkerVisible="true">
+        <dc:Bounds x="745" y="290" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="725" y="251" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Fidelity" bpmnElement="Task_Fidelity">
+        <dc:Bounds x="850" y="255" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Review" bpmnElement="Call_Review">
+        <dc:Bounds x="1030" y="425" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Stage" bpmnElement="Task_Stage">
+        <dc:Bounds x="1210" y="255" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AskReview" bpmnElement="Task_AskReview">
+        <dc:Bounds x="1390" y="85" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReviewStaged" bpmnElement="Task_ReviewStaged">
+        <dc:Bounds x="1570" y="595" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Change" bpmnElement="GW_Change" isMarkerVisible="true">
+        <dc:Bounds x="1745" y="630" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Accepted" bpmnElement="End_Accepted">
+        <dc:Bounds x="1852" y="637" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Triage" bpmnElement="Task_Triage">
+        <dc:Bounds x="1740" y="85" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Apply" bpmnElement="Task_Apply">
+        <dc:Bounds x="1570" y="85" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="158" y="145" />
+        <di:waypoint x="210" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_2" bpmnElement="Flow_2">
+        <di:waypoint x="330" y="145" />
+        <di:waypoint x="390" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_3" bpmnElement="Flow_3">
+        <di:waypoint x="510" y="145" />
+        <di:waypoint x="540" y="145" />
+        <di:waypoint x="540" y="315" />
+        <di:waypoint x="570" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_4" bpmnElement="Flow_4">
+        <di:waypoint x="690" y="315" />
+        <di:waypoint x="745" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_5" bpmnElement="Flow_5">
+        <di:waypoint x="795" y="315" />
+        <di:waypoint x="850" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_6" bpmnElement="Flow_6">
+        <di:waypoint x="770" y="340" />
+        <di:waypoint x="770" y="485" />
+        <di:waypoint x="1030" y="485" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_7" bpmnElement="Flow_7">
+        <di:waypoint x="970" y="315" />
+        <di:waypoint x="1000" y="315" />
+        <di:waypoint x="1000" y="485" />
+        <di:waypoint x="1030" y="485" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_8" bpmnElement="Flow_8">
+        <di:waypoint x="1150" y="485" />
+        <di:waypoint x="1180" y="485" />
+        <di:waypoint x="1180" y="315" />
+        <di:waypoint x="1210" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_9" bpmnElement="Flow_9">
+        <di:waypoint x="1330" y="315" />
+        <di:waypoint x="1360" y="315" />
+        <di:waypoint x="1360" y="145" />
+        <di:waypoint x="1390" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_10" bpmnElement="Flow_10">
+        <di:waypoint x="1510" y="145" />
+        <di:waypoint x="1540" y="145" />
+        <di:waypoint x="1540" y="655" />
+        <di:waypoint x="1570" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_11" bpmnElement="Flow_11">
+        <di:waypoint x="1690" y="655" />
+        <di:waypoint x="1745" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_12" bpmnElement="Flow_12">
+        <di:waypoint x="1795" y="655"/>
+        <di:waypoint x="1852" y="655"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_13" bpmnElement="Flow_13">
+        <di:waypoint x="1770" y="630" />
+        <di:waypoint x="1770" y="185" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1774" y="398.5" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_14" bpmnElement="Flow_14">
+        <di:waypoint x="1740" y="145" />
+        <di:waypoint x="1690" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_15" bpmnElement="Flow_15">
+        <di:waypoint x="1630" y="105" />
+        <di:waypoint x="1630" y="80" />
+        <di:waypoint x="270" y="80" />
+        <di:waypoint x="270" y="105" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,104 @@
+# Publish the compiled AST exporter once per pinned commit, so no IG repository
+# compiles it (issue #349, owner pick Q-ACT-2 = A+). ig-ast-refresh.yml
+# downloads the bundle and takes it only when its sha256 matches the line for
+# that commit in scripts/ast-export-bundles.tsv; otherwise it builds from
+# source as before.
+#
+# What a run does, and nothing else:
+#   1. reads the commit: the `ref` input, or the `ast-export-ref` default in
+#      ig-ast-refresh.yml;
+#   2. stops if the release ast-export-<commit> already exists (a published
+#      bundle is never replaced: its sha256 is pinned);
+#   3. builds litlfred/fhir-ig-publisher ast-export at that commit with the
+#      ig-toolchain.env Java: target/classes and the dependency jars;
+#   4. packs them as ast-export.tar.gz (classes/, lib/) and publishes it as the
+#      release ast-export-<commit>, printing the sha256 to pin.
+#
+# Nothing here may know about any one IG or publisher (fhir-harness/AGENTS.md).
+name: AST exporter bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "litlfred/fhir-ig-publisher commit (default: ig-ast-refresh.yml's ast-export-ref)"
+        type: string
+        default: ""
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/ig-ast-refresh.yml
+      - .github/workflows/ast-export-bundle.yml
+      - scripts/ig-toolchain.env
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ast-export-bundle
+  cancel-in-progress: false
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: The commit to bundle
+        id: ref
+        env:
+          IN: ${{ inputs.ref }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ref=$IN
+          if [ -z "$ref" ]; then
+            ref=$(grep -A3 '^      ast-export-ref:' .github/workflows/ig-ast-refresh.yml | sed -n 's/^ *default: *//p' | head -n 1)
+          fi
+          case "$ref" in
+            *[!0-9a-f]*|"") echo "::error::not a full commit sha: '$ref'"; exit 2 ;;
+          esac
+          [ ${#ref} -eq 40 ] || { echo "::error::not a full commit sha: '$ref'"; exit 2; }
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          if gh release view "ast-export-$ref" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::ast-export-$ref is already published; it is never replaced"
+          fi
+          grep -E '^[A-Z_]+=[^ ]+$' scripts/ig-toolchain.env >> "$GITHUB_OUTPUT"
+
+      - name: Java for the build
+        if: steps.ref.outputs.exists != 'true'
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: ${{ steps.ref.outputs.JAVA_VERSION }}
+
+      - name: Build and publish the bundle
+        if: steps.ref.outputs.exists != 'true'
+        env:
+          REF: ${{ steps.ref.outputs.ref }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git clone -q --filter=blob:none https://github.com/litlfred/fhir-ig-publisher "$RUNNER_TEMP/igp"
+          git -C "$RUNNER_TEMP/igp" checkout -q "$REF"
+          out="$RUNNER_TEMP/bundle"
+          mkdir -p "$out"
+          (cd "$RUNNER_TEMP/igp/ast-export" && mvn -q -B -DskipTests compile dependency:copy-dependencies -DoutputDirectory="$out/lib")
+          cp -a "$RUNNER_TEMP/igp/ast-export/target/classes" "$out/classes"
+          tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -C "$out" -cf - classes lib \
+            | gzip -n > "$RUNNER_TEMP/ast-export.tar.gz"
+          sum=$(sha256sum "$RUNNER_TEMP/ast-export.tar.gz" | cut -d' ' -f1)
+          size=$(du -h "$RUNNER_TEMP/ast-export.tar.gz" | cut -f1)
+          gh release create "ast-export-$REF" "$RUNNER_TEMP/ast-export.tar.gz" -R "$GITHUB_REPOSITORY" \
+            --title "AST exporter $REF" --target "$GITHUB_SHA" --latest=false \
+            --notes "Compiled ast-export of litlfred/fhir-ig-publisher@$REF (classes/ and lib/), Java ${{ steps.ref.outputs.JAVA_VERSION }}. sha256 $sum. Pin it in scripts/ast-export-bundles.tsv as: $REF<TAB>$sum"
+          {
+            echo "### AST exporter bundle published"
+            echo ""
+            echo "ast-export-$REF ($size). Pin it in \`scripts/ast-export-bundles.tsv\`:"
+            echo ""
+            echo '```'
+            printf '%s\t%s\n' "$REF" "$sum"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,168 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Classify and Code Content Output",
+  "description": "Ranked terminology lookup hits across the four reuse-first rungs, best SKOS match kind, and either the resolved coding or the candidate/warning to record.",
+  "type": "object",
+  "required": [
+    "slot",
+    "query",
+    "authorityScheme",
+    "bestMatchKind",
+    "selectedRung",
+    "matches"
+  ],
+  "properties": {
+    "slot": {
+      "type": "string",
+      "description": "The semantic slot that was queried."
+    },
+    "query": {
+      "type": "string",
+      "description": "The query token or concept label that was looked up."
+    },
+    "authorityScheme": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "uri"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "localSources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "bestMatchKind": {
+      "type": "string",
+      "enum": [
+        "exactMatch",
+        "closeMatch",
+        "none"
+      ],
+      "description": "SKOS mapping precision of the top hit across local and base vocabularies, or none when Rung 4 applies."
+    },
+    "selectedRung": {
+      "type": "string",
+      "enum": [
+        "rung-1-target-guide",
+        "rung-2-smart-base",
+        "rung-3-external-standard",
+        "rung-4-local-candidate"
+      ],
+      "description": "The reuse-first precedence rung that settled the lookup."
+    },
+    "matches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "rung",
+          "scheme",
+          "code",
+          "label",
+          "matchKind",
+          "sourcePath"
+        ],
+        "properties": {
+          "rung": {
+            "type": "string",
+            "enum": [
+              "rung-1-target-guide",
+              "rung-2-smart-base",
+              "rung-3-external-standard"
+            ]
+          },
+          "scheme": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "definition": {
+            "type": "string"
+          },
+          "matchKind": {
+            "type": "string",
+            "enum": [
+              "exactMatch",
+              "closeMatch"
+            ]
+          },
+          "uri": {
+            "type": "string"
+          },
+          "sourcePath": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "candidateToMint": {
+      "type": "object",
+      "description": "Populated when bestMatchKind is none: either a glossary-terms candidate entry (status: candidate) or could-not-determine for business-process, with its greppable WARNING line.",
+      "required": [
+        "action",
+        "warning"
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "mint-glossary-candidate",
+            "could-not-determine"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "candidate",
+            "could-not-determine"
+          ]
+        },
+        "term": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "prefLabel": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "const": "candidate"
+            },
+            "source": {
+              "type": "string",
+              "const": "extracted"
+            }
+          },
+          "additionalProperties": true
+        },
+        "warning": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

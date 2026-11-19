@@ -1,0 +1,46 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "narrative-queue",
+    "title": "What narratives are waiting on a person",
+    "description": "List the agent-drafted narratives awaiting human confirmation, numbered, with the numbered rejection reasons beside them. The queue is the only place a draft's state is visible before someone accepts it.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat narratives"
+    },
+    "io": {
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "queue",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Every narrative awaiting a person, NUMBERED, with its subject, its text and its file — then the two commands that act on a number, then the rejection reasons, also numbered. Numbered because the person this is for has very limited hand function, so every action is a selection, not a typed sentence (`interaction-modality`'s `low-dexterity` profile)."
+        }
+      ]
+    },
+    "satisfies": [
+      "library-ingestion"
+    ],
+    "selection": {
+      "when": "To find out what is waiting on a person, or how a person confirms a narrative.",
+      "limits": "IT ONLY LISTS. Acting on a number is `bun run cat narratives:confirm <n>` or `bun run cat narratives:reject <n> --why <r>`, and both REFUSE outside a terminal: `reviewer()` throws with \"Confirming is a PERSON's act; an agent running this would be recorded as one\". The refusal is needed because `git config user.name` is the agent's, so an agent's confirmation would be recorded as a person's. So this node does not offer the confirming arms: an agent may read the queue and must not answer it. A rejection with no reason is refused too, not defaulted, because a reason-less rejection lets the next agent redraft the identical thing.",
+      "cost": "Reads the narrative-bearing files under the declared graph. No network."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "── The narrative review queue — what is waiting on a PERSON ──────────\n\nBean `7ajt`, and the node almost did not get written. I had it filed as a\ncapability-vocabulary question for the owner — the `yean` shape, \"no skill\nstates this, so authoring one is a design act\" — on the grounds that\n`Task_SmeReview` refs `content-review`, whose contract REQUIRES\n`reviewType` and `contentRef`, and this script takes a queue index and a\nnumbered preset.\n\nThat was wrong for the THIRD time in one session, and always the same way:\nI searched skill NAMES instead of reading skill BODIES.\n`library-ingestion` §\"Reviewing: `bun run cat narratives`\" named these exact\ncommands in a fenced block (the section moved up a layer with the rest of\nthe L1 method in placement PR6, bean `apcg`), and states the rule this\nnode exists to make reachable:\n\n  \"Two attributions, because they are two acts. `drafted_by` is who wrote\n   the words; `confirmed_by` is who accepted them. … AN AGENT CANNOT\n   CONFIRM ITS OWN DRAFT — `confirmed_by.kind` must be \"human\",\n   structurally. … without it, `confirmed` degrades into 'an agent said so\n   twice'.\"\n\nSo: case 1 of `covered-is-not-reachable` in its plainest form, a mechanism\ninlined in its skill's prose, and the remedy is a node rather than a new\nskill. `interaction-modality` carries the other half — the `low-dexterity`\nprofile's \"every question is a selection, options numbered\" — and is cited\nrather than restated.\n\nTHE INVOKE IS THE LISTING, AND THAT IS THE DESIGN. `reviewer()` throws\noutside a TTY — \"Confirming is a PERSON's act; an agent running this would\nbe recorded as one\" — because `git config user.name` in an agent container\nrecorded the agent as the reviewer and the schema could not see it. So an\nagent CANNOT confirm or reject, and a node whose `invoke` were\n`narratives:confirm` would declare a capability the caller reading it does\nnot have. What an agent can do, and the thing that was missing, is FIND\nthe queue and read what is waiting on a person."
+    }
+  ]
+}

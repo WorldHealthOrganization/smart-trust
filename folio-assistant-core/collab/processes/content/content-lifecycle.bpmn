@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — the content lifecycle end to end, one cycle of a folio.
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool. The SVG under docs/assets/img/workflows/ is generated from it
+  by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  The <bootstrap.processes:skill> extension on an activity names the folio-assistant skill
+  that implements it; <cat-harness.processes:bean> marks a step that reads or writes the shared
+  work plan in beans/.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_FolioLifecycle"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="editor" name="Editor"/>
+  <bpmn:resource id="programme-manager" name="Programme manager"/>
+  <bpmn:resource id="publication-manager" name="Publication manager"/>
+  <bpmn:resource id="reviewer" name="Reviewer / SME"/>
+  <bpmn:resource id="validation-pipeline" name="Validation pipeline"/>
+  <bpmn:resource id="work-plan" name="Work plan (beans)"/>
+
+  <bpmn:import namespace="https://litlfred.github.io/folio-assistant/workflows" location="editing-hci-validation.bpmn" importType="http://www.omg.org/spec/BPMN/20100524/MODEL" />
+  <bpmn:import namespace="https://litlfred.github.io/folio-assistant/workflows" location="draft-to-publication.bpmn" importType="http://www.omg.org/spec/BPMN/20100524/MODEL" />
+  <bpmn:collaboration id="Collaboration_FolioLifecycle">
+    <bpmn:participant id="Participant_FolioLifecycle" name="Folio lifecycle — one cycle, plan to retire" processRef="Process_Lifecycle" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Lifecycle" name="Content lifecycle" isExecutable="false">
+    <bpmn:documentation>
+      One cycle of a folio from plan to retirement, calling editing and the draft-to-publication path as call activities.
+    </bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict" />
+      <!-- Capture ON: this is the process that ends in a write to the corpus, so
+           what ran before that write is the audit question. -->
+      <cat-harness.processes:log capture="on" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_Lifecycle_LaneSet">
+      <bpmn:lane id="Lane_ProgMgr" name="Programme manager" partitionElementRef="programme-manager">
+        <bpmn:documentation>Opens and closes the cycle rather than running any of it: Task_Plan commits scope, team and artefacts before Lane_WorkPlan turns them into beans, and Task_Retire is reached only when Gateway_NextCycle finds nothing left to do.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_Initiative</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Plan</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_NextCycle</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Retire</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Retired</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanClose</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Editors" name="Editors + authoring agents" partitionElementRef="editor">
+        <bpmn:documentation>The re-entry point for every round of the cycle: Gateway_NextCycle's 'yes' branch loops back here, not to Task_Plan. Runs once per proposed change, and makes the accept decision on each before the corpus-wide Task_Test.</bpmn:documentation>
+        <bpmn:flowNodeRef>CallActivity_Editing</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SeedBeans</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanOpen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_BeanYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_BeanNotYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FeedbackBeans</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Qa" name="Validation and QA (mechanical + agents)" partitionElementRef="validation-pipeline">
+        <bpmn:documentation>The corpus-wide check no single block's HCI validation gate can perform — cross-references, whole-folio build status, proof status and QA axes — between the editor's accept and the publication manager's release: a change that passed block-level review still has to clear folio-level checks before CallActivity_Publication runs.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Test</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Review" name="Review team and SMEs" partitionElementRef="reviewer">
+        <bpmn:documentation>The only reviewing this lane does happens AFTER publication, not before it: Task_Feedback triages what implementers and readers report on the LIVE folio, by severity and scope, and Task_FeedbackBeans turns that triage into the next cycle's work.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Feedback</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_PubMgr" name="Publication manager" partitionElementRef="publication-manager">
+        <bpmn:documentation>The single point in the cycle where the corpus becomes public, reached only after Task_Test has cleared the whole folio; draft-to-publication.bpmn is the last gate before readers see anything.</bpmn:documentation>
+        <bpmn:flowNodeRef>CallActivity_Publication</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Initiative" name="Folio initiative">
+      <bpmn:outgoing>H01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Plan" name="Plan scope, team, artifacts">
+      <bpmn:documentation>Scope the work, identify artifacts and actors, form the team, set the timeline.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-plan" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>H01</bpmn:incoming>
+      <bpmn:outgoing>H02</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:callActivity id="Task_SeedBeans" name="Seed the work plan" calledElement="GT_SeedWorkPlan">
+      <bpmn:outgoing>H03</bpmn:outgoing>
+      <bpmn:incoming>SF_Bean_1</bpmn:incoming>
+      <bpmn:dataOutputAssociation id="DOA_Task_SeedBeans">
+        <bpmn:targetRef>DSR_work_plan</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="CallActivity_Editing" name="Editing and HCI validation" calledElement="Process_Editing">
+      <bpmn:documentation>See editing-hci-validation.bpmn. Runs once per proposed change, not once per cycle.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-author" />
+        <bootstrap.processes:skill ref="content-validate" />
+        <bootstrap.processes:skill ref="content-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>H03</bpmn:incoming>
+      <bpmn:incoming>H09</bpmn:incoming>
+      <bpmn:outgoing>H04</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:serviceTask id="Task_Test" name="Integration test and QA sweep">
+      <bpmn:documentation>Corpus-wide checks that a single-block gate cannot make: cross-references, build green, proof status, QA axes across the whole folio.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-test" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>H04</bpmn:incoming>
+      <bpmn:outgoing>H05</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:callActivity id="CallActivity_Publication" name="Draft, review and publish" calledElement="Process_Publication">
+      <bpmn:documentation>See draft-to-publication.bpmn.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+        <bootstrap.processes:skill ref="content-publish" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>H05</bpmn:incoming>
+      <bpmn:outgoing>H06</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:userTask id="Task_Feedback" name="Triage published feedback">
+      <bpmn:documentation>Implementer and reader feedback on the published folio, triaged by severity and scope.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-feedback" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>H06</bpmn:incoming>
+      <bpmn:outgoing>H07</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:task id="Task_FeedbackBeans" name="File feedback as beans">
+      <bpmn:documentation>Triaged feedback re-enters the work plan as beans, which is how the next cycle knows what it is for.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <bootstrap.processes:skill ref="content-feedback" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>H07</bpmn:incoming>
+      <bpmn:outgoing>H08</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_FeedbackBeans">
+        <bpmn:targetRef>DSR_work_plan</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_NextCycle" name="More content?">
+      <bpmn:documentation>Asked after feedback is filed as beans: is there more content to write for this folio? `yes` returns to editing and HCI validation; `no` retires or archives it.</bpmn:documentation>
+      <bpmn:incoming>H08</bpmn:incoming>
+      <bpmn:outgoing>H09</bpmn:outgoing>
+      <bpmn:outgoing>H10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_Retire" name="Retire or archive">
+      <bpmn:documentation>No more content is planned: deprecate the folio. Post a deprecation notice and timeline, update its status metadata, archive it, point references at any successor, and remove it from active publication. The programme manager decides; retirement archives rather than deletes.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-retire" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>H10</bpmn:incoming>
+      <bpmn:outgoing>H11</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Retired" name="Folio retired">
+      <bpmn:incoming>SF_Bean_4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Call_BeanOpen" name="Open the bean" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Process_BeanOpen: check before you create, find out whose the bean is, and claim it — or leave it alone when it is someone else's. The one place a claim is drawn; the gateway after this reads which end it reached.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+      <bpmn:incoming>H02</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_2</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_BeanYours" name="Bean claimed?">
+      <bpmn:documentation>Reads which end Process_BeanOpen reached. `claimed`: the bean is in progress and this process works it. `not yours`: a sibling session or a human holds it, nothing was written to it, and this process stops here rather than work a bean it does not own (bean-coordination).</bpmn:documentation>
+      <bpmn:outgoing>SF_Bean_1</bpmn:outgoing>
+      <bpmn:incoming>SF_Bean_2</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_3</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_BeanNotYours" name="Not yours —&#10;left alone">
+      <bpmn:documentation>Someone else holds the bean; this run stops without touching it.</bpmn:documentation>
+      <bpmn:incoming>SF_Bean_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Call_BeanClose" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>Process_BeanClose: end the bean in a state that says why — complete and archive it, scrap it with its reasons and archive it, or record the blocker and hand it back. The one place resolve and archive are drawn; placed straight before the end so the engine's resolve sees nothing left but the archive step.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+      <bpmn:incoming>H11</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_4</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="H01" sourceRef="StartEvent_Initiative" targetRef="Task_Plan" />
+    <bpmn:sequenceFlow id="H02" sourceRef="Task_Plan" targetRef="Call_BeanOpen" />
+    <bpmn:sequenceFlow id="H03" sourceRef="Task_SeedBeans" targetRef="CallActivity_Editing" />
+    <bpmn:sequenceFlow id="H04" sourceRef="CallActivity_Editing" targetRef="Task_Test" />
+    <bpmn:sequenceFlow id="H05" sourceRef="Task_Test" targetRef="CallActivity_Publication" />
+    <bpmn:sequenceFlow id="H06" sourceRef="CallActivity_Publication" targetRef="Task_Feedback" />
+    <bpmn:sequenceFlow id="H07" sourceRef="Task_Feedback" targetRef="Task_FeedbackBeans" />
+    <bpmn:sequenceFlow id="H08" sourceRef="Task_FeedbackBeans" targetRef="Gateway_NextCycle" />
+    <bpmn:sequenceFlow id="H09" name="yes" sourceRef="Gateway_NextCycle" targetRef="CallActivity_Editing" />
+    <bpmn:sequenceFlow id="H10" name="no" sourceRef="Gateway_NextCycle" targetRef="Task_Retire" />
+    <bpmn:sequenceFlow id="H11" sourceRef="Task_Retire" targetRef="Call_BeanClose" />
+    <bpmn:sequenceFlow id="SF_Bean_1" name="claimed" sourceRef="GW_BeanYours" targetRef="Task_SeedBeans"/>
+    <bpmn:sequenceFlow id="SF_Bean_2" sourceRef="Call_BeanOpen" targetRef="GW_BeanYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_3" name="not yours" sourceRef="GW_BeanYours" targetRef="End_BeanNotYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_4" sourceRef="Call_BeanClose" targetRef="EndEvent_Retired"/>
+    <bpmn:dataStoreReference id="DSR_work_plan" name="Work plan (beans)" dataStoreRef="work-plan"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_FolioLifecycle">
+      <bpmndi:BPMNShape id="Participant_FolioLifecycle_di" bpmnElement="Participant_FolioLifecycle" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="1380" height="750" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_ProgMgr_di" bpmnElement="Lane_ProgMgr" isHorizontal="true">
+        <dc:Bounds x="190" y="60" width="1350" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Editors_di" bpmnElement="Lane_Editors" isHorizontal="true">
+        <dc:Bounds x="190" y="210" width="1350" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Qa_di" bpmnElement="Lane_Qa" isHorizontal="true">
+        <dc:Bounds x="190" y="360" width="1350" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Review_di" bpmnElement="Lane_Review" isHorizontal="true">
+        <dc:Bounds x="190" y="510" width="1350" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_PubMgr_di" bpmnElement="Lane_PubMgr" isHorizontal="true">
+        <dc:Bounds x="190" y="660" width="1350" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Initiative_di" bpmnElement="StartEvent_Initiative">
+        <dc:Bounds x="240" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="220" y="157" width="85" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Plan_di" bpmnElement="Task_Plan">
+        <dc:Bounds x="315" y="75" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanOpen_di" bpmnElement="Call_BeanOpen">
+        <dc:Bounds x="315" y="225" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_BeanYours_di" bpmnElement="GW_BeanYours" isMarkerVisible="true">
+        <dc:Bounds x="475" y="260" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="455" y="218" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_BeanNotYours_di" bpmnElement="End_BeanNotYours">
+        <dc:Bounds x="560" y="310" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="602" y="310" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SeedBeans_di" bpmnElement="Task_SeedBeans">
+        <dc:Bounds x="690" y="225" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_Editing_di" bpmnElement="CallActivity_Editing">
+        <dc:Bounds x="850" y="225" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Test_di" bpmnElement="Task_Test">
+        <dc:Bounds x="850" y="375" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_Publication_di" bpmnElement="CallActivity_Publication">
+        <dc:Bounds x="850" y="675" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Feedback_di" bpmnElement="Task_Feedback">
+        <dc:Bounds x="1030" y="525" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FeedbackBeans_di" bpmnElement="Task_FeedbackBeans">
+        <dc:Bounds x="1030" y="225" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_NextCycle_di" bpmnElement="Gateway_NextCycle" isMarkerVisible="true">
+        <dc:Bounds x="1065" y="110" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1045" y="68" width="90" height="35" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Retire_di" bpmnElement="Task_Retire">
+        <dc:Bounds x="1175" y="75" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanClose_di" bpmnElement="Call_BeanClose">
+        <dc:Bounds x="1325" y="75" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Retired_di" bpmnElement="EndEvent_Retired">
+        <dc:Bounds x="1480" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1460" y="157" width="76" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_DSR_work_plan" bpmnElement="DSR_work_plan">
+        <dc:Bounds x="725" y="825" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="630" y="832" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="H01_di" bpmnElement="H01">
+        <di:waypoint x="276" y="135" />
+        <di:waypoint x="315" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="H02_di" bpmnElement="H02">
+        <di:waypoint x="375" y="195" />
+        <di:waypoint x="375" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_2_di" bpmnElement="SF_Bean_2">
+        <di:waypoint x="435" y="285" />
+        <di:waypoint x="475" y="285" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_1_di" bpmnElement="SF_Bean_1">
+        <di:waypoint x="525" y="285" />
+        <di:waypoint x="690" y="285" />
+        <bpmndi:BPMNLabel><dc:Bounds x="580" y="265" width="50" height="16" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_3_di" bpmnElement="SF_Bean_3">
+        <di:waypoint x="500" y="310" />
+        <di:waypoint x="500" y="328" />
+        <di:waypoint x="560" y="328" />
+        <bpmndi:BPMNLabel><dc:Bounds x="502" y="332" width="55" height="16" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="H03_di" bpmnElement="H03">
+        <di:waypoint x="810" y="285" />
+        <di:waypoint x="850" y="285" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="H04_di" bpmnElement="H04">
+        <di:waypoint x="910" y="345" />
+        <di:waypoint x="910" y="375" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="H05_di" bpmnElement="H05">
+        <di:waypoint x="910" y="495" />
+        <di:waypoint x="910" y="675" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="H06_di" bpmnElement="H06">
+        <di:waypoint x="970" y="735" />
+        <di:waypoint x="1090" y="735" />
+        <di:waypoint x="1090" y="645" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="H07_di" bpmnElement="H07">
+        <di:waypoint x="1090" y="525" />
+        <di:waypoint x="1090" y="345" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="H08_di" bpmnElement="H08">
+        <di:waypoint x="1090" y="225" />
+        <di:waypoint x="1090" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="H09_di" bpmnElement="H09">
+        <di:waypoint x="1065" y="135" />
+        <di:waypoint x="910" y="135" />
+        <di:waypoint x="910" y="225" />
+        <bpmndi:BPMNLabel><dc:Bounds x="975" y="117" width="25" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="H10_di" bpmnElement="H10">
+        <di:waypoint x="1115" y="135" />
+        <di:waypoint x="1175" y="135" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1135" y="117" width="20" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="H11_di" bpmnElement="H11">
+        <di:waypoint x="1295" y="135" />
+        <di:waypoint x="1325" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_4_di" bpmnElement="SF_Bean_4">
+        <di:waypoint x="1445" y="135" />
+        <di:waypoint x="1480" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_SeedBeans" bpmnElement="DOA_Task_SeedBeans">
+        <di:waypoint x="750" y="345" />
+        <di:waypoint x="750" y="825" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_FeedbackBeans" bpmnElement="DOA_Task_FeedbackBeans">
+        <di:waypoint x="1150" y="285" />
+        <di:waypoint x="1180" y="285" />
+        <di:waypoint x="1180" y="850" />
+        <di:waypoint x="775" y="850" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

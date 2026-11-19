@@ -1,0 +1,85 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "archimate-metamodel",
+    "title": "Derive the metamodel an ArchiMate model uses, and check it against ArchiMate's relationship table",
+    "description": "For each model a layer's `cat-archimate.config.json` names: the element types it uses, with counts; every (source type, relationship, target type) pattern its relationships follow, with counts and ids; whether ArchiMate's relationship table (Appendix B of ArchiMate 3.2, as Archi holds it, committed as `archimate/schemas/archimate-relationships.json` in the tools layer) allows each pattern; and the placeholder elements, named after their own type, that a hand-drawn metamodel leaves in a model. Prints a report, JSON, Graphviz DOT or a Mermaid class diagram. `archimate-pages` draws the same result on each model's \"Metamodel in use\" page, so the metamodel is derived, never drawn.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat archimate:metamodel"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The layer root whose ArchiMate models are read.",
+          "required": true,
+          "arg": {
+            "flag": "--instance"
+          }
+        },
+        {
+          "name": "model",
+          "schema": {
+            "$type": "ArchimateModelId"
+          },
+          "description": "One model's id from the config; absent, every model. Required for `--format dot` and `mmd`.",
+          "required": false,
+          "arg": {
+            "flag": "--model"
+          }
+        },
+        {
+          "name": "format",
+          "schema": {
+            "$type": "ArchimateMetamodelFormat"
+          },
+          "description": "`text` (default), `json`, `dot` or `mmd`.",
+          "required": false,
+          "arg": {
+            "flag": "--format"
+          }
+        },
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Exit 1 when any relationship follows a pattern ArchiMate does not allow. Placeholders are reported, never fatal.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "metamodel",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The report, or the metamodel as `archimate-metamodel/v1` JSON, DOT or Mermaid, on stdout."
+        }
+      ]
+    },
+    "satisfies": [
+      "archimate-models"
+    ],
+    "selection": {
+      "when": "Before publishing an ArchiMate model (process `archimate-publish`, after `archimate-check`), in its CI, and whenever someone asks which element types and relationships a model actually uses — instead of drawing a metamodel view by hand.",
+      "limits": "Checks each relationship's type against its ends' types only; it does not check derivation chains, viewpoints or properties. A type the table does not know is reported as not checked, never as refused.",
+      "cost": "One parse per model and a table lookup per relationship; milliseconds. No network, no JVM."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  }
+}

@@ -1,0 +1,58 @@
+---
+doc_id: 10665-83270
+doc_title: "Tables rondes : enseignements tirés en matière de santé mondiale : Rapport du Secrétariat"
+section_id: page-007
+section_title: "Page 7"
+pages: 7-7
+pdf_page: 7
+source_pdf: 10665-83270.pdf
+source_sha256: 3b74d22e582e626a
+text_source: ocr
+granularity: page
+---
+A52/DIV/10
+
+34. Refus de la réalité et autosatisfaction sont deux attitudes qui ont empêché d’agir efficacement et en
+temps voulu. L’une des principales responsabilités des autorités est de prôner la franchise et la tolérance à
+l’égard du VIH/SIDA à tous les niveaux. Il faut mener une action d’éducation à la prévention de l’infection
+à VIH et des maladies sexuellement transmissibles, de même que parler franchement de la sexualité dans les
+écoles pour donner aux jeunes les connaissances et les moyens techniques nécessaires pour qu’ils puissent se
+protéger.
+
+35. La partidpation des personnes vivant avec le VIH/SIDA à l’action de plaidoyer et d’éducation du grand
+public s’est avérée très utile pour fournir un appui social et combattre la discrimination et le déni des
+problèmes.
+
+36. On ne saurait tolérer l’existence de deux catégories de citoyens face à l’accès aux traitements avérés.
+Le Fonds de Solidarité thérapeutique internationale récemment créé est un premier pas vers l’égalité d’accès
+aux traitements antirétroviraux permettant d’éviter la transmission du VIH de la mère à l’enfant et, en fin de
+compte, aux traitements des maladies associées au VIH. L’appui financier et technique à cette initiative exigera
+la constitution de partenariats avec la société d vile, les organisations internationales, les gouvernements et le
+secteur privé.
+
+37. La solidarité internationale est nécessaire pour mettre au point des médicaments et des vaccins. Pour
+faciliter l’accès aux antirétroviraux, les pays doivent recevoir l’appui d’organisations intemationales afin de
+négocier des prix plus intéressants avec l’industrie. Les pays d’une même région devraient négocier ensemble
+et non pas en ordre dispersé, de manière à avoir plus facilement accès aux médicaments. La participation de
+l’industrie est indispensable si l’on veut élargir l’accès aux traitements médicamenteux du VIH/SIDA.
+
+38. Soutenir un effort concerté en vue de mettre au point un vaccin applicable à toutes les souches de virus
+s’impose sur le plan moral comme dans l’intérêt bien compris de tous. Il faut investir plusieurs millions de
+dollars dans la mise au point de vaccins et de microbicides.
+
+39.  L’affectation des fonds mis à la disposition de l’effort mondial de lutte contre le VIH/SIDA doit être
+examinée de toute urgence par Les institutions intemationales concernées. Les montants alloués aux activités
+de consultants, aux conférences et aux ateliers sur les activités dans les pays devraient être évalués.
+
+40. La prévention de la transmission de la mère à l’enfant est considérée par beaucoup comme le secteur où
+l’accès aux antirétroviraux doit être assuré en priorité. Les participants ont demandé à l'OMS de collaborer
+avec les pays pour apporter tout l’appui nécessaire aux interventions pertinentes : services efficaces de soins
+prénatals et de santé infantile, foumiture d’antirétroviraux, conseils et dépistage volontaires, planification
+familiale, et appui à d’autres formes d’alimentation des nourrissons. Certains participants ont signalé que des
+mères séropositives étaient informées du risque de transmission de l’infection par l’allaitement au sein sans
+qu’on leur foumisse pour autant les autres éléments d’appui mentionnés ci-dessus. Dans la plupart des cas, la
+survie de l’enfant dépendait de l’allaitement au sein. Même lorsque les femmes peuvent acheter des substituts
+du lait matemel, elles ont rarement les moyens (eau propre et installations pour faire bouillir l’eau) de les
+préparer sans danger. Les parti pants ont lancé un appel à la communauté internationale pour qu’elle appuie
+des interventions destinées à éviter de douloureux décès & dont les mères savent bien qu’ils sont évitables si
+l’on applique les techniques voulues.

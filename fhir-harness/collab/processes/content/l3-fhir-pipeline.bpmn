@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — the generic L3 FHIR IG pipeline.
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool.
+
+  The <bootstrap.processes:skill> extension on an activity names the folio-assistant skill
+  that implements it; <cat-harness.processes:bean> marks a step that reads or writes the shared
+  work plan in beans/.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_L3Fhir"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+
+  <bpmn:dataStore id="work-plan" name="Work plan (beans)"/>
+  <bpmn:collaboration id="Collaboration_L3Fhir">
+    <bpmn:participant id="Participant_L3Fhir" name="FHIR IG — source model to published IG" processRef="Process_L3Fhir" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_L3Fhir" name="L3 FHIR IG pipeline" isExecutable="false">
+    <bpmn:documentation>
+      How an L3 FHIR Implementation Guide is authored in FSH, built with SUSHI, the validator and the IG Publisher, reviewed and published, starting from a source model that is ready. Generic: what produces the source model is the layer above's own process, which maps its model and then calls Process_L3Fhir. This one names no such model.
+    </bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_L3Fhir_LaneSet">
+      <bpmn:lane id="Lane_Modeller" name="FHIR modeller">
+        <bpmn:documentation>Task_AuthorFsh is the single re-entry point for both failure paths: an invalid-FHIR loop from Gateway_Valid, which leaves no record, and a QC failure, which arrives after Task_QcBeans has filed it. Which edge fired is the only signal that tells a mechanical re-run from a finding to read.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="fhir-modeller"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>StartEvent_ModelReady</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthorFsh</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_QcBeans</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Build" name="Build pipeline — SUSHI · validator · IG Publisher">
+        <bpmn:documentation>Two jobs share this lane. Task_Sushi and Task_Validate turn FSH into validated FHIR JSON and loop back to the modeller lane on failure with no bean filed: re-running compile-and-validate is cheap. Task_IgPublisher runs only once Lane_Qc has passed, and its output is what Lane_PubMgr publishes.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="build-pipeline"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_Sushi</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Validate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Valid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_PublishStatements</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_IgPublisher</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Qc" name="QC reviewer">
+        <bpmn:documentation>The single gate between valid FHIR JSON and the full IG Publisher build: Task_IgPublisher runs only once this lane says clean, so a compiling-but-wrong profile never reaches a publishable IG.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="qc-reviewer"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_QcGates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_QcPass</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_PubMgr" name="Publication manager">
+        <bpmn:documentation>The last lane, with no path back into the loop: reaching it means Task_IgPublisher succeeded on Lane_Qc's clean verdict. It does not itself decide whether the release is authorised: that call is draft-to-publication.bpmn's, and Task_PublishIg only executes what that separate process has already cleared.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="publication-manager"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_PublishIg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_IgPublished</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_ModelReady" name="Source model ready">
+      <bpmn:documentation>The IG's source model is ready: l3-fhir-authoring's required sourceModel. Which model, and how it was produced, is the calling process's to say; this pipeline names none.</bpmn:documentation>
+      <bpmn:outgoing>C01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_AuthorFsh" name="Author FSH profiles">
+      <bpmn:documentation>Write the FSH profiles, value sets and definitions the source model calls for. This is the stage where profiles, slicing and invariants belong — a decision that can only be expressed in FHIR comes here, not back into the source model.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C01</bpmn:incoming>
+      <bpmn:incoming>C06</bpmn:incoming>
+      <bpmn:incoming>C10</bpmn:incoming>
+      <bpmn:outgoing>C03</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_Sushi" name="Compile FSH to FHIR JSON">
+      <bpmn:documentation>Compile the FSH to FHIR JSON with SUSHI. Compiling is not conformance: a green SUSHI result goes on to validation and never stands in for it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C03</bpmn:incoming>
+      <bpmn:outgoing>C04</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Validate" name="Validate against profiles">
+      <bpmn:documentation>Validate the compiled resources against their profiles and the packages they constrain. A validator that could not start is could-not-determine, never a pass with an empty findings list. Failures return to authoring.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="fhir-validation" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C04</bpmn:incoming>
+      <bpmn:outgoing>C05</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Valid" name="FHIR valid?">
+      <bpmn:documentation>Answered by validating the resources against their profiles. `no` returns to FSH authoring; `yes` goes on to the QC gates.</bpmn:documentation>
+      <bpmn:incoming>C05</bpmn:incoming>
+      <bpmn:outgoing>C06</bpmn:outgoing>
+      <bpmn:outgoing>C07</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_QcGates" name="QC gates">
+      <bpmn:documentation>The QC reviewer rules on the aggregate QA against the publication gates. Emitting the QA report is mechanical; ruling on it is the reviewer's decision.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="quality-control" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C07</bpmn:incoming>
+      <bpmn:outgoing>C08</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_QcPass" name="QC clean?">
+      <bpmn:documentation>Answered by the QC gates. `no` files the findings as beans; `yes` goes on to the IG Publisher build.</bpmn:documentation>
+      <bpmn:incoming>C08</bpmn:incoming>
+      <bpmn:outgoing>C09</bpmn:outgoing>
+      <bpmn:outgoing>C11</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_QcBeans" name="File QC findings as beans">
+      <bpmn:documentation>Each QC finding becomes a bean on the work plan, which the modeller and the agents both see.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C09</bpmn:incoming>
+      <bpmn:outgoing>C10</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_QcBeans">
+        <bpmn:targetRef>DSR_work_plan</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_PublishStatements" name="Publish extracted statements" calledElement="Process_PublishExtractedStatements">
+      <bpmn:documentation>The IG draws on library sources; every statement extracted from them is published as pages of the IG and in the shared extraction viewer, each linked to its library entry and section, before the IG Publisher builds the site. The sub-process is core's, the same for every content type: this IG supplies only the page look (its pages' table class) and registers the pages in its own menu. The generated pages are checked for staleness in CI.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="publish-extracted-statements" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C11</bpmn:incoming>
+      <bpmn:outgoing>C11b</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:serviceTask id="Task_IgPublisher" name="IG Publisher build">
+      <bpmn:documentation>Run the IG Publisher: it renders output/, writes each resource's JSON, the package, canonicals and qa.json, and does the two things no cache can — validates every resource against its profiles and resolves the dependency closure with terminology expansion.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C11b</bpmn:incoming>
+      <bpmn:outgoing>C12</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_PublishIg" name="Publish the IG site">
+      <bpmn:documentation>Release authorisation and review follow draft-to-publication.bpmn. The site is published from the AST on the IG's cache branch (ig-ast-cache.bpmn). A release is started by the owner pushing a `v*` tag of the current version (`ig-release.bpmn`, which also holds the catch-up when a version was not tagged): the IG's `ig-release.yml` runs a full AST build, then `ig-release.ts` makes a GitHub DRAFT release carrying `package.tgz` (and its R4/R4B variants), `ast-data.zip` and `SHA256SUMS`; the owner publishing that draft is Task_AuthorizeRelease (skill `ig-binary-artefacts` §"Releasing"). The site serves each resource as a reduced `&lt;Type&gt;-&lt;id&gt;.json` at its root; the full copies are the release's and the AST cache's.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:fulfilment kinds="person system" reason="publishing the built IG site is mechanical; the lane records who is accountable for what is live, and a publication manager may also publish by hand." />
+        <bootstrap.processes:skill ref="content-publish" />
+        <bootstrap.processes:skill ref="ig-publication" />
+        <bootstrap.processes:skill ref="ig-binary-artefacts" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>C12</bpmn:incoming>
+      <bpmn:outgoing>C13</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_IgPublished" name="Published IG site">
+      <bpmn:incoming>C13</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="C01" sourceRef="StartEvent_ModelReady" targetRef="Task_AuthorFsh" />
+    <bpmn:sequenceFlow id="C03" sourceRef="Task_AuthorFsh" targetRef="Task_Sushi" />
+    <bpmn:sequenceFlow id="C04" sourceRef="Task_Sushi" targetRef="Task_Validate" />
+    <bpmn:sequenceFlow id="C05" sourceRef="Task_Validate" targetRef="Gateway_Valid" />
+    <bpmn:sequenceFlow id="C06" name="no" sourceRef="Gateway_Valid" targetRef="Task_AuthorFsh" />
+    <bpmn:sequenceFlow id="C07" name="yes" sourceRef="Gateway_Valid" targetRef="Task_QcGates" />
+    <bpmn:sequenceFlow id="C08" sourceRef="Task_QcGates" targetRef="Gateway_QcPass" />
+    <bpmn:sequenceFlow id="C09" name="no" sourceRef="Gateway_QcPass" targetRef="Task_QcBeans" />
+    <bpmn:sequenceFlow id="C10" sourceRef="Task_QcBeans" targetRef="Task_AuthorFsh" />
+    <bpmn:sequenceFlow id="C11" name="yes" sourceRef="Gateway_QcPass" targetRef="Call_PublishStatements" />
+    <bpmn:sequenceFlow id="C11b" sourceRef="Call_PublishStatements" targetRef="Task_IgPublisher" />
+    <bpmn:sequenceFlow id="C12" sourceRef="Task_IgPublisher" targetRef="Task_PublishIg" />
+    <bpmn:sequenceFlow id="C13" sourceRef="Task_PublishIg" targetRef="EndEvent_IgPublished" />
+    <bpmn:dataStoreReference id="DSR_work_plan" name="Work plan (beans)" dataStoreRef="work-plan"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_L3Fhir">
+      <bpmndi:BPMNShape id="Participant_L3Fhir_di" bpmnElement="Participant_L3Fhir" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1960" height="750" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Modeller_di" bpmnElement="Lane_Modeller" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1930" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Build_di" bpmnElement="Lane_Build" isHorizontal="true">
+        <dc:Bounds x="190" y="380" width="1930" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Qc_di" bpmnElement="Lane_Qc" isHorizontal="true">
+        <dc:Bounds x="190" y="530" width="1930" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_PubMgr_di" bpmnElement="Lane_PubMgr" isHorizontal="true">
+        <dc:Bounds x="190" y="680" width="1930" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_ModelReady_di" bpmnElement="StartEvent_ModelReady">
+        <dc:Bounds x="262" y="137" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel>
+          <dc:Bounds x="225" y="177" width="110" height="30" />
+        </bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AuthorFsh_di" bpmnElement="Task_AuthorFsh">
+        <dc:Bounds x="540" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Sushi_di" bpmnElement="Task_Sushi">
+        <dc:Bounds x="700" y="395" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Validate_di" bpmnElement="Task_Validate">
+        <dc:Bounds x="860" y="395" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Valid_di" bpmnElement="Gateway_Valid" isMarkerVisible="true">
+        <dc:Bounds x="1055" y="430" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1025" y="484" width="110" height="17" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_QcGates_di" bpmnElement="Task_QcGates">
+        <dc:Bounds x="1180" y="545" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_QcPass_di" bpmnElement="Gateway_QcPass" isMarkerVisible="true">
+        <dc:Bounds x="1375" y="580" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1345" y="634" width="110" height="17" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_QcBeans_di" bpmnElement="Task_QcBeans">
+        <dc:Bounds x="1500" y="245" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_IgPublisher_di" bpmnElement="Task_IgPublisher">
+        <dc:Bounds x="1660" y="395" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PublishIg_di" bpmnElement="Task_PublishIg">
+        <dc:Bounds x="1820" y="695" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_IgPublished_di" bpmnElement="EndEvent_IgPublished">
+        <dc:Bounds x="2022" y="737" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel>
+          <dc:Bounds x="1985" y="777" width="110" height="30" />
+        </bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="C01_di" bpmnElement="C01">
+        <di:waypoint x="298" y="155" />
+        <di:waypoint x="540" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C03_di" bpmnElement="C03">
+        <di:waypoint x="660" y="155" />
+        <di:waypoint x="680" y="155" />
+        <di:waypoint x="680" y="455" />
+        <di:waypoint x="700" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C04_di" bpmnElement="C04">
+        <di:waypoint x="820" y="455" />
+        <di:waypoint x="860" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C05_di" bpmnElement="C05">
+        <di:waypoint x="980" y="455" />
+        <di:waypoint x="1055" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C06_di" bpmnElement="C06">
+        <di:waypoint x="1080" y="430" />
+        <di:waypoint x="1080" y="215" />
+        <di:waypoint x="600" y="215" />
+        <di:waypoint x="600" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C07_di" bpmnElement="C07">
+        <di:waypoint x="1105" y="455" />
+        <di:waypoint x="1142.5" y="455" />
+        <di:waypoint x="1142.5" y="605" />
+        <di:waypoint x="1180" y="605" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1111" y="434" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C08_di" bpmnElement="C08">
+        <di:waypoint x="1300" y="605" />
+        <di:waypoint x="1375" y="605" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C09_di" bpmnElement="C09">
+        <di:waypoint x="1400" y="580" />
+        <di:waypoint x="1400" y="305" />
+        <di:waypoint x="1500" y="305" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1372" y="540" width="25" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C10_di" bpmnElement="C10">
+        <di:waypoint x="1560" y="245" />
+        <di:waypoint x="1560" y="100" />
+        <di:waypoint x="600" y="100" />
+        <di:waypoint x="600" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Call_PublishStatements_di" bpmnElement="Call_PublishStatements">
+        <dc:Bounds x="1420" y="395" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="C11_di" bpmnElement="C11">
+        <di:waypoint x="1425" y="605" />
+        <di:waypoint x="1480" y="605" />
+        <di:waypoint x="1480" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C11b_di" bpmnElement="C11b">
+        <di:waypoint x="1540" y="455" />
+        <di:waypoint x="1660" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C12_di" bpmnElement="C12">
+        <di:waypoint x="1780" y="455" />
+        <di:waypoint x="1800" y="455" />
+        <di:waypoint x="1800" y="755" />
+        <di:waypoint x="1820" y="755" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C13_di" bpmnElement="C13">
+        <di:waypoint x="1940" y="755" />
+        <di:waypoint x="2022" y="755" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_DSR_work_plan" bpmnElement="DSR_work_plan"><dc:Bounds x="1535" y="870" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1589" y="877" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_QcBeans" bpmnElement="DOA_Task_QcBeans"><di:waypoint x="1560" y="350"/><di:waypoint x="1560" y="870"/></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

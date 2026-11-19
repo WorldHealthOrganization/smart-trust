@@ -1,0 +1,541 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://litlfred.github.io/folio-assistant/fhir-harness/skills/fhir-questionnaire-wireframe/output.schema.json",
+  "title": "FHIR Questionnaire Wireframe Output",
+  "description": "The renderings of one built Questionnaire and their review, in the output shape of cat-harness `wireframe-design-review` (candidates with source HTML, web and mobile screenshots and their staging links; the choice; the changed assets; the staging deep links), plus the renderer that drew the form view, the fidelity findings against the L2 wireframe per layout, and the change requests received.",
+  "type": "object",
+  "required": [
+    "use",
+    "topic",
+    "assetDir",
+    "candidates",
+    "renderer",
+    "changedAssets",
+    "stagingLinks"
+  ],
+  "properties": {
+    "use": {
+      "type": "string",
+      "enum": [
+        "design",
+        "as-is"
+      ]
+    },
+    "topic": {
+      "type": "string"
+    },
+    "assetDir": {
+      "type": "string",
+      "description": "Repository-relative directory holding the wireframes, the form-view captures and their checks."
+    },
+    "intent": {
+      "type": "string",
+      "description": "Repository-relative path of intent.md."
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "description": "At least two for Design use, exactly one (marked as-is) for as-is use.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "screenshots",
+          "outcome"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Candidate id, shown to reviewers in place of its author."
+          },
+          "title": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "description": "Repository-relative path of the candidate's mid-fidelity HTML."
+          },
+          "screenshots": {
+            "type": "object",
+            "required": [
+              "web",
+              "mobile"
+            ],
+            "description": "Written by wireframe-check: one per viewport. A candidate with only one does not enter review.",
+            "properties": {
+              "web": {
+                "type": "string",
+                "description": "Repository-relative path of the 1280×800 screenshot."
+              },
+              "mobile": {
+                "type": "string",
+                "description": "Repository-relative path of the 390×844 screenshot."
+              }
+            }
+          },
+          "staging": {
+            "type": "object",
+            "description": "The candidate and its screenshots on the staging preview, as deep links.",
+            "properties": {
+              "source": {
+                "type": "string",
+                "format": "uri"
+              },
+              "web": {
+                "type": "string",
+                "format": "uri"
+              },
+              "mobile": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/criterionEntry"
+            },
+            "description": "Script and review entries, per criterion. No scores, no averages."
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "chosen",
+              "rejected",
+              "pending",
+              "as-is"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why it was chosen or why it lost. Rejected candidates stay, each with its reason."
+          }
+        }
+      }
+    },
+    "chosen": {
+      "type": "object",
+      "required": [
+        "candidate",
+        "chosenBy"
+      ],
+      "description": "Design use: the candidate the human reviewer chose. Absent until they choose; an agent never records a choice on a person's behalf.",
+      "properties": {
+        "candidate": {
+          "type": "string",
+          "description": "The chosen candidate's id."
+        },
+        "chosenBy": {
+          "type": "string",
+          "description": "The requester or BA who chose it."
+        },
+        "recordedAt": {
+          "type": "string",
+          "format": "uri",
+          "description": "Where the choice is recorded: the issue or pull request comment, or, when it was made in the conversation, the proposal section that records it."
+        }
+      }
+    },
+    "questionnaire": {
+      "type": "string",
+      "description": "The built Questionnaire JSON rendered, as in the input."
+    },
+    "renderer": {
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ],
+      "description": "What drew the form view. The vendored build, never a CDN at runtime (owner, 2026-10-14).",
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": [
+            "lhc-forms"
+          ],
+          "description": "NLM LHC-Forms, the owner's choice of 2026-10-14."
+        },
+        "version": {
+          "type": "string",
+          "description": "The vendored LHC-Forms version, e.g. 44.1.0."
+        },
+        "assets": {
+          "type": "string",
+          "description": "Site-relative directory the vendored files are served from."
+        },
+        "licenceNotice": {
+          "type": "string",
+          "description": "Repository-relative path of the NLM licence notice kept with the vendored files."
+        }
+      }
+    },
+    "fidelity": {
+      "type": "array",
+      "description": "check-wireframe-questionnaire's findings, one entry per Questionnaire and wireframe layout. Absent when no L2 wireframe exists; an entry whose status is `could-not-determine` (exit 2) is never a pass.",
+      "items": {
+        "$ref": "#/definitions/fidelityEntry"
+      }
+    },
+    "sdcChecks": {
+      "type": "array",
+      "description": "The SDC build checks (fhir-harness `sdc-checks`, CSIRO's libraries), one entry per Questionnaire. `not-applicable`, `no-fixture` and `could-not-determine` are never a pass; a behavioural test's failure is a warning.",
+      "items": {
+        "$ref": "#/definitions/sdcCheckResult"
+      }
+    },
+    "changeRequests": {
+      "type": "array",
+      "description": "Change requests received through ✍ suggest or the questionnaire-change issue form, and where each stands.",
+      "items": {
+        "$ref": "#/definitions/changeRequest"
+      }
+    },
+    "changedAssets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/changedAsset"
+      },
+      "description": "Every file the branch adds, changes or removes — wireframe HTML, form-view pages, screenshots, reviews — in the changed-assets record shape a staging preview's graph carries."
+    },
+    "stagingLinks": {
+      "$ref": "#/definitions/stagingLinks"
+    }
+  },
+  "definitions": {
+    "criterionEntry": {
+      "type": "object",
+      "required": [
+        "criterion",
+        "status"
+      ],
+      "properties": {
+        "criterion": {
+          "type": "string",
+          "description": "renders, no-overflow, no-placeholder (script entries from wireframe-check); intent-fit, web-usability, mobile-usability, accessibility, alternatives (review entries)."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "warn",
+            "fail"
+          ]
+        },
+        "by": {
+          "type": "string",
+          "description": "`script` for a wireframe-check entry; the reviewer otherwise."
+        },
+        "note": {
+          "type": "string",
+          "description": "The reason. Required in substance for every warn and fail."
+        }
+      }
+    },
+    "fidelityEntry": {
+      "type": "object",
+      "required": [
+        "questionnaire",
+        "layout",
+        "status",
+        "findings"
+      ],
+      "properties": {
+        "questionnaire": {
+          "type": "string",
+          "description": "Repository-relative path of the built Questionnaire JSON."
+        },
+        "wireframe": {
+          "type": "string",
+          "description": "Repository-relative path of the L2 wireframe HTML it was checked against."
+        },
+        "layout": {
+          "type": "string",
+          "description": "The `data-layout` name, or `(whole document)` when the wireframe has one layout."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "faithful",
+            "findings",
+            "could-not-determine"
+          ],
+          "description": "Exit 0, 1 and 2 of the checker."
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The checker's lines for this layout, verbatim."
+        }
+      }
+    },
+    "changeRequest": {
+      "type": "object",
+      "required": [
+        "issue",
+        "edited",
+        "status"
+      ],
+      "properties": {
+        "issue": {
+          "type": "string",
+          "format": "uri",
+          "description": "The issue the request arrived as."
+        },
+        "via": {
+          "type": "string",
+          "enum": [
+            "suggest",
+            "issue-form"
+          ],
+          "description": "The ✍ suggest editor's Questionnaire mode, or the questionnaire-change issue form filled by hand."
+        },
+        "questionnaire": {
+          "type": "string",
+          "description": "Canonical URL or Questionnaire/<id>."
+        },
+        "edited": {
+          "type": "string",
+          "enum": [
+            "questionnaire",
+            "wireframe"
+          ],
+          "description": "The side the requester changed. It is the source of the change; the other side is brought back in line with it (owner, 2026-10-14)."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "received",
+            "triaged",
+            "applied",
+            "staged",
+            "declined"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "description": "Why it was declined, or what was applied."
+        }
+      }
+    },
+    "changedAsset": {
+      "title": "Changed asset",
+      "description": "One file the branch adds, changes or removes, in the record shape of a staging preview graph's `changedAssets` (cat-harness-tools scripts/kg-changed-assets.ts `ChangedAsset`; glosses in schemas/vocabulary.ts: assetChange, assetKind, beforeVersion, afterVersion, assetSource, renderedPage, renderedPagesUnknown).",
+      "type": "object",
+      "required": [
+        "change"
+      ],
+      "properties": {
+        "change": {
+          "type": "string",
+          "enum": [
+            "added",
+            "changed",
+            "removed"
+          ],
+          "description": "How the asset differs from main."
+        },
+        "kind": {
+          "type": "string",
+          "description": "What the asset is, without namespace: `questionnaire-wireframe`, `questionnaire-rendering`, `questionnaire-screenshot`, or a `wireframe-design-review` kind (`wireframe-candidate`, `wireframe-screenshot`, `wireframe-intent`, `wireframe-review`)."
+        },
+        "title": {
+          "type": "string"
+        },
+        "before": {
+          "type": "string",
+          "format": "uri",
+          "description": "The asset as published on main; absent when it is new on the branch."
+        },
+        "after": {
+          "type": "string",
+          "format": "uri",
+          "description": "The asset as published in the staging preview; absent when the branch removes it."
+        },
+        "source": {
+          "type": "string",
+          "description": "The repository-relative file."
+        },
+        "pages": {
+          "type": "array",
+          "description": "The rendered pages the source maps to, as before/after pairs (StagingPageComparison rows: the item shape of stagingLinks.pages).",
+          "items": {
+            "type": "object",
+            "required": [
+              "title"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string",
+                "format": "uri"
+              },
+              "after": {
+                "type": "string",
+                "format": "uri"
+              },
+              "summary": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "pagesUnknown": {
+          "type": "string",
+          "description": "Why the pages were not mapped one by one, when they were not; never read as 'renders no page'."
+        }
+      },
+      "$comment": "Mirrors ChangedAsset in cat-harness-tools scripts/kg-changed-assets.ts (PR #203, branch claude/staging-kg-changed-assets)."
+    },
+    "stagingLinks": {
+      "title": "Staging links",
+      "description": "The staging preview of the work a request for feedback is about: one deep link per changed page (the page and the anchor where the change sits) with the same page on main as `before`. Mirrors StagingComparison in schemas/staging.ts. The rule is skills/sdlc/sdlc-core/staging-review.md §\"The deep-link rule\". Copied inline as `definitions.stagingLinks` into every skill contract that carries it; schemas/staging.test.ts fails when a copy drifts.",
+      "type": "object",
+      "required": [
+        "branch",
+        "slug",
+        "branchUrl",
+        "mainBaseUrl",
+        "stagingBaseUrl",
+        "pages"
+      ],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "Feature branch name."
+        },
+        "slug": {
+          "type": "string",
+          "description": "Branch slug used in the staging URL path."
+        },
+        "branchUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pr": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mainBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "stagingBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pages": {
+          "type": "array",
+          "description": "One entry per changed page, deep-linked; from the change's rendered-impact list, never chosen by judgement.",
+          "items": {
+            "type": "object",
+            "required": [
+              "title"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string",
+                "format": "uri",
+                "description": "Same page on main; absent for a new page."
+              },
+              "after": {
+                "type": "string",
+                "format": "uri",
+                "description": "The page on the staging preview, with the anchor where the change sits; absent for a deleted page."
+              },
+              "summary": {
+                "type": "string",
+                "description": "What to look at on this page."
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What could not be linked, said rather than hidden: no preview yet (and when it will exist), no page list computed, or a changed page the publish ref does not hold."
+        }
+      },
+      "$comment": "Copy of cat-harness schemas/staging-comparison.schema.json; cat-harness schemas/staging.test.ts fails when a copy drifts."
+    },
+    "sdcCheckResult": {
+      "type": "object",
+      "required": [
+        "questionnaire",
+        "checks"
+      ],
+      "properties": {
+        "questionnaire": {
+          "type": "string",
+          "description": "The Questionnaire's id."
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "check",
+              "library",
+              "status",
+              "severity",
+              "findings"
+            ],
+            "properties": {
+              "check": {
+                "type": "string",
+                "enum": [
+                  "assemble",
+                  "template-extract",
+                  "populate",
+                  "behaviour"
+                ]
+              },
+              "library": {
+                "type": "string",
+                "description": "The npm package and version that ran it."
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail",
+                  "not-applicable",
+                  "no-fixture",
+                  "could-not-determine"
+                ]
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "error",
+                  "warning"
+                ],
+                "description": "`warning` for the behavioural tests (questionnaire-test-toolkit is early)."
+              },
+              "findings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "output": {
+                "type": "string",
+                "description": "The assembled Questionnaire, when it was written."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

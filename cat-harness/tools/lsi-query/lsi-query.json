@@ -1,0 +1,72 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "lsi-query",
+    "title": "Latent Semantic Indexing over a prose graph",
+    "description": "Find units of a declared prose graph (a library, the skills, the beans, docs) that discuss a query in OTHER words — the vocabulary gap lexical search cannot reach. Each hit is labelled lexical+latent or latent only, and the score is a cosine in the latent space, never merged with a lexical result.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat lsi query",
+      "mcp": {
+        "tool": "lsi_query"
+      },
+      "inProcess": {
+        "module": "src/tools/lsi-query.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "text",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The query, in any words, on STDIN — free text never goes on a command line.",
+          "required": true,
+          "arg": {
+            "stdin": true
+          }
+        },
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "Layer declaring the graph, e.g. `cat-harness`.",
+          "required": false,
+          "arg": {
+            "flag": "--instance"
+          }
+        },
+        {
+          "name": "graph",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "Graph id within the layer, e.g. `library`.",
+          "required": false,
+          "arg": {
+            "flag": "--graph"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "Per graph: the top hits by cosine, each marked lexical+latent or latent only."
+        }
+      ]
+    },
+    "satisfies": [
+      "lsi-indexing"
+    ],
+    "requires": {
+      "network": false
+    }
+  }
+}

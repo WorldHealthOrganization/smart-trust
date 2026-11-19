@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_CRDM_Close" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="business-analyst" name="Business analyst"/>
+  <bpmn:resource id="stakeholder" name="Stakeholder"/>
+  <bpmn:collaboration id="Collaboration_Process_CRDM_Close">
+    <bpmn:participant id="Participant_Process_CRDM_Close" name="CRDM close-out" processRef="Process_CRDM_Close"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_CRDM_Close" name="CRDM close-out" isExecutable="false">
+    <bpmn:documentation>The stakeholders sign off, the BA confirms every criterion is met, the feature lands on `main` through the `merge-to-main` sub-process, and only then does the agent close the issue. Never the other way round: an agent must never assume completion.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_CRDM_Close">
+      <bpmn:lane id="Lane_BA" name="BA / Feature Requestor" partitionElementRef="business-analyst">
+        <bpmn:documentation>Stands between stakeholder sign-off and the agent's close as an independent check against defined criteria — decision-audit, not a re-ask of the same yes/no the stakeholders already gave — and A_Close's own documentation says it is reachable ONLY through this confirmation, so the agent has no path to closing that bypasses it.</bpmn:documentation>
+        <bpmn:flowNodeRef>BA_Confirm</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Holds no judgement in this diagram: both prior lanes already decided — sign-off, then confirmation against criteria — so this lane's only accountability is executing the close exactly when authorised and never before, on an issue that is the stakeholder's record rather than the agent's to close on its own reading of the thread.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_RecordSignoff</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_SignoffRecorded</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NotAccepted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_MergeToMain</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Close</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Process_CRDM_Close</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Stakeholders" name="Stakeholders" partitionElementRef="stakeholder">
+        <bpmn:documentation>The first of three sequential checks this diagram exists to enforce in order — sign off, confirm, close, never any other sequence — and what is being signed off here is the delivered FEATURE on the issue, not the requirement model that crdm-requirements-definition.bpmn's Lane_Stakeholders approved earlier in the process.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Process_CRDM_Close</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S_FeatureSignoff</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Process_CRDM_Close" name="Phase begins"/>
+    <bpmn:task id="S_FeatureSignoff" name="Feature sign-off
+on issue">
+      <bpmn:documentation>Stakeholders sign off on the delivered feature on the issue, having tested the built artefact rather than a description of it.</bpmn:documentation>
+    </bpmn:task>
+    <bpmn:callActivity id="BA_Confirm" name="Confirm all criteria&#10;met" calledElement="Process_Adjudication">
+      <bpmn:documentation>The business analyst confirms every acceptance criterion from the requirements is met. The issue closes only on their authorisation — an agent never closes an issue on its own say-so. It IS an adjudication with the requirement-set answers: an approval here moves the set to `accepted`, which `check:requirements` refuses unless it is a human's and every approved member is `in-force`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="adjudication"/>
+        <cat-harness.processes:adjudication codes="approve amend reject defer cancel" list="adjudication-requirement-set"/>
+        <cat-harness.processes:fulfilment kinds="person" reason="A sign-off on a requirements document is the requester's decision about their own requirements: `approved` and `accepted` need a HUMAN sign-off, which `check:requirements` refuses without, so an agent may not take this step on their behalf. An agent records the decision in A_RecordSignoff; it does not make it."/>
+      </bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="A_RecordSignoff" name="Record the sign-off attestation" calledElement="GT_RecordSignoff">
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_SignoffRecorded" name="Sign-off on the record?">
+      <bpmn:documentation>Computed, never chosen: `decisions/requirement-signoff-recorded.dmn` reads `signoffRecorded` and `signoffOutcome`, which `check:requirements` prints from the set's recorded sign-offs (its signoff-facts flag). `missing` loops back to the record; `proceed` is an approval (as written or amended); `stop` is a recorded reject, defer or cancel.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:decision ref="decisions/requirement-signoff-recorded.dmn#Decision_RequirementSignoffRecorded"/>
+      </bpmn:extensionElements>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_NotAccepted" name="Not accepted — recorded, with its reason"/>
+    <bpmn:task id="Call_MergeToMain" name="Land the feature's PRs">
+      <bpmn:documentation>Phase 6's "explicit confirmation before merging to main", made a step that can refuse. Once per pull request the feature still has open, after the sign-off is recorded and before the issue is closed: an issue is not closed on a feature that is not on `main`. `merge-to-main.bpmn` reads each head's evidence live, establishes that the owner authorised THAT merge (a stakeholder sign-off or the BA's confirmation is acceptance of the feature, not authorisation to merge it, unless the owner's own words say so), records the authorisation, merges, and confirms the base. A PR the owner holds or refuses stays open, and A_Close then waits: the BA's authorisation to close does not cover a feature that did not land. An increment the owner asked to land earlier in Phase 6 went through the same sub-process at that time. Where `cat-harness.sdlc` is switched on, this step is the opt-in process `merge-to-main` (`Process_MergeToMain`, sdlc/processes/merge-to-main.bpmn); it is not called from here, because a layer without that sub-graph does not have it (owner card Q-OPTIN-CALLS A, 2026-11-12).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="Implemented by the opt-in sdlc process merge-to-main and its skill, which an always-on diagram may not call or name (owner card Q-OPTIN-CALLS A, 2026-11-12); no always-on skill covers landing a merge."/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Close" name="Close issue ONLY on
+BA authorisation">
+      <bpmn:documentation>Reachable only through BA_Confirm, which is the BA
+saying every criterion is met. An agent must never close an issue without
+that explicit authorisation — the gate is the preceding task, and this name
+says so rather than leaving a reader to trace the flow for it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="crdm-requirements-workflow"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Process_CRDM_Close" name="Phase complete"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Close_1" sourceRef="Start_Process_CRDM_Close" targetRef="S_FeatureSignoff"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Close_2" sourceRef="S_FeatureSignoff" targetRef="BA_Confirm"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Close_3" sourceRef="BA_Confirm" targetRef="A_RecordSignoff"/>
+    <bpmn:sequenceFlow id="SF_Close_Gate" sourceRef="A_RecordSignoff" targetRef="GW_SignoffRecorded"/>
+    <bpmn:sequenceFlow id="SF_Close_Proceed" name="proceed" sourceRef="GW_SignoffRecorded" targetRef="Call_MergeToMain"/>
+    <bpmn:sequenceFlow id="SF_Close_Merged" sourceRef="Call_MergeToMain" targetRef="A_Close"/>
+    <bpmn:sequenceFlow id="SF_Close_Stop" name="stop" sourceRef="GW_SignoffRecorded" targetRef="End_NotAccepted"/>
+    <bpmn:sequenceFlow id="SF_Close_Missing" name="missing" sourceRef="GW_SignoffRecorded" targetRef="A_RecordSignoff"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Close_4" sourceRef="A_Close" targetRef="End_Process_CRDM_Close"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_CRDM_Close">
+    <bpmndi:BPMNPlane id="Plane_Process_CRDM_Close" bpmnElement="Collaboration_Process_CRDM_Close">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_CRDM_Close" bpmnElement="Participant_Process_CRDM_Close" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="980" height="520" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent_Process_CRDM_Close" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="950" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_BA_Process_CRDM_Close" bpmnElement="Lane_BA" isHorizontal="true">
+        <dc:Bounds x="190" y="300" width="950" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Stakeholders_Process_CRDM_Close" bpmnElement="Lane_Stakeholders" isHorizontal="true">
+        <dc:Bounds x="190" y="450" width="950" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Process_CRDM_Close" bpmnElement="Start_Process_CRDM_Close">
+        <dc:Bounds x="236" y="507" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="548" width="80" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_S_FeatureSignoff" bpmnElement="S_FeatureSignoff">
+        <dc:Bounds x="302" y="465" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_BA_Confirm" bpmnElement="BA_Confirm">
+        <dc:Bounds x="452" y="315" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_RecordSignoff" bpmnElement="A_RecordSignoff">
+        <dc:Bounds x="452" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_SignoffRecorded" bpmnElement="GW_SignoffRecorded" isMarkerVisible="true">
+        <dc:Bounds x="612" y="145" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="666" y="104" width="100" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_NotAccepted" bpmnElement="End_NotAccepted">
+        <dc:Bounds x="619" y="240" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="662" y="240" width="210" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_MergeToMain" bpmnElement="Call_MergeToMain">
+        <dc:Bounds x="772" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Close" bpmnElement="A_Close">
+        <dc:Bounds x="922" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Process_CRDM_Close" bpmnElement="End_Process_CRDM_Close">
+        <dc:Bounds x="1072" y="152" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1050" y="193" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Close_1" bpmnElement="SF_Process_CRDM_Close_1">
+        <di:waypoint x="272" y="525" />
+        <di:waypoint x="302" y="525" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Close_2" bpmnElement="SF_Process_CRDM_Close_2">
+        <di:waypoint x="422" y="525" />
+        <di:waypoint x="512" y="525" />
+        <di:waypoint x="512" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Close_3" bpmnElement="SF_Process_CRDM_Close_3">
+        <di:waypoint x="512" y="315" />
+        <di:waypoint x="512" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Close_Gate" bpmnElement="SF_Close_Gate">
+        <di:waypoint x="572" y="170" />
+        <di:waypoint x="612" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Close_Proceed" bpmnElement="SF_Close_Proceed">
+        <di:waypoint x="662" y="170" />
+        <di:waypoint x="772" y="170" />
+        <bpmndi:BPMNLabel><dc:Bounds x="672" y="175" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Close_Stop" bpmnElement="SF_Close_Stop">
+        <di:waypoint x="637" y="195" />
+        <di:waypoint x="637" y="240" />
+        <bpmndi:BPMNLabel><dc:Bounds x="642" y="205" width="35" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Close_Missing" bpmnElement="SF_Close_Missing">
+        <di:waypoint x="637" y="145" />
+        <di:waypoint x="637" y="88" />
+        <di:waypoint x="512" y="88" />
+        <di:waypoint x="512" y="110" />
+        <bpmndi:BPMNLabel><dc:Bounds x="530" y="90" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Close_Merged" bpmnElement="SF_Close_Merged">
+        <di:waypoint x="892" y="170" />
+        <di:waypoint x="922" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Close_4" bpmnElement="SF_Process_CRDM_Close_4">
+        <di:waypoint x="1042" y="170" />
+        <di:waypoint x="1072" y="170" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

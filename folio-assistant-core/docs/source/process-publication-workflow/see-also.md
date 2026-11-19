@@ -1,0 +1,4 @@
+- [Content types]({{ '/docs/cat-harness/concepts/content-types.html' | relative_url }}) — the linear lifecycle and what each type produces
+- [Skills & roles]({{ '/docs/cat-harness/concepts/skills.html' | relative_url }}) — every skill and role, and how they compose with the LLM
+- [Skill schema reference]({{ '/reference/skills/' | relative_url }}) — typed input/output per skill
+- [Agent onboarding]({{ '/docs/cat-harness/guides/agent-onboarding.html' | relative_url }}) — orientation for an agent dropped into a folio
