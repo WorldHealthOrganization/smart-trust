@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant-core's shared steps: BPMN 2.0 global tasks, each one step
+  that two or more of this layer's processes perform with the same Skill, in a
+  lane naming the same Role, for the same purpose (spec §7 of the lane / role /
+  skill model).
+
+  This file holds NO process, on purpose: a step is defined here once and
+  each process calls it with a callActivity whose calledElement is the global
+  task's bare id. The calling lane names the Role; the global task names the
+  Skill. Shared within this layer only:
+  cat-harness keeps its own in its own processes/global-tasks.bpmn. Every layer
+  uses that plain name: a diagram's identity is its layer plus its path, and
+  its IRIs carry the layer, so two layers' files do not collide.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_CoreGlobalTasks" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+
+  <!-- authoring-a-document and content-lifecycle. -->
+  <bpmn:globalTask id="GT_SeedWorkPlan" name="Seed the work plan">
+    <bpmn:documentation>The plan becomes beans, so a resumed session or a sibling agent can pick it up. The run's own bean was claimed by the Process_BeanOpen call before this step, so this step only notes the seeded plan on it; the beans themselves are written with the agent's own `beans create`, which no engine op performs. From here on, beans/ is the shared answer to 'what is done, what is next' — for humans and agents alike.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:skill ref="todo-manager" />
+      <cat-harness.processes:bean op="note" />
+    </bpmn:extensionElements>
+  </bpmn:globalTask>
+</bpmn:definitions>

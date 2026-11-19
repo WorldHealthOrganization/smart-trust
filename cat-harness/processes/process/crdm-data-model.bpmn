@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_CRDM_DataModel" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="business-analyst" name="Business analyst"/>
+  <bpmn:resource id="stakeholder" name="Stakeholder"/>
+  <!-- ═══════════════════════════════════════════════════════════════
+       CRDM data-modelling phase: a callActivity of CRDM, not new
+       machinery.
+
+       WHY BETWEEN REQUIREMENTS AND SIGN-OFF. Requirements are
+       statements about things; the model says what the things ARE.
+       Drafted earlier it is invented from nothing, since the entities
+       come from the phase-2 BPA. Drafted later, phase 5 signs off
+       requirements whose nouns were never pinned — which is how two
+       stakeholders approve one sentence meaning different things.
+
+       TWO LANES CONFIRM, AND THEY ARE ASKED DIFFERENT QUESTIONS. The
+       BA answers "are these the things?", a naming question they own
+       by owning the vocabulary. The stakeholders answer "is it really
+       one per?", an operational question that the people running the
+       process can answer and the BA often cannot. Collapsing them
+       into one review is how a wrong cardinality ships — it is
+       invisible until the data arrives.
+
+       TWO SKILLS, NOT ONE. Every
+       activity here names `crdm-data-model`, the PHASE skill. The
+       technique it invokes, `data-modelling`, carries no CRDM at all
+       so a folio modelling data outside a requirements process can
+       read it without inheriting a methodology it is not running.
+       ═══════════════════════════════════════════════════════════════ -->
+  <bpmn:collaboration id="Collaboration_Process_CRDM_DataModel">
+    <bpmn:participant id="Participant_Process_CRDM_DataModel" name="CRDM data model — entities, relations, cardinalities" processRef="Process_CRDM_DataModel"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_CRDM_DataModel" name="CRDM data model" isExecutable="false">
+    <bpmn:documentation>Draft the data model from the BPA and the requirements, have the BA confirm the entities and the stakeholders confirm the cardinalities, and loop until both. A requirement the model cannot express is a finding, not a modelling failure: it means the requirement is about something nobody has named.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- STRICT, declared rather than defaulted. The step an agent
+           skips under time pressure is the cardinality confirmation —
+           it is slow, it needs people, and the model looks finished
+           without it. Skipping it is exactly how a model ships with a
+           hole where the exceptions live. -->
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_CRDM_DataModel">
+      <bpmn:lane id="Lane_BA" name="BA / Feature Requestor" partitionElementRef="business-analyst">
+        <bpmn:documentation>Confirms naming only — are these the entities meant — and stops there: Lane_Stakeholders asks the separate, operational question about cardinality next, and the two are kept apart on purpose, because collapsing them into one review is how a wrong cardinality ships invisibly.</bpmn:documentation>
+        <bpmn:flowNodeRef>BA_ConfirmEntities</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Does the actual modelling — entities, relations, and the declaration that makes the model machine-readable rather than prose — and absorbs the entire cost of a revise: the gate loops back to A_Entities whichever confirmation failed, BA's or the stakeholders', so this lane cannot assume a cardinality objection leaves its entities untouched.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Process_CRDM_DataModel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Entities</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Relations</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Declare</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Model</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Process_CRDM_DataModel</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Stakeholders" name="Stakeholders" partitionElementRef="stakeholder">
+        <bpmn:documentation>Answers the operational half the BA cannot — not what a thing is but how many of it there really is — because that is knowable only to the people who run the process day to day. It is also the step this process's STRICT policy exists for: skipped under time pressure, a model looks finished without it, which is exactly how a hole where the exceptions live would ship unnoticed.</bpmn:documentation>
+        <bpmn:flowNodeRef>S_ConfirmCardinality</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Process_CRDM_DataModel" name="Requirements agreed"/>
+    <bpmn:task id="A_Entities" name="Identify entities&#10;from the BPA and requirements">
+      <bpmn:documentation>Every verb in the BPA whose object is a candidate entity, and every noun in a requirement. An entity with no identifier is an attribute of something else — that test is decisive and belongs to the technique skill.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-data-model"/><cat-harness.processes:raci ref="business-analyst" involvement="accountable"/><cat-harness.processes:raci ref="stakeholder" involvement="consulted"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Relations" name="Relations and&#10;cardinalities, both ways">
+      <bpmn:documentation>Stated in both directions, because "one attestation per report" and "one report per attestation" are different claims and a model with only the first cannot say whether a re-signature is an update or a second row.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-data-model"/><cat-harness.processes:raci ref="business-analyst" involvement="accountable"/><cat-harness.processes:raci ref="stakeholder" involvement="consulted"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:callActivity id="BA_ConfirmEntities" calledElement="Process_AskThePerson" name="Confirm the entities&#10;are the ones meant">
+      <bpmn:documentation>A naming question. The BA owns the domain vocabulary; the agent does not guess, which is CRDM's own rule for phase 1 and applies here with more force.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-data-model"/><cat-harness.processes:raci ref="business-analyst" involvement="accountable"/><cat-harness.processes:raci ref="stakeholder" involvement="informed"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="S_ConfirmCardinality" calledElement="Process_AskThePerson" name="Confirm the&#10;cardinalities">
+      <bpmn:documentation>An operational question, asked of the people who run the process because they know where the exceptions are.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-data-model"/><cat-harness.processes:raci ref="business-analyst" involvement="accountable"/><cat-harness.processes:raci ref="authoring-agent" involvement="informed"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Model" name="Entities recognised and&#10;every cardinality answered?">
+      <bpmn:documentation>Answered by the BA after confirming cardinalities: are the entities recognised and every cardinality answered? `revise` returns to identifying entities; `yes` declares the model where a tool can read it.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="A_Declare" name="Declare the model&#10;where a tool can read it">
+      <bpmn:documentation>A model in prose is a proposal; a model in the declaration is a model. Ship a reader in the same change: a model that is only documentation goes inert.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-data-model"/><cat-harness.processes:raci ref="business-analyst" involvement="accountable"/><cat-harness.processes:raci ref="publication-manager" involvement="informed"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Process_CRDM_DataModel" name="Model declared"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_DataModel_1" sourceRef="Start_Process_CRDM_DataModel" targetRef="A_Entities"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_DataModel_2" sourceRef="A_Entities" targetRef="A_Relations"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_DataModel_3" sourceRef="A_Relations" targetRef="BA_ConfirmEntities"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_DataModel_4" sourceRef="BA_ConfirmEntities" targetRef="S_ConfirmCardinality"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_DataModel_5" sourceRef="S_ConfirmCardinality" targetRef="GW_Model"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_DataModel_6" name="revise" sourceRef="GW_Model" targetRef="A_Entities"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_DataModel_7" name="yes" sourceRef="GW_Model" targetRef="A_Declare"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_DataModel_8" sourceRef="A_Declare" targetRef="End_Process_CRDM_DataModel"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_CRDM_DataModel">
+    <bpmndi:BPMNPlane id="Plane_Process_CRDM_DataModel" bpmnElement="Collaboration_Process_CRDM_DataModel">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_CRDM_DataModel" bpmnElement="Participant_Process_CRDM_DataModel" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1220" height="530" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_BA_Process_CRDM_DataModel" bpmnElement="Lane_BA" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1190" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent_Process_CRDM_DataModel" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="250" width="1190" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Stakeholders_Process_CRDM_DataModel" bpmnElement="Lane_Stakeholders" isHorizontal="true">
+        <dc:Bounds x="190" y="420" width="1190" height="190" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Process_CRDM_DataModel" bpmnElement="Start_Process_CRDM_DataModel">
+        <dc:Bounds x="250" y="317" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="225" y="357" width="120" height="24" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Entities" bpmnElement="A_Entities">
+        <dc:Bounds x="350" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Relations" bpmnElement="A_Relations">
+        <dc:Bounds x="500" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_BA_ConfirmEntities" bpmnElement="BA_ConfirmEntities">
+        <dc:Bounds x="650" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_S_ConfirmCardinality" bpmnElement="S_ConfirmCardinality">
+        <dc:Bounds x="800" y="445" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Model" bpmnElement="GW_Model" isMarkerVisible="true">
+        <dc:Bounds x="970" y="310" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="800" y="252" width="225" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Declare" bpmnElement="A_Declare">
+        <dc:Bounds x="1090" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Process_CRDM_DataModel" bpmnElement="End_Process_CRDM_DataModel">
+        <dc:Bounds x="1260" y="317" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_DataModel_1" bpmnElement="SF_Process_CRDM_DataModel_1">
+        <di:waypoint x="286" y="335" />
+        <di:waypoint x="350" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_DataModel_2" bpmnElement="SF_Process_CRDM_DataModel_2">
+        <di:waypoint x="470" y="335" />
+        <di:waypoint x="500" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_DataModel_3" bpmnElement="SF_Process_CRDM_DataModel_3">
+        <di:waypoint x="620" y="335" />
+        <di:waypoint x="635" y="335" />
+        <di:waypoint x="635" y="165" />
+        <di:waypoint x="650" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_DataModel_4" bpmnElement="SF_Process_CRDM_DataModel_4">
+        <di:waypoint x="770" y="165" />
+        <di:waypoint x="785" y="165" />
+        <di:waypoint x="785" y="505" />
+        <di:waypoint x="800" y="505" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_DataModel_5" bpmnElement="SF_Process_CRDM_DataModel_5">
+        <di:waypoint x="920" y="505" />
+        <di:waypoint x="945" y="505" />
+        <di:waypoint x="945" y="335" />
+        <di:waypoint x="970" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_DataModel_6" bpmnElement="SF_Process_CRDM_DataModel_6">
+        <di:waypoint x="995" y="360" />
+        <di:waypoint x="995" y="585" />
+        <di:waypoint x="410" y="585" />
+        <di:waypoint x="410" y="395" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1002" y="476.5" width="90" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_DataModel_7" bpmnElement="SF_Process_CRDM_DataModel_7">
+        <di:waypoint x="1020" y="335" />
+        <di:waypoint x="1090" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_DataModel_8" bpmnElement="SF_Process_CRDM_DataModel_8">
+        <di:waypoint x="1210" y="335" />
+        <di:waypoint x="1260" y="335" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

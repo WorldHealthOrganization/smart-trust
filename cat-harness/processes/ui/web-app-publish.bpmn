@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_WebAppPublish" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="author" name="App author"/>
+  <bpmn:resource id="build-pipeline" name="CI/CD Pipeline"/>
+  <bpmn:resource id="translation-source-lead" name="Source-language lead"/>
+  <bpmn:collaboration id="Collaboration_Process_WebAppPublish">
+    <bpmn:participant id="Participant_Process_WebAppPublish" name="Publish a web app — declared, translated, built at its own route" processRef="Process_WebAppPublish"/>
+  </bpmn:collaboration><!-- Provenance of Process_WebAppPublish: owner, 2026-11-11, cards Q-GAME-5 A and Q-GAME-7 A; kept out of its documentation, which says what the process is. -->
+  <bpmn:process id="Process_WebAppPublish" name="Publish a web app — declared, translated, built at its own route" isExecutable="false">
+    <bpmn:documentation>How any layer publishes an interactive app it holds as source, without becoming a harness. The layer declares a `web-app` directory; the app's UI strings go through the harness's own translation process; the harness's `apps` visualiser (Tool `web-app-build`) checks, builds and publishes it at `&lt;locale&gt;/&lt;harness&gt;/apps/&lt;id&gt;/`, with no site chrome, loaded only when a reader opens it (skill `web-apps`).</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_WebAppPublish">
+      <bpmn:lane id="Lane_Author" name="App author" partitionElementRef="author">
+        <bpmn:documentation>The person or agent who holds the app's source in a content layer. They declare it; they never write a publish script for it.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Process_WebAppPublish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Declare</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Fix</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pipeline" name="CI/CD Pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Fixed programs, registered Tools, with no judgement in them.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_Extract</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Valid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Build</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Size</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Process_WebAppPublish</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Translators" name="Translators" partitionElementRef="translation-source-lead">
+        <bpmn:documentation>The source-language lead and the locale translators of the harness's translation process. The app's strings are one more template to them.</bpmn:documentation>
+        <bpmn:flowNodeRef>Call_Translate</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Process_WebAppPublish" name="App source committed
+in a layer"/>
+
+    <bpmn:task id="A_Declare" name="Declare the
+web-app directory">
+      <bpmn:documentation>The layer declares a directory of kind `web-app` in its `&lt;name&gt;.json` and puts a `web-app.json` (`web-app/0.1.0`) at its root: id, title, description, how it builds, the languages it ships (the site's six UN languages: ar, en, es, fr, ru, zh), the layer directories it reads at build time (`contentFrom`), a size budget, and for a copied app its licence and source. Its UI strings are one flat catalog in the source language (`i18n.catalog`). No publish script, no `site.build.keep`, no harness of its own.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="web-apps"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_Extract" name="Extract the app's
+translation templates">
+      <bpmn:documentation>Tool `web-app-build` (`web-apps:build --extract`): the catalog becomes `translations/&lt;locale&gt;/apps/&lt;id&gt;.pot` in the declaring layer, one `ui-string` entry per key with the key as `msgctxt`. This is the app's &quot;refresh the templates&quot; step, named in the layer's AGENTS.md so the translation watcher runs it too.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="web-apps"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:callActivity id="Call_Translate" calledElement="Process_MultiLocaleTranslation" name="Translate into
+each locale">
+      <bpmn:documentation>The harness's multi-locale translation, unchanged: the templates are merged into each locale's `.po`, new and fuzzy strings are translated with the fixed terms, the gates run, and each locale is its own PR. Afterwards the translation watcher (`Process_TranslationRefresh`) keeps them current as the catalog moves.</bpmn:documentation>
+    </bpmn:callActivity>
+
+    <bpmn:task id="A_Check" name="Check the declaration
+and translations">
+      <bpmn:documentation>Tool `web-app-build` (`web-apps:build --check`): the manifest parses, `package.json` has the build script, a lockfile pins exact versions, no two layers claim one app id, every template is current, and no translation drops or adds a `{placeholder}`. Untranslated strings are reported, not failed: the app falls back to the source text per string.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="web-apps"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Valid" name="Declaration and
+translations valid?">
+      <bpmn:documentation>Answered by the check's exit code.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_Fix" name="Fix the declaration
+or the catalog">
+      <bpmn:documentation>The author fixes what the check named (the manifest, the lockfile, a clashing id, a stale template) and commits again. A translation that dropped a placeholder goes back to its locale's translator through the same PR route.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="web-apps"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_Build" name="Build into its own
+chrome-less route">
+      <bpmn:documentation>Tool `web-app-build` (`web-apps:build`, run with the other declared visualiser writers): each locale's strings are written to `&lt;i18n.out&gt;/&lt;locale&gt;.json` from the `.po` (building is the injection), the app installs from its lockfile and builds, and the build is copied to `&lt;locale&gt;/&lt;harness&gt;/apps/&lt;id&gt;/` with every page marked `folio-navbar: none` and `rendered-by: web-app-build`; the `apps/` index lists every app with its size. No other page embeds an app, so it loads only when a reader opens its route.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="web-apps"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_Size" name="Review the size
+against its budget">
+      <bpmn:documentation>The index flags an app over its `sizeBudgetMB`; the site size review reads it with the rest of the site. Over budget is a finding for the author, never a silent publish.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="web-apps"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Process_WebAppPublish" name="App published at
+its own route"/>
+
+    <bpmn:sequenceFlow id="SF_Process_WebAppPublish_1" sourceRef="Start_Process_WebAppPublish" targetRef="A_Declare"/>
+    <bpmn:sequenceFlow id="SF_Process_WebAppPublish_2" sourceRef="A_Declare" targetRef="A_Extract"/>
+    <bpmn:sequenceFlow id="SF_Process_WebAppPublish_3" sourceRef="A_Extract" targetRef="Call_Translate"/>
+    <bpmn:sequenceFlow id="SF_Process_WebAppPublish_4" sourceRef="Call_Translate" targetRef="A_Check"/>
+    <bpmn:sequenceFlow id="SF_Process_WebAppPublish_5" sourceRef="A_Check" targetRef="GW_Valid"/>
+    <bpmn:sequenceFlow id="SF_Process_WebAppPublish_6" name="yes" sourceRef="GW_Valid" targetRef="A_Build"/>
+    <bpmn:sequenceFlow id="SF_Process_WebAppPublish_7" name="no" sourceRef="GW_Valid" targetRef="A_Fix"/>
+    <bpmn:sequenceFlow id="SF_Process_WebAppPublish_8" sourceRef="A_Fix" targetRef="A_Extract"/>
+    <bpmn:sequenceFlow id="SF_Process_WebAppPublish_9" sourceRef="A_Build" targetRef="A_Size"/>
+    <bpmn:sequenceFlow id="SF_Process_WebAppPublish_10" sourceRef="A_Size" targetRef="End_Process_WebAppPublish"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_WebAppPublish">
+    <bpmndi:BPMNPlane id="Plane_Process_WebAppPublish" bpmnElement="Collaboration_Process_WebAppPublish">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_WebAppPublish" bpmnElement="Participant_Process_WebAppPublish" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1375" height="510" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Author_Process_WebAppPublish" bpmnElement="Lane_Author" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1345" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Pipeline_Process_WebAppPublish" bpmnElement="Lane_Pipeline" isHorizontal="true">
+        <dc:Bounds x="190" y="250" width="1345" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Translators_Process_WebAppPublish" bpmnElement="Lane_Translators" isHorizontal="true">
+        <dc:Bounds x="190" y="420" width="1345" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Process_WebAppPublish" bpmnElement="Start_Process_WebAppPublish">
+        <dc:Bounds x="322" y="147" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="275" y="189" width="130" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Declare" bpmnElement="A_Declare">
+        <dc:Bounds x="415" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Extract" bpmnElement="A_Extract">
+        <dc:Bounds x="550" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Translate" bpmnElement="Call_Translate">
+        <dc:Bounds x="685" y="445" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Check" bpmnElement="A_Check">
+        <dc:Bounds x="820" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Valid" bpmnElement="GW_Valid" isMarkerVisible="true">
+        <dc:Bounds x="990" y="310" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="950" y="366" width="130" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Fix" bpmnElement="A_Fix">
+        <dc:Bounds x="955" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Build" bpmnElement="A_Build">
+        <dc:Bounds x="1090" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Size" bpmnElement="A_Size">
+        <dc:Bounds x="1225" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Process_WebAppPublish" bpmnElement="End_Process_WebAppPublish">
+        <dc:Bounds x="1402" y="317" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1355" y="359" width="130" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_WebAppPublish_1" bpmnElement="SF_Process_WebAppPublish_1">
+        <di:waypoint x="358" y="165" />
+        <di:waypoint x="415" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_WebAppPublish_2" bpmnElement="SF_Process_WebAppPublish_2">
+        <di:waypoint x="535" y="165" />
+        <di:waypoint x="610" y="165" />
+        <di:waypoint x="610" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_WebAppPublish_3" bpmnElement="SF_Process_WebAppPublish_3">
+        <di:waypoint x="670" y="335" />
+        <di:waypoint x="745" y="335" />
+        <di:waypoint x="745" y="445" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_WebAppPublish_4" bpmnElement="SF_Process_WebAppPublish_4">
+        <di:waypoint x="805" y="505" />
+        <di:waypoint x="880" y="505" />
+        <di:waypoint x="880" y="395" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_WebAppPublish_5" bpmnElement="SF_Process_WebAppPublish_5">
+        <di:waypoint x="940" y="335" />
+        <di:waypoint x="990" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_WebAppPublish_6" bpmnElement="SF_Process_WebAppPublish_6">
+        <di:waypoint x="1040" y="335" />
+        <di:waypoint x="1090" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_WebAppPublish_7" bpmnElement="SF_Process_WebAppPublish_7">
+        <di:waypoint x="1015" y="310" />
+        <di:waypoint x="1015" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_WebAppPublish_8" bpmnElement="SF_Process_WebAppPublish_8">
+        <di:waypoint x="955" y="165" />
+        <di:waypoint x="610" y="165" />
+        <di:waypoint x="610" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_WebAppPublish_9" bpmnElement="SF_Process_WebAppPublish_9">
+        <di:waypoint x="1210" y="335" />
+        <di:waypoint x="1225" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_WebAppPublish_10" bpmnElement="SF_Process_WebAppPublish_10">
+        <di:waypoint x="1345" y="335" />
+        <di:waypoint x="1402" y="335" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

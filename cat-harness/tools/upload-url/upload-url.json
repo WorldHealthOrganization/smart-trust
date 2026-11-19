@@ -1,0 +1,59 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "upload-url",
+    "title": "Where to drop a file — the queue's upload URL",
+    "description": "Compose the forge URL a person can drop a file at, from the layer's own declaration: the `uploads` graph's directory, resolved against the ROOT its scope names, expressed relative to the repository, and appended to the origin remote as GitHub's `/upload/<branch>/<path>`. Every failure is NAMED and no URL is guessed — no declaration, no declared `uploads` graph, a declared queue absent from disk, no `origin` remote, and a non-github.com remote each return a reason and a remedy instead. The declared path is relative to the LAYER and a forge URL needs it relative to the REPOSITORY, so pasting the declared path can mint a 404.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat upload:url"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "branch",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "The branch the upload form targets. Defaults to `main`; pass the working branch to send somebody to a pull request's head instead, so the upload lands on a commit CI judges.",
+          "required": false,
+          "arg": {
+            "positional": 0
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "url",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The upload URL on stdout, exit 0 — or, on stderr and exit 1, the reason it could not be composed and the remedy for that reason. Never a guessed URL: a URL is believed, and somebody sent to a wrong one cannot tell it from an empty directory."
+        }
+      ]
+    },
+    "satisfies": [
+      "upload-routes",
+      "content-acquisition"
+    ],
+    "selection": {
+      "when": "You are about to tell somebody where to put a file, in any channel. Reach for it every time, not only when unsure: a hand-written path breaks silently when a directory moves. It also answers \"which queue\" when a checkout declares more than one (one per layer): the answer is whichever layer root you pass, never a literal.",
+      "limits": "It answers WHERE, and nothing else. It does not upload, does not check whether the person has write access, and cannot tell you which of several declared queues should own a given file — that is undecided and `upload-routes` says so rather than picking. The `/upload/<branch>/<path>` form is GitHub's, so another forge gets a named refusal rather than a guess. And the URL it hands back opens the route with the FEWEST guarantees: the web form has no working tree, so no pre-commit hook and no generator run happen on it, and everything `upload-routes` lists has to be discharged afterwards from a checkout.",
+      "cost": "One read of the declaration and one of the git remote; no network at run time and nothing installed."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "── The step BEFORE ingestion, and it had no Tool until 2026-09-30.\n\nOwner, 2026-09-29: \"generate documentation from Tool documentation of\nthe upload Task/Skill as first step of document ingestion process.\"\nThe chain could not be built, because its first link was missing:\n`document-ingestion.bpmn` began at an EVENT (\"a file lands in\nuploads/\"), the ingest Tools below both type their first input as a\nfile already present, and nothing named the act of putting it there.\n`Task_Place` is that step, `upload-routes` governs it, and this is its\none mechanism."
+    }
+  ]
+}

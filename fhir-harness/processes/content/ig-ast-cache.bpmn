@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_Process_IgAstCache" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:collaboration id="Collaboration_Process_IgAstCache">
+    <bpmn:participant id="Participant_Process_IgAstCache" name="An IG site, built from the AST on its cache branch" processRef="Process_IgAstCache"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_IgAstCache" name="An IG site, built from the AST on its cache branch" isExecutable="false">
+    <bpmn:documentation>How an IG repository's own site is published, and how the AST it is built from is kept current (skill `ig-build-pipeline` §"The AST cache lifecycle").
+
+THE RULE. An IG site is built from the IG Publisher AST read from the IG repository's cache branch `cat/fhir-harness/fhir-ast/&lt;package id&gt;`, never from Publisher HTML. The publish refuses an AST that is not valid for the commit it publishes (`ig-cache.sh restore` then `verify`). A later commit that changes no IG input (`sushi-config.yaml`, `ig.ini`, `input/`) does not make the AST stale.
+
+THE REFRESH. The cache is written by ONE thing: fhir-harness's reusable workflow `.github/workflows/ig-ast-refresh.yml`, which an IG repository's Site publish calls as its first job (`ast`; template `templates/ig-repo-site/site-publish.yml`). It runs the Publisher through the AST exporter on a GitHub runner (Java, 10 GB heap, tx.fhir.org). It seeds the branch only from a commit on the default branch whose inputs equal the tip's.
+
+A valid AST is a cache, not a release: every page drawn from it carries the provisional mark (`ig-ast-delta`).</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- ADVISORY: strict would bind every IG publish to the runner path. -->
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_IgAstCache">
+      <bpmn:lane id="Lane_PubMgr" name="Publication manager (owner, or the agent the owner delegates to)">
+        <bpmn:documentation>Starts the AST refresh; an agent never dispatches it on its own (`feature-staging` §"Agent-run repositories"). When the publish refuses, asks for the refresh rather than publishing around it.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="publication-manager"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_Publish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Dispatch</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Site" name="Site build (agent, stage-local)">
+        <bpmn:documentation>Restores and judges the AST, builds and publishes the site, then reviews its size against the published one. A stale, cannot-tell or missing AST ends the publish; the size review warns and never refuses.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="build-pipeline"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_Restore</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Valid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BuildSite</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SizeReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Published</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Runner" name="AST refresh (GitHub runner: IG Publisher with the AST exporter)">
+        <bpmn:documentation>fhir-harness's `ig-ast-refresh.yml`, run in the IG repository through its caller. Builds the IG once with the Publisher AST exporter and writes the cache branch. Builds no site, publishes nothing, dispatches nothing.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="ig-publisher-service"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_Export</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Seedable</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Seed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NotSeeded</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Publish" name="IG site publish&#10;wanted">
+      <bpmn:documentation>A publish of the IG repository's default branch (the site root) or of another branch (a preview), by `stage-local.ts`.</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_Restore" name="Restore and judge the cached AST">
+      <bpmn:documentation>`ig-cache.sh restore --ig-root .` fetches `cat/fhir-harness/fhir-ast/&lt;package id&gt;` into `output-ast/` (with the Publisher's `txcache/`), then `ig-cache.sh verify` runs `ig-ast.ts validity`: exit 0 valid, 1 stale-inputs (naming which input), 2 cannot-tell. A restore that finds no branch is a miss, judged as not valid. In an IG repository's site route this is the first `pre` step, `ig-site:ast` (`ig-repo-site.ts ast`).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-ast-delta"/>
+        <bootstrap.processes:skill ref="ig-build-pipeline"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_Valid" name="AST valid for&#10;this commit?">
+      <bpmn:documentation>Answered by Task_Restore's verdict. `valid` takes yes. `stale-inputs`, `cannot-tell` and a miss take no: the publish is refused, never drawn from Publisher HTML or from an AST of other inputs. The override (`SITE_ACCEPT_STALE_AST=1`, read by `ig-site:ast`) is for a preview only: on the root it still refuses.</bpmn:documentation>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_BuildSite" name="Build and publish the site from the AST">
+      <bpmn:documentation>Runs the site route's steps via `stage-local.ts` → `build-instance-site.ts`: `ig-site:sidecars` (IG API sidecars, if the landing layer has the step), `ig-site:compose` (artefact index and thin pages from the AST, the IG composed at the root), `ig-site:openapi` (if the IG holds OpenAPI pages), `ig-site:publisher-pages` (the AST's resources as `&lt;Type&gt;-&lt;id&gt;.json` at the root, the build stamp), and last `ig-site:bar` (the IG's slim bar on pages written after `publisher-pages`). Published at the root from the default branch, as a preview otherwise. When the restore recorded the cache commit, the site reads the AST from that commit by raw URL rather than copying it: the artefact pages draw each full resource there, the IG API sidecars are read from its `ig-api/` (fhir-harness#344), and the artefact index from its `fhir-artifact-index/index.json`, which the site points at with `fhir-artifact-index/index.ref.json` instead of serving (#358). The root `&lt;Type&gt;-&lt;id&gt;.json` copies are then reduced (minified, no narrative, no ELM data; #359), and the JSON-LD graph (`artifact/*.jsonld`) names each root file first and the cache copy as its mirror. The full resources are the cache commit's and the release's `package.tgz`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-render-jekyll"/>
+        <bootstrap.processes:skill ref="ig-build-pipeline"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:task id="Task_SizeReview" name="Review the site's size">
+      <bpmn:documentation>Read the size report the build printed before its push, and fix what it shows, or raise a decision card with the owner when no known fix applies (skill `ig-publication` §"Size review"). The report is cat-harness-tools `site-size.ts` (`bun run cat site:size`), written as `site-size.json` beside the build, never into the site. It gives the total against the published `gh-pages` root, the top directories, the size by extension, the biggest files, byte-identical duplicates, source maps, the directories named after another layer of `index.lock.json`, and the directories the shared-assets host could serve. Growth over the budget (10% or 10 MB) is a warning. The review is advisory and never refuses a publish.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publication"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Published" name="Site published&#10;from the AST">
+      <bpmn:documentation>The site says what built it (`folio-build.json`), and every artefact page carries the AST's provisional mark.</bpmn:documentation>
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_Dispatch" name="Dispatch AST refresh">
+      <bpmn:documentation>Actions → "IG AST refresh (by hand)" → Run workflow on the default branch, inputs `ref` = the default branch, `force` = false. Set `force` = true only to rebuild a cache that is valid but suspected wrong.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-build-pipeline"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_Export" name="Build the IG with the AST exporter">
+      <bpmn:documentation>The runner mounts the layers the IG repository's `index.lock.json` pins, then restores and judges the cache itself. When it is not valid (or `force` is set) it rebuilds with the Publisher fork (Tool `ig-ast-export`, `litlfred/fhir-ig-publisher` at the pinned `claude/ast-export` commit). A stale cache is first rebuilt incrementally (`IncrementalBuildCli`), falling back to a full `AstExportCli` build with `-tx`; a `force` run, a `pre-export` caller, or a missing or cannot-tell cache always builds in full, and a release needs a full build. The caller's optional `pre-export` overlay command runs before a full build; the inputs it changed are put back and the AST is recorded against the clean commit's input digest (`ig-ast.ts source-inputs`). The AST just built must itself be `valid` for the commit, or the run fails.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publisher-fork"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_Seedable" name="On the default branch,&#10;with its inputs?">
+      <bpmn:documentation>Yes when the built commit is an ancestor of the default branch's tip AND `sushi-config.yaml`, `ig.ini` and `input/` are the same at both. An AST of other inputs never overwrites the shared cache.</bpmn:documentation>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Seed" name="Seed the cache branch">
+      <bpmn:documentation>`ig-cache.sh seed --ig-root . --push`: one commit holding the AST, the Publisher's expansions and `txcache/`, the IG API generated over that AST (`ig-api/`, `ig-api-cache.ts`) and the artefact index built from that tree (`fhir-artifact-index/index.json`, `ig-index-cache.ts`), which the site reads by raw URL; its subject recording the package, counts, Publisher version and source commit. Refused when the candidate is under 90% of the incumbent's resources or edges (the no-shrink gate).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="compiled-artefact-cache"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_NotSeeded" name="AST kept as a run&#10;artifact; cache unchanged">
+      <bpmn:documentation>The AST is uploaded with the run, for that ref's own review; the shared cache is left alone.</bpmn:documentation>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_Publish" targetRef="Task_Restore"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Restore" targetRef="GW_Valid"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="GW_Valid" targetRef="Task_BuildSite" name="yes"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="GW_Valid" targetRef="Task_Dispatch" name="no — refused:&#10;stale, cannot tell, miss"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_BuildSite" targetRef="Task_SizeReview"/>
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Task_SizeReview" targetRef="End_Published"/>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_Dispatch" targetRef="Task_Export"/>
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_Export" targetRef="GW_Seedable"/>
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="GW_Seedable" targetRef="Task_Seed" name="yes"/>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_Seed" targetRef="Task_Restore" name="publish again"/>
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="GW_Seedable" targetRef="End_NotSeeded" name="no"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_IgAstCache">
+    <bpmndi:BPMNPlane id="Plane_Process_IgAstCache" bpmnElement="Collaboration_Process_IgAstCache">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_IgAstCache" bpmnElement="Participant_Process_IgAstCache" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="1140" height="540" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_PubMgr" bpmnElement="Lane_PubMgr" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="1110" height="180" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Site" bpmnElement="Lane_Site" isHorizontal="true">
+        <dc:Bounds x="90" y="240" width="1110" height="180" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Runner" bpmnElement="Lane_Runner" isHorizontal="true">
+        <dc:Bounds x="90" y="420" width="1110" height="180" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Publish" bpmnElement="Start_Publish">
+        <dc:Bounds x="142" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Restore" bpmnElement="Task_Restore">
+        <dc:Bounds x="230" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Valid" bpmnElement="GW_Valid" isMarkerVisible="true">
+        <dc:Bounds x="430" y="305" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_BuildSite" bpmnElement="Task_BuildSite">
+        <dc:Bounds x="580" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_SizeReview" bpmnElement="Task_SizeReview">
+        <dc:Bounds x="770" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Published" bpmnElement="End_Published">
+        <dc:Bounds x="962" y="312" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Dispatch" bpmnElement="Task_Dispatch">
+        <dc:Bounds x="395" y="90" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Export" bpmnElement="Task_Export">
+        <dc:Bounds x="230" y="450" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Seedable" bpmnElement="GW_Seedable" isMarkerVisible="true">
+        <dc:Bounds x="430" y="485" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Seed" bpmnElement="Task_Seed">
+        <dc:Bounds x="580" y="450" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_NotSeeded" bpmnElement="End_NotSeeded">
+        <dc:Bounds x="437" y="552" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="178" y="150" />
+        <di:waypoint x="204" y="150" />
+        <di:waypoint x="204" y="330" />
+        <di:waypoint x="230" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_2" bpmnElement="Flow_2">
+        <di:waypoint x="350" y="330" />
+        <di:waypoint x="430" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_3" bpmnElement="Flow_3">
+        <di:waypoint x="480" y="330" />
+        <di:waypoint x="580" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_4" bpmnElement="Flow_4">
+        <di:waypoint x="455" y="305" />
+        <di:waypoint x="455" y="210" />
+        <bpmndi:BPMNLabel><dc:Bounds x="459" y="200.75" width="180" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_5" bpmnElement="Flow_5">
+        <di:waypoint x="700" y="330" />
+        <di:waypoint x="770" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_11" bpmnElement="Flow_11">
+        <di:waypoint x="890" y="330" />
+        <di:waypoint x="962" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_6" bpmnElement="Flow_6">
+        <di:waypoint x="515" y="150" />
+        <di:waypoint x="1160" y="150" />
+        <di:waypoint x="1160" y="400" />
+        <di:waypoint x="290" y="400" />
+        <di:waypoint x="290" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_7" bpmnElement="Flow_7">
+        <di:waypoint x="350" y="510" />
+        <di:waypoint x="430" y="510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_8" bpmnElement="Flow_8">
+        <di:waypoint x="480" y="510" />
+        <di:waypoint x="580" y="510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_9" bpmnElement="Flow_9">
+        <di:waypoint x="700" y="510" />
+        <di:waypoint x="760" y="510" />
+        <di:waypoint x="760" y="430" />
+        <di:waypoint x="250" y="430" />
+        <di:waypoint x="250" y="370" />
+        <bpmndi:BPMNLabel><dc:Bounds x="764" y="461" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_10" bpmnElement="Flow_10">
+        <di:waypoint x="455" y="535"/>
+        <di:waypoint x="455" y="552"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

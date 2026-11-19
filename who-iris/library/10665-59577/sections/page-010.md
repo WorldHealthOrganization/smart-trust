@@ -1,0 +1,74 @@
+---
+doc_id: 10665-59577
+doc_title: "Guidelines for the prevention and control of infection with LAV/HTLV III"
+section_id: page-010
+section_title: "Page 10"
+pages: 10-10
+pdf_page: 10
+source_pdf: 10665-59577.pdf
+source_sha256: 0b4242e6c7a53872
+text_source: ocr
+granularity: page
+---
+WHO/CDS/ATDS /86.1
+page &
+
+requires tigorous sterilization of reusable equipment such as needles,
+syringes and skin~plercing instruments.
+
+2.1 Precautions for HCWs
+
+These precautions represent prudent practices that apply to preventing
+transmission of all bloodborne infections and should be used routinely.
+
+2.4.1. Sharp items (needles, scalpel blades, and other instruments) should
+be considered as potentially infective, should be handled with extraordinary
+care to prevent accidental injuries, and should be placed into
+puncture-resistant containers located as close as practical to the area in
+which they were used, To prevent needlestick injuries, disposable needles
+should not be recapped, purposefully bent, broken, removed from disposable
+syringes, or otherwise manipulated by hand, Disposable needles and syringes
+should be destroyed promptly or otherwise handled to prevent re-use, This may
+be accomplished by (1) incineration, or (2) by first autoclaving or boiling,
+then breaking, crushing or otherwise deforming the needle and syringe before
+being buried. Reusable needles and syringes must be handled by personnel who
+are carefully crained in methods designed to minimize the risk of accidental
+injuries, Detaile for processing reusable needles and syringes are contained
+in section 7,3.
+
+2.1.2. Extraordinary care should also be taken to avoid contact of open skin
+lesions on HCWs with material (especially blood) from LAV/HTLV-I1i infected
+patients, When the possibility of exposure to bleed or other body fluids
+exists, the degree of care will depend upon the risk involved (e.g., gloves
+alone may suffice for handling items soiled with blood or equipment contamined
+with blood or other body fluids, while gowns, masks, and eye~coverings may be
+required when performing procedures involving more extensive contact with
+blood or potentially infective body fluids, as in some dental or endoscopic
+procedures or postmortem examinations). Hands should be washed thoroughly and
+immediately if they become contaminated with blood.
+
+2.1.3. Blood and other specimens from known or suspected LAV/HTLV~IIL
+infected patients should be labelled prominently with a special warning, guch
+as “Blood Precautions". In some areas, the prevalence of LAV/HTLV-III
+infection in the patient population may justify handling all blood specimens
+as if they contained LAV/HTLV-III1. If the outeide of the specimen container
+is visibly contamined with blood, it should be cleaned with a disinfectant
+(see section 7.1). All blood specimens should ideally be placed in a second
+container,such as an impervious bag, for transport, The bag or container
+should be examined carefully for leaks or cracks,
+
+2edede Blood spills should be cleaned up promptly with a disinfectant
+solution, such as sodium hypochlorite (see section 7.1).
+
+2.1.5 Articles contaminated with blood should be placed in an impervious
+bag prominently labelled "Blood Precautions” before being sent for
+reproceseing or disposal. Alternatively, such contaminated items may be
+placed in plastic bags of a particular color designated solely for disposal of
+infectious wastes by the hospital, Disposable items should be incinerated or
+disposed of in accord with the hospital's policies for disposal of infectious
+wastes, Such policies include autoclaving followed by burial in a landfill,
+Reusable iteme should be reprocessed in accord with hospital policies for
+items contamined with Hepatitis B virus. Instruments with lenses should be
+aterilized after use on patients known or suspected to be LAV/HTLV-1I1
+infected or if this is not possible, cleaned and exposed to a high level
+disinfectant (see section 7.2).

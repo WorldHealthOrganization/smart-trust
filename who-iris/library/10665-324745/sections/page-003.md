@@ -1,0 +1,17 @@
+---
+doc_id: 10665-324745
+doc_title: "DEVELOPING A MONITORING AND EVALUATION FRAMEWORK FOR VIRAL LOAD TESTING"
+section_id: page-003
+section_title: "Page 3"
+section_number: null
+pages: 3-3
+source_pdf: 10665-324745.pdf
+source_sha256: 574ababe3ca5191c
+toc_source: undetermined
+---
+CONSIDERATIONS FOR
+DEVELOPING A 
+MONITORING AND 
+EVALUATION FRAMEWORK 
+FOR VIRAL LOAD TESTING
+TECHNICAL UPDATE – APRIL 2019

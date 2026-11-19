@@ -1,0 +1,96 @@
+---
+doc_id: 10665-59577
+doc_title: "Guidelines for the prevention and control of infection with LAV/HTLV III"
+section_id: page-019
+section_title: "Page 19"
+pages: 19-19
+pdf_page: 19
+source_pdf: 10665-59577.pdf
+source_sha256: 0b4242e6c7a53872
+text_source: ocr
+granularity: page
+---
+WHO/CDS/ATDS/86.1
+Annex 1
+page 1
+
+Provisional
+
+WORLD HEALTH ORGANIZATION 2 April 1986
+REPORTING FORM ON ACQUIRED IMMUNODEFICIENCY SYNDROME (AIDS)
+
+Reporting Officer: Name (code) of country:
+
+Unit/department: Reporting period
+
+1: 1.
+Date of report: Monthi: Quarter!,:
+
+LA. Number of cases meeting CDC/WHO case definition”
+
+1B. Number of cases meeting clinical case definition? but not
+CDC/WHO case definition
+
+Of clinical cases, how many were serotested?
+
+Of clinical cases serotested, how many were positive by
+initial test (ELISA, other)?
+
+Of clinical cases positive by initial test, how many
+were confirmed positive (immumoblet, other)?
+
+Total number of AIDS cases reported during this period Re
+
+Age at onset and sex 3. Disease category (at time of origi-
+nal diagnosis) for cases fulfilling
+CDC/WHO case definition
+
+Age Sex
+
+(years) | Male Female | Unknown No. of
+
+Disease category
+<1
+
+Opportunistic infection
+1-4
+
+Kaposi's sarcoma
+
+Malignancies other than
+Kaposi's sarcoma
+
+Opportunistic infection plus
+Kaposi's sarcoma
+
+Opportunistic infection plus
+malignancies other than
+Kaposi's sarcoma
+
+Other
+
+Total
+
+4. Of total number of cases reported during this period, how many were diagnosed:
+
+1985 1986 1987 Total
+
+pre-1983) 1983 1984 Jan-Jun | Jul-Dee| Jan-Jun | Jul-Dec] Jan-Tun | Jul-Dec] cases
+
+Eo
+
+i 2
+Reporting can be monthly {code 01 for January, 02 for February, etc.) or quarterly (code 1 for January=
+March, 2 for April-June, 3 for July-September and 4 for October-December)
+
+2 soe :
+See case definitions published in Weekly Epidemiological Record, No. 10, 1986, pp. 69-73
+
+n
+Total number of cases should equal the sum of number of cases reported in LA and 1B
+ok
+
+Total number of cages should equal number of cases in 16
+ak
+
+Toral number of cases should equal number of cases in 1A

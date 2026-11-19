@@ -1,0 +1,21 @@
+{
+  "$schema": "folio-upstream-pins/v1",
+  "_comment": "The pinned upstream dependencies whose pin literal lives in THIS layer. Same shape as cat-harness's `upstream/upstream-pins.json`, and read by the same `bun run cat check:upstream-pins`. Every `pinnedIn` here resolves against the cat-harness-tools root. The pinned version is not stored here: it lives in the file the build reads. The `pdfjs` row moved here from the harness registry because bean `70lx` moved `scripts/pdf-viewer.ts` into this layer, and a harness row cannot name a file in the layer above it (folio-assistant#1481).",
+  "pins": [
+    {
+      "id": "pdfjs",
+      "title": "pdf.js generic viewer (legacy build)",
+      "repo": "https://github.com/mozilla/pdf.js",
+      "pinnedIn": "scripts/pdf-viewer.ts",
+      "pattern": "^export const PDFJS_VERSION = \"(\\d+\\.\\d+\\.\\d+)\";$",
+      "tagPattern": "^v\\d+\\.\\d+\\.\\d+$",
+      "tagPrefix": "v",
+      "binds": [
+        "cat-harness-tools/scripts/pdf-viewer.ts — `PDFJS_SHA256` must be re-measured with the version; `install` refuses a zip whose hash differs, so a bump without it fails the site build rather than shipping unverified bytes.",
+        "cat-harness-tools/scripts/pdf-viewer.ts `openShim` — listens for `webviewerloaded` on BOTH `document` and `parent.document` and calls `PDFViewerApplication.open({url})` after `initializedPromise`, and sets `defaultUrl` to empty. All three are pdf.js internals measured at v6.4.299 and again at v6.5.438; a rename leaves every embed an empty viewer while the build stays green.",
+        "cat-harness-tools/scripts/pdf-viewer.ts `patchViewerHtml` — anchors on `<script src=\"../build/pdf.mjs\" type=\"module\">` in `web/viewer.html`, and throws if it moved.",
+        "cat-harness-tools/scripts/pdf-viewer.ts `KEEP` — the release paths copied into the site; `install` throws on any that is missing."
+      ]
+    }
+  ]
+}

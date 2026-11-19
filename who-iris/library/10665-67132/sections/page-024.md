@@ -1,0 +1,70 @@
+---
+doc_id: 10665-67132
+doc_title: "Breastfeeding and replacement feeding practices in the context of mother-to-child transmission of HIV : an assessment tool for research"
+section_id: page-024
+section_title: "Page 24"
+pages: 24-24
+pdf_page: 24
+source_pdf: 10665-67132.pdf
+source_sha256: 2c2fb689392e00e3
+text_source: ocr
+granularity: page
+---
+6.5 Module 5 - infant Health (all visits)
+
+e | Infant weight (in g) (grammes)
+Has the infant shown any of the following signs since the last visit?
+
+- Mouth sores? (yes) (no)
+- If yes, were they painful or not? : : (yes) (no)
+— How many times since last visit? (times)
+~- Date when event(s) occurred oo (day/mon/yea)
+- Sore with white patches on the inside of the mouth : ' (yes) (no)
+
+which remained when scraped (oral thrush)
+
+- How many times since last visit? ~ (times)
+— Date when event(s) occurred (day/mon/yea)
+—. Fast or difficult breathing ? (yes) (no)
+— How many times since last visit? (times)
+~ Date when event(s) occurred (day/mon/yea)
+— Fever? ; (yes) (no)
+- How many times since last visit? (times)
+— Date when event(s) occurred (day/mon/yea)
+— Diarrhoea? (yes) (no)
+— How many times since last visit? (times)
+— Date when event(s) occurred (day/mon/yea)
+— Other problem (specify)
+
+- Did you consult a health care worker ?
+— If yes, specify:
+
+- Did your infant receive any treatment?
+—  Ifyes, specify:
+
+— Was your infant admitted to Hospital?
+
+e For each event, specify dates when started and stopped (longitudinal study only).
+e Did you change the way you fed your infant when this occurred?
+
+e What did you do differently? (Ask the question and tick only the answers given)
+
+- Stopped breastfeeding
+
+- Stopped non-human milks
+
+- Stopped other liquids °
+
+- Stopped solid foods
+
+- Began giving non-human milks
+- Began giving other liquids
+
+- Began giving solid foods
+
+In a longitudinal study, ask all events since the last visit. In a cross sectional survey, ask the
+list of infant health problems since birth.
+
+Some studies may use verbal autopsy methods) to assess causes of infant deaths .
+
+24

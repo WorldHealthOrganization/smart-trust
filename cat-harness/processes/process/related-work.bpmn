@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_RelatedWork" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="user" name="User"/>
+  <bpmn:collaboration id="Collaboration_Process_RelatedWork">
+    <bpmn:participant id="Participant_Process_RelatedWork" name="Related work: find, sort, summarize, ask to coordinate" processRef="Process_RelatedWork"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_RelatedWork" name="Related work: find, sort, summarize, ask to coordinate" isExecutable="false">
+    <bpmn:documentation>Before new work takes shape, find the work it touches. When a requirement is initiated or updated through a human-agent chat (CRDM), or a method is adopted from a source, search the beans and the repository's issues and open PRs for relevance. Categorize and summarize every hit, then ask the user whether and how to coordinate. Judgement decides the categories and the recommendation; the user decides the coordination. Owner, 2026-09-23 (issue #1023): 'existing beans need to be searched for relevance and categorized (and summarized), same for issues (e.g. github). ask user if they want to coordinate. judgement is used to determine how'. Operating skill: related-work-coordination.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_RelatedWork">
+      <bpmn:lane id="Lane_Agent" name="Agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Searches, sorts and summarizes, and recommends. It never links, blocks, merges or comments on another piece of work before the user has answered, because coordinating is a commitment on behalf of the work's owners.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_RW</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_SearchBeans</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_SearchIssues</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Categorize</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Record</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_RW</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_User" name="User" partitionElementRef="user">
+        <bpmn:documentation>Answers one question: coordinate or not, and how. The question arrives with its context, options and a recommendation, so it can be answered without opening anything (interaction-modality §4.1).</bpmn:documentation>
+        <bpmn:flowNodeRef>U_Coordinate</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_RW" name="Work started or changed in chat"/>
+    <bpmn:task id="A_SearchBeans" name="Search beans for relevance">
+      <bpmn:documentation>beans list --json / beans query over titles AND bodies, open and recently completed. A completed bean is evidence of a decision already made.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="Searching beans is taught by the opt-in sdlc skill related-work-coordination and the work-plan skills, which an always-on diagram may not name (owner card Q-CORE-SKILLS A, 2026-11-12)."/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_SearchIssues" name="Search issues and open PRs">
+      <bpmn:documentation>The repository's issues (open and closed) and its open pull requests. An open PR touching the same files is the collision most worth finding early.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="Taught by the opt-in sdlc skill related-work-coordination, which an always-on diagram may not name (owner card Q-CORE-SKILLS A, 2026-11-12); no always-on skill covers searching issues and pull requests."/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Categorize" name="Categorize and summarize">
+      <bpmn:documentation>Each hit gets a category (overlaps: coordinate; affected by; out of scope; unrelated) and a one-line summary with its state. Judgement, not a keyword score: say why each is in its category.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="Taught by the opt-in sdlc skill related-work-coordination, which an always-on diagram may not name (owner card Q-CORE-SKILLS A, 2026-11-12); the categories and the reason for each are in this step's documentation."/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:callActivity id="U_Coordinate" calledElement="Process_AskThePerson" name="Coordinate? How?">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="interaction-modality"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:task id="A_Record" name="Record and act on the answer">
+      <bpmn:documentation>Write the chosen coordination where it will be found: bean links (--blocked-by, --parent), a line in the issue or PR body, or 'note only'. A declined coordination is recorded too.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="Taught by the opt-in sdlc skill related-work-coordination, which an always-on diagram may not name (owner card Q-CORE-SKILLS A, 2026-11-12); where to record each coordination is in this step's documentation."/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_RW" name="Related work known and decided"/>
+    <bpmn:sequenceFlow id="SF_Process_RelatedWork_1" sourceRef="Start_RW" targetRef="A_SearchBeans"/>
+    <bpmn:sequenceFlow id="SF_Process_RelatedWork_2" sourceRef="A_SearchBeans" targetRef="A_SearchIssues"/>
+    <bpmn:sequenceFlow id="SF_Process_RelatedWork_3" sourceRef="A_SearchIssues" targetRef="A_Categorize"/>
+    <bpmn:sequenceFlow id="SF_Process_RelatedWork_4" sourceRef="A_Categorize" targetRef="U_Coordinate"/>
+    <bpmn:sequenceFlow id="SF_Process_RelatedWork_5" sourceRef="U_Coordinate" targetRef="A_Record"/>
+    <bpmn:sequenceFlow id="SF_Process_RelatedWork_6" sourceRef="A_Record" targetRef="End_RW"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_RelatedWork">
+    <bpmndi:BPMNPlane id="Plane_Process_RelatedWork" bpmnElement="Collaboration_Process_RelatedWork">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_RelatedWork" bpmnElement="Participant_Process_RelatedWork" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1160" height="340" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1130" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_User" bpmnElement="Lane_User" isHorizontal="true">
+        <dc:Bounds x="190" y="250" width="1130" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_RW" bpmnElement="Start_RW">
+        <dc:Bounds x="252" y="147" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_SearchBeans" bpmnElement="A_SearchBeans">
+        <dc:Bounds x="350" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_SearchIssues" bpmnElement="A_SearchIssues">
+        <dc:Bounds x="520" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Categorize" bpmnElement="A_Categorize">
+        <dc:Bounds x="690" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_U_Coordinate" bpmnElement="U_Coordinate">
+        <dc:Bounds x="860" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Record" bpmnElement="A_Record">
+        <dc:Bounds x="1030" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_RW" bpmnElement="End_RW">
+        <dc:Bounds x="1212" y="147" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RelatedWork_1" bpmnElement="SF_Process_RelatedWork_1">
+        <di:waypoint x="288" y="165" />
+        <di:waypoint x="350" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RelatedWork_2" bpmnElement="SF_Process_RelatedWork_2">
+        <di:waypoint x="470" y="165" />
+        <di:waypoint x="520" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RelatedWork_3" bpmnElement="SF_Process_RelatedWork_3">
+        <di:waypoint x="640" y="165" />
+        <di:waypoint x="690" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RelatedWork_4" bpmnElement="SF_Process_RelatedWork_4">
+        <di:waypoint x="810" y="165" />
+        <di:waypoint x="835" y="165" />
+        <di:waypoint x="835" y="335" />
+        <di:waypoint x="860" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RelatedWork_5" bpmnElement="SF_Process_RelatedWork_5">
+        <di:waypoint x="980" y="335" />
+        <di:waypoint x="1005" y="335" />
+        <di:waypoint x="1005" y="165" />
+        <di:waypoint x="1030" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_RelatedWork_6" bpmnElement="SF_Process_RelatedWork_6">
+        <di:waypoint x="1150" y="165" />
+        <di:waypoint x="1212" y="165" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
