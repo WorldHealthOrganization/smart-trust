@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_AskThePerson" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:collaboration id="Collaboration_Process_AskThePerson">
+    <bpmn:participant id="Participant_Process_AskThePerson" name="Ask the person" processRef="Process_AskThePerson"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_AskThePerson" name="Ask the person" isExecutable="false">
+    <bpmn:documentation>The ONE way a question or decision is put to a person. Called as a subprocess from every step that asks; never run on its own. The rule it carries out is the box at the top of `interaction-modality`.
+
+WHY A SUBPROCESS. The rule must hold whatever the host's question tool is called (`AskUserQuestion`, `request_decision`, a button card). One subprocess, called by every asking step, makes the association visible in the diagrams and checkable.
+
+THE ORDER IS THE RULE: the full question goes in the chat FIRST, then the card. Once answered, a card shows only the chosen option; the chat text is the only lasting record of what was asked. This holds whatever the host's own tool guidance says.
+
+INPUT AND OUTPUT: the `ask-the-person` skill's schemas, schemas/skills/ask-the-person/input.schema.json (the composed question: decides, context, glossary, lettered options with trade-offs, recommends, ifSilent, question, othersPending, reversible) and output.schema.json (asked.chat and asked.card, outcome, chosen, quote, defaultTaken). A calling step supplies the input and receives the output.
+
+WHAT IT DOES NOT DO: decide. The caller owns the decision; this subprocess only gets an answer back to it, or the stated default when none comes.
+
+WHAT IS BOOTSTRAP'S AND WHAT IS OURS. The discussion itself (say what is decided and why, lay out the options with their costs, recommend one, ask ONE question, follow up narrower, apply a default only if allowed, record what is still open) is bootstrap's `Process_HumanAgentDiscussion`, which cat-harness reaches through `needs: ["bootstrap"]`, so the steps are not drawn here a second time. What this process adds is the harness's own part: the composed question with lettered options and glossed names, the sibling hand-back, and the delivery rule that the full question goes in the chat FIRST and the card second.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_AskThePerson">
+      <bpmn:lane id="Lane_Agent" name="Agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Composes, writes and offers the question, then acts on the answer or the default. Never treats a dismissed card as a choice. The person's answer step is drawn in bootstrap's discussion, in its Requestor lane: Answers with one tap. Typing is never required: the person this was written for has very limited hand function.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Process_AskThePerson</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Compose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Discussing</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Discuss</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Returned</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_HandBack</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_HandedBack</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Process_AskThePerson" name="A question is due">
+      <bpmn:outgoing>f1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="A_Compose" name="Compose the full question">
+      <bpmn:documentation>What is being decided, stated as what will differ; every id, path and coined name glossed; every option with its letter, a one-line explanation and its trade-off; the recommendation, first and marked; what will happen if no answer comes. Can the reader answer without opening anything? If not, it is not ready. More than one decision open: ask the next one in full and give a count for the rest.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ask-the-person"/>
+        <bootstrap.processes:skill ref="decision-comparison"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f1</bpmn:incoming>
+      <bpmn:outgoing>f2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Discussing" name="Talking with the person?">
+      <bpmn:documentation>`yes` when this agent is the one the person is talking with right now. `no` when it is a sibling: a project thread, a subagent, a workflow agent or a session spawned while another agent holds the discussion. A sibling that is not sure takes `no`: one extra copy costs a line, a missed card stalls a decision.</bpmn:documentation>
+      <bpmn:incoming>f2</bpmn:incoming>
+      <bpmn:outgoing>f3</bpmn:outgoing>
+      <bpmn:outgoing>f5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_Discuss" name="Discuss it with the person" calledElement="Process_HumanAgentDiscussion">
+      <bpmn:documentation>Bootstrap's human-agent discussion, given the composed question. Its `Ask ONE question` step is where this harness's delivery rule applies: Post the whole composed question as ordinary chat text BEFORE any card. This is the copy that survives: a card, once answered, shows only the chosen option, and a dismissed card shows nothing. Never "see the card", never a request for a typed reply such as "1y 2n". Then the card: Whatever the host calls its selection tool (`AskUserQuestion`, `request_decision`, a button card): the same letters and labels as the chat text, the recommended option marked. No host card tool: say so in the chat and keep each answer to one short choice. Its answer step: One tap on the card, or any answer the person prefers to give. Free text is always available and never required. A dismissal is NOT an answer and never selects the default as a choice; the question stays open in the chat. On an answer: Hand the answer back to the calling step, quoted. If it settles how a kind of thing is decided, it is a rule: write it into the governing skill in the same turn. On no answer: Do what the question said would happen with no answer, and say so. Nothing irreversible proceeds on a default: such a step waits for the person.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ask-the-person"/>
+        <bootstrap.processes:skill ref="interaction-modality"/>
+        <bootstrap.processes:skill ref="symbiotic-interaction"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f3</bpmn:incoming>
+      <bpmn:outgoing>f4</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_Returned" name="Answer, default or open question returned">
+      <bpmn:incoming>f4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="A_HandBack" name="Hand back to the discussion">
+      <bpmn:documentation>The composed question goes, unchanged, to the discussion agent, which asks it through this same process on its `yes` branch and routes the answer back: the sibling's half of `Process_HandBackToDiscussion` (a task here, not a call, because that process calls this one). The sibling also shows it in its own thread, never only there.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="hand-back-to-discussion"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f5</bpmn:incoming>
+      <bpmn:outgoing>f6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_HandedBack" name="Answer returned through the discussion">
+      <bpmn:incoming>f6</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="f1" sourceRef="Start_Process_AskThePerson" targetRef="A_Compose"/>
+    <bpmn:sequenceFlow id="f2" sourceRef="A_Compose" targetRef="GW_Discussing"/>
+    <bpmn:sequenceFlow id="f3" sourceRef="GW_Discussing" targetRef="Call_Discuss" name="yes"/>
+    <bpmn:sequenceFlow id="f4" sourceRef="Call_Discuss" targetRef="End_Returned"/>
+    <bpmn:sequenceFlow id="f5" sourceRef="GW_Discussing" targetRef="A_HandBack" name="no"/>
+    <bpmn:sequenceFlow id="f6" sourceRef="A_HandBack" targetRef="End_HandedBack"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_AskThePerson">
+    <bpmndi:BPMNPlane id="Plane_Process_AskThePerson" bpmnElement="Collaboration_Process_AskThePerson">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_AskThePerson" bpmnElement="Participant_Process_AskThePerson" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="758" height="460"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="728" height="460"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Process_AskThePerson" bpmnElement="Start_Process_AskThePerson">
+        <dc:Bounds x="150" y="182" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="125.59" y="221.5" width="120" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Compose" bpmnElement="A_Compose">
+        <dc:Bounds x="250" y="140" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Discussing" bpmnElement="GW_Discussing" isMarkerVisible="true">
+        <dc:Bounds x="430" y="175" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="395" y="120" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Discuss" bpmnElement="Call_Discuss">
+        <dc:Bounds x="540" y="140" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Returned" bpmnElement="End_Returned">
+        <dc:Bounds x="722" y="182" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="685" y="222" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_HandBack" bpmnElement="A_HandBack">
+        <dc:Bounds x="540" y="300" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_HandedBack" bpmnElement="End_HandedBack">
+        <dc:Bounds x="722" y="342" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="685" y="382" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_f1" bpmnElement="f1">
+        <di:waypoint x="186" y="200"/>
+        <di:waypoint x="250" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f2" bpmnElement="f2">
+        <di:waypoint x="370" y="200"/>
+        <di:waypoint x="430" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f3" bpmnElement="f3">
+        <di:waypoint x="480" y="200"/>
+        <di:waypoint x="540" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f4" bpmnElement="f4">
+        <di:waypoint x="660" y="200"/>
+        <di:waypoint x="722" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f5" bpmnElement="f5">
+        <di:waypoint x="455" y="225"/>
+        <di:waypoint x="455" y="360"/>
+        <di:waypoint x="540" y="360"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f6" bpmnElement="f6">
+        <di:waypoint x="660" y="360"/>
+        <di:waypoint x="722" y="360"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

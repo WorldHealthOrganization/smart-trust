@@ -1,0 +1,62 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "shared-assets",
+    "title": "Stage a site's shared asset directories where the host serves them",
+    "description": "Write each shared directory of a built site (its `assets/…` laid out as a built site) to `<out>/shared/<dir>/<key>/` with a `.shared.json`, so sites on one host load one copy instead of one each. A directory already there is left alone. This is the host side of the shared-assets step `build-instance-site` runs when a checkout declares `site.sharedAssets`; run on its own, it stages an IG build, or any built site, into a host site root.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat site:shared-assets stage"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "site",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A directory laid out as a built site, holding `assets/…`.",
+          "required": true,
+          "arg": {
+            "flag": "--site"
+          }
+        },
+        {
+          "name": "out",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The host site root the shared directories are written under.",
+          "required": true,
+          "arg": {
+            "flag": "--out"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "staged",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "One line per shared directory: `staged` or `already there`, with its path under `shared/`."
+        }
+      ]
+    },
+    "satisfies": [
+      "docs-generation"
+    ],
+    "selection": {
+      "when": "Composing a layer's site for a host that serves shared assets, or staging an IG build's assets into such a host.",
+      "limits": "Copies only; it does not rewrite the pages that load the assets. `build-instance-site` does both in one run.",
+      "cost": "A local copy of the shared directories: seconds."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ]
+    }
+  }
+}

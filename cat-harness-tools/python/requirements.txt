@@ -1,0 +1,45 @@
+# GENERATED — do not edit.
+# Source: schemas/sdlc/python-deps.ts (bean 68dt). Regenerate: bun run cat deps:python
+#
+# The set CI installs. Everything a gate can exercise.
+#
+
+# cffi: Required by `cryptography`'s Rust bindings: without it, importing `cryptography` raises `ModuleNotFoundError: _cffi_backend` and then PANICS under pyo3 — a failure at IMPORT time, before any code runs. Measured 2026-09-19 in this container while scoping `d5f1`; installing `cffi` was what made `pypdf` usable at all. (no direct import)
+# imports: cffi
+cffi
+
+# cryptography: `pypdf_safe.py`. Present system-wide in this container, which is precisely why it went undeclared in the first draft of this list — the checker caught it, and 'it happens to be installed here' is how an undeclared dependency is born.
+# imports: cryptography
+cryptography
+
+# lxml: Both translation extract/inject scripts — XML with namespaces, which `xml.etree` handles poorly enough to matter here.
+# imports: lxml
+lxml
+
+# pdfminer.six: `pdf-extract.py`. The distribution name differs from the import name, which is exactly what `imports` exists for.
+# imports: pdfminer
+pdfminer.six
+
+# pdfplumber: `_pypdf_compat.py`'s second backend, so a document one reader cannot open is not simply refused.
+# imports: pdfplumber
+pdfplumber
+
+# pillow: Required by `pypdf` for image extraction: without it `page.images` raises `ImportError: pillow is required` at the point of use, while `len(page.images)` quietly returns 0 — a false zero measured 2026-09-19 while scoping `d5f1`. Also imported directly by `image-reuse.py`, which needs WebP decoding to match an ingested image against theme art (bean `scfh`).
+# imports: PIL
+pillow
+
+# pymupdf: The PDF backend for `pdf-structure.py` and `pdf-pages.py` — embedded outline, page text, page count. The single most load-bearing dependency here and the one nothing declared.
+# imports: pymupdf
+pymupdf
+
+# pypdf: `pdf-extract.py`, `pypdf_safe.py` and `_pypdf_compat.py`. Also the image-extraction path, which is why Pillow is below.
+# imports: pypdf
+pypdf
+
+# PyYAML: `translation_config.py`. Imports as `yaml`.
+# imports: yaml
+PyYAML
+
+# requests: The five translation scripts that reach Crowdin, Launchpad and Weblate.
+# imports: requests
+requests

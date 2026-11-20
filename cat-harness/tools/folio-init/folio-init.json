@@ -1,0 +1,130 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "folio-init",
+    "title": "Scaffold a folio",
+    "description": "Create a new folio repository that uses this platform — folio/, uploads/, library/, the first manifests, the builder shim, agent files, and the link back to the platform.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat init-folio",
+      "mcp": {
+        "tool": "folio_init"
+      },
+      "inProcess": {
+        "module": "src/tools/folio-init.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "title",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The folio's human title.",
+          "required": true
+        },
+        {
+          "name": "authors",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "One entry per author. Repeated rather than a joined string: a name may contain the separator.",
+          "required": true,
+          "repeated": true
+        },
+        {
+          "name": "content_type",
+          "schema": {
+            "$type": "ContentType"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--content-type"
+          }
+        },
+        {
+          "name": "slug",
+          "schema": {
+            "$type": "Slug"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--slug"
+          }
+        },
+        {
+          "name": "dir",
+          "schema": {
+            "$type": "FilesystemPath"
+          },
+          "description": "Where to create the folio.",
+          "required": false
+        },
+        {
+          "name": "link",
+          "schema": {
+            "$type": "LinkMode"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--link"
+          }
+        },
+        {
+          "name": "assistant_path",
+          "schema": {
+            "$type": "FilesystemPath"
+          },
+          "description": "Path to the platform checkout, for a sibling link.",
+          "required": false
+        },
+        {
+          "name": "force",
+          "schema": {
+            "$type": "Flag"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--force"
+          }
+        },
+        {
+          "name": "dry_run",
+          "schema": {
+            "$type": "Flag"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--dry-run"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "What was written, or what would have been under --dry-run."
+        }
+      ]
+    },
+    "satisfies": [
+      "repo-conversion",
+      "getting-started",
+      "folio-init"
+    ],
+    "requires": {
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/io/inputs/4",
+      "comment": "`dir` and `assistant_path` are FilesystemPath, not RepoPath: a new\nfolio is created OUTSIDE this repository and `../folio-assistant`\nis the ordinary sibling link. Neither is admissible as a\ncommand-line word, which is why neither carries an `arg`."
+    }
+  ]
+}

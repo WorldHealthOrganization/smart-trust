@@ -1,0 +1,148 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "L3 Readiness Output",
+  "description": "Gateway_L3Ready's answer and the evidence for it: yes only when nothing is found.",
+  "type": "object",
+  "required": [
+    "ready",
+    "findings",
+    "checked"
+  ],
+  "properties": {
+    "ready": {
+      "type": "boolean",
+      "description": "Gateway_L3Ready's outcome: true is «yes» (on to stage 6), false is «no» (back to stage 4). True exactly when findings is empty."
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/readinessFinding"
+      }
+    },
+    "checked": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Every asset path the check looked at, so an empty findings list is a determined empty and not a skipped check."
+    },
+    "stagingLinks": {
+      "$ref": "#/definitions/stagingLinks"
+    }
+  },
+  "definitions": {
+    "readinessFinding": {
+      "title": "Readiness finding",
+      "description": "One reason the answer is no, with the stage that fixes it.",
+      "type": "object",
+      "required": [
+        "asset",
+        "problem",
+        "fixedBy"
+      ],
+      "properties": {
+        "asset": {
+          "type": "string",
+          "description": "The asset path the finding is about."
+        },
+        "problem": {
+          "type": "string",
+          "enum": [
+            "no-l1-extraction",
+            "no-l1-upstream",
+            "no-l2-upstream",
+            "review-not-requested"
+          ],
+          "description": "no-l1-extraction: a source of the use case has no library/<bib>/l1-extraction/. no-l1-upstream: an L2 asset names no L1 node in wasDerivedFrom. no-l2-upstream: a planned L3 artefact's sourceModel is not an l2Assets path. review-not-requested: an extraction or L2 asset has no review request."
+        },
+        "fixedBy": {
+          "type": "string",
+          "enum": [
+            "stage-2",
+            "stage-4"
+          ],
+          "description": "Where the «no» branch sends the work: a missing extraction is stage 2's, everything else stage 4's."
+        },
+        "detail": {
+          "type": "string"
+        }
+      }
+    },
+    "stagingLinks": {
+      "title": "Staging links",
+      "description": "The staging preview of the work a request for feedback is about: one deep link per changed page (the page and the anchor where the change sits) with the same page on main as `before`. Mirrors StagingComparison in schemas/staging.ts. The rule is skills/authoring/content-lifecycle/feedback-deep-links.md. Copied inline as `definitions.stagingLinks` into every skill contract that carries it; schemas/staging.test.ts fails when a copy drifts.",
+      "type": "object",
+      "required": [
+        "branch",
+        "slug",
+        "branchUrl",
+        "mainBaseUrl",
+        "stagingBaseUrl",
+        "pages"
+      ],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "Feature branch name."
+        },
+        "slug": {
+          "type": "string",
+          "description": "Branch slug used in the staging URL path."
+        },
+        "branchUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pr": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mainBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "stagingBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pages": {
+          "type": "array",
+          "description": "One entry per changed page, deep-linked; from the change's rendered-impact list, never chosen by judgement.",
+          "items": {
+            "type": "object",
+            "required": [
+              "title"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string",
+                "format": "uri",
+                "description": "Same page on main; absent for a new page."
+              },
+              "after": {
+                "type": "string",
+                "format": "uri",
+                "description": "The page on the staging preview, with the anchor where the change sits; absent for a deleted page."
+              },
+              "summary": {
+                "type": "string",
+                "description": "What to look at on this page."
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What could not be linked, said rather than hidden: no preview yet (and when it will exist), no page list computed, or a changed page the publish ref does not hold."
+        }
+      },
+      "$comment": "Copy of cat-harness schemas/staging-comparison.schema.json; cat-harness schemas/staging.test.ts fails when a copy drifts."
+    }
+  }
+}

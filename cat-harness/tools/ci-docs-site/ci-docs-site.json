@@ -1,0 +1,69 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "ci-docs-site",
+    "title": "Build and publish the platform docs site",
+    "description": "Dispatch the index's `docs-site.yml`: security gate, regenerate, compose each layer's site, build, export the graph, verify, restore previews, publish to gh-pages, judge the built site. Started with the standard GitHub CLI; the run is watched with `gh run watch`.",
+    "install": {
+      "cli": "gh"
+    },
+    "invoke": {
+      "shell": "gh workflow run docs-site.yml"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "repo",
+          "schema": {
+            "$type": "RepoFullName"
+          },
+          "description": "The repository whose workflow is run. Default: the current one.",
+          "required": false,
+          "arg": {
+            "flag": "--repo"
+          }
+        },
+        {
+          "name": "ref",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "The branch to run it on. Default: the default branch.",
+          "required": false,
+          "arg": {
+            "flag": "--ref"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "run",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The dispatched run; its outcome is read with `gh run watch` or `gh run view`."
+        }
+      ]
+    },
+    "satisfies": [
+      "render-kg-to-cdn"
+    ],
+    "selection": {
+      "when": "Running the `docs-site.yml` workflow on demand instead of waiting for its trigger, or finding which workflow a CI step belongs to.",
+      "limits": "Needs a token that may dispatch workflows (actions: write) on the repository.",
+      "cost": "A full CI run on GitHub's runners."
+    },
+    "requires": {
+      "runtime": [
+        "gh"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "The workflow runs on GitHub; with no host there is nothing to dispatch. The scripts it runs can still be run locally by their own keys."
+      }
+    ]
+  }
+}

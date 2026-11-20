@@ -1,0 +1,53 @@
+---
+doc_id: 10665-37905
+doc_title: "Accélération des activités de vaccination : principes de planification / déclaration conjointe OMS/FISE"
+section_id: page-010
+section_title: "Page 10"
+pages: 10-10
+pdf_page: 10
+source_pdf: 10665-37905.pdf
+source_sha256: 9ca36288eaaca93f
+text_source: ocr
+granularity: page
+---
+-10-
+
+2. PLANIFIER L'ACCELERATION
+
+Planification, voilà le mot clé! Une fois
+lancées, ou une fois obtenu un engagement poli-
+tique de haut niveau, les activités accélérées
+prennent corps et suivent leur propre rythme,
+risquant parfois de dépasser les meilleures inten-
+tions et les efforts des personnels techniques
+intéressés. De plus, planifier pour un seul
+effort, comme une ou plusieurs journées nationales
+de vaccination, ne suffit pas. Dès le départ, les
+plans doivent s'étendre sur trois années au
+moins. Aucun gestionnaire responsable ne lance-
+rait aujourd'hui une journée nationale ou locale
+de vaccination en laissant à l'avenir le soin de
+faire le reste. Cela ne signifie pas qu'il ne
+faille pas prendre des risques ni que tous les
+détails doivent être prévus et tous les problèmes
+résolus à l'avance. Il n'en reste pas moins que
+des journées de vaccination ou d'autres activités
+de masse à elles seules aboutiront rarement à des
+programmes durables. Cette permanence sera
+d'autant plus difficile à obtenir qu'au lieu de
+faire partie intégrante des plans dès le début, on
+tentera de l'ériger après coup.
+
+Parfois, le responsable se trouve devant un
+fait accompli: l'accélération a déjà été décidée
+et des mesures doivent être prises rapidement pour
+aboutir à des résultats. Les options, dans ce
+cas, risquent d'être assez limitées, la seule
+chose à faire étant de tirer le meilleur parti
+possible de la situation. Chaque fois que cela
+est possible, cependant, les responsables natio-
+naux et internationaux devront entreprendre
+conjointement un examen technique de une à trois
+semaines sur les besoins et les possibilités du
+programme et élaborer ne serait-ce qu'un plan
+schématique pour l'accélération et le suivi du

@@ -1,0 +1,56 @@
+---
+doc_id: 10665-67518
+doc_title: "Caracteristiques d' activité et de stabilité des vaccines antivarioliques utilisés dans les programmes d' éradication de la variole en Afrique de l' ouest et du centre-ouest / par A. Bernstein et M.Z. Bierly"
+section_id: page-014
+section_title: "Page 14"
+pages: 14-14
+pdf_page: 14
+source_pdf: 10665-67518.pdf
+source_sha256: 7c3395c0b0559fe6
+text_source: ocr
+granularity: page
+---
+wHo/sE/72.49
+Page 14
+
+VARIATION DU TITRE
+
+FIGURE 3. ETUDES DE IA STABILITE DU pryva ©
+— VACCIN LYOPHILISE STOCKE À 5°, 25°, 37°, 50°, et 70°C =
+TITRAGE SUR CULTURES DE CELLULES RSC
+
+al
+<,
+Le]
+5
+EN 30 à
+CA = A
+4
+40
+FT 50°C
+SO dt nn 6 nn np pt à à pp y à 1
+‘ 3 6 9 12 15 18 el 24
+DUREE DU STOCKAGE (EN MOIS)
+DRYVA - Vaccin antivariolique lyophilisé
+FIGURE 4, COMPARAISON DES TITRES OBTENUS SUR CULTURE
+CELLULAIRE RSC ET SUR MCA POUR DES DILUTIONS EN SERIE
+DE 2 EN 2 DU VACCIN ANTIVARIOLIQUE
+9.0 r LS
+9 x MCA - INOCULUM O,1 ml
+ô _ ést x
+3 Â
+$ 80F 1 Rsc-A
+Ë # L N
+4,
+D à ot
+ET
+© À L
+À ©
+Z &.,
+# à 6OF
+ë L
+Ë
+50
+
+O 06 12 18 24 30
+106,6 DE IA DILUTION

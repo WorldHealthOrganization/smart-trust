@@ -1,0 +1,139 @@
+---
+doc_id: who-pub-tps-931
+doc_title: "WHO Editorial Style Manual"
+section_id: page-012
+section_title: "Page 12"
+section_number: null
+pages: 12-12
+source_pdf: WHO_PUB_TPS_93.1.pdf
+source_sha256: ecc88eee99756755
+toc_source: undetermined
+---
+last-mentioned
+life-support (adj.)
+long-distance (adj.)
+long-sighted (adj.)
+long-sightedness (n.)
+long-term (adj.)
+louse-borne
+
+low-cost (adj.)
+
+lump-sum reimbursement
+lying-in hospital (n.)
+
+man-hours/months, etc. (prefer
+work-hours/months, etc.)
+man-made
+
+needle-stick (n. & adj.)
+non-profit-making
+non-self-governing
+non-wage-earning
+north-east, north-eastern
+north-west, north-western
+
+one-third
+out-of-date (adj.)
+
+policy-maker, policy-making
+
+post-session
+
+post-test
+
+post-treatment
+
+précis-writer
+
+pre-eclampsia
+
+pre-eminent
+
+pre-empt, pre-emption,
+pre-emptive
+
+pre-session.
+
+primary-school child(ren)
+
+re-edit
+
+re-educate
+re-employ
+
+re-enter, re-entry
+re-establish
+re-examine
+
+re-form (form again)
+Te-route
+re-treat (treat again)
+roll-call
+
+Spelling
+
+seat-belt
+
+self-care
+
+semi-arid
+
+set-back (n.)
+
+set-up (n.)
+
+shelf-life
+
+short-sighted (adj.)
+short-sightedness (n.)
+short-term (adj.}
+sick-leave
+
+sickle-cell anaemia
+side-effects
+
+small-scale (adj.)
+snake-bite
+
+so-called (adj.)
+South-East Asia Region (WHO)
+south-east, south-eastern
+south-west, south-western
+starting-point
+strait-jacket
+
+strait-laced
+
+sub-Saharan
+sub-Sahelian
+
+sugar-beet
+
+sugar-cane
+
+test-tube
+
+tick-borne
+time-limit
+time-scale
+two-thirds
+
+ultra-low-volume formulations
+(abbr.= ULV)
+up-to-date (adj.)
+
+vector-borne
+vice-chairman, etc.
+vis-a-vis
+
+wage-earner, wage-earning
+water-bath
+
+well-baby clinic
+well-being
+
+well-water
+work-hours/months, etc.
+
+X-ray

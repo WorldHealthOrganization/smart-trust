@@ -1,0 +1,198 @@
+---
+doc_id: who-pub-tps-931
+doc_title: "WHO Editorial Style Manual"
+section_id: page-090
+section_title: "Page 90"
+section_number: null
+pages: 90-90
+source_pdf: WHO_PUB_TPS_93.1.pdf
+source_sha256: ecc88eee99756755
+toc_source: undetermined
+---
+canvass (solicit)
+
+carcass (not carcase)
+
+cardiovascular
+
+case-finding
+
+case history
+
+case-load
+
+case-study
+
+caster (person or machine)
+
+castor (oil)
+
+catalogue
+
+census
+
+centimetre (cm)
+
+centre, centring
+
+century (20th, etc.)
+
+cerebrospinal
+
+cerebrovascular
+
+Chagas disease
+
+checklist
+
+check up (vb)
+
+check-up (n.)
+
+cheque (banking)
+
+chequered (flag, career)
+
+childbearing
+
+childbirth
+
+child-spacing
+
+Chlamydia (but chlamydiae,
+chlamydial)
+
+classroom
+
+coauthor
+
+co-eluting
+
+coenzyme
+
+coexist, coexistence
+
+cofactor
+
+cold chain
+
+cold-chain equipment
+
+coloration
+
+colorimeter
+
+colour
+
+combat, combated, combating,
+combative
+
+commit, commitment
+
+common sense (n.)
+
+common-sense (adj.)
+
+commonsensical
+
+complement, complementary
+(make complete)
+
+complexion
+
+compliment, complimentary
+(praise; free as a compliment)
+
+Annex | — Spelling of words that commonly cause difficulty
+
+concomitant
+
+connection (not connexion)
+
+consensus (not concensus)
+
+consummate (adj. & vb)
+
+continual (intermittent but
+frequent)
+
+continuous (without a break)
+
+contraindicate, contraindication
+
+conveyor
+
+cooperate
+
+coopt
+
+coordinate
+
+comerstone
+
+corrigendum (pl. corrigenda)
+
+cosponsor
+
+cost-benefit (ratio)
+
+cost—effectiveness (ratio)
+
+co-trimoxazole
+
+cotton wool (not cottonwool)
+
+councillor (member of council)
+
+counsellor (adviser)
+
+counterproductive
+
+countrywide (adj.)
+
+coverslip
+
+co-worker
+
+criterion (pl. criteria)
+
+cross-matching
+
+cToss-react, cross-reaction,
+
+cross-reference
+
+cross-resistance
+
+cross-section
+
+curriculum (pl. curricula)
+
+curriculum vitae (pl. curricula
+vitae)
+
+cut-off point
+
+D
+
+dare say (not daresay)
+
+data (plural word; sing. datum)
+data bank
+
+database
+
+day care
+
+daytime
+
+deadline
+
+death rate
+
+decision-maker, decision-making
+de facto
+
+defecate
+
+85

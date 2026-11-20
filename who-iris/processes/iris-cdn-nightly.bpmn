@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  who-iris — IRIS CDN nightly change ingest.
+
+  Source of truth: this file; open it in any BPMN 2.0 tool. Prose:
+  docs/iris-cdn-export.md. Skills: skills/iris-cdn-*.md. Code: scripts/iris-cdn/.
+
+  Constraints shared by the IRIS CDN processes: the initial load carries
+  metadata AND the PDFs; changes are read from the DSpace REST API only; exports
+  live on Cloudflare (a git repository on Cloudflare Artifacts, NOT GitHub, plus
+  R2 behind the CDN), and who-iris's GitHub Pages only previews the exported
+  site; keys are published as verificationMethods of a did:web DID document (no
+  GDHCN trust list is assumed); content that has not changed is not rewritten,
+  re-uploaded or re-signed.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_IrisCdnNightly"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="cloudflare-git" name="Cloudflare git (Artifacts)"/>
+  <bpmn:resource id="iris-cdn-exporter" name="IRIS CDN Exporter"/>
+  <bpmn:process id="Process_IrisCdnNightly" name="IRIS CDN nightly change ingest" isExecutable="false">
+    <bpmn:documentation>Every night: ask the IRIS DSpace REST API which items changed since the last published run, ingest only those, rebuild the whole graph (sorted output keeps unchanged partitions byte-identical), and publish a signed release. A night with no changes publishes nothing and commits nothing.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_IrisCdnNightly">
+      <bpmn:lane id="Lane_Pipeline" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Deterministic scripts in scripts/iris-cdn/, entry point run.ts. Same input, same bytes.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Nightly</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReadCursor</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ListChanged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Any</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NoChange</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FetchChanged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FetchNewBytes</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_WriteRecords</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Rebuild</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_SignPublish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AdvanceCursor</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Exporter" name="IRIS CDN Exporter (agent)" partitionElementRef="iris-cdn-exporter">
+        <bpmn:documentation>The agent role. It plans, reviews and reports; it does not hold the signing key, and it never pushes to a WHO repository.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Done</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Nightly" name="Every night,&#10;02:00 UTC">
+      <bpmn:timerEventDefinition id="Timer_Start_Nightly"><bpmn:timeCycle>R/2026-11-01T02:00:00Z/P1D</bpmn:timeCycle></bpmn:timerEventDefinition>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_ReadCursor" name="Read the cursor of the&#10;last published run">
+      <bpmn:documentation>state/cursor.json in the Cloudflare git repository: the lastModified of the newest item in the last VERIFIED release.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-rest-feed"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_ListChanged" name="List items changed&#10;since the cursor">
+      <bpmn:documentation>scripts/iris-cdn/rest-feed.ts changedSince: a Discovery search for lastModified at or after the cursor, sorted by dc.date.accessioned (IRIS rejects a lastModified sort), paged until an item is older than the cursor. Inclusive of the cursor second, de-duplicated by uuid, returned oldest first.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-rest-feed"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Any" name="Anything&#10;changed?"/>
+    <bpmn:endEvent id="End_NoChange" name="Nothing published,&#10;nothing committed"/>
+    <bpmn:task id="Task_FetchChanged" name="Fetch the changed records&#10;and bitstream lists">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-rest-feed"/><bootstrap.processes:skill ref="iris-dspace"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_FetchNewBytes" name="Fetch only bitstreams&#10;whose checksum changed">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-exporter"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_WriteRecords" name="Write canonical records&#10;into the library">
+      <bpmn:documentation>A record whose canonical bytes equal the held ones is not rewritten. A touched-but-unchanged item therefore produces no diff.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-exporter"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_Rebuild" name="Rebuild the whole&#10;graph (sorted output)" calledElement="Process_NQuadsDistribution">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-oxigraph"/><bootstrap.processes:skill ref="nquads-distribution"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_SignPublish" name="Sign and publish&#10;the release" calledElement="Process_IrisCdnSignPublish">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-signing"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:task id="Task_AdvanceCursor" name="Commit the&#10;advanced cursor">
+      <bpmn:documentation>Only after the release verified. A failed night leaves the cursor where it was, so the next night re-reads the same window.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-rest-feed"/></bpmn:extensionElements>
+      <bpmn:dataOutputAssociation id="DOA_Task_AdvanceCursor">
+        <bpmn:targetRef>DSR_cloudflare_git</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:task id="Task_Review" name="Review the run report;&#10;open beans for anomalies">
+      <bpmn:documentation>Anomalies: a change count far from the recent median, quarantined bitstreams, a verification that came back unknown, a partition over its size ceiling.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="iris-cdn-exporter"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Done" name="Night published&#10;and reviewed"/>
+    <bpmn:sequenceFlow id="N1" sourceRef="Start_Nightly" targetRef="Task_ReadCursor"/>
+    <bpmn:sequenceFlow id="N2" sourceRef="Task_ReadCursor" targetRef="Task_ListChanged"/>
+    <bpmn:sequenceFlow id="N3" sourceRef="Task_ListChanged" targetRef="GW_Any"/>
+    <bpmn:sequenceFlow id="N4" name="no" sourceRef="GW_Any" targetRef="End_NoChange"/>
+    <bpmn:sequenceFlow id="N5" name="yes" sourceRef="GW_Any" targetRef="Task_FetchChanged"/>
+    <bpmn:sequenceFlow id="N6" sourceRef="Task_FetchChanged" targetRef="Task_FetchNewBytes"/>
+    <bpmn:sequenceFlow id="N7" sourceRef="Task_FetchNewBytes" targetRef="Task_WriteRecords"/>
+    <bpmn:sequenceFlow id="N8" sourceRef="Task_WriteRecords" targetRef="Call_Rebuild"/>
+    <bpmn:sequenceFlow id="N9" sourceRef="Call_Rebuild" targetRef="Call_SignPublish"/>
+    <bpmn:sequenceFlow id="N10" sourceRef="Call_SignPublish" targetRef="Task_AdvanceCursor"/>
+    <bpmn:sequenceFlow id="N11" sourceRef="Task_AdvanceCursor" targetRef="Task_Review"/>
+    <bpmn:sequenceFlow id="N12" sourceRef="Task_Review" targetRef="End_Done"/>
+    <bpmn:dataStoreReference id="DSR_cloudflare_git" name="Cloudflare git (Artifacts)" dataStoreRef="cloudflare-git"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_IrisCdnNightly">
+    <bpmndi:BPMNPlane id="Plane_IrisCdnNightly" bpmnElement="Process_IrisCdnNightly">
+      <bpmndi:BPMNShape id="S_Lane_Pipeline" bpmnElement="Lane_Pipeline" isHorizontal="true"><dc:Bounds x="160" y="60" width="2400" height="420" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Lane_Exporter" bpmnElement="Lane_Exporter" isHorizontal="true"><dc:Bounds x="160" y="480" width="2400" height="144" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Start_Nightly" bpmnElement="Start_Nightly"><dc:Bounds x="297" y="112" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="255" y="152" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_ReadCursor" bpmnElement="Task_ReadCursor"><dc:Bounds x="445" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_ListChanged" bpmnElement="Task_ListChanged"><dc:Bounds x="635" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_GW_Any" bpmnElement="GW_Any" isMarkerVisible="true"><dc:Bounds x="860" y="105" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="825" y="159" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_End_NoChange" bpmnElement="End_NoChange"><dc:Bounds x="1057" y="252" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1015" y="292" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_FetchChanged" bpmnElement="Task_FetchChanged"><dc:Bounds x="1015" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_FetchNewBytes" bpmnElement="Task_FetchNewBytes"><dc:Bounds x="1205" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_WriteRecords" bpmnElement="Task_WriteRecords"><dc:Bounds x="1395" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Call_Rebuild" bpmnElement="Call_Rebuild"><dc:Bounds x="1585" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Call_SignPublish" bpmnElement="Call_SignPublish"><dc:Bounds x="1775" y="72" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_AdvanceCursor" bpmnElement="Task_AdvanceCursor"><dc:Bounds x="1950" y="370" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_Review" bpmnElement="Task_Review"><dc:Bounds x="2155" y="492" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_End_Done" bpmnElement="End_Done"><dc:Bounds x="2387" y="532" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="2345" y="572" width="120" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="E_N1" bpmnElement="N1">
+        <di:waypoint x="333" y="130" />
+        <di:waypoint x="389" y="130" />
+        <di:waypoint x="389" y="132" />
+        <di:waypoint x="445" y="132" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_N2" bpmnElement="N2">
+        <di:waypoint x="565" y="132" />
+        <di:waypoint x="635" y="132" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_N3" bpmnElement="N3">
+        <di:waypoint x="755" y="132" />
+        <di:waypoint x="807.5" y="132" />
+        <di:waypoint x="807.5" y="130" />
+        <di:waypoint x="860" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_N4" bpmnElement="N4"><di:waypoint x="910" y="130"/><di:waypoint x="1037" y="130"/><di:waypoint x="1037" y="270"/><di:waypoint x="1057" y="270"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1041" y="191.5" width="90" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_N5" bpmnElement="N5">
+        <di:waypoint x="910" y="130" />
+        <di:waypoint x="962.5" y="130" />
+        <di:waypoint x="962.5" y="132" />
+        <di:waypoint x="1015" y="132" />
+        <bpmndi:BPMNLabel><dc:Bounds x="916" y="109" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_N6" bpmnElement="N6">
+        <di:waypoint x="1135" y="132" />
+        <di:waypoint x="1205" y="132" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_N7" bpmnElement="N7">
+        <di:waypoint x="1325" y="132" />
+        <di:waypoint x="1395" y="132" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_N8" bpmnElement="N8">
+        <di:waypoint x="1515" y="132" />
+        <di:waypoint x="1585" y="132" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_N9" bpmnElement="N9">
+        <di:waypoint x="1705" y="132" />
+        <di:waypoint x="1775" y="132" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_N10" bpmnElement="N10">
+        <di:waypoint x="1895" y="132" />
+        <di:waypoint x="1922.5" y="132" />
+        <di:waypoint x="1922.5" y="410" />
+        <di:waypoint x="1950" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_N11" bpmnElement="N11">
+        <di:waypoint x="2100" y="410" />
+        <di:waypoint x="2127.5" y="410" />
+        <di:waypoint x="2127.5" y="552" />
+        <di:waypoint x="2155" y="552" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_N12" bpmnElement="N12">
+        <di:waypoint x="2275" y="552" />
+        <di:waypoint x="2331" y="552" />
+        <di:waypoint x="2331" y="550" />
+        <di:waypoint x="2387" y="550" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_DSR_cloudflare_git" bpmnElement="DSR_cloudflare_git"><dc:Bounds x="2000" y="660" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2054" y="667" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_AdvanceCursor" bpmnElement="DOA_Task_AdvanceCursor"><di:waypoint x="2025" y="450"/><di:waypoint x="2025" y="660"/></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
