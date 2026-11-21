@@ -1,0 +1,165 @@
+# Post-merge QA of main, as ONE reusable workflow (owner, 2026-10-30,
+# approved "Both" on the card "Add auto-cancel and post-merge main QA to every
+# layer's CI?": "each merge to main gets a full QA run that files an issue
+# when it is red").
+#
+# It runs no gate. Main's gates and tests are run by the caller's own gate
+# workflow on its push to main: for a layer, `layer-pr-checks.yml`, whose push
+# run computes main's whole side (and keeps it as the answer the PRs based on
+# that commit are judged against) and hands main's own verdict on as its
+# `main-verdict` and `main-failures` outputs; for the index, its gate
+# workflow's conclusion. This only keeps ONE issue labelled `main-red` in step
+# with that verdict (`.github/scripts/layer-main-qa/report.py`):
+#   - red: the open issue is updated, or one is opened, naming the failing
+#     gates, tests and jobs and the commits since the last green main (the
+#     newest successful push run of the gate workflow on main). This job is
+#     then red too.
+#   - green: the open issue is closed.
+#   - the gate run was cancelled: nothing is touched.
+#   - main's answer could not be read (verdict `unknown`): the issue is not
+#     touched, and this job is red while that commit is still main's head
+#     (could not determine is never green).
+# Only the NEWEST main reports: a report whose commit is no longer main's
+# head leaves the issue to the newer push. The report itself is never
+# cancelled (owner, 2026-11-01, card Q-CIS-1 A): it is a job of the layer's
+# checks run, so cancelling it marked a run whose every gate PASSED as
+# "cancelled" (cat-harness 1b22283), and main showed no green run while
+# merges kept landing. The gate runs themselves are never cancelled on main
+# (each keeps its main's answer).
+#
+# A layer calls it as the second job of its checks workflow (see the header
+# of layer-pr-checks.yml); the index from a `workflow_run` of its gates.
+
+name: Post-merge QA of main
+
+on:
+  workflow_call:
+    inputs:
+      verdict:
+        description: "green, red or unknown (layer-pr-checks' main-verdict); empty: the gate run's conclusion decides."
+        required: false
+        type: string
+        default: ""
+      failures:
+        description: "What is red on main, one line of JSON (layer-pr-checks' main-failures); empty: the failed jobs only."
+        required: false
+        type: string
+        default: ""
+      checks-result:
+        description: "The gate job's result as the caller saw it (needs.<job>.result); empty when not applicable."
+        required: false
+        type: string
+        default: ""
+      gate-run-id:
+        description: "The workflow run that judged main; empty means this run."
+        required: false
+        type: string
+        default: ""
+      sha:
+        description: "The commit of main that was judged; empty means github.sha."
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
+env:
+  # The GitHub owner of the harness layers (folio-assistant, cat-harness-tools).
+  # Callers may live under any owner.
+  HARNESS_OWNER: litlfred
+
+jobs:
+  report:
+    name: Post-merge QA of main
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+      actions: read
+    # Per commit and never cancelling: two reports may overlap, and the older
+    # one stands down because its commit is no longer main's head (above).
+    concurrency:
+      group: layer-main-qa-${{ github.repository }}-${{ github.sha }}
+      cancel-in-progress: false
+    steps:
+      # The report script at the cat-harness-tools commit the caller's
+      # index.lock.json pins, never a branch tip (security audit S1, owner
+      # 2026-11-01); cat-harness-tools itself uses its own commit.
+      - name: The cat-harness-tools commit the caller pins
+        id: tools-lock
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ inputs.sha != '' && inputs.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REPOSITORY" = "${HARNESS_OWNER}/cat-harness-tools" ]; then ref="$SHA"
+          else
+            lock() { curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github.raw+json" \
+              "$GITHUB_API_URL/repos/$1/contents/index.lock.json?ref=$2"; }
+            # A layer the index mounts but which keeps no
+            # lock of its own judges with the commit the folio-assistant
+            # index pins, which is still a pin and not a branch tip.
+            if body="$(lock "$GITHUB_REPOSITORY" "$SHA")"; then from="$GITHUB_REPOSITORY index.lock.json at $SHA"
+            else body="$(lock ${HARNESS_OWNER}/folio-assistant "main")"; from="${HARNESS_OWNER}/folio-assistant index.lock.json at main"; fi
+            ref="$(printf '%s' "$body" | python3 -Ic 'import json,sys; print(next((m["ref"] for m in json.load(sys.stdin).get("mounts", []) if m.get("harness") == "cat-harness-tools"), ""))')"
+            # A layer below cat-harness-tools (cat-harness) keeps a lock that
+            # cannot mount it: same fall-back, to the index's pin.
+            if [ -z "$ref" ] && [[ "$from" != ${HARNESS_OWNER}/folio-assistant* ]]; then
+              body="$(lock ${HARNESS_OWNER}/folio-assistant "main")"; from="${HARNESS_OWNER}/folio-assistant index.lock.json at main ($GITHUB_REPOSITORY's lock mounts no cat-harness-tools)"
+              ref="$(printf '%s' "$body" | python3 -Ic 'import json,sys; print(next((m["ref"] for m in json.load(sys.stdin).get("mounts", []) if m.get("harness") == "cat-harness-tools"), ""))')"
+            fi
+            [ -n "$ref" ] || { echo "::error::$from pins no cat-harness-tools"; exit 2; }
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: ${{ env.HARNESS_OWNER }}/cat-harness-tools
+          ref: ${{ steps.tools-lock.outputs.ref }}
+          sparse-checkout: .github/scripts/layer-main-qa
+          path: qa
+      - name: Keep the main-red issue in step with main's verdict
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERDICT: ${{ inputs.verdict }}
+          FAILURES: ${{ inputs.failures }}
+          CHECKS_RESULT: ${{ inputs.checks-result }}
+          GATE_RUN_ID: ${{ inputs.gate-run-id != '' && inputs.gate-run-id || github.run_id }}
+          SHA: ${{ inputs.sha != '' && inputs.sha || github.sha }}
+        # Could not determine is never green (owner, Q-MQA-1 A / Q-MQA-2 A).
+        # report.py is the copy at the caller's pin (above), and a pin from
+        # before cat-harness-tools#1961 exits 0 on an `unknown` verdict, so
+        # the workflow, which every layer calls at main, guards it: red while
+        # the judged commit is still main's head. EXCEPT a deferred push:
+        # layer-pr-checks marks an `unknown` that ran nothing on purpose
+        # (batched into the window's integration run, or pins only) with
+        # `"deferred"` in its failures, and that is not a failure, whatever
+        # the pinned report.py says: a pin from #1961 on exits 2 on EVERY
+        # `unknown`, deferred or not (two layers' main went red that way,
+        # 2026-11-12), so a deferred `unknown` ends at 0 here. The
+        # `main-red` issue is never touched by this guard.
+        run: |
+          code=0
+          python3 -I qa/.github/scripts/layer-main-qa/report.py || code=$?
+          deferred=""
+          if [ "$VERDICT" = unknown ]; then
+            deferred="$(printf '%s' "${FAILURES:-}" | python3 -Ic 'import json,sys
+          try: d = json.load(sys.stdin)
+          except ValueError: d = {}
+          print(d.get("deferred", "") if isinstance(d, dict) else "")')"
+          fi
+          if [ -n "$deferred" ]; then
+            echo "main's verdict for ${SHA:0:12} is deferred ($deferred): not a failure"
+            code=0
+          elif [ "$code" = 0 ] && [ "$VERDICT" = unknown ]; then
+            branch="$(gh api "repos/$GITHUB_REPOSITORY" --jq .default_branch)"
+            head="$(gh api "repos/$GITHUB_REPOSITORY/commits/$branch" --jq .sha)"
+            if [ "$head" = "$SHA" ]; then
+              echo "::error::main's verdict for ${SHA:0:12} could not be determined (verdict unknown, not deferred): could not determine is never green"
+              code=2
+            fi
+          fi
+          exit "$code"

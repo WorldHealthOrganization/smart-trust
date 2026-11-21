@@ -1,0 +1,49 @@
+---
+doc_id: 10665-67132
+doc_title: "Breastfeeding and replacement feeding practices in the context of mother-to-child transmission of HIV : an assessment tool for research"
+section_id: page-014
+section_title: "Page 14"
+pages: 14-14
+pdf_page: 14
+source_pdf: 10665-67132.pdf
+source_sha256: 2c2fb689392e00e3
+text_source: ocr
+granularity: page
+---
+6.2.1 First week of life (first visit only)
+
+The first week of life is of special interest because of its complex feeding patterns. It is a time
+when both mother and infant are more likely to be unwell following the delivery, with possible
+mother and infant separation influencing infant feeding patterns. While the mother is in the
+hospital, she receives and is likely to follow health workers advice on infant feeding. When
+she goes back home, the way she feeds the infant is based on her own beliefs and
+experience, the advice she received from the health worker, and the influence of her partner,
+family and community. There are special beliefs and practices concerning colostrum.
+Colostrum may or may not be given. to the infant. Other. traditional practices may influence the
+initial feeding of the infant, such as the offering of pre-lacteal feeds to the newborn. It is
+unclear whether different foods carry different transmission risks in the immature gut,
+compared with their use Jater in the child’s life.
+
+Recall period: questions related to this period can be asked till one month after birth.
+e Did you ever breastfeed your infant? (yes) (no)
+
+If no, there is no need to complete the entire questionnaire
+
+e If yes, how soon after delivery was your infant first put to the breast? (in hours)
+
+e Did your infant receive anything to eat/drink : (yes) (no) (don’t know)
+before he was first put to the breast?
+
+« Did the infant receive oral polio vaccine during , (yes) (no) (don’t know)
+the first week of life?
+« If yes, indicate the date (day, month, year)
+
+The following table is designed to collect data on the type of food given before the infant was
+first put to the breast and if this was related to the mother’s or infant's health. The same table
+also records all foods given to the infant during the first week of life and the reasons why they
+have been given. Probe all the items listed in the table.
+
+Questions on reasons underlying actual infant feeding practices aim at ruling out reverse
+causality (see Section 6.3)
+
+14

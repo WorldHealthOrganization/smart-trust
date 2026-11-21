@@ -1,0 +1,48 @@
+---
+doc_id: 10665-205344
+doc_title: "Information, education and communication: a guide for AIDS programme managers"
+section_id: page-003
+section_title: "Page 3"
+pages: 3-3
+pdf_page: 3
+source_pdf: 10665-205344.pdf
+source_sha256: 0fdcc9d570f32d5f
+text_source: ocr
+granularity: page
+---
+FOREWORD
+
+Information, Education and Communication (IEC) is one of the most essential
+components of an AIDS prevention programme. When planned well, within the context of an
+overall HIV/AIDS prevention and control programme, IEC can be a very effective intervention
+to bring about appropriate changes in behaviour, especially among populations with high-risk
+behaviour.
+
+In the South-East Asia Region of WHO, where the number of HIV infections is
+projected to be as high as 10 million by the year 2000, unprotected heterosexual activity is
+established to be the predominant mode of transmission of HIV. It is therefore urgent that the
+Region’s population is educated about safer sex and equipped with skills to negotiate sex. This
+is especially important for the women of the Region who not only have poor access to
+information and education but also lack the status to assert themselves in sexual and other
+matters. IEC is also important for advocacy, to motivate policy and decision-makers to create
+environments conducive for behavioural changes and to provide the needed services such as
+condoms, counselling and treatment of sexually transmitted diseases.
+
+This guide has been developed through a regional consultation of HIV/AIDS
+communicators and review by national AIDS programme managers of the Member Countries
+of the Region. The Guide presents a framework for IEC within a prevention and control
+programme for HIV/AIDS. It describes the steps in HIV/AIDS IEC planning and
+implemention. Although directed primarily to programme managers of national AIDS control
+programmes of the Member Countries of the Region, it is hoped that the Guide will also be
+found useful by nongovernmental organizations and other groups implementing HIV/AIDS IEC
+activities even if only as part of a larger intervention programme.
+
+The course that the AIDS pandemic will take in the next few years largely depends on
+successful IEC strategies and programmes, well planned and effectively implemented to create
+not merely an informed and educated public but also a public motivated to adopt responsible
+
+sexual behaviour.
+Muchtar Rafei
+
+Dr Ut
+Regional Director

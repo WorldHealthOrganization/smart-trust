@@ -1,0 +1,67 @@
+name: Public comment — change-set records and their issues agree
+
+# Two halves of one promise: no drift between a change-set's record and
+# anything shown about it (folio-assistant issue #2183).
+#
+#   check      on every PR that touches the record: the change-set files agree
+#              with each other and with the comments. No network; fails the PR.
+#   reconcile  nightly: every primary issue is re-rendered from its record and
+#              opened or closed as its status says, and a change-set decided
+#              outside GitHub gets its issue. Reports; never deletes.
+
+on:
+  pull_request:
+    paths: ["review/public-comment/**"]
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: public-comment-record
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: cd {{assistant}} && bash .github/mount-from-lock.sh --root . && bun install --frozen-lockfile
+      - run: bun run {{assistant}}/folio-assistant-core/scripts/public-comment-changesets.ts check
+
+  reconcile:
+    if: github.event_name != 'pull_request'
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          submodules: recursive
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: cd {{assistant}} && bash .github/mount-from-lock.sh --root . && bun install --frozen-lockfile
+      - name: Bring every issue into line with its record
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: bun run {{assistant}}/folio-assistant-core/scripts/public-comment-changesets.ts reconcile
+      - name: Commit what it recorded
+        run: |
+          if git diff --quiet -- review/public-comment; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add review/public-comment
+          git commit -m "public comment: nightly reconcile"
+          for attempt in 1 2 3 4; do
+            git push origin HEAD && break
+            git pull --rebase origin "${{ github.event.repository.default_branch }}"
+          done

@@ -1,0 +1,71 @@
+---
+doc_id: 10665-59577
+doc_title: "Guidelines for the prevention and control of infection with LAV/HTLV III"
+section_id: page-015
+section_title: "Page 15"
+pages: 15-15
+pdf_page: 15
+source_pdf: 10665-59577.pdf
+source_sha256: 0b4242e6c7a53872
+text_source: ocr
+granularity: page
+---
+wHo/cps/AIDS/86.1
+page 13
+
+3,3 Workers sharing same work environment
+
+No known risk of transmission to coworkers, clients of consumers exists
+from LAV/HTLV-III infected workers in other settings (e.g. offices, schools,
+factories, construction sites), Workers known to be infected with
+LAV/HTLV-III should not be restricted from work solely based on this finding.
+Moreover, they should not be restricted from using telephones, office
+equipment, toilets, showers, eating facilities and water fountains. In
+general, equipment contaminated with blood or other body fluids of any worker
+should be cleaned with soap and water or a detergent, and ideally, a
+disinfectant solution or a fresh solution of sodium hypochlorite (household
+bleach) should be used to wipe the area after cleaning.
+
+4. Parenteral transmission
+
+4,1 Blood and blood products —- sea WER Vol. 61, No 18, 2 May 1986,
+
+4,2 Other*
+
+5. Guidance for health professionals*
+
+6. Guidance for high risk groups and the general population*
+
+7. Disinfection and sterilization
+
+Recent studies have shown that disinfectants commonly used in laboratories
+and health care facilities will kill LAV/HTLV-ILT at concentrations much lower
+than those commonly used in general practice, Routine sterilization and
+disinfection procedures used in health care facilities and in laboratories do
+not need to be altered because of a concern for LAV/HTLV-III, Disinfectants
+that are mycobactericidal are preferred as these are effective against the
+most resistant groups of microorganisms,
+
+7,1 Commonly available effective disinfectants are :
+
+7alal. Chlorine~Sodium hypochlorite
+
+A solution of 5 g/litre (5000 ppm) as available chlorine is recommended
+for general use,
+
+Dilution of chlorine solutions
+
+Required strength Household bleach Eau de Javel Choros
+USA & Canada Fraace | U.K.
+10% 15%
+5e/L part to 10 parts [| 1 part to 30 parts/1 part to| 1 part to
+(0,5%) water water 20 parts 30 parts
+water water
+
+When using hypochlorite solutions, it is to be remembered that they
+gradually lose strength, necessitating daily preparation of fresh solutions.
+Care is required in preparation of the use solution from stock solutions as
+the amount of available chlorine in stock solutions varies with the country of
+manufacture — i.e. household bleach, USA — 5,25% available chlorine; Eau de
+Javel, France ~ 15% available chlorine; "Chloros", UK - 10-15% available
+chlorine.

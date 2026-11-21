@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "Draft QA green?" — Gateway_QaGreen in draft-to-publication.bpmn.
+
+  Facts come from `qa_sweep` (JSON output), under totals:
+
+    failCritical  totals.fail_critical
+    failMajor     totals.fail_major
+
+  Two thresholds are deliberately NOT in this table. `fail_minor` does not hold
+  a draft; and `needs_agent` — criteria that require judgement and have not had
+  it — is the business of the non-mechanical review lane in the editing process,
+  not of a mechanical publication gate. Encoding it here would make this table
+  answer a question it cannot compute.
+
+  Those are policy choices. They are in a table an editor can change without
+  touching code, which is the argument for putting them in DMN at all.
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_DraftQaGate"
+             name="Draft QA gate"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_DraftQaGate" name="Draft QA green?">
+    <decisionTable id="Table_DraftQaGate" hitPolicy="FIRST">
+      <input id="In_FailCritical" label="critical failures">
+        <inputExpression id="Expr_FailCritical" typeRef="number">
+          <text>failCritical</text>
+        </inputExpression>
+      </input>
+      <input id="In_FailMajor" label="major failures">
+        <inputExpression id="Expr_FailMajor" typeRef="number">
+          <text>failMajor</text>
+        </inputExpression>
+      </input>
+      <output id="Out_DraftQa" name="outcome" typeRef="string" />
+
+      <rule id="Rule_Critical">
+        <description>Any critical QA failure holds the draft.</description>
+        <inputEntry id="IE_Critical_1"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_Critical_2"><text>-</text></inputEntry>
+        <outputEntry id="OE_Critical"><text>"no"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Major">
+        <description>So does a major one.</description>
+        <inputEntry id="IE_Major_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Major_2"><text>&gt; 0</text></inputEntry>
+        <outputEntry id="OE_Major"><text>"no"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Clean">
+        <description>Minor findings and pending agent review do not hold a draft here.</description>
+        <inputEntry id="IE_Clean_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Clean_2"><text>-</text></inputEntry>
+        <outputEntry id="OE_Clean"><text>"yes"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

@@ -1,0 +1,60 @@
+---
+doc_id: 10665-205344
+doc_title: "Information, education and communication: a guide for AIDS programme managers"
+section_id: page-018
+section_title: "Page 18"
+pages: 18-18
+pdf_page: 18
+source_pdf: 10665-205344.pdf
+source_sha256: 0fdcc9d570f32d5f
+text_source: ocr
+granularity: page
+---
+SEA/AIDS/81
+Page 15
+
+— NGO workers/volunteers, and
+— Leaders or peers from high-risk populations and vulnerable groups.
+
+5.3. Materials Development
+
+Suitable partners should be identified to assist in materials development. This is
+especially important if ministries of health do not have the in-house capacity for development
+of IEC materials appropriate to meeting the needs of the programme. As a general strategy,
+it is suggested that the actual development of materials be contracted out to appropriate
+professionals, if available. The demands of targeting materials to produce sexual behaviour
+change may require skills beyond what is normally available.
+
+When developing communication tools for a programme, it is important to call
+in communication professionals, if available, for every step in the process.
+
+In this case, the manager’s responsibility is to ensure that the contracting agency carries
+out all important steps. The following steps are essential:
+
+5.3.1 Conduct targeted behavioural research
+
+Rapid research among specific target groups is needed for information during the
+development of appropriate communication strategies and tools. This entails a series of rapid
+qualitative studies to test relevant concepts and areas of perceived threat and needs of the
+targeted group. For example, one group may feel that AIDS is only spread by visiting sex
+workers and they may feel safe even though they habitually have multiple partners. They may
+use condoms with some partners and not with others.
+
+Understanding behaviours and beliefs is essential for formulating effective, targeted JEC.
+This research, carried out when specific communication strategies and tools are being
+developed, will identify keys to behavioural change and help developers to tailor
+communication messages and materials to meet the needs of the identified population.
+
+Maintaining confidentiality is essential; care must be taken to ensure that the research
+does not lead to the stigmatization or marginalization of any group.
+
+5.3.2 Design messages, choose media and channels
+
+Data and inputs from target groups can be used to determine the messages, and the
+medium and channels needed for conveying them (such as radio, TV, posters, interpersonal
+approaches, traditional media,) to each segment of the audience. This is the culmination of
+the conceptualization, analysis and planning exercise. Targeted IEC research, including an
+analysis of existing data, and a knowledge of the target group, plays an important role in
+selecting and defining the message, format, presentation, medium, etc., for each identified
+target group. At the design stage, the exact types of media, the channels for communication
+and the style should be determined. A balance between passive (e.g. posters, print or video)

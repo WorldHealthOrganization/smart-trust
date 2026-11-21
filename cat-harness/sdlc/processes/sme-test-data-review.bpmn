@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_SmeTestDataReview"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="clinical-sme" name="Clinical / scientific SME"/>
+  <bpmn:resource id="tester" name="Tester"/>
+  <bpmn:collaboration id="Collaboration_SmeTestDataReview">
+    <bpmn:participant id="Participant_SmeTestDataReview" name="SME Review of Decision Support and Indicator Test Data" processRef="Process_SmeTestDataReview"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_SmeTestDataReview" name="SME Review of Decision Support and Indicator Test Data" isExecutable="false">
+    <bpmn:documentation>SME review of fixed test data for clinical or scientific decision support and indicator definitions. It runs on its caller's bean (Process_TestDataCuration calls it), so it opens and closes none: every step that touches the plan notes on it.
+
+TWO UNITS OF REVIEW (`SmeCaseVerdictKind`, `$schema: &quot;sme-case-verdict/1.0.0&quot;` in `schemas/sdlc/test-data.ts`):
+- `decision-support`: the unit of review is a **worked case** (`case`: input state, `decisionLogicRef`, `systemOutput`, optional `expectedGuidance`).
+- `indicator-definition`: the unit of review is a **cohort plus an expected value** (`cohort`: `indicatorRef`, `populationSize`, `inputs`, `expectedValue`, `computedValue`, optional `period`, `numerator`, `denominator`).
+
+JUDGEMENT-ONLY SME LANE. `Lane_SME` binds `clinical-sme`, which is declared `judgementOnly: true` in `scenarios/roles.json`. `Task_SmeJudge` carries no skill reference because no mechanical procedure yields the clinical or scientific answer — that is the whole reason a person is in the lane.
+
+ATTRIBUTABLE REVIEWER AND DATE. `Task_RecordCaseVerdict` writes the `sme-case-verdict/1.0.0` node with the SME's attributable human identity (`reviewer: { kind: &quot;human&quot;, provider, handle, role }`) and ISO-8601 review date (`reviewedAt`), because an audited review without an attributable reviewer and date is not audited.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_SmeTestDataReview">
+      <bpmn:lane id="Lane_Prepare" name="Authoring agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Prepares the review package from the fixed test data set (`test-data-fixed/1.0.0`): either a worked case with system output for decision support, or a cohort with computed and expected values for an indicator definition.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_SmeReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_SubjectKind</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PrepareWorkedCase</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PrepareCohort</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_SME" name="Clinical / scientific SME" partitionElementRef="clinical-sme">
+        <bpmn:documentation>Human subject-matter expert (`clinical-sme`, `judgementOnly: true`). Judges whether the decision-support output on a worked case or the indicator value on a cohort is clinically/scientifically right. No procedure yields the answer, which is why a person is in this lane.</bpmn:documentation>
+        <bpmn:flowNodeRef>GW_ReadyForSme</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SmeJudge</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Record" name="Tester" partitionElementRef="tester">
+        <bpmn:documentation>Records the SME's judgement as a validated `sme-case-verdict/1.0.0` node with attributable human `reviewer` identity and `reviewedAt` date, and updates the fixed data set's `review` status when passed.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_RecordCaseVerdict</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_VerdictOutcome</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Reviewed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NeedsRevision</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_SmeReview" name="Fixed test data set for&#10;decision support or&#10;indicator definition">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:exclusiveGateway id="GW_SubjectKind" name="Subject kind:&#10;decision support or&#10;indicator definition?">
+      <bpmn:documentation>Selects the unit of review required by `SmeCaseVerdictKind` (`schemas/sdlc/test-data.ts`): a worked `case` for `decision-support`, or a `cohort` plus `expectedValue` for `indicator-definition`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="Determined by whether the subject under review is a decision-support rule (worked case unit) or an indicator definition (cohort plus expected value unit)."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_DecisionSupport</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Indicator</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_PrepareWorkedCase" name="Prepare the worked case: input, logic, output">
+      <bpmn:documentation>Assemble the `DecisionSupportWorkedCase` (`id`, `summary`, `decisionLogicRef`, structured `input`, `systemOutput`, and optional `expectedGuidance`) from the fixed data set so the SME can judge clinical/scientific correctness without reading raw schema internals.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="test-data-sets"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_DecisionSupport</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_PrepareCohort" name="Prepare the cohort: inputs, expected and computed">
+      <bpmn:documentation>Assemble the `IndicatorCohortCase` (`id`, `summary`, `indicatorRef`, `populationSize`, `inputs`, `expectedValue`, `computedValue`, and optional `period`, `numerator`, `denominator`) from the fixed data set for SME review.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="test-data-sets"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Indicator</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_ReadyForSme" name="Review unit&#10;prepared">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="Task_SmeJudge" name="Judge whether the case or cohort is right">
+      <bpmn:documentation>Performed by the human SME in `Lane_SME` (`clinical-sme`, `judgementOnly: true`). The SME inspects the worked case (for decision support) or the cohort and expected vs computed value (for an indicator definition) and renders a domain verdict (`pass`, `fail`, or `needs-revision`) with rationale. Deliberately carries no skill reference: no procedure yields the answer, which is the whole reason a person is in this lane.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:task id="Task_RecordCaseVerdict" name="Record the SME's verdict and rationale">
+      <bpmn:documentation>Write the `sme-case-verdict/1.0.0` node (`SmeCaseVerdictKind` in `schemas/sdlc/test-data.ts`) recording `dataSetRef`, `subjectKind`, the worked `case` or `cohort`, `verdict`, `rationale`, the SME's attributable human identity (`reviewer: { kind: &quot;human&quot;, provider, handle, role }`), and `reviewedAt` (ISO-8601 date/timestamp).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="test-data-sets"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_VerdictOutcome" name="SME verdict&#10;outcome?">
+      <bpmn:documentation>Routes on the recorded `verdict` field of the `sme-case-verdict/1.0.0` node: `pass` marks the fixed set reviewed and usable as certification evidence; `fail` or `needs-revision` withholds `reviewed: true` until the logic or case is revised.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="Routes on the SME's recorded verdict: pass certifies the case/cohort as reviewed evidence; fail or needs-revision returns it for correction."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pass</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Revise</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_Reviewed" name="Case/verdict pair recorded;&#10;fixed data set is&#10;audited evidence">
+      <bpmn:incoming>Flow_Pass</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:endEvent id="End_NeedsRevision" name="Discrepancy recorded;&#10;logic or case returned&#10;for revision">
+      <bpmn:incoming>Flow_Revise</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_SmeReview" targetRef="GW_SubjectKind"/>
+    <bpmn:sequenceFlow id="Flow_DecisionSupport" name="decision-support" sourceRef="GW_SubjectKind" targetRef="Task_PrepareWorkedCase"/>
+    <bpmn:sequenceFlow id="Flow_Indicator" name="indicator-definition" sourceRef="GW_SubjectKind" targetRef="Task_PrepareCohort"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_PrepareWorkedCase" targetRef="GW_ReadyForSme"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_PrepareCohort" targetRef="GW_ReadyForSme"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="GW_ReadyForSme" targetRef="Task_SmeJudge"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_SmeJudge" targetRef="Task_RecordCaseVerdict"/>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_RecordCaseVerdict" targetRef="GW_VerdictOutcome"/>
+    <bpmn:sequenceFlow id="Flow_Pass" name="pass" sourceRef="GW_VerdictOutcome" targetRef="End_Reviewed"/>
+    <bpmn:sequenceFlow id="Flow_Revise" name="fail or needs-revision" sourceRef="GW_VerdictOutcome" targetRef="End_NeedsRevision"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_SmeTestDataReview">
+    <bpmndi:BPMNPlane id="BPMNPlane_SmeTestDataReview" bpmnElement="Collaboration_SmeTestDataReview">
+      <bpmndi:BPMNShape id="Shape_Participant_SmeTestDataReview" bpmnElement="Participant_SmeTestDataReview" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1180" height="740" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Prepare" bpmnElement="Lane_Prepare" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1150" height="360" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_SME" bpmnElement="Lane_SME" isHorizontal="true">
+        <dc:Bounds x="190" y="440" width="1150" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Record" bpmnElement="Lane_Record" isHorizontal="true">
+        <dc:Bounds x="190" y="580" width="1150" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_SmeReview" bpmnElement="Start_SmeReview">
+        <dc:Bounds x="236" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="134" width="150" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_SubjectKind" bpmnElement="GW_SubjectKind" isMarkerVisible="true">
+        <dc:Bounds x="402" y="185" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="440" y="92" width="170" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_PrepareWorkedCase" bpmnElement="Task_PrepareWorkedCase">
+        <dc:Bounds x="582" y="150" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_PrepareCohort" bpmnElement="Task_PrepareCohort">
+        <dc:Bounds x="582" y="300" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_ReadyForSme" bpmnElement="GW_ReadyForSme" isMarkerVisible="true">
+        <dc:Bounds x="737" y="485" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="660" y="442" width="75" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_SmeJudge" bpmnElement="Task_SmeJudge">
+        <dc:Bounds x="822" y="450" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RecordCaseVerdict" bpmnElement="Task_RecordCaseVerdict">
+        <dc:Bounds x="822" y="600" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_VerdictOutcome" bpmnElement="GW_VerdictOutcome" isMarkerVisible="true">
+        <dc:Bounds x="972" y="635" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="957" y="593" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Reviewed" bpmnElement="End_Reviewed">
+        <dc:Bounds x="1092" y="642" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1135" y="633" width="190" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_NeedsRevision" bpmnElement="End_NeedsRevision">
+        <dc:Bounds x="979" y="740" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1022" y="749" width="170" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="272" y="210" />
+        <di:waypoint x="402" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_DecisionSupport" bpmnElement="Flow_DecisionSupport">
+        <di:waypoint x="452" y="210" />
+        <di:waypoint x="582" y="210" />
+        <bpmndi:BPMNLabel><dc:Bounds x="455" y="215" width="125" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Indicator" bpmnElement="Flow_Indicator">
+        <di:waypoint x="427" y="235" />
+        <di:waypoint x="427" y="360" />
+        <di:waypoint x="582" y="360" />
+        <bpmndi:BPMNLabel><dc:Bounds x="435" y="365" width="140" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_2" bpmnElement="Flow_2">
+        <di:waypoint x="702" y="210" />
+        <di:waypoint x="762" y="210" />
+        <di:waypoint x="762" y="485" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_3" bpmnElement="Flow_3">
+        <di:waypoint x="642" y="420" />
+        <di:waypoint x="642" y="510" />
+        <di:waypoint x="737" y="510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_4" bpmnElement="Flow_4">
+        <di:waypoint x="787" y="510" />
+        <di:waypoint x="822" y="510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_5" bpmnElement="Flow_5">
+        <di:waypoint x="882" y="570" />
+        <di:waypoint x="882" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_6" bpmnElement="Flow_6">
+        <di:waypoint x="942" y="660" />
+        <di:waypoint x="972" y="660" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Pass" bpmnElement="Flow_Pass">
+        <di:waypoint x="1022" y="660" />
+        <di:waypoint x="1092" y="660" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1040" y="640" width="35" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Revise" bpmnElement="Flow_Revise">
+        <di:waypoint x="997" y="685" />
+        <di:waypoint x="997" y="740" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1002" y="692" width="160" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

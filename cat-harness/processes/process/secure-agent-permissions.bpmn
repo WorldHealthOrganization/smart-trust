@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_SecureAgentPermissions" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="user" name="User"/>
+  <bpmn:collaboration id="Collaboration_Process_SecureAgentPermissions">
+    <bpmn:participant id="Participant_Process_SecureAgentPermissions" name="Secure agent permissions" processRef="Process_SecureAgentPermissions"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_SecureAgentPermissions" name="Secure agent permissions" isExecutable="false">
+    <bpmn:documentation>Secure the permissions a coding agent needs to take part in this harness's processes, from the human who can grant them, and write each grant into the agent Tool's own configuration through that Tool's adapter. VENDOR-NEUTRAL: the coding agent is a Tool, and Claude Code is one of several (Gemini CLI, Cursor, Copilot, Codex). Nothing in this diagram names a vendor's file; the adapter for the Tool in use does. Skill: `agent-permissions`.
+
+CALLED FROM SESSION START (`session-state-machine.bpmn`, Call_SecurePermissions, after the session record opens), so it is part of initiating the harness for an actor. It also runs on demand when an agent hits a denied action: the denial is a reason to ask, never to edit the Tool's config itself. A run that finds every needed permission already granted and recorded ends at End_Current without asking anything.
+
+NEVER SELF-GRANTED. The grant is the owner's (Task_OwnerGrants, a person only) and the config write is done by the person, or by the agent with their explicit consent to that exact diff. An agent that edits its own permission configuration is self-modification.
+
+MERGE IS NOT A GRANTABLE PERMISSION HERE. Merging to main stays a separate owner-authorised step on every occasion (`merge-to-main.bpmn`); this process never writes an allow-rule for it.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- STRICT: the process ends in a write to the configuration that
+           decides what every later agent session may do. Advisory would permit
+           that write without the owner's grant or without the record. -->
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_SecureAgentPermissions">
+      <bpmn:lane id="Lane_Agent" name="Agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Finds out which agent Tool is acting, what the harness's processes need it to be allowed to do, and what is already granted; explains each missing permission; records and applies what the owner granted. Grants nothing to itself.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Secure</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_IdentifyTools</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReadGrants</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Gap</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Current</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Explain</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Granted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Refused</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RecordGrant</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_WriteConfig</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Granted</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Owner" name="Owner" partitionElementRef="user">
+        <bpmn:documentation>Grants, narrows or refuses each permission, having been told what it allows and why. The only lane that can grant.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_OwnerGrants</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Secure" name="Session opened,&#10;or an action&#10;was denied">
+      <bpmn:outgoing>p1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_IdentifyTools" name="Identify the agent&#10;Tool(s) acting here">
+      <bpmn:documentation>Which coding-agent Tool is running this session, and which others the layer is configured for (each has its own config files: AGENTS.md is read by many; Claude Code, Gemini CLI, Cursor, Copilot and Codex each add their own). The Tool's adapter says where its permissions live and how a rule is written. A Tool with no adapter is reported, and its permissions are left to the person.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="agent-permissions"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>p1</bpmn:incoming>
+      <bpmn:outgoing>p2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_ReadGrants" name="Compare what the&#10;processes need with&#10;what is granted">
+      <bpmn:documentation>The needed set is the agent-permissions skill's list (write generated projections: CI only, never the agent; edit hooks or settings; run the gates; push a feature branch; open a PR), scoped to what this layer's processes actually call. The granted set is the recorded grants plus the Tool's current config, read through its adapter. A config rule with no recorded grant is reported as unrecorded, not treated as granted.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="agent-permissions"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>p2</bpmn:incoming>
+      <bpmn:outgoing>p3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Gap" name="Anything needed&#10;and not granted?">
+      <bpmn:documentation>`none missing` when every needed permission has a recorded grant reflected in the Tool's config; `missing` otherwise, including a rule present in the config with no grant on the record.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="The needed set depends on which processes this layer runs and on the Tool's config format, read through its adapter; no table holds both yet. agent-permissions §What this does not do yet."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>p3</bpmn:incoming>
+      <bpmn:outgoing>p4</bpmn:outgoing>
+      <bpmn:outgoing>p5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Current" name="Permissions&#10;current">
+      <bpmn:incoming>p4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_Explain" name="Explain each missing&#10;permission, with the&#10;exact config diff">
+      <bpmn:documentation>Per permission: what it allows the agent to do without asking, why a process here needs it, the narrowest form that would do, and the exact change to the Tool's config. Context, options, recommendation, question (interaction-modality §4.1). Least privilege is the recommendation unless there is a measured reason for more.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="agent-permissions"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>p5</bpmn:incoming>
+      <bpmn:outgoing>p6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_OwnerGrants" name="Grant, narrow or&#10;refuse each">
+      <bpmn:documentation>The owner's answer, per permission, in their own words. Quoted verbatim in the record.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="agent-permissions"/>
+        <cat-harness.processes:fulfilment kinds="person" reason="A permission for an agent is granted by a person; an agent granting itself one is the self-modification this process exists to prevent."/>
+        <cat-harness.processes:policy relaxable="false"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>p6</bpmn:incoming>
+      <bpmn:outgoing>p7</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Granted" name="Anything&#10;granted?">
+      <bpmn:documentation>`granted` when the owner granted at least one permission (as asked or narrowed); `refused` when they granted none. Read after the record, so a refusal is on the record too and the next session does not ask the same question blind.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="It reads the owner's recorded answers: whether any of them grants something. The answers are words, quoted verbatim, which no table classifies yet."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>p8</bpmn:incoming>
+      <bpmn:outgoing>p9</bpmn:outgoing>
+      <bpmn:outgoing>p10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Refused" name="Refused:&#10;actions keep asking">
+      <bpmn:incoming>p9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_RecordGrant" name="Record each answer:&#10;who, when, scope,&#10;the quote">
+      <bpmn:documentation>One record per permission: by, on, tool, permission, scope (session, instance, or until a date), the config diff, and evidence (the owner's words verbatim, with where they were said). Refusals are recorded the same way.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="agent-permissions"/>
+        <cat-harness.processes:policy relaxable="false"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>p7</bpmn:incoming>
+      <bpmn:outgoing>p8</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_WriteConfig" name="Write it through&#10;the Tool's adapter">
+      <bpmn:documentation>The exact diff the owner saw, nothing more, written by the person or by the agent under their consent to that diff. Hand-edited agent config only; generated projections are CI's (harness-projections).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="agent-permissions"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>p10</bpmn:incoming>
+      <bpmn:outgoing>p11</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Granted" name="Granted,&#10;recorded">
+      <bpmn:incoming>p11</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="p1" sourceRef="Start_Secure" targetRef="Task_IdentifyTools"/>
+    <bpmn:sequenceFlow id="p2" sourceRef="Task_IdentifyTools" targetRef="Task_ReadGrants"/>
+    <bpmn:sequenceFlow id="p3" sourceRef="Task_ReadGrants" targetRef="GW_Gap"/>
+    <bpmn:sequenceFlow id="p4" name="none missing" sourceRef="GW_Gap" targetRef="End_Current"/>
+    <bpmn:sequenceFlow id="p5" name="missing" sourceRef="GW_Gap" targetRef="Task_Explain"/>
+    <bpmn:sequenceFlow id="p6" sourceRef="Task_Explain" targetRef="Task_OwnerGrants"/>
+    <bpmn:sequenceFlow id="p7" sourceRef="Task_OwnerGrants" targetRef="Task_RecordGrant"/>
+    <bpmn:sequenceFlow id="p8" sourceRef="Task_RecordGrant" targetRef="GW_Granted"/>
+    <bpmn:sequenceFlow id="p9" name="refused" sourceRef="GW_Granted" targetRef="End_Refused"/>
+    <bpmn:sequenceFlow id="p10" name="granted" sourceRef="GW_Granted" targetRef="Task_WriteConfig"/>
+    <bpmn:sequenceFlow id="p11" sourceRef="Task_WriteConfig" targetRef="End_Granted"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_SecureAgentPermissions">
+    <bpmndi:BPMNPlane id="Plane_Process_SecureAgentPermissions" bpmnElement="Collaboration_Process_SecureAgentPermissions">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_SecureAgentPermissions" bpmnElement="Participant_Process_SecureAgentPermissions" isHorizontal="true">
+        <dc:Bounds x="160" y="50" width="1400" height="450" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent_Process_SecureAgentPermissions" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="50" width="1370" height="280" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Owner_Process_SecureAgentPermissions" bpmnElement="Lane_Owner" isHorizontal="true">
+        <dc:Bounds x="190" y="330" width="1370" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Secure" bpmnElement="Start_Secure">
+        <dc:Bounds x="246" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="183" width="90" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_IdentifyTools" bpmnElement="Task_IdentifyTools">
+        <dc:Bounds x="312" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReadGrants" bpmnElement="Task_ReadGrants">
+        <dc:Bounds x="462" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Gap" bpmnElement="GW_Gap" isMarkerVisible="true">
+        <dc:Bounds x="632" y="135" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="597" y="64" width="120" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Current" bpmnElement="End_Current">
+        <dc:Bounds x="639" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="682" y="271" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Explain" bpmnElement="Task_Explain">
+        <dc:Bounds x="752" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_OwnerGrants" bpmnElement="Task_OwnerGrants">
+        <dc:Bounds x="902" y="355" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RecordGrant" bpmnElement="Task_RecordGrant">
+        <dc:Bounds x="1042" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Granted" bpmnElement="GW_Granted" isMarkerVisible="true">
+        <dc:Bounds x="1212" y="135" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1202" y="82" width="70" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Refused" bpmnElement="End_Refused">
+        <dc:Bounds x="1219" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1262" y="262" width="130" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_WriteConfig" bpmnElement="Task_WriteConfig">
+        <dc:Bounds x="1332" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Granted" bpmnElement="End_Granted">
+        <dc:Bounds x="1492" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1474" y="183" width="70" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_p1" bpmnElement="p1">
+        <di:waypoint x="282" y="160" />
+        <di:waypoint x="312" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p2" bpmnElement="p2">
+        <di:waypoint x="432" y="160" />
+        <di:waypoint x="462" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p3" bpmnElement="p3">
+        <di:waypoint x="582" y="160" />
+        <di:waypoint x="632" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p4" bpmnElement="p4">
+        <di:waypoint x="657" y="185" />
+        <di:waypoint x="657" y="262" />
+        <bpmndi:BPMNLabel><dc:Bounds x="560" y="232" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p5" bpmnElement="p5">
+        <di:waypoint x="682" y="160" />
+        <di:waypoint x="752" y="160" />
+        <bpmndi:BPMNLabel><dc:Bounds x="689" y="138" width="58" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p6" bpmnElement="p6">
+        <di:waypoint x="812" y="220" />
+        <di:waypoint x="812" y="415" />
+        <di:waypoint x="902" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p7" bpmnElement="p7">
+        <di:waypoint x="1022" y="415" />
+        <di:waypoint x="1102" y="415" />
+        <di:waypoint x="1102" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p8" bpmnElement="p8">
+        <di:waypoint x="1162" y="160" />
+        <di:waypoint x="1212" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p9" bpmnElement="p9">
+        <di:waypoint x="1237" y="185" />
+        <di:waypoint x="1237" y="262" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1180" y="232" width="52" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p10" bpmnElement="p10">
+        <di:waypoint x="1262" y="160" />
+        <di:waypoint x="1332" y="160" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1268" y="138" width="58" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_p11" bpmnElement="p11">
+        <di:waypoint x="1452" y="160" />
+        <di:waypoint x="1492" y="160" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

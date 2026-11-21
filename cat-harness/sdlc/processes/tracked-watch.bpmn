@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_TrackedWatch" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:collaboration id="Collaboration_Process_TrackedWatch">
+    <bpmn:participant id="Participant_Process_TrackedWatch" name="Report a verdict on one tracking issue" processRef="Process_TrackedWatch"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_TrackedWatch" name="Report a verdict on one tracking issue" isExecutable="false">
+    <bpmn:documentation>Report a check's verdict on one tracking issue: close the issue when the check found nothing, open or edit it when the check found something, and leave it untouched when the check could not tell. Every watch that keeps one tracking issue runs this, with its own label: ci-health-watch (`ci-health`), repository-health-watch (`repo-health`) and pr-checks-present (`pr-no-checks`). Before 2026-11-01 each of them drew these seven steps itself (shared block G2 of the BPMN guidance review, owner Q-BR-2 C).
+
+THE THIRD STATE IS THE WHOLE POINT, AND IT IS THE ONLY ONE THAT FAILS THE JOB. `unknown` runs `exit 1`; a finding does NOT. A repository in trouble leaves the watch GREEN and speaks through the tracking issue, while a sweep that could not look turns the job red. That inversion is deliberate and is invisible from the run list, which is the argument for drawing it.
+
+ONE TRACKING ISSUE, EDITED IN PLACE, never a comment and never a second issue: a feed nobody reads is the failure mode a watchdog invites. On `unknown` the issue is left UNTOUCHED: not closed, not opened, not edited. Closing it would assert the thing the sweep just failed to establish.
+
+`Ensure the tracking label exists` sits AFTER `Could we tell?` and before the split, because both issue paths need the label: the clean path filters on it too, and on a repository where nothing has ever gone wrong it would not otherwise exist. It is skipped on `unknown`, where neither path runs and a label hiccup must not be what fails the job.
+
+The verdict is the calling watch's: its check writes a report file before any exit path, exit 0 is clean, 1 is a finding, 2 is could-not-check, and an exit 1 with no report file is a crash, read as could-not-check. Each watch's own gateway documentation in its workflow says which step writes it.</bpmn:documentation>
+    <bpmn:ioSpecification id="Process_TrackedWatch_IO">
+      <bpmn:dataInput id="Process_TrackedWatch_Label" name="label"/>
+      <bpmn:inputSet id="Process_TrackedWatch_In"><bpmn:dataInputRefs>Process_TrackedWatch_Label</bpmn:dataInputRefs></bpmn:inputSet>
+      <bpmn:outputSet id="Process_TrackedWatch_Out"/>
+    </bpmn:ioSpecification>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_TrackedWatch">
+      <bpmn:lane id="Lane_Ci" name="Scheduled log sweep" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Every path through it writes something: the tracking label, and the issue itself (opened, edited or closed). Keeping all of it in one lane is what makes 'one tracking issue, edited in place' enforceable.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Verdict</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Determined</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Unknown</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Label</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Finding</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Close</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Clean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Track</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Found</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Verdict" name="Check run, verdict written">
+      <bpmn:documentation>The calling watch's check has run and written its verdict: clean, findings, or unknown.</bpmn:documentation>
+      <bpmn:outgoing>Flow_TW_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="GW_Determined" name="Could we tell?">
+      <bpmn:documentation>Asked of the calling watch's `verdict`, not of the raw exit code. `no` is verdict == 'unknown': the job runs `exit 1` and no issue step runs, so the tracking issue is left untouched. `yes` is any other verdict, the guard on the label step and so on both issue paths.</bpmn:documentation>
+      <bpmn:incoming>Flow_TW_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_TW_2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TW_3</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Unknown" name="Unknown: job red, issue untouched">
+      <bpmn:incoming>Flow_TW_2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Task_Label" name="Ensure the tracking label exists" calledElement="GT_EnsureTrackingLabel">
+      <bpmn:incoming>Flow_TW_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_TW_4</bpmn:outgoing>
+
+      <bpmn:ioSpecification id="Task_Label_IO">
+        <bpmn:dataInput id="Task_Label_label" name="label"/>
+        <bpmn:inputSet id="Task_Label_In"><bpmn:dataInputRefs>Task_Label_label</bpmn:dataInputRefs></bpmn:inputSet>
+        <bpmn:outputSet id="Task_Label_Out"/>
+      </bpmn:ioSpecification>
+      <bpmn:dataInputAssociation id="Task_Label_label_Value">
+        <bpmn:sourceRef>Process_TrackedWatch_Label</bpmn:sourceRef>
+        <bpmn:targetRef>Task_Label_label</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Finding" name="Anything found?">
+      <bpmn:documentation>Asked of the same `verdict`, once it is known. `no` is verdict == 'clean': the open tracking issue, if there is one, is closed. `yes` is a finding: the one open issue carrying the label is edited in place with the report as its body, or created if there is none. Neither branch fails the job.</bpmn:documentation>
+      <bpmn:incoming>Flow_TW_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_TW_5</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TW_7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Task_Close" name="Close the tracking issue" calledElement="GT_CloseTrackingIssue">
+      <bpmn:incoming>Flow_TW_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_TW_6</bpmn:outgoing>
+
+      <bpmn:ioSpecification id="Task_Close_IO">
+        <bpmn:dataInput id="Task_Close_label" name="label"/>
+        <bpmn:inputSet id="Task_Close_In"><bpmn:dataInputRefs>Task_Close_label</bpmn:dataInputRefs></bpmn:inputSet>
+        <bpmn:outputSet id="Task_Close_Out"/>
+      </bpmn:ioSpecification>
+      <bpmn:dataInputAssociation id="Task_Close_label_Value">
+        <bpmn:sourceRef>Process_TrackedWatch_Label</bpmn:sourceRef>
+        <bpmn:targetRef>Task_Close_label</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_Clean" name="Clean: issue closed">
+      <bpmn:incoming>Flow_TW_6</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Task_Track" name="Open or edit the one tracking issue" calledElement="GT_TrackIssue">
+      <bpmn:incoming>Flow_TW_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_TW_8</bpmn:outgoing>
+
+      <bpmn:ioSpecification id="Task_Track_IO">
+        <bpmn:dataInput id="Task_Track_label" name="label"/>
+        <bpmn:inputSet id="Task_Track_In"><bpmn:dataInputRefs>Task_Track_label</bpmn:dataInputRefs></bpmn:inputSet>
+        <bpmn:outputSet id="Task_Track_Out"/>
+      </bpmn:ioSpecification>
+      <bpmn:dataInputAssociation id="Task_Track_label_Value">
+        <bpmn:sourceRef>Process_TrackedWatch_Label</bpmn:sourceRef>
+        <bpmn:targetRef>Task_Track_label</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_Found" name="Found: recorded, job stays green">
+      <bpmn:incoming>Flow_TW_8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_TW_1" sourceRef="Start_Verdict" targetRef="GW_Determined"/>
+    <bpmn:sequenceFlow id="Flow_TW_2" sourceRef="GW_Determined" targetRef="End_Unknown" name="no"/>
+    <bpmn:sequenceFlow id="Flow_TW_3" sourceRef="GW_Determined" targetRef="Task_Label" name="yes"/>
+    <bpmn:sequenceFlow id="Flow_TW_4" sourceRef="Task_Label" targetRef="GW_Finding"/>
+    <bpmn:sequenceFlow id="Flow_TW_5" sourceRef="GW_Finding" targetRef="Task_Close" name="no"/>
+    <bpmn:sequenceFlow id="Flow_TW_6" sourceRef="Task_Close" targetRef="End_Clean"/>
+    <bpmn:sequenceFlow id="Flow_TW_7" sourceRef="GW_Finding" targetRef="Task_Track" name="yes"/>
+    <bpmn:sequenceFlow id="Flow_TW_8" sourceRef="Task_Track" targetRef="End_Found"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_TrackedWatch">
+    <bpmndi:BPMNPlane id="Plane_Process_TrackedWatch" bpmnElement="Collaboration_Process_TrackedWatch">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_TrackedWatch" bpmnElement="Participant_Process_TrackedWatch" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="806" height="420"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Ci" bpmnElement="Lane_Ci" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="776" height="420"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Verdict" bpmnElement="Start_Verdict">
+        <dc:Bounds x="130" y="182" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="118.51" y="221.5" width="80" height="53" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Determined" bpmnElement="GW_Determined" isMarkerVisible="true">
+        <dc:Bounds x="230" y="175" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="195" y="120" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Unknown" bpmnElement="End_Unknown">
+        <dc:Bounds x="237" y="332" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="275" y="330" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Label" bpmnElement="Task_Label">
+        <dc:Bounds x="330" y="140" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Finding" bpmnElement="GW_Finding" isMarkerVisible="true">
+        <dc:Bounds x="500" y="175" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="465" y="120" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Close" bpmnElement="Task_Close">
+        <dc:Bounds x="600" y="140" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Clean" bpmnElement="End_Clean">
+        <dc:Bounds x="770" y="182" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="730" y="222" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Track" bpmnElement="Task_Track">
+        <dc:Bounds x="600" y="300" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Found" bpmnElement="End_Found">
+        <dc:Bounds x="770" y="342" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="728" y="382" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_TW_1" bpmnElement="Flow_TW_1">
+        <di:waypoint x="166" y="200"/>
+        <di:waypoint x="230" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_TW_2" bpmnElement="Flow_TW_2">
+        <di:waypoint x="255" y="225"/>
+        <di:waypoint x="255" y="332"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_TW_3" bpmnElement="Flow_TW_3">
+        <di:waypoint x="280" y="200"/>
+        <di:waypoint x="330" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_TW_4" bpmnElement="Flow_TW_4">
+        <di:waypoint x="450" y="200"/>
+        <di:waypoint x="500" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_TW_5" bpmnElement="Flow_TW_5">
+        <di:waypoint x="550" y="200"/>
+        <di:waypoint x="600" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_TW_6" bpmnElement="Flow_TW_6">
+        <di:waypoint x="720" y="200"/>
+        <di:waypoint x="770" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_TW_7" bpmnElement="Flow_TW_7">
+        <di:waypoint x="525" y="225"/>
+        <di:waypoint x="525" y="360"/>
+        <di:waypoint x="600" y="360"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_TW_8" bpmnElement="Flow_TW_8">
+        <di:waypoint x="720" y="360"/>
+        <di:waypoint x="770" y="360"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

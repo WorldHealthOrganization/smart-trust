@@ -1,0 +1,634 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — the incremental IG build: how one change moves through the
+  review and publish pipeline once the derived artefacts are cached by dependency
+  cone. The full-build L3 pipeline is l3-fhir-pipeline.bpmn.
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool.
+
+  The <bootstrap.processes:skill> extension on an activity names the folio-assistant skill
+  that implements it; a name in parentheses is a tool no skill yet wraps
+  (fhir_context_load, fhir_validate, fhir_narrative, ig_metaindex_rebuild).
+  <cat-harness.processes:bean> marks a step that writes the shared work plan in
+  beans/.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_IgIncremental"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+
+  <bpmn:import namespace="https://litlfred.github.io/folio-assistant/workflows" location="l3-fhir-pipeline.bpmn" importType="http://www.omg.org/spec/BPMN/20100524/MODEL" />
+  <bpmn:dataStore id="work-plan" name="Work plan (beans)"/>
+  <bpmn:collaboration id="Collaboration_IgIncremental">
+    <bpmn:participant id="Participant_IgIncremental" name="Incremental IG build (review and publish)" processRef="Process_IgIncremental" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_IgIncremental" name="Incremental IG build" isExecutable="false">
+    <bpmn:documentation>
+      An incremental build for a FHIR Implementation Guide: compile, validate and re-render only the dependency cone of a change, then gate on QA and deploy. One change (a PR push or a push to main) runs:
+      restore the derived state, compute the change's dependency cone, compile and
+      validate only the cone against the warm validator, re-render the cone's
+      records, rebuild the meta-index, assemble the site, gate on QA, then deploy;
+      on main or a release only, seed the cache from the green build. An unusable
+      cache falls back to a full build; an environment error stops the run and logs
+      why. Advisory, like the other content-type pipelines: the package that owns
+      the content owns what adequate means.
+    </bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_IgIncremental_LaneSet">
+      <bpmn:lane id="Lane_Author" name="FHIR modeller / PR author (person + authoring agent)">
+        <bpmn:documentation>Starts the run with a source change, and owns every failure branch before the process ends rather than just stopping: Gateway_Valid's `no`, Gateway_QcPass's `no` and Gateway_Restore's `environment error` each write to the work plan here, in Task_LogFindings, Task_QcBeans and Task_LogEnvError, before EndEvent_Findings, EndEvent_FindingsQc or EndEvent_EnvError. A run that stops short always leaves a record of why. The work plan is a data store these tasks write to, not a lane of its own.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="fhir-modeller"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>StartEvent_SourceChanged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Findings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_FindingsQc</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_EnvError</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LogFindings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_QcBeans</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LogEnvError</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Build" name="Incremental build (system)">
+        <bpmn:documentation>Owns everything that stays inside the cone: restore the cache, compute the cone, check it out, compile and re-render only that slice, then merge and rebuild the aggregates — Task_Index never re-derives an artefact on its own, so a missing record is a miss rather than a silent rebuild. What needs the JVM's warm state, it hands to Lane_Services rather than running itself.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="build-pipeline"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_Restore</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Restore</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Cone</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Checkout</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Sushi</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Render</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Index</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Site</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Services" name="Publisher + validator services (JVM)">
+        <bpmn:documentation>Two duties. Task_FullBuild is the fallback when Gateway_Restore finds the cache unusable: it bypasses the cone machinery and reaches Task_Qa on its own. Task_ContextLoad and Task_Validate hold the loaded dependency packages and expansions warm across runs, which makes validating a handful of cone files cheap; losing that warm state is a cache miss and routes to the fallback.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="ig-publisher-service"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_FullBuild</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ContextLoad</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Validate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Valid</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Review" name="PR reviewer / QC reviewer">
+        <bpmn:documentation>Sees the change's shape before the build finishes — Task_ConeReport names what will rebuild and whether a shared hub is touched, posted while the checkout is still running — then gates on Task_Qa by reading the cone's own rows in the aggregate first. On a PR branch it also deploys the preview itself, but never seeds the shared cache: that stays Lane_PubMgr's, reached only past Gateway_Path on main or a release.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="qc-reviewer"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_ConeReport</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Qa</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_QcPass</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DeployPreview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Preview</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_PubMgr" name="Publication manager — deploy and seed">
+        <bpmn:documentation>Reached only past Gateway_Path's main-or-release branch, never for a PR preview; the one lane allowed to touch the shared cache. Task_Seed writes to a -test branch and verifies a restore from a clean clone before promoting: the verified restore, not the deploy, licenses the shared cache.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="publication-manager"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Gateway_Path</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Deploy</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Seed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Published</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_SourceChanged" name="Source changed">
+      <bpmn:documentation>A push to a PR branch (review path) or to main / a release (publish path). Both run this process; only the publish path may seed the cache.</bpmn:documentation>
+      <bpmn:outgoing>F01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="Task_Restore" name="Restore derived state" calledElement="Process_Cache">
+      <bpmn:documentation>Calls the harness's one cache process, `Process_Cache` (cat-harness, skill `cache-first-ci`), with this IG build as its consumer. Its plan restores only the caches this target needs: the layers ref first, then this IG's AST and the Publisher's terminology cache (`input-cache/txcache/`) as the declared `fhir-ast` cache (`caches/fhir-ast.cache.json`), whose component process is `ig-ast-cache.bpmn` and whose verify is that process's "valid for this commit?". Under it, `ig-cache restore` still answers 0 usable, 1 miss, 2 environment error, 3 present but unusable (corrupt or mismatched, such as a moved toolchain), and the component prints its `cached-step` line (hit, warm or miss).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="cache-first-ci" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F01</bpmn:incoming>
+      <bpmn:outgoing>F02</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="Gateway_Restore" name="Cache usable?">
+      <bpmn:documentation>Answered by the exit code of `ig-cache restore` (Task_Restore): 0 is a usable cache and takes `yes`, into the cone machinery. 1 (a miss) or 3 (present but unusable) takes `no`, to the full publisher build, whose outputs become the records the next seed writes. Exit 2 (an environment error — the cache could not be read, which says nothing about whether it is usable) takes `environment error`: the run stops and the error is logged, so a broken cache store is not hidden behind a slow full build.</bpmn:documentation>
+      <bpmn:incoming>F02</bpmn:incoming>
+      <bpmn:outgoing>F03</bpmn:outgoing>
+      <bpmn:outgoing>F04</bpmn:outgoing>
+      <bpmn:outgoing>F04E</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_LogEnvError" name="Log the environment error on the bean">
+      <bpmn:documentation>Exit 2 from restore: the cache store or the toolchain could not be reached. Record that on the change's bean, with the restore output, so the work plan says the build did not run and why. Check before creating — beans create is not idempotent.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F04E</bpmn:incoming>
+      <bpmn:outgoing>F04F</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_LogEnvError">
+        <bpmn:targetRef>DSR_work_plan</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_EnvError" name="Build stopped:&#10;environment error">
+      <bpmn:documentation>Nothing was built. The author (or whoever maintains the runner) fixes the environment and re-runs; a re-run with a readable cache takes `yes` or `no` as usual.</bpmn:documentation>
+      <bpmn:incoming>F04F</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_FullBuild" name="Full publisher build">
+      <bpmn:documentation>Exit 1 or 3 from restore: the whole IG is built. Its outputs become the records the next seed writes.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F04</bpmn:incoming>
+      <bpmn:outgoing>F18</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Cone" name="Compute the cone of the change">
+      <bpmn:documentation>`fsh-cone --changed` (scripts/fsh-cone.ts) over the changed files: the forward cone is what to rebuild, the backward cone is what to check out.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publication" />
+        <bootstrap.processes:skill ref="ig-publication" />
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F03</bpmn:incoming>
+      <bpmn:outgoing>F05</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:task id="Task_ConeReport" name="Post the cone report on the PR">
+      <bpmn:documentation>Review path: the reviewer sees what this change rebuilds — how many artefacts, and whether a hub (a shared RuleSet, CQL library or value set) is touched — before the build finishes. On main it is a log line.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="quality-control" />
+        <bootstrap.processes:skill ref="quality-control" />
+        <bootstrap.processes:skill ref="quality-control" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F05</bpmn:incoming>
+      <bpmn:outgoing>F06</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:serviceTask id="Task_Checkout" name="Restricted checkout&#10;of the backward cone">
+      <bpmn:documentation>git sparse-checkout of the cone's files plus sushi-config.yaml, ig.ini and the alias files — a median of three files, p90 eleven, measured on the SMART Immunizations IG.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publication" />
+        <bootstrap.processes:skill ref="ig-publication" />
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F06</bpmn:incoming>
+      <bpmn:outgoing>F07</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Sushi" name="SUSHI on the restricted tank">
+      <bpmn:documentation>Compile the restricted checkout with SUSHI — the cone's FSH, not the whole IG. A build optimisation, not a validation shortcut: SUSHI compiling is not conformance, so a green compile goes on to validation rather than standing in for it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l3-fhir-authoring" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F07</bpmn:incoming>
+      <bpmn:outgoing>F08</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ContextLoad" name="Load or reuse the warm context">
+      <bpmn:documentation>The validator's server mode holds the loaded dependency packages, snapshots and expansions in its session cache. Cold start loads the restored derived FHIR rather than regenerating it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publication" />
+        <bootstrap.processes:skill ref="ig-publication" />
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F08</bpmn:incoming>
+      <bpmn:outgoing>F09</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Validate" name="Validate the cone&#10;(fhir_validate)">
+      <bpmn:documentation>Validate the cone's resources against the warm validator and report the cone that was checked. A validator that could not start is could-not-determine, never a pass with no findings. A green cone is not a green IG: a profile the change did not touch can still be broken by it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="fhir-validation" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F09</bpmn:incoming>
+      <bpmn:outgoing>F10</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Valid" name="Valid?">
+      <bpmn:documentation>Answered by Task_Validate — the cone's resources checked against the warm validator. `yes` goes on to re-render the cone's records. `no` logs the findings on the change's bean and returns them to the author. A validator that could not start is could-not-determine and does not take `yes`.</bpmn:documentation>
+      <bpmn:incoming>F10</bpmn:incoming>
+      <bpmn:outgoing>F11</bpmn:outgoing>
+      <bpmn:outgoing>F13</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_LogFindings" name="Log findings on the bean">
+      <bpmn:documentation>Validation failed: record the findings on the change's bean, so the work plan says what blocks it. Check before creating — beans create is not idempotent.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F11</bpmn:incoming>
+      <bpmn:outgoing>F12</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_LogFindings">
+        <bpmn:targetRef>DSR_work_plan</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_Findings" name="Findings back to the author">
+      <bpmn:incoming>F12</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_Render" name="Re-render the cone's records&#10;(fhir_narrative · skip lists)">
+      <bpmn:documentation>Narrative and fragments for the cone only: the publisher's -no-validate / -no-narrative complements today, Rapido's differential build once its tracker is persisted.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publication" />
+        <bootstrap.processes:skill ref="ig-publication" />
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F13</bpmn:incoming>
+      <bpmn:outgoing>F14</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Merge" name="Merge restored and&#10;rebuilt records">
+      <bpmn:documentation>Combine the restored per-artefact records with the cone's freshly rendered ones into one complete set, so the meta-index rebuild that follows has every artefact's record and never re-derives one.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F14</bpmn:incoming>
+      <bpmn:outgoing>F15</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Index" name="Rebuild the meta-index&#10;(ig_metaindex_rebuild)">
+      <bpmn:documentation>The whole-IG aggregates only — artifacts, TOC, canonicals, expansions, package, QA aggregate. Never re-derives an artefact: a missing record is a miss (exit 1), not a silent rebuild.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publication" />
+        <bootstrap.processes:skill ref="ig-publication" />
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F15</bpmn:incoming>
+      <bpmn:outgoing>F16</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Site" name="Assemble the site">
+      <bpmn:documentation>Assemble the site from the merged records: the IG template and a Jekyll build over output/. Only site assembly happens here — every artefact record already exists.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F16</bpmn:incoming>
+      <bpmn:outgoing>F17</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_Qa" name="Run QC gates on the aggregate QA">
+      <bpmn:documentation>qa.json is the aggregate of per-artefact outcomes; the reviewer reads the cone's rows first.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="quality-control" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F17</bpmn:incoming>
+      <bpmn:incoming>F18</bpmn:incoming>
+      <bpmn:outgoing>F19</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_QcPass" name="QC clean?">
+      <bpmn:documentation>Decided in the reviewer's QC gate (Task_Qa, `quality-control`) over qa.json, the aggregate of per-artefact outcomes, reading the cone's rows first. `no` files each QC finding as a bean, checking for an existing one first, and returns the findings to the author. `yes` goes on to deploy.</bpmn:documentation>
+      <bpmn:incoming>F19</bpmn:incoming>
+      <bpmn:outgoing>F20</bpmn:outgoing>
+      <bpmn:outgoing>F22</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_QcBeans" name="File QC findings as beans">
+      <bpmn:documentation>QC failed on the aggregate: file each finding as a bean, so it is tracked on the work plan rather than lost in qa.json. Check for an existing bean before creating one.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F20</bpmn:incoming>
+      <bpmn:outgoing>F21</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_QcBeans">
+        <bpmn:targetRef>DSR_work_plan</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_FindingsQc" name="Findings back to the author">
+      <bpmn:incoming>F21</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Gateway_Path" name="PR branch, or&#10;main / release?">
+      <bpmn:documentation>Answered by the push that started the process. `PR branch` is the review path: deploy the preview, which never seeds the shared cache. `main / release` is the publish path: deploy the site after a human has authorised the release, then seed the cache (Task_Seed). Only this branch reaches the lane allowed to touch the shared cache.</bpmn:documentation>
+      <bpmn:incoming>F22</bpmn:incoming>
+      <bpmn:outgoing>F23</bpmn:outgoing>
+      <bpmn:outgoing>F25</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_DeployPreview" name="Deploy the preview site">
+      <bpmn:documentation>A preview never seeds the shared cache.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:fulfilment kinds="person system" reason="the preview deploy is mechanical but belongs to the reviewer’s lane because the preview exists FOR the review — moving it to Lane_Build would hide who the artefact is built for. A reviewer may also deploy one by hand." />
+        <bootstrap.processes:skill ref="content-publish" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F23</bpmn:incoming>
+      <bpmn:outgoing>F24</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Preview" name="Preview published">
+      <bpmn:incoming>F24</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_Deploy" name="Deploy the site">
+      <bpmn:documentation>Deploy the site built from main or a release. Deploying is release-management, after a human authorised the release — an agent never records that authorisation. A release's files are not deployed to the site: a `v*` tag makes a GitHub draft release carrying them (`ig-release.yml`; skill `ig-binary-artefacts` §"Releasing"), which the owner publishes. Report the published URL only once it answers: a returned deploy is not a serving site.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:fulfilment kinds="person system" reason="deploying the built site is mechanical; the lane records who is accountable for what is live, and its name “Publication manager — deploy and seed” says so. A publication manager may also deploy by hand." />
+        <bootstrap.processes:skill ref="content-publish" />
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F25</bpmn:incoming>
+      <bpmn:outgoing>F26</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Seed" name="Seed the cache from the green build">
+      <bpmn:documentation>Only a green build of main or a release seeds. Seed writes to the -test branch, verifies a restore from a clean clone, then promotes. This is the save of the declared `fhir-ast` cache (`caches/fhir-ast.cache.json`), under its save policy: the default branch only.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:fulfilment kinds="person system" reason="seeding, verifying and promoting the cache is a fixed program the publication manager is accountable for; the manual promote is the same program run by hand." />
+        <bootstrap.processes:skill ref="ig-publication" />
+        <bootstrap.processes:skill ref="ig-publication" />
+        <bootstrap.processes:skill ref="ig-publication" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F26</bpmn:incoming>
+      <bpmn:outgoing>F27</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Published" name="IG site published,&#10;cache seeded">
+      <bpmn:incoming>F27</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="F01" sourceRef="StartEvent_SourceChanged" targetRef="Task_Restore" />
+    <bpmn:sequenceFlow id="F02" sourceRef="Task_Restore" targetRef="Gateway_Restore" />
+    <bpmn:sequenceFlow id="F03" name="yes" sourceRef="Gateway_Restore" targetRef="Task_Cone" />
+    <bpmn:sequenceFlow id="F04" name="no" sourceRef="Gateway_Restore" targetRef="Task_FullBuild" />
+    <bpmn:sequenceFlow id="F04E" name="environment error" sourceRef="Gateway_Restore" targetRef="Task_LogEnvError" />
+    <bpmn:sequenceFlow id="F04F" sourceRef="Task_LogEnvError" targetRef="EndEvent_EnvError" />
+    <bpmn:sequenceFlow id="F05" sourceRef="Task_Cone" targetRef="Task_ConeReport" />
+    <bpmn:sequenceFlow id="F06" sourceRef="Task_ConeReport" targetRef="Task_Checkout" />
+    <bpmn:sequenceFlow id="F07" sourceRef="Task_Checkout" targetRef="Task_Sushi" />
+    <bpmn:sequenceFlow id="F08" sourceRef="Task_Sushi" targetRef="Task_ContextLoad" />
+    <bpmn:sequenceFlow id="F09" sourceRef="Task_ContextLoad" targetRef="Task_Validate" />
+    <bpmn:sequenceFlow id="F10" sourceRef="Task_Validate" targetRef="Gateway_Valid" />
+    <bpmn:sequenceFlow id="F11" name="no" sourceRef="Gateway_Valid" targetRef="Task_LogFindings" />
+    <bpmn:sequenceFlow id="F12" sourceRef="Task_LogFindings" targetRef="EndEvent_Findings" />
+    <bpmn:sequenceFlow id="F13" name="yes" sourceRef="Gateway_Valid" targetRef="Task_Render" />
+    <bpmn:sequenceFlow id="F14" sourceRef="Task_Render" targetRef="Task_Merge" />
+    <bpmn:sequenceFlow id="F15" sourceRef="Task_Merge" targetRef="Task_Index" />
+    <bpmn:sequenceFlow id="F16" sourceRef="Task_Index" targetRef="Task_Site" />
+    <bpmn:sequenceFlow id="F17" sourceRef="Task_Site" targetRef="Task_Qa" />
+    <bpmn:sequenceFlow id="F18" sourceRef="Task_FullBuild" targetRef="Task_Qa" />
+    <bpmn:sequenceFlow id="F19" sourceRef="Task_Qa" targetRef="Gateway_QcPass" />
+    <bpmn:sequenceFlow id="F20" name="no" sourceRef="Gateway_QcPass" targetRef="Task_QcBeans" />
+    <bpmn:sequenceFlow id="F21" sourceRef="Task_QcBeans" targetRef="EndEvent_FindingsQc" />
+    <bpmn:sequenceFlow id="F22" name="yes" sourceRef="Gateway_QcPass" targetRef="Gateway_Path" />
+    <bpmn:sequenceFlow id="F23" name="PR branch" sourceRef="Gateway_Path" targetRef="Task_DeployPreview" />
+    <bpmn:sequenceFlow id="F24" sourceRef="Task_DeployPreview" targetRef="EndEvent_Preview" />
+    <bpmn:sequenceFlow id="F25" name="main / release" sourceRef="Gateway_Path" targetRef="Task_Deploy" />
+    <bpmn:sequenceFlow id="F26" sourceRef="Task_Deploy" targetRef="Task_Seed" />
+    <bpmn:sequenceFlow id="F27" sourceRef="Task_Seed" targetRef="EndEvent_Published" />
+    <bpmn:dataStoreReference id="DSR_work_plan" name="Work plan (beans)" dataStoreRef="work-plan"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_IgIncremental">
+      <bpmndi:BPMNShape id="Participant_IgIncremental_di" bpmnElement="Participant_IgIncremental" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="4680" height="1590" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Author_di" bpmnElement="Lane_Author" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="4650" height="444" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Build_di" bpmnElement="Lane_Build" isHorizontal="true">
+        <dc:Bounds x="190" y="524" width="4650" height="234" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Services_di" bpmnElement="Lane_Services" isHorizontal="true">
+        <dc:Bounds x="190" y="758" width="4650" height="234" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Review_di" bpmnElement="Lane_Review" isHorizontal="true">
+        <dc:Bounds x="190" y="992" width="4650" height="234" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_PubMgr_di" bpmnElement="Lane_PubMgr" isHorizontal="true">
+        <dc:Bounds x="190" y="1226" width="4650" height="444" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_SourceChanged_di" bpmnElement="StartEvent_SourceChanged">
+        <dc:Bounds x="312" y="179" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel>
+          <dc:Bounds x="225" y="177" width="110" height="30" />
+        </bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Restore_di" bpmnElement="Task_Restore">
+        <dc:Bounds x="470" y="561" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Restore_di" bpmnElement="Gateway_Restore" isMarkerVisible="true">
+        <dc:Bounds x="795" y="616" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel>
+          <dc:Bounds x="507" y="398" width="66" height="28" />
+        </bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_LogEnvError_di" bpmnElement="Task_LogEnvError">
+        <dc:Bounds x="740" y="327" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_EnvError_di" bpmnElement="EndEvent_EnvError">
+        <dc:Bounds x="802" y="179" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel>
+          <dc:Bounds x="626" y="135" width="110" height="40" />
+        </bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FullBuild_di" bpmnElement="Task_FullBuild">
+        <dc:Bounds x="1010" y="795" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Cone_di" bpmnElement="Task_Cone">
+        <dc:Bounds x="1010" y="561" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ConeReport_di" bpmnElement="Task_ConeReport">
+        <dc:Bounds x="1230" y="1029" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Checkout_di" bpmnElement="Task_Checkout">
+        <dc:Bounds x="1230" y="561" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Sushi_di" bpmnElement="Task_Sushi">
+        <dc:Bounds x="1450" y="561" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ContextLoad_di" bpmnElement="Task_ContextLoad">
+        <dc:Bounds x="1670" y="795" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Validate_di" bpmnElement="Task_Validate">
+        <dc:Bounds x="1890" y="795" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Valid_di" bpmnElement="Gateway_Valid" isMarkerVisible="true">
+        <dc:Bounds x="2215" y="850" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1589" y="634" width="140" height="17" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_LogFindings_di" bpmnElement="Task_LogFindings">
+        <dc:Bounds x="2160" y="327" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Findings_di" bpmnElement="EndEvent_Findings">
+        <dc:Bounds x="2222" y="179" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1505" y="98" width="110" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Render_di" bpmnElement="Task_Render">
+        <dc:Bounds x="2430" y="561" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Merge_di" bpmnElement="Task_Merge">
+        <dc:Bounds x="2650" y="561" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Index_di" bpmnElement="Task_Index">
+        <dc:Bounds x="2870" y="561" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Site_di" bpmnElement="Task_Site">
+        <dc:Bounds x="3090" y="561" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Qa_di" bpmnElement="Task_Qa">
+        <dc:Bounds x="3310" y="1029" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_QcPass_di" bpmnElement="Gateway_QcPass" isMarkerVisible="true">
+        <dc:Bounds x="3635" y="1084" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="2549" y="746.5" width="140" height="17" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_QcBeans_di" bpmnElement="Task_QcBeans">
+        <dc:Bounds x="3580" y="327" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_FindingsQc_di" bpmnElement="EndEvent_FindingsQc">
+        <dc:Bounds x="3642" y="179" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="2465" y="98" width="110" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Path_di" bpmnElement="Gateway_Path" isMarkerVisible="true">
+        <dc:Bounds x="3955" y="1318" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel>
+          <dc:Bounds x="2610" y="846" width="140" height="28" />
+        </bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DeployPreview_di" bpmnElement="Task_DeployPreview">
+        <dc:Bounds x="4170" y="1029" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Preview_di" bpmnElement="EndEvent_Preview">
+        <dc:Bounds x="4452" y="1091" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel>
+          <dc:Bounds x="2945" y="777" width="110" height="30" />
+        </bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Deploy_di" bpmnElement="Task_Deploy">
+        <dc:Bounds x="4170" y="1263" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Seed_di" bpmnElement="Task_Seed">
+        <dc:Bounds x="4390" y="1263" width="160" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Published_di" bpmnElement="EndEvent_Published">
+        <dc:Bounds x="4672" y="1325" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel>
+          <dc:Bounds x="3105" y="927" width="110" height="30" />
+        </bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F01_di" bpmnElement="F01">
+        <di:waypoint x="330" y="215" />
+        <di:waypoint x="330" y="641" />
+        <di:waypoint x="470" y="641" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F02_di" bpmnElement="F02">
+        <di:waypoint x="630" y="641" />
+        <di:waypoint x="795" y="641" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F03_di" bpmnElement="F03">
+        <di:waypoint x="845" y="641" />
+        <di:waypoint x="1010" y="641" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F04E_di" bpmnElement="F04E">
+        <di:waypoint x="820" y="616" />
+        <di:waypoint x="820" y="487" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F04F_di" bpmnElement="F04F">
+        <di:waypoint x="820" y="327" />
+        <di:waypoint x="820" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F04_di" bpmnElement="F04">
+        <di:waypoint x="820" y="666" />
+        <di:waypoint x="820" y="875" />
+        <di:waypoint x="1010" y="875" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F05_di" bpmnElement="F05">
+        <di:waypoint x="1170" y="641" />
+        <di:waypoint x="1192" y="641" />
+        <di:waypoint x="1192" y="1109" />
+        <di:waypoint x="1230" y="1109" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F06_di" bpmnElement="F06">
+        <di:waypoint x="1310" y="1029" />
+        <di:waypoint x="1310" y="721" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F07_di" bpmnElement="F07">
+        <di:waypoint x="1390" y="641" />
+        <di:waypoint x="1450" y="641" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F08_di" bpmnElement="F08">
+        <di:waypoint x="1530" y="721" />
+        <di:waypoint x="1530" y="875" />
+        <di:waypoint x="1670" y="875" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F09_di" bpmnElement="F09">
+        <di:waypoint x="1830" y="875" />
+        <di:waypoint x="1890" y="875" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F10_di" bpmnElement="F10">
+        <di:waypoint x="2050" y="875" />
+        <di:waypoint x="2215" y="875" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F11_di" bpmnElement="F11">
+        <di:waypoint x="2265" y="875" />
+        <di:waypoint x="2345" y="875" />
+        <di:waypoint x="2345" y="407" />
+        <di:waypoint x="2320" y="407" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F12_di" bpmnElement="F12">
+        <di:waypoint x="2240" y="327" />
+        <di:waypoint x="2240" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F13_di" bpmnElement="F13">
+        <di:waypoint x="2240" y="850" />
+        <di:waypoint x="2240" y="641" />
+        <di:waypoint x="2430" y="641" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F14_di" bpmnElement="F14">
+        <di:waypoint x="2590" y="641" />
+        <di:waypoint x="2650" y="641" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F15_di" bpmnElement="F15">
+        <di:waypoint x="2810" y="641" />
+        <di:waypoint x="2870" y="641" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F16_di" bpmnElement="F16">
+        <di:waypoint x="3030" y="641" />
+        <di:waypoint x="3090" y="641" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F17_di" bpmnElement="F17">
+        <di:waypoint x="3170" y="721" />
+        <di:waypoint x="3170" y="1109" />
+        <di:waypoint x="3310" y="1109" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F18_di" bpmnElement="F18">
+        <di:waypoint x="1090" y="955" />
+        <di:waypoint x="1090" y="1205" />
+        <di:waypoint x="3390" y="1205" />
+        <di:waypoint x="3390" y="1189" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F19_di" bpmnElement="F19">
+        <di:waypoint x="3470" y="1109" />
+        <di:waypoint x="3635" y="1109" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F20_di" bpmnElement="F20">
+        <di:waypoint x="3660" y="1084" />
+        <di:waypoint x="3660" y="487" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F21_di" bpmnElement="F21">
+        <di:waypoint x="3660" y="327" />
+        <di:waypoint x="3660" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F22_di" bpmnElement="F22">
+        <di:waypoint x="3660" y="1134" />
+        <di:waypoint x="3660" y="1343" />
+        <di:waypoint x="3955" y="1343" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F23_di" bpmnElement="F23">
+        <di:waypoint x="3980" y="1318" />
+        <di:waypoint x="3980" y="1109" />
+        <di:waypoint x="4170" y="1109" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F24_di" bpmnElement="F24">
+        <di:waypoint x="4330" y="1109" />
+        <di:waypoint x="4452" y="1109" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F25_di" bpmnElement="F25">
+        <di:waypoint x="4005" y="1343" />
+        <di:waypoint x="4170" y="1343" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F26_di" bpmnElement="F26">
+        <di:waypoint x="4330" y="1343" />
+        <di:waypoint x="4390" y="1343" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F27_di" bpmnElement="F27">
+        <di:waypoint x="4550" y="1343" />
+        <di:waypoint x="4672" y="1343" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_DSR_work_plan" bpmnElement="DSR_work_plan"><dc:Bounds x="2215" y="1528" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1589" y="1027" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_LogFindings" bpmnElement="DOA_Task_LogFindings">
+        <di:waypoint x="2320" y="407" />
+        <di:waypoint x="2345" y="407" />
+        <di:waypoint x="2345" y="1553" />
+        <di:waypoint x="2265" y="1553" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_QcBeans" bpmnElement="DOA_Task_QcBeans">
+        <di:waypoint x="3660" y="487" />
+        <di:waypoint x="3660" y="1600" />
+        <di:waypoint x="2240" y="1600" />
+        <di:waypoint x="2240" y="1578" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_LogEnvError" bpmnElement="DOA_Task_LogEnvError">
+        <di:waypoint x="900" y="407" />
+        <di:waypoint x="922" y="407" />
+        <di:waypoint x="922" y="1553" />
+        <di:waypoint x="2215" y="1553" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

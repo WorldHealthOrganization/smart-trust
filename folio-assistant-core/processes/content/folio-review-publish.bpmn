@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_FolioReviewPublish" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="reviewer" name="Reviewer / SME"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="authoring-committee" name="Authoring Committee"/>
+  <bpmn:collaboration id="Collaboration_Process_FolioReviewPublish">
+    <bpmn:participant id="Participant_Process_FolioReviewPublish" name="Review and publish a folio" processRef="Process_FolioReviewPublish"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_FolioReviewPublish" name="Review and publish a folio" isExecutable="false">
+    <bpmn:documentation>Review a rendered folio and publish it, or send it back with changes. Shared by every authoring process: authoring-a-document (this layer) and authoring-a-paper (folio-assistant-sci) call it after they validate and render, so review, publish and committee feedback are drawn once. What differs by folio kind stays with the caller: its writing loop, its own check (the content profile for a document, the Lean build for a paper), and its renderer. It ends one of three ways. `Published`: the caller closes its bean. `Changes asked` and `Feedback in: changes asked`: the caller goes back to its writing loop.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_FolioReviewPublish">
+      <bpmn:lane id="Lane_Build" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Publishes once the reviewer approves. Release authorisation is not relaxable.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Publish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Published</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Reviewer" name="Reviewer" partitionElementRef="reviewer">
+        <bpmn:documentation>Owns the one gate that decides publish or iterate, and is deliberately unspecialised: whichever reviewer the folio binds.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Rendered</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ReviewOutcome</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_ChangesAsked</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Committee" name="Authoring Committee" partitionElementRef="authoring-committee">
+        <bpmn:documentation>The people writing the document with the editor. While it is a working draft they give feedback through the Contributor Feedback sheet, one change set per row, and each row runs Process_ContributorFeedback.</bpmn:documentation>
+        <bpmn:flowNodeRef>Call_ContributorFeedback</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_FeedbackIn</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Rendered" name="Rendered, ready for review">
+      <bpmn:documentation>The calling authoring process has validated and rendered the folio. What the reviewer reads is the rendered artefact, never a description of it.</bpmn:documentation>
+      <bpmn:outgoing>F1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Review" name="Review and record feedback">
+      <bpmn:documentation>The reviewer this folio binds. authoring-document relaxes the base SME step precisely because no single lane fits every document. Review the rendered folio, not a description of it, and record the feedback. The outcome is iterate — back to authoring — or approved for the publication path.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review"/>
+        <bootstrap.processes:skill ref="staging-review"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F1</bpmn:incoming>
+      <bpmn:outgoing>F2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_ReviewOutcome" name="Ready to publish?">
+      <bpmn:documentation>The reviewer's call after the review. `approved` goes to publish. `iterate` ends this process with changes asked, and the caller returns to its own writing loop with the feedback. `Authoring Committee feedback` sends a working draft to the committee through the Contributor Feedback sheet; what comes back is also changes asked.</bpmn:documentation>
+      <bpmn:incoming>F2</bpmn:incoming>
+      <bpmn:outgoing>F3</bpmn:outgoing>
+      <bpmn:outgoing>F4</bpmn:outgoing>
+      <bpmn:outgoing>F6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_ChangesAsked" name="Changes asked">
+      <bpmn:documentation>Ends with the feedback recorded. The caller's `Published?` gateway reads this end and goes back to writing.</bpmn:documentation>
+      <bpmn:incoming>F3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_Publish" name="Publish">
+      <bpmn:documentation>See draft-to-publication.bpmn for the review and release path this expands into. Release authorisation is not relaxable.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-publish"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F4</bpmn:incoming>
+      <bpmn:outgoing>F5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Published" name="Published">
+      <bpmn:incoming>F5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Call_ContributorFeedback" name="Contributor feedback" calledElement="Process_ContributorFeedback">
+      <bpmn:documentation>Process_ContributorFeedback: while the document is a working draft, the Authoring Committee gives feedback through the Contributor Feedback sheet, and each change set is edited and merged in its own pull request. When its changes are merged, the document is validated and rendered again.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="review-sheet-script"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F6</bpmn:incoming>
+      <bpmn:outgoing>F7</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_FeedbackIn" name="Feedback in: changes asked">
+      <bpmn:documentation>The committee's feedback is in. Like `Changes asked`, the caller goes back to writing, so the feedback passes the same checks as any other edit.</bpmn:documentation>
+      <bpmn:incoming>F7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="F1" sourceRef="Start_Rendered" targetRef="Task_Review"/>
+    <bpmn:sequenceFlow id="F2" sourceRef="Task_Review" targetRef="Gateway_ReviewOutcome"/>
+    <bpmn:sequenceFlow id="F3" sourceRef="Gateway_ReviewOutcome" targetRef="End_ChangesAsked" name="iterate"/>
+    <bpmn:sequenceFlow id="F4" sourceRef="Gateway_ReviewOutcome" targetRef="Task_Publish" name="approved"/>
+    <bpmn:sequenceFlow id="F5" sourceRef="Task_Publish" targetRef="End_Published"/>
+    <bpmn:sequenceFlow id="F6" sourceRef="Gateway_ReviewOutcome" targetRef="Call_ContributorFeedback" name="Authoring Committee feedback"/>
+    <bpmn:sequenceFlow id="F7" sourceRef="Call_ContributorFeedback" targetRef="End_FeedbackIn"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_FolioReviewPublish">
+    <bpmndi:BPMNPlane id="Plane_Process_FolioReviewPublish" bpmnElement="Collaboration_Process_FolioReviewPublish">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_FolioReviewPublish" bpmnElement="Participant_Process_FolioReviewPublish" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="696" height="450"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Build" bpmnElement="Lane_Build" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="666" height="150"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Reviewer" bpmnElement="Lane_Reviewer" isHorizontal="true">
+        <dc:Bounds x="90" y="210" width="666" height="150"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Committee" bpmnElement="Lane_Committee" isHorizontal="true">
+        <dc:Bounds x="90" y="360" width="666" height="150"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Rendered" bpmnElement="Start_Rendered">
+        <dc:Bounds x="140" y="267" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="121" y="307" width="76" height="60"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Review" bpmnElement="Task_Review">
+        <dc:Bounds x="200" y="225" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_ReviewOutcome" bpmnElement="Gateway_ReviewOutcome" isMarkerVisible="true">
+        <dc:Bounds x="375" y="260" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="429" y="220" width="120" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_ChangesAsked" bpmnElement="End_ChangesAsked">
+        <dc:Bounds x="500" y="267" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="458" y="307" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Publish" bpmnElement="Task_Publish">
+        <dc:Bounds x="470" y="75" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Published" bpmnElement="End_Published">
+        <dc:Bounds x="660" y="117" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="618" y="157" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_ContributorFeedback" bpmnElement="Call_ContributorFeedback">
+        <dc:Bounds x="470" y="375" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_FeedbackIn" bpmnElement="End_FeedbackIn">
+        <dc:Bounds x="660" y="417" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="618" y="457" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_F1" bpmnElement="F1">
+        <di:waypoint x="176" y="285"/>
+        <di:waypoint x="200" y="285"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F2" bpmnElement="F2">
+        <di:waypoint x="320" y="285"/>
+        <di:waypoint x="375" y="285"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F3" bpmnElement="F3">
+        <di:waypoint x="425" y="285"/>
+        <di:waypoint x="500" y="285"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F4" bpmnElement="F4">
+        <di:waypoint x="400" y="260"/>
+        <di:waypoint x="400" y="135"/>
+        <di:waypoint x="470" y="135"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="306" y="188.5" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F5" bpmnElement="F5">
+        <di:waypoint x="590" y="135"/>
+        <di:waypoint x="660" y="135"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F6" bpmnElement="F6">
+        <di:waypoint x="400" y="310"/>
+        <di:waypoint x="400" y="435"/>
+        <di:waypoint x="470" y="435"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="306" y="377.25" width="90" height="53" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F7" bpmnElement="F7">
+        <di:waypoint x="590" y="435"/>
+        <di:waypoint x="660" y="435"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
