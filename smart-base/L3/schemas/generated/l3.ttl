@@ -1,0 +1,394 @@
+@prefix sgkg: <http://smart.who.int/kg/> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<http://smart.who.int/kg/l3> a owl:Ontology ;
+  owl:imports <http://smart.who.int/kg/l2-dmn> ;
+  rdfs:label "WHO SMART Guidelines L3 ontology" ;
+  rdfs:comment "The FHIR layer, as a THIN TYPED INDEX and nothing more. Each class carries a canonical URL, a resource type, the profile the artefact actually declares, and status metadata -- no action trees, no element definitions, no bindings, no CQL. That is docs/SCOPE.md's corollary applied: FHIR has canonical references, a validator and a publisher, so it is indexed by URL and never re-represented. What this layer adds that FHIR cannot answer is which L2 component an artefact implements, and therefore which L1 recommendation it ultimately rests on. Pairwise licensing is carried as sub-properties, because a relationship is licensed between specific class pairs while an OWL object property has one global domain and range." .
+
+### Node kinds
+
+sgkg:Conformance a owl:Class ; rdfs:label "Conformance" ; rdfs:comment "A FHIR conformance or definitional resource: something that constrains or defines structure and terminology. Indexed by canonical URL; its interior stays in FHIR." .
+sgkg:Knowledge a owl:Class ; rdfs:label "Knowledge" ; rdfs:comment "A FHIR knowledge artefact: something that encodes clinical or operational logic. Indexed by canonical URL; its interior stays in FHIR." .
+
+### Classes
+
+sgkg:PlanDefinition a owl:Class ;
+  rdfs:subClassOf sgkg:Knowledge ;
+  rdfs:label "Plan Definition" ;
+  skos:notation "plan-definition" ;
+  rdfs:subClassOf sgkg:ExternalArtefact ;
+  skos:note "Instances share the IRI of the External artefact they elaborate: one artefact, one address, described opaquely at the layer above and structurally here." ;
+  rdfs:comment "A FHIR PlanDefinition. The published mapping gives it two sources -- Processes and Decision Tables -- so a PlanDefinition alone does not say which it came from; the implementedBy edge does. 138 in the immunizations IG, all declaring cpg-recommendationdefinition, all decision tables. Shares its IRI with the l1:external-artifact for the same canonical." .
+
+sgkg:ActivityDefinition a owl:Class ;
+  rdfs:subClassOf sgkg:Knowledge ;
+  rdfs:label "Activity Definition" ;
+  skos:notation "activity-definition" ;
+  rdfs:subClassOf sgkg:ExternalArtefact ;
+  skos:note "Instances share the IRI of the External artefact they elaborate: one artefact, one address, described opaquely at the layer above and structurally here." ;
+  rdfs:comment "A FHIR ActivityDefinition -- the concrete act a plan's action invokes. Reached from a PlanDefinition action's `definitionCanonical`, which is a real reference rather than a convention. 3 in the immunizations IG: two cpg-immunizationactivity, one cpg-communicationactivity." .
+
+sgkg:Library a owl:Class ;
+  rdfs:subClassOf sgkg:Knowledge ;
+  rdfs:label "Library" ;
+  skos:notation "library" ;
+  rdfs:subClassOf sgkg:ExternalArtefact ;
+  skos:note "Instances share the IRI of the External artefact they elaborate: one artefact, one address, described opaquely at the layer above and structurally here." ;
+  rdfs:comment "A FHIR Library -- the resource that carries CQL. Indexed by canonical and status only. Its CONTENTS are deliberately out of scope: a future l3-cql subgraph will elaborate this same IRI, exactly as l2-bpmn elaborates a BPMN file. 279 in the immunizations IG, joined to their PlanDefinition by the `{id}Logic` suffix." .
+
+sgkg:CQLFile a owl:Class ;
+  rdfs:subClassOf sgkg:Knowledge ;
+  rdfs:label "CQL File" ;
+  skos:notation "cql-library" ;
+  rdfs:comment "A .cql file on disk, as opposed to the FHIR Library resource that wraps it. A node so that the mapping table's four CQL rows -- CQL Concepts and CQL Data Elements under Elements, CQL under Decision Tables, CQL IndicatorLogic under Indicators -- do not dead-end. It carries a name, a path and a hash and NOTHING about the logic: no expressions, no comment tags, no data requirements. 279 in the immunizations IG. The l3-cql subgraph is where that content belongs, and it is not built yet." .
+
+sgkg:Measure a owl:Class ;
+  rdfs:subClassOf sgkg:Knowledge ;
+  rdfs:label "Measure" ;
+  skos:notation "measure" ;
+  rdfs:subClassOf sgkg:ExternalArtefact ;
+  skos:note "Instances share the IRI of the External artefact they elaborate: one artefact, one address, described opaquely at the layer above and structurally here." ;
+  rdfs:comment "A FHIR Measure -- an indicator made computable. 41 in the immunizations IG, all declaring proportion-measure-cqfm; the SOP makes the profile depend on scoring type, which is why the profile is read rather than assumed. Joined to its L2 indicator by id convention (IMMZ.IND.08 -> IMMZIND08)." .
+
+sgkg:Questionnaire a owl:Class ;
+  rdfs:subClassOf sgkg:Knowledge ;
+  rdfs:label "Questionnaire" ;
+  skos:notation "questionnaire" ;
+  rdfs:subClassOf sgkg:ExternalArtefact ;
+  skos:note "Instances share the IRI of the External artefact they elaborate: one artefact, one address, described opaquely at the layer above and structurally here." ;
+  rdfs:comment "A FHIR Questionnaire -- a data-collection form over a logical model. 10 in the immunizations IG. Its `sdc-questionnaire-targetStructureMap` extension names the StructureMap that extracts it, which is a real canonical reference. The SOP states no linkId convention and none exists in the estate, so no edge is licensed on linkId." .
+
+sgkg:StructureMap a owl:Class ;
+  rdfs:subClassOf sgkg:Conformance ;
+  rdfs:label "Structure Map" ;
+  skos:notation "structure-map" ;
+  rdfs:subClassOf sgkg:ExternalArtefact ;
+  skos:note "Instances share the IRI of the External artefact they elaborate: one artefact, one address, described opaquely at the layer above and structurally here." ;
+  rdfs:comment "A FHIR StructureMap. The SOP requires them in threes -- QuestionnaireResponse to logical model, logical model to resource, and a grouping map -- so a count that is not a multiple of three is worth a look. 16 .fml files in the immunizations IG." .
+
+sgkg:LogicalModel a owl:Class ;
+  rdfs:subClassOf sgkg:Conformance ;
+  rdfs:label "Logical Model" ;
+  skos:notation "structure-definition" ;
+  rdfs:subClassOf sgkg:ExternalArtefact ;
+  skos:note "Instances share the IRI of the External artefact they elaborate: one artefact, one address, described opaquely at the layer above and structurally here." ;
+  rdfs:comment "A StructureDefinition with kind `logical` -- one data dictionary tab as a data structure. Distinct from `profile`, which constrains a FHIR resource: WHO's ArchiMate model has Logical Model realising Data Object while Profile realises Data Element, and the two are not interchangeable. 15 in the immunizations IG." .
+
+sgkg:Profile a owl:Class ;
+  rdfs:subClassOf sgkg:Conformance ;
+  rdfs:label "Profile" ;
+  skos:notation "profile" ;
+  rdfs:subClassOf sgkg:ExternalArtefact ;
+  skos:note "Instances share the IRI of the External artefact they elaborate: one artefact, one address, described opaquely at the layer above and structurally here." ;
+  rdfs:comment "A StructureDefinition constraining a FHIR resource. Separate from structure-definition for the reason above. 5 in the immunizations IG. Its internals -- differentials, element definitions, bindings -- are the clearest case of what this layer refuses to re-represent." .
+
+sgkg:ValueSet a owl:Class ;
+  rdfs:subClassOf sgkg:Conformance ;
+  rdfs:label "Value Set" ;
+  skos:notation "value-set" ;
+  rdfs:subClassOf sgkg:ExternalArtefact ;
+  skos:note "Instances share the IRI of the External artefact they elaborate: one artefact, one address, described opaquely at the layer above and structurally here." ;
+  rdfs:comment "A FHIR ValueSet. 192 in the immunizations IG -- the most numerous artefact of all. Indexed by canonical; its expansion, its compose rules and the codes it contains are terminology, which docs/SCOPE.md keeps at arm's length as firmly here as at L1." .
+
+sgkg:CodeSystem a owl:Class ;
+  rdfs:subClassOf sgkg:Conformance ;
+  rdfs:label "Code System" ;
+  skos:notation "code-system" ;
+  rdfs:subClassOf sgkg:ExternalArtefact ;
+  skos:note "Instances share the IRI of the External artefact they elaborate: one artefact, one address, described opaquely at the layer above and structurally here." ;
+  rdfs:comment "A FHIR CodeSystem. The SOP says each guideline defines one guideline-level code system holding a concept for every data dictionary element -- which is what makes `code[WHO] = IMMZ.DE9` on a logical model element resolvable. 6 in the immunizations IG. The codes themselves are not copied here." .
+
+sgkg:ConceptMap a owl:Class ;
+  rdfs:subClassOf sgkg:Conformance ;
+  rdfs:label "Concept Map" ;
+  skos:notation "concept-map" ;
+  rdfs:subClassOf sgkg:ExternalArtefact ;
+  skos:note "Instances share the IRI of the External artefact they elaborate: one artefact, one address, described opaquely at the layer above and structurally here." ;
+  rdfs:comment "A FHIR ConceptMap -- one per target code system in the dictionary's terminology mappings. 8 in the immunizations IG. Records that a mapping exists; the mappings themselves belong to terminology." .
+
+sgkg:ActorDefinition a owl:Class ;
+  rdfs:subClassOf sgkg:Conformance ;
+  rdfs:label "Actor Definition" ;
+  skos:notation "actor-definition" ;
+  rdfs:subClassOf sgkg:ExternalArtefact ;
+  skos:note "Instances share the IRI of the External artefact they elaborate: one artefact, one address, described opaquely at the layer above and structurally here." ;
+  rdfs:comment "A FHIR ActorDefinition -- an L2 persona made a FHIR resource. ZERO in the immunizations IG and 22 in smart-base, which is itself worth a coverage query. The SOP names no profile for it and says one is not currently possible because SUSHI cannot profile an R5 resource in an R4 IG, and it tells authors not to assign an identifier -- so expect a bare resource and do not infer more." .
+
+sgkg:Requirements a owl:Class ;
+  rdfs:subClassOf sgkg:Conformance ;
+  rdfs:label "Requirements" ;
+  skos:notation "requirements" ;
+  rdfs:subClassOf sgkg:ExternalArtefact ;
+  skos:note "Instances share the IRI of the External artefact they elaborate: one artefact, one address, described opaquely at the layer above and structurally here." ;
+  rdfs:comment "A FHIR Requirements resource. The ONE place the published SOP names an SG profile -- SGRequirements -- and the grain is one resource per business process holding many statements, not one per requirement. ZERO in the immunizations IG and 41 in smart-base." .
+
+### Value sets
+# Closed code lists bound to class properties. validate.ts rejects any other value.
+
+<http://smart.who.int/kg/valueset/structure-definition-kind> a skos:ConceptScheme ;
+  skos:notation "structure-definition-kind" ;
+  skos:note "source: http://hl7.org/fhir/ValueSet/structure-definition-kind" ;
+  skos:note "bound to: structure-definition.kind" ;
+  rdfs:comment "FHIR StructureDefinitionKind. Added by the smart-base migration: smart-kg named the property without binding it." .
+<http://smart.who.int/kg/valueset/structure-definition-kind#primitive-type> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/structure-definition-kind> ; skos:notation "primitive-type" ; skos:definition "A primitive type." .
+<http://smart.who.int/kg/valueset/structure-definition-kind#complex-type> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/structure-definition-kind> ; skos:notation "complex-type" ; skos:definition "A complex data type." .
+<http://smart.who.int/kg/valueset/structure-definition-kind#resource> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/structure-definition-kind> ; skos:notation "resource" ; skos:definition "A resource." .
+<http://smart.who.int/kg/valueset/structure-definition-kind#logical> a skos:Concept ; skos:inScheme <http://smart.who.int/kg/valueset/structure-definition-kind> ; skos:notation "logical" ; skos:definition "A logical model." .
+
+### Object properties
+
+sgkg:implementedBy a owl:ObjectProperty ;
+  rdfs:label "implementedBy" ;
+  rdfs:comment "An L2 component is implemented by a FHIR artefact. Reused from l1 and licensed here per (component, resource) pair transcribed from the published mapping table. ALWAYS `inferred`, never `derived`: with no back-pointer extension in the estate, the join is a naming convention or a canonical reference, and every instance records which rule matched and a resolutionStatus. The optional `targetPath` property on an instance names the element reached (e.g. `PlanDefinition.action[2]`) so traceability can be element-level without this layer modelling FHIR internals as nodes." .
+
+sgkg:citesSource a owl:ObjectProperty ;
+  rdfs:label "citesSource" ;
+  rdfs:comment "A FHIR artefact cites an L1 source through `relatedArtifact[type = #citation]`. The target is an l1:citation minted from the same string by tools/extract-citations.mjs, so L3 and L1 join without either extractor knowing about the other -- the same mechanism l2-dmn uses from a decision rule." .
+
+sgkg:uses a owl:ObjectProperty ;
+  rdfs:label "uses" ;
+  rdfs:comment "One FHIR artefact references another by canonical: a PlanDefinition its Library, an action its ActivityDefinition, a Questionnaire its StructureMap, a Measure its Library. These are real canonical references rather than conventions, so unlike implementedBy they are `derived` when read straight from the field." .
+
+### Licensed edges, as qualified sub-properties
+# One per (source class, predicate, target class) triple the layer licenses.
+# Domain and range on the sub-property is what preserves pairwise licensing: a single global
+# domain/range on the predicate would be a union of everything and would permit pairs the
+# model does not.
+
+sgkg:implementedBy_BusinessProcessWorkflow_PlanDefinition a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:BusinessProcessWorkflow ;
+  rdfs:range sgkg:PlanDefinition ;
+  rdfs:label "Business Process Workflow implementedBy Plan Definition" .
+
+sgkg:implementedBy_BusinessProcessWorkflow_ActivityDefinition a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:BusinessProcessWorkflow ;
+  rdfs:range sgkg:ActivityDefinition ;
+  rdfs:label "Business Process Workflow implementedBy Activity Definition" .
+
+sgkg:implementedBy_BPMNProcess_PlanDefinition a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:BPMNProcess ;
+  rdfs:range sgkg:PlanDefinition ;
+  rdfs:label "BPMN Process implementedBy Plan Definition" .
+
+sgkg:implementedBy_BPMNTask_ActivityDefinition a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:BPMNTask ;
+  rdfs:range sgkg:ActivityDefinition ;
+  rdfs:label "BPMN Task implementedBy Activity Definition" .
+
+sgkg:implementedBy_DecisionSupportLogic_PlanDefinition a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:DecisionSupportLogic ;
+  rdfs:range sgkg:PlanDefinition ;
+  rdfs:label "Decision-Support Logic implementedBy Plan Definition" .
+
+sgkg:implementedBy_DecisionSupportLogic_ActivityDefinition a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:DecisionSupportLogic ;
+  rdfs:range sgkg:ActivityDefinition ;
+  rdfs:label "Decision-Support Logic implementedBy Activity Definition" .
+
+sgkg:implementedBy_DecisionSupportLogic_Library a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:DecisionSupportLogic ;
+  rdfs:range sgkg:Library ;
+  rdfs:label "Decision-Support Logic implementedBy Library" .
+
+sgkg:implementedBy_DecisionSupportLogic_CQLFile a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:DecisionSupportLogic ;
+  rdfs:range sgkg:CQLFile ;
+  rdfs:label "Decision-Support Logic implementedBy CQL File" .
+
+sgkg:implementedBy_DMNDecision_PlanDefinition a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:DMNDecision ;
+  rdfs:range sgkg:PlanDefinition ;
+  rdfs:label "DMN Decision implementedBy Plan Definition" .
+
+sgkg:implementedBy_SchedulingLogic_PlanDefinition a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:SchedulingLogic ;
+  rdfs:range sgkg:PlanDefinition ;
+  rdfs:label "Scheduling Logic implementedBy Plan Definition" .
+
+sgkg:implementedBy_SchedulingLogic_CQLFile a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:SchedulingLogic ;
+  rdfs:range sgkg:CQLFile ;
+  rdfs:label "Scheduling Logic implementedBy CQL File" .
+
+sgkg:implementedBy_GenericPersona_ActorDefinition a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:GenericPersona ;
+  rdfs:range sgkg:ActorDefinition ;
+  rdfs:label "Generic Persona implementedBy Actor Definition" .
+
+sgkg:implementedBy_ProgramIndicator_Measure a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:ProgramIndicator ;
+  rdfs:range sgkg:Measure ;
+  rdfs:label "Program Indicator implementedBy Measure" .
+
+sgkg:implementedBy_ProgramIndicator_CQLFile a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:ProgramIndicator ;
+  rdfs:range sgkg:CQLFile ;
+  rdfs:label "Program Indicator implementedBy CQL File" .
+
+sgkg:implementedBy_CoreDataElement_LogicalModel a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:CoreDataElement ;
+  rdfs:range sgkg:LogicalModel ;
+  rdfs:label "Core Data Element implementedBy Logical Model" .
+
+sgkg:implementedBy_CoreDataElement_Questionnaire a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:CoreDataElement ;
+  rdfs:range sgkg:Questionnaire ;
+  rdfs:label "Core Data Element implementedBy Questionnaire" .
+
+sgkg:implementedBy_CoreDataElement_StructureMap a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:CoreDataElement ;
+  rdfs:range sgkg:StructureMap ;
+  rdfs:label "Core Data Element implementedBy Structure Map" .
+
+sgkg:implementedBy_CoreDataElement_ValueSet a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:CoreDataElement ;
+  rdfs:range sgkg:ValueSet ;
+  rdfs:label "Core Data Element implementedBy Value Set" .
+
+sgkg:implementedBy_CoreDataElement_CodeSystem a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:CoreDataElement ;
+  rdfs:range sgkg:CodeSystem ;
+  rdfs:label "Core Data Element implementedBy Code System" .
+
+sgkg:implementedBy_CoreDataElement_Profile a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:CoreDataElement ;
+  rdfs:range sgkg:Profile ;
+  rdfs:label "Core Data Element implementedBy Profile" .
+
+sgkg:implementedBy_CoreDataElement_ConceptMap a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:CoreDataElement ;
+  rdfs:range sgkg:ConceptMap ;
+  rdfs:label "Core Data Element implementedBy Concept Map" .
+
+sgkg:implementedBy_CoreDataElement_CQLFile a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:CoreDataElement ;
+  rdfs:range sgkg:CQLFile ;
+  rdfs:label "Core Data Element implementedBy CQL File" .
+
+sgkg:implementedBy_FunctionalRequirement_Requirements a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:FunctionalRequirement ;
+  rdfs:range sgkg:Requirements ;
+  rdfs:label "Functional Requirement implementedBy Requirements" .
+
+sgkg:implementedBy_NonFunctionalRequirement_Requirements a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:implementedBy ;
+  rdfs:domain sgkg:NonFunctionalRequirement ;
+  rdfs:range sgkg:Requirements ;
+  rdfs:label "Non-Functional Requirement implementedBy Requirements" .
+
+sgkg:uses_PlanDefinition_Library a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:uses ;
+  rdfs:domain sgkg:PlanDefinition ;
+  rdfs:range sgkg:Library ;
+  rdfs:label "Plan Definition uses Library" .
+
+sgkg:uses_PlanDefinition_ActivityDefinition a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:uses ;
+  rdfs:domain sgkg:PlanDefinition ;
+  rdfs:range sgkg:ActivityDefinition ;
+  rdfs:label "Plan Definition uses Activity Definition" .
+
+sgkg:uses_Measure_Library a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:uses ;
+  rdfs:domain sgkg:Measure ;
+  rdfs:range sgkg:Library ;
+  rdfs:label "Measure uses Library" .
+
+sgkg:uses_Library_CQLFile a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:uses ;
+  rdfs:domain sgkg:Library ;
+  rdfs:range sgkg:CQLFile ;
+  rdfs:label "Library uses CQL File" .
+
+sgkg:uses_Questionnaire_StructureMap a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:uses ;
+  rdfs:domain sgkg:Questionnaire ;
+  rdfs:range sgkg:StructureMap ;
+  rdfs:label "Questionnaire uses Structure Map" .
+
+sgkg:uses_Questionnaire_LogicalModel a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:uses ;
+  rdfs:domain sgkg:Questionnaire ;
+  rdfs:range sgkg:LogicalModel ;
+  rdfs:label "Questionnaire uses Logical Model" .
+
+sgkg:uses_StructureMap_LogicalModel a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:uses ;
+  rdfs:domain sgkg:StructureMap ;
+  rdfs:range sgkg:LogicalModel ;
+  rdfs:label "Structure Map uses Logical Model" .
+
+sgkg:uses_Profile_LogicalModel a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:uses ;
+  rdfs:domain sgkg:Profile ;
+  rdfs:range sgkg:LogicalModel ;
+  rdfs:label "Profile uses Logical Model" .
+
+sgkg:uses_ValueSet_CodeSystem a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:uses ;
+  rdfs:domain sgkg:ValueSet ;
+  rdfs:range sgkg:CodeSystem ;
+  rdfs:label "Value Set uses Code System" .
+
+sgkg:uses_ConceptMap_CodeSystem a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:uses ;
+  rdfs:domain sgkg:ConceptMap ;
+  rdfs:range sgkg:CodeSystem ;
+  rdfs:label "Concept Map uses Code System" .
+
+sgkg:citesSource_PlanDefinition_Citation a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:citesSource ;
+  rdfs:domain sgkg:PlanDefinition ;
+  rdfs:range sgkg:Citation ;
+  rdfs:label "Plan Definition citesSource Citation" .
+
+sgkg:citesSource_Library_Citation a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:citesSource ;
+  rdfs:domain sgkg:Library ;
+  rdfs:range sgkg:Citation ;
+  rdfs:label "Library citesSource Citation" .
+
+sgkg:citesSource_Measure_Citation a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:citesSource ;
+  rdfs:domain sgkg:Measure ;
+  rdfs:range sgkg:Citation ;
+  rdfs:label "Measure citesSource Citation" .
+
+sgkg:crossReferences_LogicalModel_TerminologyCode a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:LogicalModel ;
+  rdfs:range sgkg:TerminologyCode ;
+  rdfs:label "Logical Model crossReferences Terminology code" .
+
+sgkg:crossReferences_Measure_TerminologyCode a owl:ObjectProperty ;
+  rdfs:subPropertyOf sgkg:crossReferences ;
+  rdfs:domain sgkg:Measure ;
+  rdfs:range sgkg:TerminologyCode ;
+  rdfs:label "Measure crossReferences Terminology code" .
+

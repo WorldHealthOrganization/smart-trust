@@ -1,0 +1,58 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "pdf-viewer-embed",
+    "title": "Embed a PDF inline in a page",
+    "description": "Print the HTML fragment that shows a PDF in the installed viewer: a lazily loaded frame whose address is derived from the page's own location (so one page works at the site root, under a project base and under a staging preview), plus plain open and download links that work without it.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat pdf:viewer --embed"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "spec",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "One JSON object: `src` (the PDF's URL, which must fall under a prefix `pdf-viewer-install` was given, or the viewer refuses it on screen), `title` (what the document is; the frame's accessible name), `route` (a regular expression over the page's pathname whose group 1 is the site root — the `folio-mount.ts` convention) and optionally `page` (open at this 1-based page). On stdin because a title and a regular expression are free text.",
+          "required": true,
+          "arg": {
+            "stdin": true
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "fragment",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The HTML fragment on stdout. TypeScript callers import `embed` from the module that implements this Tool instead."
+        }
+      ]
+    },
+    "satisfies": [
+      "pdf-inline-viewer"
+    ],
+    "selection": {
+      "when": "A generated page should let a reader search, page through, print or download a PDF without leaving it. Only for a document whose publication gates permit linking it: an embed is a link that also renders.",
+      "limits": "It renders PDFs only. It cannot tell whether the site it lands on had the viewer installed; when it did not, or the page is off the route, the frame says so and the plain links still work.",
+      "cost": "Nothing until the reader scrolls to it; then the viewer and worker (~3 MB, cached after the first) and the PDF itself."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/io/outputs/0",
+      "comment": "`embed` is exported by cat-harness-tools/scripts/pdf-viewer.ts."
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+# Dependabot for cat-harness-tools: what THIS repository holds (bean `197s`).
+#
+# Until 2026-10-20 the only Dependabot config covering these files was the
+# folio-assistant index's, which named `/cat-harness-tools/python` — a remote
+# mount there, not a committed directory, so it scanned nothing. Each
+# instance's manifests are updated from the instance's own repository.
+#
+# - pip: `python/requirements.txt` is `requirementsPath` in cat-harness's
+#   `schemas/sdlc/python-deps.ts`. `requirements-extended.txt` may not be matched by
+#   Dependabot's pip file discovery; it is not asserted here.
+# - npm / bun is NOT listed yet: this repository's `package.json` resolves
+#   `@litlfred/cat-harness` and `@litlfred/bootstrap-tools` only through a
+#   composed index (a standalone `bun install` cannot fetch them), so an
+#   update run would fail before reading a version. Add it once the packages
+#   resolve from a registry Dependabot can reach.
+# - github-actions: the workflows under `.github/workflows` run with this
+#   repository's token; nothing else watches the actions they call.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/python"
+    schedule:
+      interval: weekly
+    # A release must be a week old before it is proposed: most hijacked
+    # releases are caught and pulled within days (security audit, 2026-11-01).
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 3
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    labels:
+      - dependencies
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    # Shared litlfred workflows follow index.lock.json (`bun run cat
+    # workflow-pins`), never Dependabot: a bump here would split a call from
+    # the layer commit the lock mounts.
+    ignore:
+      - dependency-name: "litlfred/*"
+    schedule:
+      interval: weekly
+    # A release must be a week old before it is proposed: most hijacked
+    # releases are caught and pulled within days (security audit, 2026-11-01).
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns:
+          - "*"
+    labels:
+      - dependencies
+      - ci
+    commit-message:
+      prefix: "ci"

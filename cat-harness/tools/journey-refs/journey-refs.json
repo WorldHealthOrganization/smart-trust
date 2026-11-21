@@ -1,0 +1,69 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "journey-refs",
+    "title": "Every reference a journey or a workshop names resolves",
+    "description": "Read every `user-scenario` and `workshop` node in the checkout through the layers' declared directories, with the journeys viewer's own resolver, and resolve what each names: actors (`personas`, a step's `lead`, `experiences[].actor`, `handoff.from`/`to`, `illustrationStyle.cast[].actor`), user stories, `realisedBy` BPMN files (instance-relative) and the element ids in them, `uses` blocks in a directory declaring `building-blocks`, `req:` requirements, FHIR examples and a step's `dak` assets (data sets, decision tables, indicators) in a `fhir-artifact-index` (could not determine while the index is built at publish), `illustration.src` files, `follows`/`partOf`/`parts`/`includes` journeys (parts and includes forming no cycle; an `includes` held against the call activity its step's `realisedBy` names, could not determine when the call names no process), the `trustLadder` code list and each `record.state` code of it, and ArchiMate `views`; and each workshop's `scenarios`, `steps[]` `{scenario, step}` and `<scenario>#<step>` refs; each device screen's `owner` and `personCard` actors, its `steps[]` `{scenario, step}`, and the FHIR examples its `qr` and `recordList` blocks name; and every persona's `avatar` image path. Every journey is a DAK user scenario (the kind `specialises` it): its DAK personas, the roles its persona actors play, must be non-empty and each a declared role; a persona may be an actor or (0.4.0) a role. What is derived is not also written: a listed part's `follows` or `partOf`, personas equal to the parts', a lead equal to the lanes' first actor, are each a redundant finding, and a 0.4.0 step with no experiences whose lanes no persona plays is a finding. A node that does not parse is a finding. One line per finding, naming the layer, file and step. Exit 0 every reference resolves (or no layer holds a journey or a workshop, which is said); 1 one does not; 2 the declarations could not be read.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat check:journey-refs"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "root",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A directory in the checkout to check. Default: the working directory.",
+          "required": false,
+          "arg": {
+            "flag": "--root"
+          }
+        },
+        {
+          "name": "json",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Print the report as JSON.",
+          "required": false,
+          "arg": {
+            "flag": "--json"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "findings",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "Unresolved references and unparsed nodes, one line each on stderr, with the count of references examined; or one ✓ line."
+        }
+      ]
+    },
+    "satisfies": [
+      "journey-maps"
+    ],
+    "selection": {
+      "when": "In every layer pull request's checks (it is a `check:` script, so the gate set derives it), and before publishing a site whose layer declares a `journeys-viewer` visualiser: a journey that names a story, a BPMN task, a block or an image that is not there.",
+      "limits": "A `realisedBy` process and an `illustration.src` are resolved in the journey's own layer only, as the viewer draws them; the other references are looked up in the journey's layer first, then in every layer the checkout mounts.",
+      "cost": "One read of the checkout's declared directories, as the viewer makes; milliseconds per journey."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "Owner, 2026-11-05: a harness check that a journey's references exist, resolved the way the viewer resolves them (its resolver reused, not a second one), workshop step refs included. It replaces smart-trust-demo's tools/user-scenarios/check.py."
+    }
+  ]
+}

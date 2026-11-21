@@ -1,0 +1,62 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "transcribe-whisper-cpp",
+    "title": "Transcribe audio — whisper.cpp (option, not installed)",
+    "description": "Transcribe an audio file to a timed transcript with whisper.cpp, offline, on CPU. A declared OPTION: not installed in this repository until the first audio upload.",
+    "install": {
+      "cli": "build whisper.cpp from source and download a ggml model (tiny ≈ 75 MB, base ≈ 142 MB)"
+    },
+    "invoke": {
+      "shell": "whisper-cli"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "file",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The recording, under the declared `uploads` graph.",
+          "required": true,
+          "arg": {
+            "flag": "-f"
+          }
+        },
+        {
+          "name": "language",
+          "schema": {
+            "$type": "Locale"
+          },
+          "required": false,
+          "arg": {
+            "flag": "-l"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "transcript",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Timed transcript under the entry's `transcript/`."
+        }
+      ]
+    },
+    "satisfies": [
+      "library-ingestion"
+    ],
+    "selection": {
+      "when": "The default candidate: offline, no Python, good accuracy from the tiny model up, and timestamps per segment — what a transcript that can be translated segment by segment needs.",
+      "limits": "A C++ build and a model file per container; weights are either vendored (repository size) or fetched at run time (a third-party host in the gate). Speaker labels are not included.",
+      "cost": "Not installed. Build ≈ 1–2 min; tiny model ≈ 75 MB. CPU transcription runs near real time for tiny, slower for larger models."
+    },
+    "requires": {
+      "runtime": [
+        "whisper-cli"
+      ],
+      "network": false
+    }
+  }
+}

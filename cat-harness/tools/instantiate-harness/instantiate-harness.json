@@ -1,0 +1,141 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "instantiate-harness",
+    "title": "Instantiate a harness over a repository that has none: pin, mount, open the setup-only PR, render the preview",
+    "description": "The scripted step of the initiation process (getting-started.bpmn, the repo-conversion skill §4). Reads the harness's declaration at its pin and every `needs`, transitively (a need beside the layer that needs it unless --repo-of says otherwise, at its default branch's tip unless --pin says otherwise, its declaration's name checked), seeds them all into the repository's index.config.json with the consent given (`remote-mount --seed --whole`), sets `site.landing` to the harness, `site.agentRun` and `mountApprovers`, mounts the closure (`remote-mount`: index.lock.json and the .gitignore mounts block), installs it as root workspaces with the hoisted linker, writes the root bootstrap (`.github/cat.ts` and `.github/mount-from-lock.sh` from cat-harness-tools `templates/root-bootstrap/`) and sets the root's `cat` script to `bun .github/cat.ts`, so `bun run cat …` mounts the layers itself on a later fresh clone, re-renders the agent surface from the mounted generators, runs the harness's `instantiate:<harness>` checkout script when a mounted layer declares it, and commits on a branch (default harness/<harness>). Then, unless --local, pushes the branch, provisions gh-pages when absent (`pages-bootstrap --provision`), opens the setup-only PR, runs `prepare:<harness>` when declared (what the site is built from and nobody commits, such as an IG's AST) and renders the branch's preview at gh-pages branches/<branch>/ (`stage-local`); with --local the site is built and composed and nothing is pushed. It imports only node:*, so it runs from a fresh clone of cat-harness-tools before anything is mounted: it lays the platform's own closure, at the pins the repository will mount, into a temporary root to run the mount from. On a repository with nothing mounted yet, run the same file from a fresh clone: `git clone --depth 1 https://github.com/litlfred/cat-harness-tools /tmp/cht && bun run /tmp/cht/scripts/instantiate-harness.ts …`. Two more flags, not declared as ports because no constrained type carries them yet: `--pin <name>=<sha>` pins one layer of the closure, `--repo-of <name>=<owner/repo>` says where a need lives.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat harness:instantiate"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "repo",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The checkout to harness: clean, with a GitHub origin. Default: the working directory.",
+          "required": false,
+          "arg": {
+            "flag": "--repo"
+          }
+        },
+        {
+          "name": "harness",
+          "schema": {
+            "$type": "RepoFullName"
+          },
+          "description": "The harness, OWNER/REPO, pinned at its default branch's tip (pin it otherwise with --pin <name>=<sha>).",
+          "required": true,
+          "arg": {
+            "flag": "--harness"
+          }
+        },
+        {
+          "name": "consentBy",
+          "schema": {
+            "$type": "Login"
+          },
+          "description": "Who consented to mounting the closure; also recorded as the one mountApprover. The evidence (where they consented, readable) is read from stdin.",
+          "required": true,
+          "arg": {
+            "flag": "--consent-by"
+          }
+        },
+        {
+          "name": "evidence",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Where the consent was given, readable (a session, an issue comment). On stdin because it is free prose: it quotes what was said.",
+          "required": false,
+          "arg": {
+            "stdin": true
+          }
+        },
+        {
+          "name": "branch",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "The setup branch. Default: harness/<harness>. Never the default branch.",
+          "required": false,
+          "arg": {
+            "flag": "--branch"
+          }
+        },
+        {
+          "name": "plan",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Resolve the closure, print every step, and stop.",
+          "required": false,
+          "arg": {
+            "flag": "--plan"
+          }
+        },
+        {
+          "name": "local",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Commit on the branch, push nothing; the site is built and composed (stage-local --dry-run).",
+          "required": false,
+          "arg": {
+            "flag": "--local"
+          }
+        },
+        {
+          "name": "noPr",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Push the branch and the preview, open no PR.",
+          "required": false,
+          "arg": {
+            "flag": "--no-pr"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "url",
+          "schema": {
+            "$type": "Url"
+          },
+          "description": "The branch's preview, gh-pages branches/<branch>/, once GitHub's Pages deploy has run.",
+          "render": {
+            "as": "url",
+            "reason": "a reader opens the preview; the scheme is checked before it reaches an href"
+          }
+        }
+      ]
+    },
+    "satisfies": [
+      "repo-conversion",
+      "remote-mount"
+    ],
+    "selection": {
+      "when": "A repository that mounts no harness yet is to be harnessed: an existing FHIR IG adopting a FHIR harness, a repository becoming a folio overlay. Its PR is the setup-only PR repo-conversion §4 asks for before any content PR.",
+      "limits": "The harness's own adoption steps are its checkout scripts instantiate:<harness> and prepare:<harness>; a harness that declares neither is mounted and rendered with what its layers already declare, and a site that needs a build input nobody produced (an IG with no AST) is refused by the render step with its reason. Re-pinning an already harnessed repository is remote-mount --seed, not this.",
+      "cost": "The mount: a blobless fetch of each layer of the closure and one install (a few minutes). Then the harness's prepare step (an IG's AST: a full IG Publisher run) and the render."
+    },
+    "requires": {
+      "runtime": [
+        "bun",
+        "git"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "The closure is fetched from GitHub and the branch, preview and PR are pushed there; offline nothing can be pinned."
+      }
+    ]
+  }
+}

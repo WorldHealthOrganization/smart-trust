@@ -1,0 +1,55 @@
+---
+doc_id: who-pub-tps-931
+doc_title: "WHO Editorial Style Manual"
+section_id: page-075
+section_title: "Page 75"
+section_number: null
+pages: 75-75
+source_pdf: WHO_PUB_TPS_93.1.pdf
+source_sha256: ecc88eee99756755
+toc_source: undetermined
+---
+WHO Editorial Style Manual
+
+should not be included in listings bearing the title “country”. Nor-
+mally, the heading “country or area” can be used in table headings, etc.
+to cover such cases.
+
+If anything is to be said about the status of non-self-governing terri-
+tories, they should be referred to as “territories that are not responsible
+for the conduct of their international relations”; the words “colony”
+and “colonial” should not be used.
+
+Maps
+
+All maps used in WHO publications should follow United Nations
+practice with respect to place names and drawing of boundaries. A
+copy of the standard United Nations map of the world is with GRA.
+Maps for publication should be cleared through LEG if they have not
+been prepared by GRA or if editors are in any doubt about particular
+borders or areas.
+
+Specific areas
+The following are some examples of designations where care is needed.
+
+Taiwan
+
+WHO considers Taiwan as a province of China, under the jurisdiction
+of the Chinese Government in Beijing. If it is felt necessary to include
+data from Taiwan, it should be referred to as China (Province of
+Taiwan) or as Taiwan, China. WHO does not recognize the term
+Taiwan, Republic of China.
+
+The Gulf mo, ;
+
+The term “Persian Gulf” is the standard geographical designation for
+the body of water lying between the Arabian peninsula and the Islamic
+Republic of Iran. It is recognized, however, that a number of states
+prefer the term Arabian Gulf, and in text referring specifically to these
+states the term “Gulf” may be used.
+
+Occupied Territories
+Any references to the Occupied Territories or Palestine should be
+referred to LEG for comment. :
+
+70

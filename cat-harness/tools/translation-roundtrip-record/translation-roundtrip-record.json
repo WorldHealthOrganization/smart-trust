@@ -1,0 +1,57 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "translation-roundtrip-record",
+    "title": "Record a round-trip translation verdict",
+    "description": "Write a back-translation verdict, produced by a pair of translation agents, into a block's existing translation-QA sidecar. It records a judgement rather than making one, and refuses where no sidecar exists — a round trip cannot be what decides a block is translated.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat translation:roundtrip"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "payload",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "JSON carrying the block, locale, verdict and the agent pair. Absent, the command exits 2 with its usage — measured, not assumed.",
+          "required": true,
+          "arg": {
+            "flag": "--payload"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "sidecar",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The `<block>.<locale>.translation-qa.json` written, under criterion `translation-semantic-roundtrip`. An AGENT entry replaces a previous agent entry — a re-run is a re-measurement of the same pair on the same text, not another line in a log — while a human ruling already recorded is kept, because this process does not supersede one."
+        }
+      ]
+    },
+    "satisfies": [
+      "translation-manager"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/satisfies",
+      "comment": "`translation-manager`, which is what `Task_RoundTripQA` itself refs. That\nskill carries NO input contract, so `check-tools` cannot verify this edge\nagainst one: the clean run does not mean the edge was tested, and saying\nso here is cheaper than somebody later reading agreement into silence."
+    },
+    {
+      "at": "",
+      "comment": "── The round-trip RECORDER, and the two dispatch points it did not need ─\n\nBean `vo9d`, and the owner's answer to it: \"1 2 3 are all triggers\", then\n\"all for triggers or tools as appropriate\". One mechanism, several dispatch\npoints, each a trigger or a Tool. Reading the mechanism then showed which\nof the three was actually missing — and it was this one.\n\n**It does not perform the round trip; it RECORDS one.** `--payload\n<file.json>` carries a verdict a pair of translation agents produced, and\n`recordRoundTrip` writes it into the block's existing\n`<block>.<locale>.translation-qa.json` under the criterion\n`translation-semantic-roundtrip`. It REFUSES when no sidecar is there, and\nthe refusal states the principle: *\"a round trip cannot be the thing that\ndecides this block is translated\"* — `translation-block-qa.ts` decides that,\nand this adds a judgement on top of it.\n\nSo of the three dispatch points the bean proposed:\n\n  · the BPMN trigger ALREADY EXISTS — `Task_RoundTripQA` carries\n    `<bootstrap.processes:skill ref=\"translation-manager\"/>`, so `workflow_next` already\n    hands an agent the skill. (A `folio:skill` names a SKILL, never a\n    script; the mechanism is what this node is for.)\n  · a `qa-sweep` axis would be WRONG, not merely awkward: the sweep cannot\n    back-translate, and the verdict originates outside it. A sweep-side\n    criterion would be a different question — \"does this block HAVE a\n    round-trip verdict\" — not this mechanism under another trigger.\n  · the Tool node is the one that was missing, and it is this.\n\nWhich is why the node exists and the other two are recorded as done and as\nrefused. Not an alternative (their I/O differs): a recorder and a decider\nare not two ways to do one thing."
+    }
+  ]
+}

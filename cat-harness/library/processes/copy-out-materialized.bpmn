@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — Copy out materialized content — to work on somebody else's bytes
+
+  Source of truth: this file. The SVG under docs/assets/img/workflows/ is
+  generated from it by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  THE POINT OF DRAWING THIS is that a copy-out is TWO WRITES AND A REFUSAL, and
+  the common bug is to make it one write. The bytes go into the copier's own
+  `folio/`; `provenance.local` records which original they came out of; and the
+  source is never touched, which is the whole reason the process exists.
+
+  A reader who edits the original in place takes none of these paths — that is
+  not a shortcut through this diagram, it is the defect
+  `check:materialized-fixity` catches after the fact.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_CopyOutMaterialized"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="author" name="Author"/>
+  <bpmn:resource id="corpus" name="Corpus"/>
+  <bpmn:resource id="user" name="User"/>
+  <bpmn:resource id="validation-pipeline" name="Validation pipeline"/>
+
+  <bpmn:collaboration id="Collaboration_CopyOutMaterialized">
+    <bpmn:participant id="Participant_CopyOutMaterialized" name="Copy out materialized content — to work on somebody else's bytes" processRef="Process_CopyOutMaterialized" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_CopyOutMaterialized" name="Copy out materialized content — to work on somebody else's bytes" isExecutable="false">
+    <bpmn:documentation>Somebody wants to change content this repository holds a read-only materialized copy of: copy it into their own `folio/`, recording which original it came out of. Materialized content is read-only, and that is enforced, not advised.
+
+STRICT, and the reason is narrow. Only one step here is a gate, and it is Gateway_Frozen: whether the target is read-only at all. Everything after it is mechanical. What makes the process strict is that skipping it does not fail loudly — an edit in place succeeds, and is only caught later by check:materialized-fixity hashing bytes against the digest their record carries. A process whose omission looks exactly like compliance cannot be advisory.
+
+The copy-out re-opens NONE of the five materialisation gates. Those were answered when this repository decided it may hold these bytes at all (materialize-remote.bpmn); copying something already held is not a second acquisition. What the copy does inherit is the restrictions and copyright verdicts — the copy is a new artefact in the copier's folio, and publishing it is that folio's decision.
+
+The three states, the five gates and the provenance pair are folio-assistant-core/schemas/materialization.ts. Nothing here restates them.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_CopyOutMaterialized_LaneSet">
+      <bpmn:lane id="Lane_Reader" name="Reader (any actor)" partitionElementRef="user">
+        <bpmn:documentation>ANY reader, not only an editor. Refusing a copy would not protect the original, because the original is protected by being read-only; a permission here would only stop people working. So this lane has no entry condition, and the one decision in it is about the TARGET rather than about the actor.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_WantToEdit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Frozen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_EditDirectly</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_NotFrozen</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Source" name="Source graph — read-only" partitionElementRef="corpus">
+        <bpmn:documentation>This lane holds exactly one task and it WRITES NOTHING, which is the point of drawing it at all. A lane that is only ever read from is the visible form of the rule: the arrow runs out of here and never back.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ReadSource</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Folio" name="Copier's own folio/" partitionElementRef="author">
+        <bpmn:documentation>Where the copy lands: the copier's own folio, never a scratch area, because a directory nobody declared is a directory nobody gates. The two writes here are ordered and both required — Task_Land puts the bytes somewhere, Task_RecordProvenance says what they are a copy OF, and a process that stopped after the first would produce a file indistinguishable from original work one rename later.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Land</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RecordProvenance</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Verify" name="Verification" partitionElementRef="validation-pipeline">
+        <bpmn:documentation>Asks the question the whole process exists to keep answerable: does the SOURCE still hash to its recorded digest? A copy-out that disturbed the original is not a copy-out, and this lane is the only thing that can tell the difference after the fact — the bytes look the same either way.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_VerifySourceUntouched</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Copied</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="StartEvent_WantToEdit" name="Somebody wants to work on held content">
+      <bpmn:documentation>The entry point is an INTENT TO EDIT, not a request to copy. Drawing it this way is deliberate: a reader does not set out to make a copy, they set out to change something, and the copy is what the rule turns that into. A diagram starting at &quot;copy this&quot; would never be reached by the person who needs it.</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:exclusiveGateway id="Gateway_Frozen" name="Is the target
+materialized / read-only?">
+      <bpmn:documentation>The one gate. `check:read-only-graphs` answers it from the directory's declaration, and `readOnly` absent is NOT `false` — it is not declared, a third state. An undeclared directory holding materialized nodes is reported as a finding rather than waved through here, because &quot;nobody answered&quot; and &quot;somebody said it is writable&quot; must not share a branch.</bpmn:documentation>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_Frozen</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Writable</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_EditDirectly" name="Edit it in place —
+it is your own content">
+      <bpmn:documentation>The ordinary path, drawn so the process does not read as though every edit needs a copy. Content in a writable directory is authored content and is edited where it lives; the copy-out is for somebody else's bytes, not for yours.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="copy-out-materialized" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Writable</bpmn:incoming>
+      <bpmn:outgoing>Flow_NotFrozen</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:serviceTask id="Task_ReadSource" name="Read the original —
+and write nothing">
+      <bpmn:documentation>A read, and the only interaction this process has with the source. Its digest and `provenance` are carried forward: the digest so Task_VerifySourceUntouched has something to check against, and `provenance` so the copy can name what it came out of without re-deriving it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="copy-out-materialized" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Frozen</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_Land" name="Land the bytes in
+the copier's own folio/">
+      <bpmn:documentation>Into the copier's own declared `folio/`, never a scratch area — a directory nobody declared is a directory nobody gates, and the copy would be publishable by accident. The copy is NOT read-only: it is the copier's own content, makes no claim about anybody else's bytes, and freezing it too would mean the next person needs a copy of the copy.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="copy-out-materialized" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_RecordProvenance" name="Record what this is a copy of">
+      <bpmn:documentation>The step that is easy to omit and impossible to reconstruct afterwards. `provenance` is a PAIR: `upstream` is the remote thing, `local` is the original in this repository. A copy-out writes `local`; it does not overwrite `upstream`, and it does not reuse `upstream` for a local value. Without `local`, one rename later the copy is indistinguishable from original work and nothing downstream can repair it, because the information was never written down.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="copy-out-materialized" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_VerifySourceUntouched" name="Verify the ORIGINAL
+still hashes to its digest">
+      <bpmn:documentation>`check:materialized-fixity`. Run against the SOURCE, not the copy — the copy is new content with no claim to verify, and the source is the thing a botched copy-out would have disturbed. A mismatch here means the copy-out was an edit in place wearing a copy's clothes, and it is the only signal that tells the two apart.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="copy-out-materialized" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="EndEvent_Copied" name="A working copy, saying
+what it is a copy of">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_NotFrozen" name="Edited where it lives —
+no copy needed">
+      <bpmn:incoming>Flow_NotFrozen</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_WantToEdit" targetRef="Gateway_Frozen" />
+    <bpmn:sequenceFlow id="Flow_Frozen" name="yes — read-only" sourceRef="Gateway_Frozen" targetRef="Task_ReadSource" />
+    <bpmn:sequenceFlow id="Flow_Writable" name="no, or not declared" sourceRef="Gateway_Frozen" targetRef="Task_EditDirectly" />
+    <bpmn:sequenceFlow id="Flow_NotFrozen" sourceRef="Task_EditDirectly" targetRef="EndEvent_NotFrozen" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_ReadSource" targetRef="Task_Land" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_Land" targetRef="Task_RecordProvenance" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_RecordProvenance" targetRef="Task_VerifySourceUntouched" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_VerifySourceUntouched" targetRef="EndEvent_Copied" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_CopyOutMaterialized">
+    <bpmndi:BPMNPlane id="Plane_CopyOutMaterialized" bpmnElement="Collaboration_CopyOutMaterialized">
+      <bpmndi:BPMNShape id="Participant_CopyOutMaterialized_di" bpmnElement="Participant_CopyOutMaterialized" isHorizontal="true">
+        <dc:Bounds x="130" y="60" width="1360" height="800" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Reader_di" bpmnElement="Lane_Reader" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="1330" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Source_di" bpmnElement="Lane_Source" isHorizontal="true">
+        <dc:Bounds x="160" y="260" width="1330" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Folio_di" bpmnElement="Lane_Folio" isHorizontal="true">
+        <dc:Bounds x="160" y="460" width="1330" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Verify_di" bpmnElement="Lane_Verify" isHorizontal="true">
+        <dc:Bounds x="160" y="660" width="1330" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_WantToEdit_di" bpmnElement="StartEvent_WantToEdit">
+        <dc:Bounds x="210" y="142" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="250" y="182" width="119.23" height="53" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Frozen_di" bpmnElement="Gateway_Frozen" isMarkerVisible="true">
+        <dc:Bounds x="370" y="135" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="330" y="77" width="130" height="54" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_EditDirectly_di" bpmnElement="Task_EditDirectly">
+        <dc:Bounds x="580" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_NotFrozen_di" bpmnElement="EndEvent_NotFrozen">
+        <dc:Bounds x="780" y="142" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="740" y="183" width="116" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReadSource_di" bpmnElement="Task_ReadSource">
+        <dc:Bounds x="580" y="300" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Land_di" bpmnElement="Task_Land">
+        <dc:Bounds x="780" y="500" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RecordProvenance_di" bpmnElement="Task_RecordProvenance">
+        <dc:Bounds x="980" y="500" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_VerifySourceUntouched_di" bpmnElement="Task_VerifySourceUntouched">
+        <dc:Bounds x="1180" y="700" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Copied_di" bpmnElement="EndEvent_Copied">
+        <dc:Bounds x="1380" y="742" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1340" y="783" width="116" height="30" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="246" y="160" />
+        <di:waypoint x="370" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Writable_di" bpmnElement="Flow_Writable">
+        <di:waypoint x="420" y="160" />
+        <di:waypoint x="580" y="160" />
+        <bpmndi:BPMNLabel><dc:Bounds x="455" y="104" width="90" height="53" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_NotFrozen_di" bpmnElement="Flow_NotFrozen">
+        <di:waypoint x="700" y="160" />
+        <di:waypoint x="780" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Frozen_di" bpmnElement="Flow_Frozen">
+        <di:waypoint x="420" y="160" />
+        <di:waypoint x="475" y="160" />
+        <di:waypoint x="475" y="360" />
+        <di:waypoint x="580" y="360" />
+        <bpmndi:BPMNLabel><dc:Bounds x="480" y="192" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="700" y="360" />
+        <di:waypoint x="740" y="360" />
+        <di:waypoint x="740" y="560" />
+        <di:waypoint x="780" y="560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="900" y="560" />
+        <di:waypoint x="980" y="560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="1100" y="560" />
+        <di:waypoint x="1140" y="560" />
+        <di:waypoint x="1140" y="760" />
+        <di:waypoint x="1180" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="1300" y="760" />
+        <di:waypoint x="1380" y="760" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
