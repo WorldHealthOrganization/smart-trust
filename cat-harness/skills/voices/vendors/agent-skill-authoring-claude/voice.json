@@ -1,0 +1,135 @@
+{
+  "$schema": "folio-voice/v1",
+  "id": "agent-skill-authoring-claude",
+  "title": "Agent skill authoring — Claude override",
+  "appliesTo": ["skill"],
+  "description": "What Anthropic's own 'Skill authoring best practices' (Claude Platform Docs) adds to the shared base voice agent-skill-authoring: Claude's front-matter validation, its naming conventions, forward-slash paths, and three authoring methods (plan-validate-execute, no voodoo constants, author with one instance and test with another). MODEL-SPECIFIC by the owner's ruling (bean rkqp): a vendor's advice is evidence about that vendor's platform. Provenance ASSERTION: a publisher describing its own product. Rules the base already carries — much of it traceable to this very document (the ~500-line body, one-level references, a table of contents over ~100 lines, third-person descriptions, evaluations before instructions) — are inherited through extends, not repeated. Conformance is an agentic review, never a schema gate.",
+  "provenance": "assertion",
+  "extends": {
+    "voiceId": "agent-skill-authoring"
+  },
+  "sources": [
+    {
+      "title": "Skill authoring best practices | Claude Platform Docs (captured 2026-09-20)",
+      "libraryId": "skill-authoring-best-practices---claude-platform-docs",
+      "year": 2026
+    }
+  ],
+  "rules": [
+    {
+      "id": "cl-frontmatter-limits",
+      "title": "name ≤ 64 characters of lowercase, digits and hyphens; description ≤ 1,024 characters; no XML tags in either",
+      "description": "Claude validates the SKILL.md front matter: name at most 64 characters, lowercase letters, numbers and hyphens only, no XML tags and no reserved words; description non-empty, at most 1,024 characters, no XML tags. A skill that breaks these does not load on Claude, which is why this is a vendor rule — other platforms state different limits or none.",
+      "category": "formatting",
+      "severity": "critical",
+      "source": {
+        "libraryId": "skill-authoring-best-practices---claude-platform-docs",
+        "sectionId": "page-029",
+        "pages": "29",
+        "quote": "The SKILL.md frontmatter requires name and description fields with specific validation rules: name : Maximum 64 characters, lowercase letters/numbers/hyphens only, no XML tags, no reserved words description : Maximum 1,024 characters, non-empty, no XML tags"
+      }
+    },
+    {
+      "id": "cl-name-gerund-form",
+      "title": "Prefer a gerund name — processing-pdfs, not pdf-helper",
+      "description": "Anthropic's preferred form is the gerund (processing-pdfs, analyzing-spreadsheets); noun phrases (pdf-processing) and action-oriented names (process-pdfs) are acceptable alternatives. Pick one pattern for a whole collection: inconsistency within a collection is listed among the things to avoid.",
+      "category": "terminology",
+      "severity": "minor",
+      "source": {
+        "libraryId": "skill-authoring-best-practices---claude-platform-docs",
+        "sectionId": "page-005",
+        "pages": "5",
+        "quote": "Remember that the name field must use lowercase letters, numbers, and hyphens only. Good naming examples (gerund form): processing-pdfs analyzing-spreadsheets managing-databases testing-code writing-documentation Acceptable alternatives: Noun phrases: pdf-processing , spreadsheet-analysis Action-oriented: process-pdfs , analyze-spreadsheets"
+      }
+    },
+    {
+      "id": "cl-no-vague-or-reserved-names",
+      "title": "No vague, generic or reserved names",
+      "description": "helper, utils and tools say nothing; documents, data and files are too generic to route on; names containing the reserved words (anthropic-helper, claude-tools) are refused.",
+      "category": "terminology",
+      "severity": "major",
+      "source": {
+        "libraryId": "skill-authoring-best-practices---claude-platform-docs",
+        "sectionId": "page-005",
+        "pages": "5",
+        "quote": "Avoid: Vague names: helper , utils , tools Overly generic: documents , data , files Reserved words: anthropic-helper , claude-tools Inconsistent patterns within your skill collection"
+      },
+      "terminology": [
+        {
+          "correct": "processing-pdfs",
+          "incorrect": [
+            "helper",
+            "utils",
+            "tools"
+          ],
+          "context": "a name that states the work, not a category"
+        }
+      ]
+    },
+    {
+      "id": "cl-forward-slash-paths",
+      "title": "Forward slashes in every file path, even on Windows",
+      "description": "scripts/helper.py, never scripts\\helper.py: Unix-style paths work on every platform, Windows-style ones fail on Unix systems.",
+      "category": "formatting",
+      "severity": "major",
+      "source": {
+        "libraryId": "skill-authoring-best-practices---claude-platform-docs",
+        "sectionId": "page-021",
+        "pages": "21",
+        "quote": "Always use forward slashes in file paths, even on Windows: ✓ Good: scripts/helper.py , reference/guide.md ✗ Avoid: scripts\\helper.py , reference\\guide.md Unix-style paths work across all platforms, while Windows-style paths cause errors on Unix systems."
+      }
+    },
+    {
+      "id": "cl-no-voodoo-constants",
+      "title": "Every configuration value in a bundled script says why it is that value",
+      "description": "A magic number in a script is a value Claude cannot reason about: if the author does not know why it is right, the model cannot determine it either. Justify and document each constant (Ousterhout's 'voodoo constants').",
+      "category": "methodology",
+      "severity": "minor",
+      "source": {
+        "libraryId": "skill-authoring-best-practices---claude-platform-docs",
+        "sectionId": "page-023",
+        "pages": "23",
+        "quote": "Configuration parameters should also be justified and documented to avoid \"voodoo constants\" (Ousterhout's law). If you don't know the right value, how will Claude determine it?"
+      }
+    },
+    {
+      "id": "cl-plan-validate-execute",
+      "title": "For a complex, open-ended change: plan in a structured form, validate the plan with a script, then execute",
+      "description": "The intermediate plan is the checkable artefact — mistakes (a non-existent field, a conflicting value, a missed requirement) are caught before anything is changed, not after.",
+      "category": "methodology",
+      "severity": "major",
+      "source": {
+        "libraryId": "skill-authoring-best-practices---claude-platform-docs",
+        "sectionId": "page-026",
+        "pages": "26",
+        "quote": "When Claude performs complex, open-ended tasks, it can make mistakes. The \"plan-validate- execute\" pattern catches errors early by having Claude first create a plan in a structured format, then validate that plan with a script before executing it."
+      }
+    },
+    {
+      "id": "cl-consistent-terminology",
+      "title": "One term per concept, throughout the skill",
+      "description": "Choose a term — 'API endpoint', 'field', 'extract' — and never alternate it with a synonym inside one skill; a variant reads to the model as a different thing.",
+      "category": "terminology",
+      "severity": "minor",
+      "source": {
+        "libraryId": "skill-authoring-best-practices---claude-platform-docs",
+        "sectionId": "page-015",
+        "pages": "15",
+        "quote": "Use consistent terminology Choose one term and use it throughout the Skill: Good - Consistent: Always \"API endpoint\" Always \"field\" Always \"extract\""
+      }
+    },
+    {
+      "id": "cl-author-with-one-claude-test-with-another",
+      "title": "Write the skill with one Claude instance and test it with another",
+      "description": "Anthropic's authoring loop: 'Claude A' helps design and refine the instructions; 'Claude B', a separate instance with the skill loaded, uses it on real tasks and exposes what is missing. Begin by doing the task once without a skill and noting the context you kept supplying — that is the skill's content.",
+      "category": "methodology",
+      "severity": "minor",
+      "source": {
+        "libraryId": "skill-authoring-best-practices---claude-platform-docs",
+        "sectionId": "page-019",
+        "pages": "19",
+        "quote": "Claude (\"Claude A\") to create a Skill that is used by other instances (\"Claude B\"). Claude A helps you design and refine instructions, while Claude B tests them in real tasks."
+      }
+    }
+  ]
+}

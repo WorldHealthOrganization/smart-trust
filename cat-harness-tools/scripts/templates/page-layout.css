@@ -1,0 +1,77 @@
+/* page-layout.css: the ONE layout of a standalone page beside the rail (cat-harness-tools `scripts/page-layout.ts`, which says why).
+   Opt-in by markup: a page bar is `.fa-page-bar`, the content column `.fa-page-main`; a page with neither is unchanged.
+   Full width, the window the one scroller, the bar sticky above it as folio-assistant's band is, anchors landing below it. */
+:root{--fa-pl-fg:#1f2328;--fa-pl-bg:#fff;--fa-pl-muted:#59636e;--fa-pl-line:#d1d9e0;--fa-pl-soft:#f6f8fa;--fa-pl-link:#0b5cad}
+@media (prefers-color-scheme:dark){:root:not([data-fa-scheme="light"]){--fa-pl-fg:#e6edf3;--fa-pl-bg:#0d1117;--fa-pl-muted:#9198a1;--fa-pl-line:#3d444d;--fa-pl-soft:#151b23;--fa-pl-link:#6cb6ff}}
+:root[data-fa-scheme="dark"]{--fa-pl-fg:#e6edf3;--fa-pl-bg:#0d1117;--fa-pl-muted:#9198a1;--fa-pl-line:#3d444d;--fa-pl-soft:#151b23;--fa-pl-link:#6cb6ff}
+/* Anchor and focus scrolls land below the stuck bar, by a margin on the CONTENT, not a padding on the root: the bar's own controls sit inside a root
+   padding, so the browser reads them as obscured and scrolls the page the moment one takes focus (docs-ui's #2201, measured again here). The root
+   pads nothing, over docs-ui's own padding for its band, which on a page with this bar is not drawn. page-layout.js measures the bar (0 while not stuck). */
+:root:has(.fa-page-bar){scroll-padding-top:0!important}
+.fa-page-main,.fa-page-main *{scroll-margin-top:calc(var(--fa-staging-offset,0px) + var(--fa-page-bar-h,0px) + .5rem)}
+/* The same margin on a just-the-docs page, whose site bar is the page bar but whose content column is the theme's `.main-content`, not
+   `.fa-page-main`. Specific enough to win over a page's own fixed `:target` margin (a document page's `.fa-doc :target{4rem}`), which is shorter
+   than the staging banner plus the bar: a jump to a heading landed it under them (owner, 2026-10-31, dth-pc "Zambia"). */
+:root:has(.fa-page-bar) :is(.fa-page-main,.main-content) *{scroll-margin-top:calc(var(--fa-staging-offset,0px) + var(--fa-page-bar-h,0px) + .5rem)}
+body{margin:0}
+body:has(.fa-page-main){background:var(--fa-pl-bg);color:var(--fa-pl-fg);font:16px/1.5 var(--fa-font-sans,system-ui,sans-serif)}
+/* THE BAR: the whole width beside the rail, outside the content column. Its colours are the page's (`--fa-page-bar-bg`, `--fa-page-bar-fg`). Default navy #2d4271, the reference site's header (owner, 2026-11-10); white on it 9.86:1. */
+.fa-page-bar{box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:.25rem 1rem;margin:0;padding:.5rem 1.5rem;background:var(--fa-page-bar-bg,#2d4271);color:var(--fa-page-bar-fg,#fff);font:16px/1.5 var(--fa-font-sans,system-ui,sans-serif);font-size:var(--fa-text-base,1rem);z-index:88}
+.fa-page-bar a{color:inherit;text-decoration:none}
+/* STICKY on a screen wide enough to spare it: text scrolls under it, and the Folio tab sits on it, so docs-ui's bare strip behind the tab is not drawn. Below 50rem it scrolls away with the page and the strip comes back. */
+@media (min-width:50rem){
+.fa-page-bar{position:sticky;top:var(--fa-staging-offset,0px)}
+body:has(.fa-page-bar) .fa-glass-band:not([data-fa-band-tools]){display:none!important}
+}
+/* THE CONTENT COLUMN: full width, never a centred measure. Wide tables and code scroll inside themselves, not the page. */
+.fa-page-main{box-sizing:border-box;max-width:none;margin:0;padding:1rem 1.5rem 3rem;overflow-wrap:break-word}
+.fa-page-main a{color:var(--fa-pl-link)}
+.fa-page-main h1{font-size:var(--fa-text-xl,1.5rem);line-height:1.25;margin:.5rem 0 .5rem;overflow-wrap:anywhere}
+.fa-page-main h2{font-size:var(--fa-text-lg,1.25rem);margin:1.75rem 0 .5rem;border-bottom:1px solid var(--fa-pl-line);padding-bottom:.25rem}
+.fa-page-main h3{font-size:var(--fa-text-md,1.125rem);margin:1.25rem 0 .5rem}
+.fa-page-main img,.fa-page-main svg,.fa-page-main object{max-width:100%;height:auto}
+.fa-page-main table{border-collapse:collapse;display:block;overflow-x:auto;max-width:100%;font-size:var(--fa-text-sm,0.875rem)}
+/* A table that fills the column instead (a list a page draws): `fa-page-wide`. */
+.fa-page-main table.fa-page-wide{display:table;width:100%}
+.fa-page-main table.fa-page-wide td{overflow-wrap:anywhere}
+.fa-page-main th,.fa-page-main td{border:1px solid var(--fa-pl-line);padding:.35rem .5rem;text-align:left;vertical-align:top}
+.fa-page-main th{background:var(--fa-pl-soft)}
+.fa-page-main pre,.fa-page-main code{font-family:var(--fa-font-mono,Menlo,Consolas,monospace);font-size:.88em}
+.fa-page-main pre{background:var(--fa-pl-soft);border:1px solid var(--fa-pl-line);border-radius:6px;padding:.75rem;overflow:auto}
+.fa-page-main blockquote{margin:1rem 0;padding:.25rem 1rem;border-left:4px solid var(--fa-pl-line);color:var(--fa-pl-muted)}
+.fa-page-foot{box-sizing:border-box;margin:0;padding:1rem 1.5rem;border-top:1px solid var(--fa-pl-line);color:var(--fa-pl-muted);font-size:var(--fa-text-sm,0.875rem)}
+.fa-page-foot a{color:var(--fa-pl-link)}
+/* Not stuck, on a narrow screen the bar's title would sit under the Folio tab (top middle): the bar leaves the tab its row, as a viewer reserves it. */
+@media (max-width:49.99rem){body:has(.fa-glass-handle):not(:has(.fa-nav-icons .fa-nav-folio)) .fa-page-bar{padding-top:2.25rem}}
+@media (max-width:40rem){.fa-page-bar{padding:.5rem .75rem}.fa-page-main{padding:.75rem .75rem 2rem}.fa-page-main h1{font-size:var(--fa-text-lg,1.25rem)}.fa-page-foot{padding:1rem .75rem}}
+/* THE RAIL SCROLLS ITSELF, NEVER THE PAGE (owner, 2026-11-17: "When the pointer is over the navbar/rail and you scroll, the page scrolls, not the
+   navbar"). The rail (`navbar.css`) is `overflow:hidden` with only its middle region scrolling, so a wheel over its top or bottom, or past the end of
+   its middle, went on to the page, and a rail taller than the window could not be scrolled to its last rows. The rail is its own scroll container,
+   and it and every scroller inside it CONTAIN their scroll, so the wheel and touch scroll the rail while the pointer is over it and stop there.
+   Here, in the one layout every railed page links, until `navbarCss()` carries it (a change there moves cat-harness's committed navbar.css).
+   `:root` lifts the rule over navbar.css's `.fa-nav{overflow:hidden}` whichever of the two a page links first. */
+:root .fa-nav{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
+:root .fa-nav :is(.fa-nav-graphs,.fa-nav-pop){overscroll-behavior:contain}
+/* THE SITE BAR (lib/site-bar.ts; owner, 2026-10-15: "Top bar, like IG sites"): every page's top bar on a site the rail is drawn on — the site's name
+   home, the site's search, the language picker's slot. On a just-the-docs page it is the theme's own #main-header, kept for its search script; the
+   theme hides that header below its nav breakpoint and gives it a fixed height, so both are undone here. The theme's side bar is gone, and so is its
+   column: the content starts at the rail. */
+body>nav.fa-nav~.main{margin-left:0;max-width:none}
+body .fa-page-bar.main-header{display:flex;height:auto;min-height:3rem;justify-content:flex-start;border-bottom:0}
+.fa-page-bar-home{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+body .fa-page-bar .search{position:relative;flex:0 1 22rem;margin:0 0 0 auto;min-width:10rem;padding:0;height:auto;background:none;box-shadow:none;border:0}
+body .fa-page-bar .search-input-wrap{position:relative;height:auto;width:100%;background:none;box-shadow:none;border:0}
+body .fa-page-bar .search-input{position:static;width:100%;height:auto;box-sizing:border-box;padding:.3rem .6rem;font:inherit;font-size:var(--fa-text-sm,0.875rem);color:#1f2328;background:#fff;border:1px solid #c8d1dc;border-radius:4px}
+body .fa-page-bar .search-label{display:none}
+body .fa-page-bar .search-results{position:absolute;right:0;top:calc(100% + .25rem);left:auto;display:none;z-index:30;width:min(32rem,90vw);max-height:70vh;overflow:auto;padding:.25rem 0;background:var(--fa-pl-bg);color:var(--fa-pl-fg);border:1px solid var(--fa-pl-line);border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.25);text-align:left}
+body.search-active .fa-page-bar,:root.search-active .fa-page-bar .search-results,body .fa-page-bar.nav-open .search-input:focus~.search-results{display:block}
+body .fa-page-bar .search-results-list{list-style:none;margin:0;padding:0}
+body .fa-page-bar .search-results-list-item{margin:0;padding:0}
+body .fa-page-bar .search-results-list-item::before{content:none}
+body .fa-page-bar .search-result{display:block;padding:.3rem .75rem;color:var(--fa-pl-link);text-decoration:none}
+body .fa-page-bar .search-result:hover,body .fa-page-bar .search-result.active{background:var(--fa-pl-soft)}
+body .fa-page-bar .search-result-doc,body .fa-page-bar .search-result-section{display:block;overflow:hidden;text-overflow:ellipsis}
+body .fa-page-bar .search-result-previews,body .fa-page-bar .search-result-rel-url{display:block;color:var(--fa-pl-muted);font-size:var(--fa-text-xs,0.75rem);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body .fa-page-bar .search-no-result{padding:.3rem .75rem;color:var(--fa-pl-muted)}
+body .fa-page-bar .search-overlay{display:none}
+.fa-page-bar-locale:empty{display:none}

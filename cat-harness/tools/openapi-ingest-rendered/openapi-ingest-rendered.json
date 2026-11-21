@@ -1,0 +1,79 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "openapi-ingest-rendered",
+    "title": "OpenAPI ingest from a published spec",
+    "description": "Ingest the OpenAPI documents a layer's `cat-openapi.config.json` lists under `rendered` by fetching each published spec URL (https), verbatim, with a provenance recording the URL, when it was fetched and the document's sha256 — a URL has no commit, so the digest pins the bytes. A failed fetch or bytes that are not OpenAPI 3 write nothing and never replace a held copy.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat openapi:ingest:rendered"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The layer root holding `cat-openapi.config.json` and the declared `openapi` directory.",
+          "required": true,
+          "arg": {
+            "flag": "--instance"
+          }
+        },
+        {
+          "name": "only",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "Ingest just this document id.",
+          "required": false,
+          "arg": {
+            "flag": "--only"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "documents",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "`<id>.openapi.json` and `<id>.source.json` per rendered document, in the declared `openapi` directory."
+        }
+      ]
+    },
+    "satisfies": [
+      "library-ingestion"
+    ],
+    "selection": {
+      "when": "The spec is only available as a published document (a rendered IG or docs site), or the repository should stay remote while its spec is ingested.",
+      "limits": "Reads what the publisher serves at fetch time; whether it has changed since is answered only by fetching again and comparing digests.",
+      "cost": "One https GET and one JSON parse per document."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.io",
+        "tool": "openapi-ingest-source"
+      },
+      {
+        "host": "smart.who.int",
+        "tool": "openapi-ingest-source"
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "/remedies",
+      "comment": "Published IGs are served from GitHub Pages or from smart.who.int; each\nis built from a repository, and `openapi-ingest-source` reads the same\nspec from a local checkout of it, pinned to a commit, with no network."
+    }
+  ]
+}

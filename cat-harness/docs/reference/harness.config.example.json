@@ -1,0 +1,54 @@
+{
+  "_comment": "Example harness.config.json. There is deliberately no $schema key: no such schema file is published, and pointing at one that does not exist is worse than pointing at nothing. `folio_init` writes one of these for you \u2014 see the README's 'Start a new folio'. `contentType` selects both the adapter and the block-kind profile: 'document' for prose folios (no Lean, no TeX needed to publish), 'paper' for a document that additionally carries Lean-backed mathematics. The paper adapter extends the document one, so a paper folio gets every document tool too.",
+  "contentType": "document",
+  "adapter": "document",
+  "adapterModule": "./folio-assistant/adapters/document/index.ts",
+
+  "feedbackDir": ".folio-feedback",
+  "skills": ".claude/skills/local",
+  "_voices_comment": "Editorial voice profiles to activate, by id, from the `voices` graph (see harness.json). A voice is a THIRD axis beside adapters and profiles: it partitions how prose READS. OPT-IN and never automatic \u2014 an id naming no shipped voice is an error, not a silent skip, because a folio that quietly ran no voice checks would report a clean run over an unchecked manuscript. folio-assistant ships four and activates none for its own documentation (issue #208). Read by `readActiveVoices` in schemas/voices.ts.",
+  "voices": {
+    "active": []
+  },
+  "viewer": {
+    "dir": "folio-assistant/viewer",
+    "port": 8080
+  },
+  "simulators": {
+    "_comment": "The FOLIO's own directory. `viewer` above points into the platform because the viewer is platform code; simulators are subject matter, so they belong to the folio and this path is relative to its root.",
+    "dir": "simulators",
+    "pyodideCache": true
+  },
+  "harness": {
+    "_comment": "Harness paths that are NOT part of the bean graph. `workPlan` and `workflowState` USED TO BE HERE and are gone: `beans/beans.json` declares them now, because it is the graph they are nodes of. That removed one of the places the same path was written rather than adding another \u2014 see schemas/bean-graph.ts. `interaction` stays because it is not bean content: it describes how to talk to the person at this machine, not what is being worked on.",
+    "interaction": "cat-harness/memory/interaction.json"
+  },
+  "readme": {
+    "_comment": "Controls the contents table `readme_toc` writes between the <!-- folio:toc:begin --> and <!-- folio:toc:end --> markers in README.md. `linkStyle` decides what a published PDF link points at: 'blob' (default) is github.com/<owner>/<repo>/blob/<publishRef>/<path>, which resolves for anyone with repository access \u2014 PUBLIC OR PRIVATE \u2014 and renders PDFs inline; 'pages' is the GitHub Pages URL, which only resolves while the Pages site is public; 'raw' is raw.githubusercontent.com, which serves public repositories only (it 404s on a private repo without a token, and a browser session does not supply one). `repoUrl` defaults to the `origin` remote. Every PDF link is verified against `publishRef` before it is emitted, so an unpublished chapter renders an em dash instead of a dead link.",
+    "linkStyle": "blob",
+    "publishRef": "gh-pages",
+    "pagesBaseUrl": ""
+  },
+  "googleDrive": {
+    "_comment": "Optional. Set folderPath to auto-push PDFs to Google Drive on every content edit and full build. Credentials are resolved from GOOGLE_APPLICATION_CREDENTIALS env var, ~/.config/google-drive-mcp/credentials.json (OAuth2), or gcloud ADC \u2014 never stored here.",
+    "folderPath": ""
+  },
+  "translation": {
+    "_comment": "Optional. Controls the translation pipeline. defaultLocale is the source language of the folio's content (BCP 47). supportedLocales lists target languages \u2014 the six UN languages by default. translationDir is where .pot/.po files and translated .md live. officialOnly: when true, only signed-off translations are rendered; when false (default), unofficial translations render with a warning banner.",
+    "defaultLocale": "en",
+    "supportedLocales": [
+      "ar",
+      "zh",
+      "en",
+      "fr",
+      "ru",
+      "es"
+    ],
+    "translationDir": "translations",
+    "officialOnly": false
+  },
+  "dependencies": {
+    "_comment": "Optional. Other folio-assistant layers this folio depends on, for content, skills, and translation resolution. Walked depth-first in listed order, overlaying content and skills on top \u2014 same methodology as FHIR/SUSHI dependencies but upstream from them. Each entry has a name (for display) and a path or git URL.",
+    "folioAssistant": []
+  }
+}

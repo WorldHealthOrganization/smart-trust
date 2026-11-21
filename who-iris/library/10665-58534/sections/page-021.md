@@ -1,0 +1,60 @@
+---
+doc_id: 10665-58534
+doc_title: "Counselling for HIV/AIDS : a key to caring, for policy-makers, planners and implementors of counselling activities"
+section_id: page-021
+section_title: "Page 21"
+pages: 21-21
+pdf_page: 21
+source_pdf: 10665-58534.pdf
+source_sha256: 79af009d1163712c
+text_source: ocr
+granularity: page
+---
+WHO/GPA/TCO/HCS/95.15
+
+educational messages more personally relevant as a follow-up to an HIV
+education campaign. In turn, education and information benefit HIV/AIDS
+counselling by making clients aware of the availability of HIV/AIDS
+counselling services and by explaining the role of such services.
+
+HIV/AIDS clinical management and clinical care services, by enabling the
+client to participate in decision-making regarding different options for care,
+such as choosing between hospital and home care after consideration of their
+relative costs, inconvenience to the family and potential benefits. In turn,
+clinical management services benefit counselling by reducing the physical
+symptoms of clients, such as persistent diarrhoea, so that clients regain a
+sufficient level of self-esteem and physical health to enable them to participate
+in decision-making and planning.
+
+social support services, by encouraging and enabling clients to identify and
+express theit needs for support, thus helping clients to discuss various options.
+In turn, social support benefits counselling by meeting the clients’ needs for
+material resources, thereby enabling the counsellor to concentrate on meeting
+the clients’ needs for emotional support.
+
+HIV/AIDS-relatéd community development and community organization
+activities, by stimulating more open and informed discussion of HIV/AIDS
+and of the role that community members might play in care and prevention
+programmes. This happens when counselling enables individuals and families
+affected by HIV/AIDS to come to terms with the diagnosis so that they can
+talk more openly about their problems to selected members of the community
+who may provide some help. This concept which starts with individual clients
+can then, through the “ripple effect” of counselling, spread to the wider
+community. Counselling benefits from community development and the
+activities of community organizations through the provision of locally
+available resources and expertise which may often be voluntary and therefore
+low-cost.
+
+the societal response to AIDS, by providing models of compassionate and
+informed behaviours that are responsive to the dilemmas and difficulties
+stemming from the AIDS pandemic.
+
+Where does HIV/AIDS counselling take place?
+
+HIV/AIDS counselling takes place in a wide variety of settings. Regardless of the
+existing HIV prevalence in a country or region, counselling services should always be
+available at:
+
+sites where care is being provided for HIV-positive persons; and
+sites where HIV tests are done and results can be traced to the individual
+(linked HIV testing).

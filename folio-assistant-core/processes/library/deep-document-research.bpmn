@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_DeepDocumentResearch"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="deep-researcher" name="Deep researcher"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Deep document research — folio-assistant-core
+       Methodology: methodologies/doc-researcher.md
+       Skill: skills/deep-document-research.md
+       arXiv:2510.21603v1 (Dong et al., 2025), method only.
+
+       ONE LANE, not four. The paper names four agents — Planner,
+       Searcher, Refiner, Reporter — and they are four QUESTIONS in
+       one accountability rather than four roles. This repository's
+       role model is explicit that a role is a swimlane and a
+       swimlane is an accountability, so drawing four would assert
+       four answerable parties where there is one.
+
+       THE TWO STOPPING CONDITIONS ARE THE METHOD. A loop with only
+       a threshold never terminates on a question the corpus cannot
+       answer; one with only a cap stops an answerable question
+       early and returns something that looks complete. Both, and
+       the report says which one fired.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:collaboration id="Collab_DeepDocumentResearch">
+    <bpmn:participant id="Participant_DeepDocumentResearch" name="Deep document research" processRef="Process_DeepDocumentResearch"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_DeepDocumentResearch" name="Deep document research" isExecutable="false">
+    <bpmn:documentation>Answer a question from a corpus this folio ALREADY HOLDS, iteratively, stopping on a stated condition.
+
+It begins after `library-ingestion` has filed the sources, `ingest-*` has derived their structure, and the L1 completeness gate has said they are fit to use. Nothing here acquires or parses anything: a question about a document nobody ingested is not answered by this process, it is refused by it.
+
+ADVISORY at the process level. The judgement it contains is which granularity fits a question and whether the evidence so far is sufficient, and neither is gateable — the whole reason the loop carries an iteration cap is that sufficiency may never arrive.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_DeepDocumentResearch">
+      <bpmn:lane id="Lane_DeepResearcher" name="Deep researcher" partitionElementRef="deep-researcher">
+        <bpmn:documentation>One lane for all four of the paper's agents, because they are one accountability: somebody stands behind the synthesis and its citations.
+
+The role admits person and agent. Every step is drawn as a plain task rather than a userTask for that reason — an agent performing this is legitimate, and a userTask would assert a person the model does not require.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Question</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Held</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NotHeld</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Plan</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Search</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Refine</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Sufficient</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Report</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Answered</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Question" name="A question about held documents">
+      <bpmn:documentation>A question whose evidence is expected to be in this folio's library. The expectation is checked immediately rather than assumed — see GW_Held.</bpmn:documentation>
+      <bpmn:outgoing>F_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:exclusiveGateway id="GW_Held" name="Is the corpus there to search?">
+      <bpmn:documentation>Computable, and deliberately carries neither `cat-harness.processes:decision` nor `cat-harness.processes:judgement`: whether the library holds entries whose L1 completeness verdict is `met` is a fact about the checkout, so calling it a judgement would be false. Nothing computes it yet: no DMN table has been written.
+
+Leaving here is the correct outcome, not a failure. A question about documents nobody ingested has an answer — "this corpus does not hold them" — and that answer is not produced by searching harder.</bpmn:documentation>
+      <bpmn:incoming>F_1</bpmn:incoming>
+      <bpmn:outgoing>F_Held</bpmn:outgoing>
+      <bpmn:outgoing>F_NotHeld</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_NotHeld" name="Not held — a question for library-ingestion">
+      <bpmn:documentation>The corpus cannot bear on the question. `library-ingestion` and `literature-search` are where that goes; searching a corpus that does not contain the answer produces a confident nothing.</bpmn:documentation>
+      <bpmn:incoming>F_NotHeld</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:task id="A_Plan" name="Filter the corpus, choose the granularity, decompose the question">
+      <bpmn:documentation>The paper's Planner. Three outputs, and the middle one is the method's substance: a filtered document subset, the granularity to search at, and the sub-questions.
+
+CHOOSING THE GRANULARITY PER QUESTION is the whole point of parsing at several. A broad question is answered from summaries and a specific one from chunks; a pipeline that picks once has answered every future question the same way. This checkout cannot yet offer the choice — `l1-blocks.ts` produces blocks, there is no summary level — so this step SAYS which granularity it searched rather than implying the corpus offered alternatives.
+
+Re-entered on every iteration, not only the first: the sub-questions are re-derived from what has been found so far, which is what makes the loop a search rather than a retry.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="deep-document-research"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_Held</bpmn:incoming>
+      <bpmn:incoming>F_Again</bpmn:incoming>
+      <bpmn:outgoing>F_2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_Search" name="Retrieve for each sub-question">
+      <bpmn:documentation>The paper's Searcher, at the granularity A_Plan chose. Which retrieval paradigm — text-only, vision-only or hybrid — is recorded in the methodology node as an open trade-off rather than settled here: the paper's comparison was measured on its own corpus and says nothing about a folio's.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="deep-document-research"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_2</bpmn:incoming>
+      <bpmn:outgoing>F_3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_Refine" name="Deduplicate, and keep what is actually relevant">
+      <bpmn:documentation>The paper's Refiner. Accumulates into the evidence set the report is built from — so what is dropped here is invisible downstream, which is why it is a step somebody performs rather than a filter buried in retrieval.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="deep-document-research"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_3</bpmn:incoming>
+      <bpmn:outgoing>F_4</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Sufficient" name="Enough, or out of iterations?">
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="Whether the evidence accumulated so far answers the question is exactly the thing no rule settles — the paper gives sufficiency a symbol and a threshold and never says how it is computed. A table deciding it would be inventing that function and hiding it in a branch."/>
+      </bpmn:extensionElements>
+      <bpmn:documentation>TWO ways out, and both are load-bearing. Sufficiency alone never terminates on a question the corpus cannot answer; the iteration cap alone stops an answerable question early and returns something that looks complete.
+
+WHICH ONE FIRED IS CARRIED TO THE REPORT. An answer that hit the cap is an answer with known gaps; one that reached sufficiency is not. A report that does not distinguish them hands the reader a confidence nobody established.</bpmn:documentation>
+      <bpmn:incoming>F_4</bpmn:incoming>
+      <bpmn:outgoing>F_Sufficient</bpmn:outgoing>
+      <bpmn:outgoing>F_Exhausted</bpmn:outgoing>
+      <bpmn:outgoing>F_Again</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_Report" name="Synthesise, cite to a location, and say what was not found">
+      <bpmn:documentation>The paper's Reporter, with two obligations it does not state.
+
+CITE TO A LOCATION, not to a document — the page and bounding box the parse preserved, so a reader verifies a claim where it was made rather than being sent to a PDF.
+
+AND SAY WHAT WAS NOT FOUND. The failure this method makes easy is that a search which ended quietly looks exactly like one that succeeded. Sub-questions that returned nothing are reported, distinguishing "not in the corpus" from "not found by this search" — only the first is a fact about the folio.
+
+A figure description an agent drafted is NOT reported as what the figure shows. `schemas/narrative.ts` holds that line and this step does not cross it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="deep-document-research"/>
+        <cat-harness.processes:policy relaxable="false"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_Sufficient</bpmn:incoming>
+      <bpmn:incoming>F_Exhausted</bpmn:incoming>
+      <bpmn:outgoing>F_5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Answered" name="Answered, with its citations and its gaps">
+      <bpmn:incoming>F_5</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="F_1" sourceRef="Start_Question" targetRef="GW_Held"/>
+    <bpmn:sequenceFlow id="F_Held" name="held" sourceRef="GW_Held" targetRef="A_Plan"/>
+    <bpmn:sequenceFlow id="F_NotHeld" name="not held" sourceRef="GW_Held" targetRef="End_NotHeld"/>
+    <bpmn:sequenceFlow id="F_2" sourceRef="A_Plan" targetRef="A_Search"/>
+    <bpmn:sequenceFlow id="F_3" sourceRef="A_Search" targetRef="A_Refine"/>
+    <bpmn:sequenceFlow id="F_4" sourceRef="A_Refine" targetRef="GW_Sufficient"/>
+    <bpmn:sequenceFlow id="F_Again" name="not yet, and iterations remain" sourceRef="GW_Sufficient" targetRef="A_Plan"/>
+    <bpmn:sequenceFlow id="F_Sufficient" name="sufficient" sourceRef="GW_Sufficient" targetRef="A_Report"/>
+    <bpmn:sequenceFlow id="F_Exhausted" name="out of iterations" sourceRef="GW_Sufficient" targetRef="A_Report"/>
+    <bpmn:sequenceFlow id="F_5" sourceRef="A_Report" targetRef="End_Answered"/>
+  </bpmn:process>
+
+  <!-- Layout only. Nothing below changes what the process does. -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_DeepDocumentResearch">
+    <bpmndi:BPMNPlane id="BPMNPlane_DeepDocumentResearch" bpmnElement="Collab_DeepDocumentResearch">
+      <bpmndi:BPMNShape id="Shape_Participant_DDR" bpmnElement="Participant_DeepDocumentResearch" isHorizontal="true">
+        <dc:Bounds x="130" y="60" width="1360" height="380" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_DeepResearcher" bpmnElement="Lane_DeepResearcher" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="1330" height="380" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Question" bpmnElement="Start_Question">
+        <dc:Bounds x="200" y="182" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="180" y="223" width="90" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Held" bpmnElement="GW_Held" isMarkerVisible="true">
+        <dc:Bounds x="285" y="175" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="255" y="125" width="112" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_NotHeld" bpmnElement="End_NotHeld">
+        <dc:Bounds x="292" y="340" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="240" y="381" width="140" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Plan" bpmnElement="A_Plan">
+        <dc:Bounds x="415" y="140" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Search" bpmnElement="A_Search">
+        <dc:Bounds x="580" y="140" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Refine" bpmnElement="A_Refine">
+        <dc:Bounds x="745" y="140" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Sufficient" bpmnElement="GW_Sufficient" isMarkerVisible="true">
+        <dc:Bounds x="915" y="175" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="945" y="120" width="110" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Report" bpmnElement="A_Report">
+        <dc:Bounds x="1080" y="140" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Answered" bpmnElement="End_Answered">
+        <dc:Bounds x="1285" y="182" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1235" y="223" width="135" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_F_1" bpmnElement="F_1">
+        <di:waypoint x="236" y="200"/><di:waypoint x="285" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Held" bpmnElement="F_Held">
+        <di:waypoint x="335" y="200" />
+        <di:waypoint x="415" y="200" />
+        <bpmndi:BPMNLabel><dc:Bounds x="355" y="178" width="40" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_NotHeld" bpmnElement="F_NotHeld">
+        <di:waypoint x="310" y="225"/><di:waypoint x="310" y="340"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="316" y="274" width="65" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_2" bpmnElement="F_2">
+        <di:waypoint x="535" y="200" />
+        <di:waypoint x="580" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_3" bpmnElement="F_3">
+        <di:waypoint x="700" y="200" />
+        <di:waypoint x="745" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_4" bpmnElement="F_4">
+        <di:waypoint x="865" y="200" />
+        <di:waypoint x="915" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Again" bpmnElement="F_Again">
+        <di:waypoint x="940" y="225" />
+        <di:waypoint x="940" y="300" />
+        <di:waypoint x="475" y="300" />
+        <di:waypoint x="475" y="260" />
+        <bpmndi:BPMNLabel><dc:Bounds x="946" y="236" width="90" height="53" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Sufficient" bpmnElement="F_Sufficient">
+        <di:waypoint x="965" y="200" />
+        <di:waypoint x="1080" y="200" />
+        <bpmndi:BPMNLabel><dc:Bounds x="990" y="178" width="65" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Exhausted" bpmnElement="F_Exhausted">
+        <di:waypoint x="940" y="175" />
+        <di:waypoint x="940" y="100" />
+        <di:waypoint x="1140" y="100" />
+        <di:waypoint x="1140" y="140" />
+        <bpmndi:BPMNLabel><dc:Bounds x="835" y="105" width="95" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_5" bpmnElement="F_5">
+        <di:waypoint x="1200" y="200" />
+        <di:waypoint x="1285" y="200" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

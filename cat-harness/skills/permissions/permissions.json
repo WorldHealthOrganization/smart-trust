@@ -1,0 +1,150 @@
+{
+  "_comment": "The PERMISSION vocabulary — what an actor is allowed to do, independent of any process. Split out of `actors[].capabilities` on 2026-09-18 (bean ind9), which had been carrying three different things: environment probes, permissions, and skills. Schema: schemas/process/role-graph.ts. WHY THESE ARE ACTOR PROPERTIES AND NOT ROLE PROPERTIES, which was tested rather than assumed: a permission CROSS-CUTS roles. `content-authoring` is held by actors taking on five different roles (author, authoring-agent, evidence-agent, ingestion-agent, onboarding-agent); `qa-reporting` by three (build-pipeline, ig-publisher-service, qc-reviewer); and `admin` holds `admin-settings` in every one of the five lanes it acts in. Moving them onto Role produced 36 conflicts where a permission was held by some but not all actors sharing a role. A skill answers WHAT THE PERFORMER NEEDS TO KNOW and belongs to the lane; a permission answers WHAT THIS PARTICIPANT MAY DO and travels with the participant. ODRL (issue #1180, owner 2026-09-23): this file is also the folio ODRL profile's ACTION list. Every action says which broader actions it is `includedIn`, ending at ODRL's common vocabulary (odrl:display, odrl:derive, odrl:annotate, odrl:modify, odrl:translate, odrl:execute, all under odrl:use). A permission to a broader action permits every action included in it. WHO holds WHAT is no longer written on the actor: it is an ODRL rule in cat-harness/policies/ (see schemas/content/odrl.ts).",
+  "name": "folio-assistant",
+  "permissions": [
+    {
+      "id": "content-authoring",
+      "title": "Author content",
+      "description": "May create and modify content blocks. Held by every actor that writes, human or agentic.",
+      "includedIn": [
+        "odrl:modify"
+      ]
+    },
+    {
+      "id": "skill-update",
+      "title": "Edit a skill",
+      "description": "May change a skill's instruction file through the `skill_update` Tool (folio-assistant#875). Separate from `content-authoring` on purpose: a skill tells every later agent what to do, so it is the highest-stakes write in the harness. No default policy grants it; the owner grants it to a Role explicitly (owner, 2026-10-29).",
+      "includedIn": [
+        "odrl:modify"
+      ]
+    },
+    {
+      "id": "review-comments",
+      "title": "Leave review comments",
+      "description": "May record findings on a change. Deliberately distinct from accepting one — see `approval-authority`.",
+      "includedIn": [
+        "odrl:annotate"
+      ]
+    },
+    {
+      "id": "approval-authority",
+      "title": "Approve and sign off",
+      "description": "May formally accept a change and gate a phase transition. The separation from `review-comments` is the point: reviewing is advice, approving is a decision.",
+      "includedIn": [
+        "perform-task"
+      ]
+    },
+    {
+      "id": "adjudication",
+      "title": "Adjudicate a disagreement",
+      "description": "May settle a criterion whose reviewer entries disagree, and write the entry that leads it — with a reason. Neither `review-comments` (record a finding) nor `approval-authority` (accept a change): the subject here is two findings that contradict each other, and the holder chooses between them without the change itself being accepted or rejected. Cross-cuts roles like every permission, and measurably so — adjudication happens in four lanes bound to `narrative-reviewer`, `translation-adjudicator`, `reviewer` and `user`. See skills/process/process-core/adjudication.md.",
+      "includedIn": [
+        "perform-task"
+      ]
+    },
+    {
+      "id": "first-pass-review",
+      "title": "First-pass review",
+      "description": "May perform the triage review that decides whether a change reaches an SME at all.",
+      "includedIn": [
+        "perform-task"
+      ]
+    },
+    {
+      "id": "sme-coordination",
+      "title": "Coordinate SMEs",
+      "description": "May route work to subject-matter experts and hold them to a schedule.",
+      "includedIn": [
+        "perform-task"
+      ]
+    },
+    {
+      "id": "clinical-validation",
+      "title": "Validate clinically",
+      "description": "May rule on whether content is clinically accurate and complete. Not a review of the artefact — a judgement about the subject matter.",
+      "includedIn": [
+        "perform-task"
+      ]
+    },
+    {
+      "id": "translation",
+      "title": "Translate content",
+      "description": "May produce target-language text for a source block.",
+      "includedIn": [
+        "odrl:translate"
+      ]
+    },
+    {
+      "id": "qa-reporting",
+      "title": "Emit QA reports",
+      "description": "May produce the QA findings a gate reads. Cross-cutting by design: a human QC reviewer and a build pipeline both hold it.",
+      "includedIn": [
+        "perform-task"
+      ]
+    },
+    {
+      "id": "project-governance",
+      "title": "Govern the programme",
+      "description": "May set scope, form the team, allocate resources and hold the timeline.",
+      "includedIn": [
+        "perform-task"
+      ]
+    },
+    {
+      "id": "release-authorization",
+      "title": "Authorise a release",
+      "description": "May authorise publication. One of the steps `folio:policy relaxable=\"false\"` marks non-negotiable; no workflow policy may relax it.",
+      "includedIn": [
+        "perform-task"
+      ]
+    },
+    {
+      "id": "release-management",
+      "title": "Manage a release",
+      "description": "May configure, build, version and deploy a release once it has been authorised. Distinct from authorising it.",
+      "includedIn": [
+        "perform-task"
+      ]
+    },
+    {
+      "id": "admin-settings",
+      "title": "Change layer settings",
+      "description": "May change the layer's own configuration.",
+      "includedIn": [
+        "odrl:modify"
+      ]
+    },
+    {
+      "id": "role-management",
+      "title": "Manage role assignments",
+      "description": "May change which actors exist and which roles they may take on — the assignment table itself.",
+      "includedIn": [
+        "odrl:modify"
+      ]
+    },
+    {
+      "id": "visualize",
+      "title": "Visualize the graph",
+      "description": "May open a viewer over the knowledge graph and see its nodes and edges. The owner's floor for an unauthenticated reader (2026-09-23): visualize and render, and nothing else.",
+      "includedIn": [
+        "odrl:display"
+      ]
+    },
+    {
+      "id": "render",
+      "title": "Render content",
+      "description": "May have content rendered to a reading form (a page, a PDF) and read it. A derivation, not a change to the source.",
+      "includedIn": [
+        "odrl:derive"
+      ]
+    },
+    {
+      "id": "perform-task",
+      "title": "Perform a task",
+      "description": "May perform a named Task in a Process. Scoped by the rule's cat-harness:process, cat-harness:task and cat-harness:role constraints, and needs the actor to be eligible for the lane's role as well. The nine task-kind permissions above are included in it.",
+      "includedIn": [
+        "odrl:execute"
+      ]
+    }
+  ]
+}
