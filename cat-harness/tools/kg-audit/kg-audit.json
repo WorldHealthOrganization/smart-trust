@@ -1,0 +1,75 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "kg-audit",
+    "title": "Knowledge-graph audit",
+    "description": "Audit every join in the actor→role→skill→task sentence and write a committed QA sidecar per node. The sidecar distinguishes \"unbound since it was drawn\" from \"broken in the commit under review\".",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat kg:audit"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Compare against the committed sidecars and fail on a critical finding or a stale one, instead of writing.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        },
+        {
+          "name": "strict",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Promote `major` to failing as well. Not what CI runs; see the note on constant-red checks in `remote-skill-servable.test.ts`.",
+          "required": false,
+          "arg": {
+            "flag": "--strict"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "sidecars",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The QA tree, mirroring each subject's own path, because a flat tree would collide: several basenames occur twice."
+        },
+        {
+          "name": "worstSeverity",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "critical, major, minor — or none. `unknown` findings are never a pass."
+        }
+      ]
+    },
+    "satisfies": [
+      "code-node-review"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/io/outputs/1",
+      "comment": "`unknown` is a result, not an absence, and it belongs in the\ncontract: a criterion that could not be evaluated must not be read\nas a pass, and a caller that cannot see the distinction will read it\nas one."
+    },
+    {
+      "at": "",
+      "comment": "── The audits, which had no node while auditing the graph that holds ─\n\n`tool-coverage.ts` has said since 2026-09-18 that its tier A \"is the list\nto act on\", and `kg-audit` writes the committed verdict for every node in\nthe graph. Neither was reachable by asking that graph. A node here is the\npremise of bean `d308` closing on itself: the instrument that finds\nunreachable mechanisms was one.\n\nNo `maintains` on either, for the reason `schema-docs` records: each writes\none artefact PER SUBJECT — a sidecar per node, an SVG per diagram — and\n`maintains.artefact` is a single path, so naming one file out of hundreds\nwould read as a complete provenance record and be false."
+    }
+  ]
+}

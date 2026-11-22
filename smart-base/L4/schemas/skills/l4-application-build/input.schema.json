@@ -1,0 +1,220 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "L4 Application Build Input",
+  "description": "Stage 8b of smart-guideline-end-to-end: the brief, the stage-6 IG build and the stage-8a wireframes.",
+  "type": "object",
+  "required": [
+    "applicationBrief",
+    "ig",
+    "wireframes"
+  ],
+  "properties": {
+    "applicationBrief": {
+      "$ref": "#/definitions/applicationBrief"
+    },
+    "ig": {
+      "$ref": "#/definitions/igBuild"
+    },
+    "wireframes": {
+      "$ref": "#/definitions/wireframeChoice",
+      "description": "Stage 8a's wireframe-design-review output; the agent builds from its chosen candidate, or its recommended one while the choice is pending."
+    }
+  },
+  "definitions": {
+    "applicationBrief": {
+      "title": "Application brief",
+      "description": "What the consuming application is, in the requester's words where they gave any. Defined by the l4-application-brief output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "topic",
+        "kind",
+        "users",
+        "devices",
+        "l2Processes"
+      ],
+      "properties": {
+        "topic": {
+          "type": "string",
+          "description": "Kebab-case name of the application, used as the wireframe topic.",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "kind": {
+          "type": "string",
+          "description": "The option chosen: a point-of-care app, a reporting or indicator dashboard, a decision-support service an EMR calls, or something else.",
+          "enum": [
+            "point-of-care",
+            "dashboard",
+            "decision-support",
+            "other"
+          ]
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The L2 persona ids who use it.",
+          "minItems": 1
+        },
+        "devices": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "web",
+              "mobile",
+              "tablet",
+              "emr-embedded",
+              "service"
+            ]
+          },
+          "minItems": 1
+        },
+        "l2Processes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The L2 business-process ids it covers.",
+          "minItems": 1
+        },
+        "l3Resources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Canonicals of the L3 resources it reads or writes."
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "FHIR operations it calls: $apply, $evaluate-measure, CDS Hooks services."
+        },
+        "connectivity": {
+          "type": "string",
+          "description": "Online, intermittent or offline-first."
+        },
+        "systems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The systems it talks to: an EMR, a registry, a reporting server."
+        },
+        "words": {
+          "type": "string",
+          "description": "The requester's own description, verbatim."
+        }
+      }
+    },
+    "igBuild": {
+      "title": "IG build",
+      "description": "Stage 6's result as later stages read it: where the IG is and what it generated. The fields are fhir-harness l3-fhir-authoring's output (sushiResult, generatedResources), plus where the IG root is. Defined by the l4-application-brief input contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "igRoot",
+        "generatedResources"
+      ],
+      "properties": {
+        "igRoot": {
+          "type": "string",
+          "description": "IG repository root directory."
+        },
+        "packageId": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "sushiResult": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "success",
+                "warnings",
+                "errors"
+              ]
+            },
+            "resourceCount": {
+              "type": "integer"
+            },
+            "errorCount": {
+              "type": "integer"
+            },
+            "warningCount": {
+              "type": "integer"
+            }
+          }
+        },
+        "generatedResources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "resourceType": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "wireframeChoice": {
+      "title": "Wireframe choice",
+      "description": "What stage 8b reads from cat-harness wireframe-design-review's output: where the drawings are and which candidate was chosen. The fields are that contract's. Defined by the l4-application-build input contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "topic",
+        "assetDir",
+        "candidates"
+      ],
+      "properties": {
+        "topic": {
+          "type": "string"
+        },
+        "assetDir": {
+          "type": "string"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "source",
+              "outcome"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "outcome": {
+                "type": "string",
+                "enum": [
+                  "chosen",
+                  "rejected",
+                  "pending",
+                  "as-is"
+                ]
+              }
+            }
+          },
+          "minItems": 1
+        }
+      }
+    }
+  }
+}

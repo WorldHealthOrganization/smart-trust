@@ -1,0 +1,77 @@
+name: Public comment record check
+
+# Two halves of one promise: no drift between a change-set's record and
+# anything shown about it (folio-assistant issue #2183), as ONE reusable
+# workflow; the record's directory is the `store` input (see
+# public-comment.yml).
+#
+#   check      the change-set files agree with each other and with the
+#              comments. No network; fails the run.
+#   reconcile  (not on pull requests) every primary issue is re-rendered from
+#              its record and opened or closed as its status says, and a
+#              change-set decided outside GitHub gets its issue. Reports;
+#              never deletes.
+
+# Kept HERE, in folio-assistant-core, because it drives this layer's own
+# public-comment-changesets.ts: the tools layer below may not name the content
+# core (check:reference-direction). Moved from cat-harness-tools (#1038).
+
+on:
+  workflow_call:
+    inputs:
+      store:
+        description: "The record's directory in the calling repository."
+        type: string
+        default: review/public-comment
+      label:
+        description: "How the record's commits name it ('public comment', 'wg comment')."
+        type: string
+        default: public comment
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: comment-record-${{ github.repository }}-${{ inputs.store }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: litlfred/cat-harness-tools/.github/actions/mount-layers@8691b09acc175c43e569a51e36dac14412d8b8cf # index.lock.json
+      - env:
+          STORE: ${{ inputs.store }}
+        run: bun run folio-assistant-core/scripts/public-comment-changesets.ts check --store "$STORE"
+
+  reconcile:
+    if: github.event_name != 'pull_request'
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: litlfred/cat-harness-tools/.github/actions/mount-layers@8691b09acc175c43e569a51e36dac14412d8b8cf # index.lock.json
+      - name: Bring every issue into line with its record
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          STORE: ${{ inputs.store }}
+        run: bun run folio-assistant-core/scripts/public-comment-changesets.ts reconcile --store "$STORE"
+      - name: Commit what it recorded
+        env:
+          STORE: ${{ inputs.store }}
+          LABEL: ${{ inputs.label }}
+          BASE: ${{ github.event.repository.default_branch }}
+        run: |
+          if git diff --quiet -- "$STORE"; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$STORE"
+          git commit -m "$LABEL: nightly reconcile"
+          for attempt in 1 2 3 4; do
+            git push origin HEAD && break
+            git pull --rebase origin "$BASE"
+          done

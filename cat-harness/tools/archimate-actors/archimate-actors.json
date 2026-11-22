@@ -1,0 +1,96 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "archimate-actors",
+    "title": "Check that an ArchiMate model's fhir-actor tags point at the IG's FHIR ActorDefinitions",
+    "description": "Actors come first: the IG's ActorDefinitions are written from the DAK's personas, and an ArchiMate model only points at them. For one model a layer's `cat-archimate.config.json` names, this reads every element carrying the Archi property `fhir-actor`, whose value is an ActorDefinition's canonical URL, and the IG's ActorDefinitions: FSH `InstanceOf: ActorDefinition` under `input/fsh/`, and FHIR JSON under `fsh-generated/resources/` or `input/resources/`, each canonical being `<sushi-config canonical>/ActorDefinition/<id>` unless its `url` says otherwise. It fails on a value that is not a canonical URL, a tag that names no ActorDefinition, an element kind that cannot be an actor (a data object, a goal), and a type mismatch (a `#person` actor on an application or technology element, a `#system` actor on a business actor or role). It warns about each ActorDefinition no element realizes; `--strict` makes that a failure. `--json` prints element → actors and actor → elements, for page back-links. It never writes an ActorDefinition or any FSH, and never matches boxes to actors by name.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat archimate:actors"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The layer root whose ArchiMate model is read.",
+          "required": true,
+          "arg": {
+            "flag": "--instance"
+          }
+        },
+        {
+          "name": "model",
+          "schema": {
+            "$type": "ArchimateModelId"
+          },
+          "description": "The model's id from the config.",
+          "required": true,
+          "arg": {
+            "flag": "--model"
+          }
+        },
+        {
+          "name": "ig",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The IG directory holding `sushi-config.yaml` and `input/fsh/`; absent, the layer root.",
+          "required": false,
+          "arg": {
+            "flag": "--ig"
+          }
+        },
+        {
+          "name": "strict",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Fail, not only warn, when an ActorDefinition is realized by no element of the model.",
+          "required": false,
+          "arg": {
+            "flag": "--strict"
+          }
+        },
+        {
+          "name": "json",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Print the back-links as JSON (element → actors, actor → elements, problems, unrealized) instead of the report.",
+          "required": false,
+          "arg": {
+            "flag": "--json"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The problems, the unrealized ActorDefinitions and a summary line; with `--json`, the back-links as JSON. Exit 1 on any problem, or on an unrealized actor under `--strict`."
+        }
+      ]
+    },
+    "satisfies": [
+      "archimate-models"
+    ],
+    "selection": {
+      "when": "In an IG whose systems are drawn in an ArchiMate model, after its ActorDefinitions are written from the DAK personas: when model authors tag boxes `fhir-actor` in Archi, in CI, and before generating pages that link boxes to actors.",
+      "limits": "Reads one model per run. Checks pointers only: it never creates an ActorDefinition, and an actor missing from the IG is added there, by hand, from its persona. Reads FSH by pattern, not with SUSHI, so an ActorDefinition made only through a RuleSet is not seen until its JSON is generated.",
+      "cost": "One parse of the model and of the IG's FSH; milliseconds. No network, no JVM, no SUSHI."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  }
+}

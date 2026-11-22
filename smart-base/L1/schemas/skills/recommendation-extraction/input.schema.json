@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Recommendation Extraction Input",
+  "description": "Stage 2 of smart-guideline-end-to-end: the L1 sources to take into an L1 knowledge graph. Only the included sources whose status is not in-kg are extracted; the rest are carried through as they are.",
+  "type": "object",
+  "required": [
+    "l1Sources"
+  ],
+  "properties": {
+    "l1Sources": {
+      "$ref": "#/definitions/l1SourceList"
+    },
+    "targetGuide": {
+      "type": "string",
+      "description": "The DAK or IG whose personas and business processes the scenarios reuse first (reuse-first precedence), by packageId."
+    }
+  },
+  "definitions": {
+    "l1Source": {
+      "title": "L1 source",
+      "description": "One candidate L1 guideline, with whether it is used and how far it has been taken. Defined by the dak-l1-library output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "origin",
+        "status",
+        "included",
+        "reason"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The library id (the bib key), or a provisional id for a source not yet in the library."
+        },
+        "title": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string",
+          "description": "Where it is published: a WHO IRIS handle, a DOI, a URL.",
+          "format": "uri"
+        },
+        "origin": {
+          "type": "string",
+          "description": "Where it was found.",
+          "enum": [
+            "dak-component-1",
+            "who-iris",
+            "jurisdiction",
+            "other"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "description": "in-library: library/<bib>/ exists; in-kg: library/<bib>/l1-extraction/ exists at this sourceVersion; not-yet: neither.",
+          "enum": [
+            "not-yet",
+            "in-library",
+            "in-kg"
+          ]
+        },
+        "libraryPath": {
+          "type": "string",
+          "description": "library/<bib>/, when it is there."
+        },
+        "sourceVersion": {
+          "type": "string",
+          "description": "The version or date of the source the library holds."
+        },
+        "included": {
+          "type": "boolean",
+          "description": "Whether the source bears on the use case."
+        },
+        "reason": {
+          "type": "string",
+          "description": "One sentence: why it was included or left out."
+        }
+      }
+    },
+    "l1SourceList": {
+      "title": "L1 source list",
+      "description": "Stage 1's output and stage 2's input: the candidate L1 sources for a use case. Defined by the dak-l1-library output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "sources"
+      ],
+      "properties": {
+        "useCase": {
+          "$ref": "#/definitions/useCase"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/l1Source"
+          }
+        }
+      }
+    },
+    "useCase": {
+      "title": "Use case",
+      "description": "What the guideline is for, in the requester's words. Stage 0's output and every later stage's context. Defined by the guideline-use-case output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "population",
+        "setting",
+        "jurisdiction",
+        "interventions"
+      ],
+      "properties": {
+        "population": {
+          "type": "string",
+          "description": "Who the guideline serves."
+        },
+        "setting": {
+          "type": "string",
+          "description": "Where care happens: community, primary care, hospital, and so on."
+        },
+        "jurisdiction": {
+          "type": "string",
+          "description": "WHO (a global guideline) or the country or region adapting one; an ISO 3166 code where there is one."
+        },
+        "interventions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The health interventions in scope.",
+          "minItems": 1
+        },
+        "kind": {
+          "type": "string",
+          "description": "A new guideline, or an adaptation of an existing one.",
+          "enum": [
+            "new",
+            "adaptation"
+          ]
+        },
+        "adapts": {
+          "type": "string",
+          "description": "For an adaptation: the guideline or DAK being adapted, by name or canonical."
+        },
+        "words": {
+          "type": "string",
+          "description": "The requester's own description, verbatim."
+        }
+      }
+    }
+  }
+}

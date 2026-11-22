@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_UpstreamPinWatch" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:collaboration id="Collaboration_Process_UpstreamPinWatch">
+    <bpmn:participant id="Participant_Process_UpstreamPinWatch" name="Watching a pinned upstream dependency" processRef="Process_UpstreamPinWatch"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_UpstreamPinWatch" name="Watching a pinned upstream dependency" isExecutable="false">
+    <bpmn:documentation>Has a pinned upstream dependency fallen behind a release: check each pin, keep one tracking issue, and enter the adoption subprocess for each dependency that is behind. THE WATCHER'S DISPATCH POINT, drawn rather than described. Bean `29ij` records the rule this follows: a watcher fires on specific events, and those events are process events — they belong in a diagram, not in prose that no tool reads.
+
+Everything up to the tracking issue is MECHANICAL and sits in a system lane: read the registry, list upstream's releases, compare, and maintain ONE issue. No step here exercises judgement, which is what makes `build-pipeline` the correct lane rather than a convenient one.
+
+Three outcomes and the middle one is the point. Current closes the issue; behind opens or edits it; COULD NOT TELL leaves the issue exactly as it is and fails the job, because a watchdog that has gone blind must not read as good news — `check-ci-health.ts`'s rule, and the reason this repository has a watchdog at all.
+
+The adoption itself is a call activity, so the judgement half lives in its own reusable process and this one stays free of it.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_UpstreamPinWatch">
+      <bpmn:lane id="Lane_Ci" name="CI/CD Pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Owns exactly three outcomes and must keep them visibly different: current closes the tracking issue, behind opens or edits it, and UNKNOWN leaves the issue untouched while failing the job anyway — a watchdog that goes blind must never read as clean, so this lane is the one place that distinction cannot be collapsed into a single pass or fail. It hands off at the first sign of judgement: the moment a bump needs adopting, that is Lane_Agent's, never this one's.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Sweep</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReadPins</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_QueryUpstream</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Determined</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Unknown</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Stale</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CloseIssue</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Current</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TrackIssue</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Entered only once Lane_Ci has confirmed a pin is behind and filed the issue, never to make that determination itself: A_PickUp's claim is what stops two sessions adopting the same bump. The judgement of adoption is not drawn here either — Call_Adopt hands it to its own reusable process, so this lane is only the hand-off from mechanical detection to judgement, not the judgement itself.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_PickUp</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanOpen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_BeanYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_BeanNotYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Adopt</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Handled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanClose</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Sweep" name="Weekly,&#10;or on dispatch">
+      <bpmn:documentation>Weekly and not daily, for the same reason `ci-health.yml` is weekly: the defect being guarded against is "nobody noticed for months", not "nobody noticed for a day", and a daily run turns the tracking issue into a feed.</bpmn:documentation>
+      <bpmn:timerEventDefinition id="Timer_Sweep"/>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_ReadPins" name="Read the pin registry&#10;upstream-pins.json">
+      <bpmn:documentation>The registry lists the tenants and says, per row, WHICH FILE holds the pin literal and how to read it. It deliberately does not store the version: one answer to "what are we running", read from the file the build reads.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="upstream-version-adoption"/></bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_QueryUpstream" name="List upstream releases&#10;and compare to the pin">
+      <bpmn:documentation>`git ls-remote --tags`, filtered by the row's `tagPattern` and ordered by version. Nothing is cloned and no API token is needed, so the check runs the same way on a laptop and in CI.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="upstream-version-adoption"/></bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_Determined" name="Could we tell?">
+      <bpmn:documentation>Asked of the `verdict` output of 'Check the pins' in .github/workflows/upstream-pins.yml, which runs `check:upstream-pins --out`. Exit 0 is every pin current, 1 at least one behind, 2 could not tell; an exit 1 with no report file is a crash and is reclassified as could-not-tell, as is any other code. `no` is verdict == 'unknown': 'Refuse to report success on an undetermined pin' runs `exit 1` and the tracking issue is left untouched. `yes` is verdict != 'unknown', the guard on ensuring the `upstream-pin` label.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Unknown" name="Unknown —&#10;issue untouched, job red"/>
+    <bpmn:exclusiveGateway id="GW_Stale" name="Behind a release?">
+      <bpmn:documentation>Asked of the same `verdict`. `no` is verdict == 'current': the tracking issue is closed because every pin is current. `yes` is verdict == 'behind': the one tracking issue is opened or edited in place.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_CloseIssue" name="Close the&#10;tracking issue">
+      <bpmn:documentation>Closed automatically when every pin is current, so the issue's existence is the state rather than a log of past states.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="upstream-version-adoption"/></bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Current" name="Every pin current"/>
+    <bpmn:serviceTask id="Task_TrackIssue" name="Open or EDIT the one&#10;tracking issue">
+      <bpmn:documentation>One issue, edited in place. GitHub's own failure mail is the channel that was already ignored thirty times, so this adds none: an edit does not notify, and a pin that stays behind for two months stays one unread item rather than nine.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="upstream-version-adoption"/></bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="A_PickUp" name="Pick up the stale pin">
+      <bpmn:documentation>The hand-off from the mechanical lane to the one that can exercise judgement. Claiming the bean here is what stops two sessions adopting the same bump.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="upstream-version-adoption"/>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:callActivity id="Call_Adopt" name="Adopt the&#10;version bump" calledElement="Process_UpstreamAdoption">
+      <bpmn:documentation>The reusable subprocess. Every pinned dependency enters it the same way, so a new tenant is a registry row and a call — never a second diagram saying the same thing in different words.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="upstream-version-adoption"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_Handled" name="Decision recorded"/>
+    <bpmn:callActivity id="Call_BeanOpen" name="Open the bean" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Process_BeanOpen: check before you create, find out whose the bean is, and claim it — or leave it alone when it is someone else's. The one place a claim is drawn (bean m8gz, owner 2026-10-24); the gateway after this reads which end it reached.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_BeanYours" name="Bean claimed?">
+      <bpmn:documentation>Reads which end Process_BeanOpen reached. `claimed`: the bean is in progress and this process works it. `not yours`: a sibling session or a human holds it, nothing was written to it, and this process stops here rather than work a bean it does not own (bean-coordination).</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_BeanNotYours" name="Not yours —&#10;left alone">
+      <bpmn:documentation>Someone else holds the bean; this run stops without touching it.</bpmn:documentation>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Call_BeanClose" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>Process_BeanClose: end the bean in a state that says why — complete and archive it, scrap it with its reasons and archive it, or record the blocker and hand it back. The one place resolve and archive are drawn (bean m8gz, owner 2026-10-24); placed straight before the end so the engine's resolve sees nothing left but the archive step.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SF_PW_1" sourceRef="Start_Sweep" targetRef="Task_ReadPins"/>
+    <bpmn:sequenceFlow id="SF_PW_2" sourceRef="Task_ReadPins" targetRef="Task_QueryUpstream"/>
+    <bpmn:sequenceFlow id="SF_PW_3" sourceRef="Task_QueryUpstream" targetRef="GW_Determined"/>
+    <bpmn:sequenceFlow id="SF_PW_4" name="no" sourceRef="GW_Determined" targetRef="End_Unknown"/>
+    <bpmn:sequenceFlow id="SF_PW_5" name="yes" sourceRef="GW_Determined" targetRef="GW_Stale"/>
+    <bpmn:sequenceFlow id="SF_PW_6" name="no" sourceRef="GW_Stale" targetRef="Task_CloseIssue"/>
+    <bpmn:sequenceFlow id="SF_PW_7" sourceRef="Task_CloseIssue" targetRef="End_Current"/>
+    <bpmn:sequenceFlow id="SF_PW_8" name="yes" sourceRef="GW_Stale" targetRef="Task_TrackIssue"/>
+    <bpmn:sequenceFlow id="SF_PW_9" sourceRef="Task_TrackIssue" targetRef="Call_BeanOpen"/>
+    <bpmn:sequenceFlow id="SF_PW_10" sourceRef="A_PickUp" targetRef="Call_Adopt"/>
+    <bpmn:sequenceFlow id="SF_PW_11" sourceRef="Call_Adopt" targetRef="Call_BeanClose"/>
+    <bpmn:sequenceFlow id="SF_Bean_1" name="claimed" sourceRef="GW_BeanYours" targetRef="A_PickUp"/>
+    <bpmn:sequenceFlow id="SF_Bean_2" sourceRef="Call_BeanOpen" targetRef="GW_BeanYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_3" name="not yours" sourceRef="GW_BeanYours" targetRef="End_BeanNotYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_4" sourceRef="Call_BeanClose" targetRef="End_Handled"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_UpstreamPinWatch">
+    <bpmndi:BPMNPlane id="Plane_Process_UpstreamPinWatch" bpmnElement="Collaboration_Process_UpstreamPinWatch">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_UpstreamPinWatch" bpmnElement="Participant_Process_UpstreamPinWatch" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1400" height="530" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Ci" bpmnElement="Lane_Ci" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1370" height="310" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent_Watch" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="390" width="1370" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Sweep" bpmnElement="Start_Sweep">
+        <dc:Bounds x="236" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="183" width="70" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReadPins" bpmnElement="Task_ReadPins">
+        <dc:Bounds x="292" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_QueryUpstream" bpmnElement="Task_QueryUpstream">
+        <dc:Bounds x="442" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Determined" bpmnElement="GW_Determined" isMarkerVisible="true">
+        <dc:Bounds x="592" y="135" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="577" y="98" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Unknown" bpmnElement="End_Unknown">
+        <dc:Bounds x="599" y="250" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="560" y="290" width="95" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Stale" bpmnElement="GW_Stale" isMarkerVisible="true">
+        <dc:Bounds x="692" y="135" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="680" y="98" width="75" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_TrackIssue" bpmnElement="Task_TrackIssue">
+        <dc:Bounds x="792" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_CloseIssue" bpmnElement="Task_CloseIssue">
+        <dc:Bounds x="657" y="250" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Current" bpmnElement="End_Current">
+        <dc:Bounds x="807" y="292" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="788" y="333" width="62" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanOpen_di" bpmnElement="Call_BeanOpen">
+        <dc:Bounds x="792" y="410" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_BeanYours_di" bpmnElement="GW_BeanYours" isMarkerVisible="true">
+        <dc:Bounds x="942" y="445" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="927" y="398" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_BeanNotYours_di" bpmnElement="End_BeanNotYours">
+        <dc:Bounds x="949" y="525" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="925" y="563" width="85" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_PickUp" bpmnElement="A_PickUp">
+        <dc:Bounds x="1052" y="410" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Adopt" bpmnElement="Call_Adopt">
+        <dc:Bounds x="1202" y="410" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanClose_di" bpmnElement="Call_BeanClose">
+        <dc:Bounds x="1352" y="410" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Handled" bpmnElement="End_Handled">
+        <dc:Bounds x="1502" y="452" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1490" y="493" width="60" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_PW_1" bpmnElement="SF_PW_1">
+        <di:waypoint x="272" y="160" />
+        <di:waypoint x="292" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_PW_2" bpmnElement="SF_PW_2">
+        <di:waypoint x="412" y="160" />
+        <di:waypoint x="442" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_PW_3" bpmnElement="SF_PW_3">
+        <di:waypoint x="562" y="160" />
+        <di:waypoint x="592" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_PW_4" bpmnElement="SF_PW_4">
+        <di:waypoint x="617" y="185" />
+        <di:waypoint x="617" y="250" />
+        <bpmndi:BPMNLabel><dc:Bounds x="622" y="205" width="20" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_PW_5" bpmnElement="SF_PW_5">
+        <di:waypoint x="642" y="160" />
+        <di:waypoint x="692" y="160" />
+        <bpmndi:BPMNLabel><dc:Bounds x="652" y="140" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_PW_8" bpmnElement="SF_PW_8">
+        <di:waypoint x="742" y="160" />
+        <di:waypoint x="792" y="160" />
+        <bpmndi:BPMNLabel><dc:Bounds x="752" y="140" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_PW_6" bpmnElement="SF_PW_6">
+        <di:waypoint x="717" y="185" />
+        <di:waypoint x="717" y="250" />
+        <bpmndi:BPMNLabel><dc:Bounds x="722" y="205" width="20" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_PW_7" bpmnElement="SF_PW_7">
+        <di:waypoint x="777" y="310" />
+        <di:waypoint x="807" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_PW_9" bpmnElement="SF_PW_9">
+        <di:waypoint x="852" y="220" />
+        <di:waypoint x="852" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_2_di" bpmnElement="SF_Bean_2">
+        <di:waypoint x="912" y="470" />
+        <di:waypoint x="942" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_1_di" bpmnElement="SF_Bean_1">
+        <di:waypoint x="992" y="470" />
+        <di:waypoint x="1052" y="470" />
+        <bpmndi:BPMNLabel><dc:Bounds x="997" y="450" width="55" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_3_di" bpmnElement="SF_Bean_3">
+        <di:waypoint x="967" y="495" />
+        <di:waypoint x="967" y="525" />
+        <bpmndi:BPMNLabel><dc:Bounds x="972" y="499" width="70" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_PW_10" bpmnElement="SF_PW_10">
+        <di:waypoint x="1172" y="470" />
+        <di:waypoint x="1202" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_PW_11" bpmnElement="SF_PW_11">
+        <di:waypoint x="1322" y="470" />
+        <di:waypoint x="1352" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_4_di" bpmnElement="SF_Bean_4">
+        <di:waypoint x="1472" y="470" />
+        <di:waypoint x="1502" y="470" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

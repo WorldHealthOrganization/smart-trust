@@ -1,0 +1,137 @@
+---
+doc_id: 10665-77764
+doc_title: "WHO recommendations: optimizing health worker roles to improve access to key maternal and newborn health interventions through task shifting"
+section_id: sec-039-10-references
+section_title: "References"
+section_number: 10
+pages: 96-98
+source_pdf: 10665-77764.pdf
+source_sha256: 3a346c0593870128
+toc_source: outline
+---
+1.	 	WHO. WHO Handbook for guideline development. Geneva: 
+World Health Organization; 2012. 
+2.	 	Lewin S, Oxman AD, Garcia Marti S, Munabi-Babigumira 
+S, Fretheim A, Lavis JN. SUPPORT Tools for evidence-
+informed health policy making (STP) 11: Finding and 
+using evidence on local conditions. Health Res Policy Syst 
+2009;7 Suppl 1:S11.
+3.	 	WHO. The World Health Report: Working together for 
+health. Geneva: World Health Organization; 2006. 
+4.	 	Anyangwe SC, Mtonga C. Inequities in the global health 
+workforce: the greatest impediment to health in sub-
+Saharan Africa. Int J Environ Res Public Health 2007 
+June;4(2):93-100.
+5.	 	UNICEF. State of the World’s Children. New York: United 
+Nations Children and Education Fund; 2009. 
+6.	 	Ronsmans C, Graham WJ. Maternal mortality: who, 
+when, where, and why. Lancet 2006 September 
+30;368(9542):1189-200.
+7.	 	Lawn JE, Kinney M, Lee AC, Chopra M, Donnay F, Paul VK 
+et al. Reducing intrapartum-related deaths and disability: 
+can the health system deliver? Int J Gynaecol Obstet 2009 
+October;107 Suppl 1:S123-2.
+8.	 	Hofmeyr GJ, Haws RA, Bergstrom S, Lee AC, Okong 
+P, Darmstadt GL et al. Obstetric care in low-resource 
+settings: what, who, and how to overcome challenges to 
+scale up? Int J Gynaecol Obstet 2009 October;107 Suppl 
+1:S21-S45.
+9.	 	Lewin SA, Dick J, Pond P, Zwarenstein M, Aja G, van Wyk B 
+et al. Lay health workers in primary and community health 
+care. Cochrane Database Syst Rev 2005;(1):CD004015.
+10.		WHO. Knowledge to action framework and the G.R.E.A.T. 
+project. Geneva: World Health Organization; 2009. 
+11.		Bosch-Capblanch, X. and Project Team. Handbook 
+for developing health systems guidance: supporting 
+informed judgements for health systems policies. Basel, 
+Switzerland: Swiss Tropical and Public Health Institute; 
+2011. 
+12.		Coltart CE, Souza JP, Gulmezoglu AM. Prioritizing WHO 
+normative work on maternal and perinatal health: a 
+multicountry survey. Reprod Health 2011;8:30.
+13.		Wilson A, Lissauer D, Thangaratinam S, Khan KS, 
+MacArthur C, Coomarasamy A. A comparison of clinical 
+officers with medical doctors on outcomes of caesarean 
+section in the developing world: meta-analysis of 
+controlled studies. BMJ 2011;342:d2600.
+14.		Colvin C, de Heer J, Winterton L, Glenton C, Lewin S, 
+Rashidian A et al. A systematic review of barriers and 
+facilitators to the implementation of task-shifting in 
+midwifery programmes. Review in progress, 2012.
+15.		Glenton C, Colvin C, Carlsen B, Swartz A, Lewin S, Noyes 
+J et al. A systematic review of barriers and facilitators to 
+the implementation of lay health worker programmes for 
+maternal and child health. Review in progress, 2012.
+16.		Glenton C, Khanna R, Morgan C, Nilsen ES. The effects, 
+safety and acceptability of compact, prefilled, auto-disable 
+injection devices such as UnijectTM when delivered by lay 
+health workers:   A systematic review. Review in progress, 
+2012.
+17.		Gopinathan U, Lewin S, Glenton C. A review of large-scale 
+programmes for scaling up human resources for health 
+in low- and middle-income countries. Study in progress, 
+2012.
+18.		Rashidian A, Karimi-Shahanjarini A, Shakibazadeh E, 
+Glenton C, Noyes J, Lewin S et al. A systematic review 
+of barriers and facilitators to the effectiveness and 
+implementation of doctor-nurse substitution programmes. 
+Review in progress, 2012.
+19.		Lewin S, Glenton C, Owolabi O, Pakenham-Walsh N. 
+Stakeholder views on optimizing the roles of health care 
+providers for maternal and newborn health (MNH) in 
+LMICs: an analysis of the HIFA2015 email archive. Review 
+in progress, 2012.
+20.		De Savigny, D and Adam, T. Systems thinking for 
+health systems strengthening. Geneva: World Health 
+Organization; 2009. 
+21.		Guyatt G, Oxman AD, Akl EA, Kunz R, Vist G, Brozek J et 
+al. GRADE guidelines: 1. Introduction-GRADE evidence 
+profiles and summary of findings tables. J Clin Epidemiol 
+2011 April;64(4):383-94.
+22.		WHO. Task shifting: rational distribution of tasks among 
+health workforce teams. Global recommendations 
+and guideline. Geneva: World Health Organization; 
+2007. Available at: www.who.int/healthsystems/TTR-
+TaskShifting.pdf
+23.		WHO. WHO recommendations for prevention and 
+treatment of pre-eclampsia and eclampsia. Geneva: World 
+Health Organization; 2011. Available at:
+http://apps.who.int/rhl/guidelines/WHO_guideline_
+prevention_treatment_pre_eclampsi_eclampsia/en/
+index.html
+24.		Lavis JN, Rottingen JA, Bosch-Capblanch X, Atun R, 
+El-Jardali F, Gilson L et al. Guidance for evidence-
+informed policies about health systems: linking guidance 
+development to policy development. PLoS Med 2012 
+March;9(3):e1001186.
+25.		WHO. WHO recommendations for the prevention and 
+treatment of postpartum haemorrhage. Geneva: World 
+Health Organization; 2012. Available at: 
+http://apps.who.int/rhl/guidelines/postpartum_
+haemorrhage/en/index.html
+26.		Lavis JN, Wilson MG, Oxman AD, Lewin S, Fretheim 
+A. SUPPORT Tools for evidence-informed health 
+Policymaking (STP) 4: Using research evidence to clarify a 
+problem. Health Res Policy Syst 2009;7 Suppl 1:S4.
+27.		Kingdon JW. Agendas, Alternatives, and Public Policies. 
+2nd ed. New York: HarperCollins College Publishers; 2003.
+28.		Fretheim A, Munabi-Babigumira S, Oxman AD, Lavis 
+JN, Lewin S. SUPPORT tools for evidence-informed 
+policymaking in health (STP) 6: Using research evidence 
+to address how an option will be implemented. Health Res 
+Policy Syst 2009;7 Suppl 1:S6.
+29.		Fretheim A, Oxman AD, Lavis JN, Lewin S. SUPPORT tools 
+for evidence-informed policymaking in health (STP) 18: 
+Planning monitoring and evaluation of policies. Health Res 
+Policy Syst 2009;7 Suppl 1:S18.
+30.		WHO. World Health Organization Reproductive Health 
+Library. 2012. Geneva, World Health Organization. 
+Available at: http://apps.who.int/rhl/en
+For more information, please contact:
+Department of Reproductive Health and Research
+World Health Organization
+Avenue Appia 20, CH-1211 Geneva 27, Switzerland
+Fax: +41 22 791 4171
+E-mail: reproductivehealth@who.int 
+www.who.int/reproductivehealth
+ISBN 978 92 4 150484 3

@@ -1,0 +1,89 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "readme-sync",
+    "title": "Sync generated README sections",
+    "description": "Rewrite each generated README region, and only where the README already carries that section's marker pair. Nothing outside a marked region is touched. The layer's AGENTS.md is synced too, for the `skills:index` index only: the skills the layer publishes, or, past 32 KiB, their directories with the full list in SKILLS.md.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat readme:sync",
+      "mcp": {
+        "tool": "readme_sync"
+      },
+      "inProcess": {
+        "module": "src/tools/readme-sync.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Fail if any section is stale; write nothing.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        },
+        {
+          "name": "only",
+          "schema": {
+            "$type": "ReadmeSection"
+          },
+          "description": "Restrict to these sections. Repeated: the flag is emitted once per section.",
+          "required": false,
+          "repeated": true,
+          "arg": {
+            "flag": "--only"
+          }
+        },
+        {
+          "name": "link_style",
+          "schema": {
+            "$type": "LinkStyle"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--link-style"
+          }
+        },
+        {
+          "name": "fetch",
+          "schema": {
+            "$type": "Flag"
+          },
+          "required": false,
+          "arg": {
+            "flag": "--fetch"
+          }
+        },
+        {
+          "name": "dir",
+          "schema": {
+            "$type": "FilesystemPath"
+          },
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "Per section: written, unchanged, or skipped because it could not be determined."
+        }
+      ]
+    },
+    "satisfies": [
+      "docs-generation"
+    ],
+    "requires": {
+      "network": false
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "cache/1.0.0",
+  "id": "lpc-derive-cache",
+  "title": "Layer PR checks: derive:publish writer outputs",
+  "instance": "cat-harness-tools",
+  "kind": "actions-cache",
+  "trustClass": "c",
+  "location": "derive-cache-v1-",
+  "keyRecipe": {
+    "source": "per-run",
+    "expression": "derive-cache-v1-${{ github.repository }}-${{ env.SIDE }}-${{ github.run_id }}-${{ github.run_attempt }}"
+  },
+  "derivedInputs": "the outer key is the run; each writer's entry inside the store is keyed by derive-cache.ts (f017 fingerprint)",
+  "holds": "fa/build/derive-cache (per-writer results)",
+  "producer": "prepare-head, prepare-base",
+  "consumers": [
+    "same"
+  ],
+  "savePolicy": "plain actions/cache with run_id key: always misses, so EVERY run saves a new entry (PR too)",
+  "verify": "derive-cache.ts restores a writer's outputs only on an exact per-writer key",
+  "owner": "cache-first CI (CI speed 14)",
+  "uses": [
+    ".github/workflows/layer-pr-checks.yml:904",
+    ".github/workflows/layer-pr-checks.yml:1414"
+  ],
+  "notes": "FINDING: the exact key always misses, so every run (PRs too) saves a new entry; budget churn.",
+  "stateInputs": {
+    "reads": "unmeasured",
+    "how": "not yet derived from a recorded read set; the producer may read state:mount graphs"
+  }
+}

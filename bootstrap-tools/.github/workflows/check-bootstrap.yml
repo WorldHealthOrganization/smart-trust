@@ -1,0 +1,46 @@
+# Fails when a generated file in litlfred/bootstrap is stale: its README
+# sections, its directory READMEs, its schema page and schemas.
+#
+# Checked FROM HERE, not from bootstrap (owner, 2026-10-02,
+# folio-assistant#1770): bootstrap carries no workflow, because one would have
+# to check out this toolset by name, and bootstrap names nothing above it.
+# The same steps bootstrap's former .github/workflows/check.yml ran.
+#
+# Not on bootstrap's pushes or PRs: a workflow here cannot be triggered by
+# them. So it runs on a schedule and by hand. bootstrap's site is published
+# by an agent, not a workflow (owner, 2026-10-21), so no publish run triggers it.
+# Read-only: it needs no secret, because bootstrap is public.
+name: Check bootstrap
+
+on:
+  schedule:
+    - cron: "47 3-23/6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: bootstrap-tools
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: litlfred/bootstrap
+          path: bootstrap
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - name: Install
+        working-directory: bootstrap-tools
+        run: bun install --frozen-lockfile
+      - name: bootstrap's README generated sections are current
+        working-directory: bootstrap-tools
+        run: bun run scripts/readme-sections.ts --root ../bootstrap --check
+      - name: bootstrap's directory READMEs are current
+        working-directory: bootstrap-tools
+        run: bun run scripts/subgraph-readmes.ts --repo ../bootstrap --check
+      - name: bootstrap's schema page and schemas are current
+        working-directory: bootstrap-tools
+        run: bun run scripts/gen-bootstrap-schemas.ts --root ../bootstrap --check
