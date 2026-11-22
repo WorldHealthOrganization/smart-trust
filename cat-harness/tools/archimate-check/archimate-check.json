@@ -1,0 +1,58 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "archimate-check",
+    "title": "Check a layer's ArchiMate models against its config",
+    "description": "The ArchiMate gate (graph typology `archimate`): every model a layer's `cat-archimate.config.json` names is held, parses (Archi's native XML or its zipped archive), and resolves — every box in every view draws an element the model holds, every relationship's ends are in the model — and no `.archimate` file is held that the config does not name.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat archimate:validate"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The layer root whose `archimate` directory is checked.",
+          "required": true,
+          "arg": {
+            "flag": "--instance"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "problems",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "One line per problem on stderr, exit 1; or one ✓ line, exit 0."
+        }
+      ]
+    },
+    "satisfies": [
+      "archimate-models"
+    ],
+    "selection": {
+      "when": "Before publishing a layer's ArchiMate models, and in its CI: a model that will not parse, draws an element it does not hold, or is held without being configured.",
+      "limits": "Archi's native format only; the Open Group exchange format is not read yet.",
+      "cost": "One parse per model. No network, no JVM."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "── The archimate subgraph's two Tools (skill `archimate-models`).\n\nOwner, 2026-10-09: \"do not do java 200mb... that's not usable for\nwebclients and is too heavy.\" Neither needs Archi, a JVM or a display:\nthe model is read and every view drawn in TypeScript."
+    }
+  ]
+}

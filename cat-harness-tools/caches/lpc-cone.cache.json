@@ -1,0 +1,35 @@
+{
+  "$schema": "cache/1.0.0",
+  "id": "lpc-cone",
+  "title": "Layer PR checks: CI cone records",
+  "instance": "cat-harness-tools",
+  "kind": "actions-cache",
+  "trustClass": "c",
+  "location": "layer-pr-checks-cone-v1-",
+  "keyRecipe": {
+    "source": "cache:key --base",
+    "script": "(each gate)",
+    "expression": "layer-pr-checks-cone-v1-${repo}-<hash of the base key>"
+  },
+  "derivedInputs": "per gate, the cone's tree-free base fingerprint plus the traced read set, matched exactly by ci-cone.ts",
+  "holds": "CI cone records.json + pin of main sha",
+  "producer": "compare (push only, steps.cone.outputs.kept)",
+  "consumers": [
+    "prepare-head pin-record (PR attempt 1)",
+    "run shards (skip unchanged gates)"
+  ],
+  "savePolicy": "push only",
+  "verify": "ci-cone.ts re-derives each record's fingerprint and every recorded path state; any mismatch runs the gate",
+  "owner": "cache-first CI (CI speed 14)",
+  "uses": [
+    ".github/workflows/layer-pr-checks.yml:446",
+    ".github/workflows/layer-pr-checks.yml:1312",
+    ".github/workflows/layer-pr-checks.yml:1556",
+    ".github/workflows/layer-pr-checks.yml:1923"
+  ],
+  "notes": "Restore uses a key that never exists to get the newest entry by prefix.",
+  "stateInputs": {
+    "reads": "unmeasured",
+    "how": "not yet derived from a recorded read set; the producer may read state:mount graphs"
+  }
+}

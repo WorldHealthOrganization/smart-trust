@@ -1,0 +1,49 @@
+---
+doc_id: 10665-205344
+doc_title: "Information, education and communication: a guide for AIDS programme managers"
+section_id: page-034
+section_title: "Page 34"
+pages: 34-34
+pdf_page: 34
+source_pdf: 10665-205344.pdf
+source_sha256: 0fdcc9d570f32d5f
+text_source: ocr
+granularity: page
+---
+fn
+
+Table 2. Matrix: target populations and communication approaches
+
+Target group Desired behaviour Approach Media channel Networks Support services
+change
+Brothel-based sex Condom usage Outreach Target print and audio- NGOs Condoms
+workers Seeking treatment for STD Peer education video material Health workers STD services
+Street theatre Loca! GPs Counselling
+Street sex workers Condom usage Outreach Target print and audio- NGOs Condoms
+Seeking treatment for STD video material Local GPs STD services
+Street theatre Health workers Counselling
+Madams of brothels Condom promotion Outreach Target print and audio- NGOs Condoms
+Condom usage Peer education video material STD services
+Street theatre Counselling
+Pimps Condom promotion Outreach Target print and audio- NGOs Condoms
+Appropriate treatment video material STD services
+of STD Street theatre Counselling
+Truck drivers/transport Condom use Outreach Target print and audio- NGOs STD services
+workers Appropriate treatment Peer education video material Peers Condoms
+of STD Trucking Associations Counselling
+
+Ministries of Transport
+
+Men who have sex Condom use Outreach Target print material NGOs STD services
+with men Appropriate treatment Peer education Condoms
+of STD Counselling
+Migrant workers Condom use Local media Street theatre NGOs STD services
+Appropriate treatment outreach Traditional media Intercountry Cooperation | Condoms
+of STD Peers Target print material Labour Unions Counselling
+
+and audio-video
+
+Ministry of Labour
+
+1¢ o8eq
+18/SAIV/VaSs

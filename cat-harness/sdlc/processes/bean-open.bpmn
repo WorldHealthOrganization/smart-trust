@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_BeanOpen"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="sibling-session" name="Sibling session"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       OPEN a bean — the first half of Process_BeanLifecycle, called
+       by every process that works on a bean (bean folio-assistant-m8gz,
+       owner ruling 2026-10-24, option A).
+
+       THE ONE PLACE `op="claim"` IS DRAWN. Before this split, 19 claim
+       ops sat in 18 diagrams, each a hand copy, and seven of those
+       processes opened a bean they never closed. A process now calls
+       this at the point the bean becomes its own, and calls
+       Process_BeanClose before each end it reaches from there;
+       `check:bean-calls` refuses a claim anywhere else.
+
+       TWO ENDINGS, and the caller reads which one it got. The engine
+       hands a called process the caller's bean but not its end event,
+       so every caller follows this call with its own gateway: `claimed`
+       goes on to the work, `not yours` stops without touching the bean.
+
+       Creating is the AGENT's own `beans create`; the engine has no op
+       for it. An earlier diagram carried `action="create"`, which the
+       engine never read — `op` is the attribute.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:process id="Process_BeanOpen" name="Open the bean" isExecutable="false">
+    <bpmn:documentation>The opening half of every bean's life: check before you create, find out whose it is, and claim it before any work starts — or leave it alone when it is someone else's. Called, never run on its own: the caller is the process about to do the work, and it calls this where the bean becomes its own.
+
+The caller's own gateway reads which end this reached. `Claimed` means the bean is in progress and the caller works it; `not yours` means a sibling holds it, nothing was written, and the caller stops. Process_BeanClose is the other half, called before each end the caller reaches after a claim.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_BeanOpen">
+      <bpmn:lane id="Lane_Agent" name="Agent (this session)" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Checks, creates and claims a bean it may hold. Open_Owner is the one branch this lane cannot finish itself: a bean that turns out to be someone else's goes to Lane_Sibling, and nothing on it is resolved, scrapped or edited from here.</bpmn:documentation>
+        <bpmn:flowNodeRef>Open_Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Open_CheckExists</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Open_Exists</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Open_Create</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Open_Owner</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Open_Claim</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Open_Claimed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Sibling" name="Sibling session or human (not yours to close)" partitionElementRef="sibling-session">
+        <bpmn:documentation>The only task here with no `cat-harness.processes:bean` op: its whole job is to write nothing to a bean it does not own, ending at Open_NotYours so the caller stops rather than works.</bpmn:documentation>
+        <bpmn:flowNodeRef>Open_LeaveAlone</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Open_NotYours</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Open_Start" name="Durable work&#10;identified"/>
+
+    <bpmn:task id="Open_CheckExists" name="Check before you create&#10;(exact-title search)">
+      <bpmn:documentation>STRICT. `beans create` is not idempotent: it mints a
+fresh id every call and dedupes on nothing, so re-entering a step duplicates
+the plan instead of no-op'ing. In the qou folio an unguarded re-run produced
+14,688 duplicate beans — 92% of every open bean — which starved the
+idle-backlog policy of signal and collided with 15 real ids.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Open_Exists" name="Already exists?">
+      <bpmn:documentation>Answered by the exact-title check before it (`todo-manager` §'Check before you create'): `beans list --json --search` followed by an exact comparison of titles, since `--search` is fuzzy. `no` (0 exact matches) creates the bean. `yes` (1 or more) does not create a second one — `beans create` mints a fresh id every call and dedupes on nothing — and asks whose the existing bean is.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Open_Create" name="Create the bean&#10;(agent CLI, not an engine op)">
+      <bpmn:documentation>`beans create &quot;&lt;title&gt;&quot;`. This is the AGENT's call.
+The workflow engine has no `create` op — its vocabulary is claim, note,
+resolve and archive, all of which act on an instance's existing bean.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Open_Owner" name="Whose bean?">
+      <bpmn:documentation>Answered from the existing bean and its surroundings (`bean-coordination`). `someone else's` means a sibling is mid-flight on it: a claim naming a branch, a recent note, or an open PR. That bean is left alone and this process ends at Open_NotYours. `mine / unclaimed` claims it. A claim is branch-local, so check the bean's status on the store's tip and the open PRs naming it, not only the copy on your branch.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Open_LeaveAlone" name="Leave it alone&#10;(coordinate instead)">
+      <bpmn:documentation>Never resolve, scrap or delete a bean another session
+or a human owns. Claiming is how two sessions avoid picking the same item;
+closing someone else's is how one of them loses work it had not finished
+reporting.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="Open_NotYours" name="Not yours —&#10;caller stops"/>
+
+    <bpmn:task id="Open_Claim" name="Claim it&#10;(status: in-progress)">
+      <bpmn:documentation>Idempotent. Claim BEFORE working, and note the branch,
+so a sibling session can see the item is taken rather than discovering it by
+collision. The only `claim` op in the corpus: every process that claims calls
+this process (`check:bean-calls`).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="bean-coordination"/>
+        <cat-harness.processes:bean op="claim"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:endEvent id="Open_Claimed" name="Claimed —&#10;caller works it"/>
+
+    <bpmn:sequenceFlow id="BO_1" sourceRef="Open_Start" targetRef="Open_CheckExists"/>
+    <bpmn:sequenceFlow id="BO_2" sourceRef="Open_CheckExists" targetRef="Open_Exists"/>
+    <bpmn:sequenceFlow id="BO_3" name="no" sourceRef="Open_Exists" targetRef="Open_Create"/>
+    <bpmn:sequenceFlow id="BO_4" name="yes" sourceRef="Open_Exists" targetRef="Open_Owner"/>
+    <bpmn:sequenceFlow id="BO_5" name="someone else's" sourceRef="Open_Owner" targetRef="Open_LeaveAlone"/>
+    <bpmn:sequenceFlow id="BO_6" sourceRef="Open_LeaveAlone" targetRef="Open_NotYours"/>
+    <bpmn:sequenceFlow id="BO_7" name="mine / unclaimed" sourceRef="Open_Owner" targetRef="Open_Claim"/>
+    <bpmn:sequenceFlow id="BO_8" sourceRef="Open_Create" targetRef="Open_Claim"/>
+    <bpmn:sequenceFlow id="BO_9" sourceRef="Open_Claim" targetRef="Open_Claimed"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_BeanOpen">
+    <bpmndi:BPMNPlane id="BPMNPlane_BeanOpen" bpmnElement="Process_BeanOpen">
+      <bpmndi:BPMNShape id="Lane_Agent_di" bpmnElement="Lane_Agent" isHorizontal="true"><dc:Bounds x="160" y="80" width="900" height="300" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Sibling_di" bpmnElement="Lane_Sibling" isHorizontal="true"><dc:Bounds x="160" y="380" width="900" height="160" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Open_Start_di" bpmnElement="Open_Start"><dc:Bounds x="220" y="190" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Open_CheckExists_di" bpmnElement="Open_CheckExists"><dc:Bounds x="315" y="148" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Open_Exists_di" bpmnElement="Open_Exists" isMarkerVisible="true"><dc:Bounds x="490" y="183" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="470" y="144" width="90" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Open_Create_di" bpmnElement="Open_Create"><dc:Bounds x="595" y="92" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Open_Owner_di" bpmnElement="Open_Owner" isMarkerVisible="true"><dc:Bounds x="620" y="253" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="674" y="307" width="90" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Open_Claim_di" bpmnElement="Open_Claim"><dc:Bounds x="795" y="148" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Open_Claimed_di" bpmnElement="Open_Claimed"><dc:Bounds x="980" y="190" width="36" height="36" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Open_LeaveAlone_di" bpmnElement="Open_LeaveAlone"><dc:Bounds x="640" y="395" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Open_NotYours_di" bpmnElement="Open_NotYours"><dc:Bounds x="840" y="437" width="36" height="36" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="BO_1_di" bpmnElement="BO_1">
+        <di:waypoint x="256" y="208" />
+        <di:waypoint x="315" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BO_2_di" bpmnElement="BO_2">
+        <di:waypoint x="435" y="208" />
+        <di:waypoint x="490" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BO_3_di" bpmnElement="BO_3">
+        <di:waypoint x="540" y="208" />
+        <di:waypoint x="567.5" y="208" />
+        <di:waypoint x="567.5" y="152" />
+        <di:waypoint x="595" y="152" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BO_4_di" bpmnElement="BO_4"><di:waypoint x="515" y="233"/><di:waypoint x="515" y="278"/><di:waypoint x="620" y="278"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BO_5_di" bpmnElement="BO_5">
+                <di:waypoint x="645" y="303" />
+        <di:waypoint x="645" y="395" />
+      <bpmndi:BPMNLabel><dc:Bounds x="649" y="344" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BO_6_di" bpmnElement="BO_6">
+        <di:waypoint x="760" y="455" />
+        <di:waypoint x="840" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BO_7_di" bpmnElement="BO_7">
+                <di:waypoint x="670" y="278" />
+        <di:waypoint x="855" y="278" />
+        <di:waypoint x="855" y="268" />
+      <bpmndi:BPMNLabel><dc:Bounds x="671.25" y="240" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BO_8_di" bpmnElement="BO_8">
+        <di:waypoint x="715" y="152" />
+        <di:waypoint x="755" y="152" />
+        <di:waypoint x="755" y="208" />
+        <di:waypoint x="795" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BO_9_di" bpmnElement="BO_9">
+        <di:waypoint x="915" y="208" />
+        <di:waypoint x="980" y="208" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,30 @@
+---
+doc_id: 10665-205344
+doc_title: "Information, education and communication: a guide for AIDS programme managers"
+section_id: page-038
+section_title: "Page 38"
+pages: 38-38
+pdf_page: 38
+source_pdf: 10665-205344.pdf
+source_sha256: 0fdcc9d570f32d5f
+text_source: ocr
+granularity: page
+---
+SEA/AIDS/81
+Page 35
+
+Evaluation and Reprogramming: After the completion of the campaign cycle, a
+repeat baseline evaluation should be conducted along with a study to produce some qualitative
+data on the impact of the campaign. The data should be analysed and fed into reprogramming
+of the next cycle of the awareness campaign. Messages will change from straight information
+to more specific behavioural change messages based on the greater knowledge of the target
+audience. The next cycle of the campaign will probably tackle issues related to empathy for
+those afflicted and queries which have been raised in the first cycle. Awareness campaigns
+must be continuous.
+
+Finally, a mass awareness campaign will begin the process of making people aware of
+
+the problem and the methods of prevention. It is only one component of an overall IEC
+programme and does not replace interpersonal approaches.
+
+AIDS81/WPSI/VR

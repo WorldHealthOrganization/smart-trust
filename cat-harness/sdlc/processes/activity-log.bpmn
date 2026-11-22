@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_ActivityLog"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="log" name="Activity log"/>
+  <bpmn:resource id="user" name="User"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Agent activity log — folio-assistant
+       Bean: folio-assistant-7uff
+
+       An agent writes an entry when it STARTS a task, when it ENDS one,
+       and whenever it has something a later reader would need. Entries
+       go to `fsh-guts/logs/`.
+
+       THE LOG IS `actedUpon`. It is a mechanical role — written to and
+       emptied BY an actor, deciding nothing — modelled on `work-plan`
+       and `corpus`, the two existing stores of that shape. Its lane
+       carries no activity, which is exactly what `actedUpon` means and
+       why `role-has-actor` is `n/a` rather than a finding.
+
+       CAPTURE IS OFF BY DEFAULT and is a THREE-valued answer. The
+       gateway below reads it rather than assuming: `off` writes
+       locally, `on` persists, and `unknown` — the setting could not be
+       determined — takes the same branch as `off` while SAYING SO.
+       Collapsing `unknown` into `off` would make a misconfigured
+       instance indistinguishable from a deliberately quiet one.
+
+       EMPTYING IS THE ONE EXCEPTION to the never-delete rule that
+       governs the rest of `fsh-guts/`. A log entry records no decision,
+       so nothing is lost that a later agent needed; everything else in
+       the trashcan is a decision and may not be discarded.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:collaboration id="Collab_ActivityLog">
+    <bpmn:participant id="Participant_ActivityLog" name="Agent activity log" processRef="Process_ActivityLog"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_ActivityLog" name="Agent activity log" isExecutable="true">
+    <bpmn:documentation>What an agent writes down about its own run, and what a person can do with it afterwards: task starts and ends, messages and errors, persisted where somebody can read them.
+
+You are in this process on every task, whether or not capture is on — the first gateway is what decides, and an agent that does not check it logs into nothing. The log operator's lane is the other half: a person discards one entry or a whole session, and the scheduled sweep does neither on its own.
+
+This is not the work plan. `beans` records WHAT is being worked on and survives the session; this records what happened during it. The two answer different questions and a reader reaching for one is badly served by the other.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- Advisory, not strict: an agent logging outside any process must
+           not be refused, and a missing entry is a gap in a record rather
+           than an unauthorised write. The base content processes are the
+           ones that gate. -->
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_ActivityLog">
+      <bpmn:lane id="Lane_Agent" name="Agent (this session)" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Brackets its own work with a start and an end entry rather than leaving either implied, and reads Gateway_Capture rather than assuming it: persisting when capture is on, but merely reporting the setting — never silently dropping the entry — when it is off or could not be determined.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Task</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_LogStart</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_DoWork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_DoWork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_LogMessage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_LogEnd</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Capture</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_PersistLog</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ReportCaptureState</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Task</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <!-- Written to, never acts. No flowNodeRef, deliberately. -->
+      <!-- ONE LANE, ONE ROLE. This was a single "Operator (human or
+           scheduled sweep)" lane, which conflated a person with a
+           mechanical timer — and the role model binds a lane to exactly one
+           role, so it bound to none and `workflow-roles` failed. The split
+           is the honest shape: a person chooses what to discard, a sweep
+           runs a fixed program and chooses nothing. -->
+      <bpmn:lane id="Lane_Operator" name="Log operator (human)" partitionElementRef="user">
+        <bpmn:documentation>The only lane in this diagram that chooses: one entry by id, or everything. It was split out from a single conflated lane because a person's choice and a scheduled sweep's fixed program are not the same actor, which is why the sweep below has a lane of its own rather than sharing this one.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Empty</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_EmptyScope</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_EmptyOne</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_EmptyAll</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Emptied</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Sweep" name="Scheduled log sweep" partitionElementRef="build-pipeline">
+        <bpmn:flowNodeRef>Start_Sweep</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <!-- ── Writing ─────────────────────────────────────────── -->
+
+    <bpmn:startEvent id="Start_Task" name="A task begins">
+      <bpmn:outgoing>F_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="A_LogStart" name="Log task-start">
+      <bpmn:documentation>Write a task-start entry before touching anything: summary, actor, and the process/task/bean/branch/session it belongs to where they exist. role, process and task are optional on purpose — do not invent a lane for work done outside a process.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="activity-log"/></bpmn:extensionElements>
+      <bpmn:incoming>F_1</bpmn:incoming>
+      <bpmn:outgoing>F_2</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_A_LogStart">
+        <bpmn:targetRef>DSR_log</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+
+    <bpmn:task id="A_DoWork" name="Do the work">
+      <bpmn:documentation>The task itself. This diagram says nothing about how it is done; it only brackets it, so that a reader of the log can tell where one run of work began and ended.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <!-- The work itself belongs to whatever process called this one; the
+             log has nothing to say about how it is done. -->
+        <cat-harness.processes:no-skill reason="the task being logged is the caller's, and its skill is named there"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_2</bpmn:incoming>
+      <bpmn:incoming>F_3b</bpmn:incoming>
+      <bpmn:outgoing>Flow_GW_DoWork</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_DoWork" name="Task complete?">
+      <bpmn:documentation>Which way the work goes after it.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_LogMessage" name="Log a message or an error">
+      <bpmn:documentation>Write a message or error entry whenever a later reader would need it. A command run goes in `execution` (command, exit code, where output went) — never the output itself, and never a secret, token or credential: capture on puts entries in git.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="activity-log"/></bpmn:extensionElements>
+      <bpmn:incoming>F_3</bpmn:incoming>
+      <bpmn:outgoing>F_3b</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_A_LogMessage">
+        <bpmn:targetRef>DSR_log</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+
+    <bpmn:task id="A_LogEnd" name="Log task-end">
+      <bpmn:documentation>Write a task-end entry, with the outcome in the detail. The step is the unit: an entry per step, not one when the whole process finishes, or every intermediate entry is lost.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="activity-log"/></bpmn:extensionElements>
+      <bpmn:incoming>F_4</bpmn:incoming>
+      <bpmn:outgoing>F_5</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_A_LogEnd">
+        <bpmn:targetRef>DSR_log</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+
+    <!-- ── Persistence: read, never assumed ────────────────── -->
+
+    <bpmn:exclusiveGateway id="Gateway_Capture" name="Capture enabled?">
+      <bpmn:documentation>Asked after a task ends: is log capture switched on for this session? `on` persists the entry to the data store. `off or unknown` persists nothing and reports the capture state instead, so an unknown setting is said out loud rather than read as off.</bpmn:documentation>
+      <bpmn:incoming>F_5</bpmn:incoming>
+      <bpmn:outgoing>F_On</bpmn:outgoing>
+      <bpmn:outgoing>F_OffOrUnknown</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_PersistLog" name="Persist the log to the data store">
+      <bpmn:documentation>Capture is explicitly on — by &lt;cat-harness.processes:log capture="on"/&gt; on the process or by config — so the entries go to the git data store. Only this branch commits anything.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="activity-log"/></bpmn:extensionElements>
+      <bpmn:incoming>F_On</bpmn:incoming>
+      <bpmn:outgoing>F_6</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_A_PersistLog">
+        <bpmn:targetRef>DSR_log</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+
+    <bpmn:task id="A_ReportCaptureState" name="Report the capture state">
+      <bpmn:documentation>Capture is off or unknown, so nothing is committed. Say which of the two it is: off is somebody's decision, unknown means nobody could tell, and an agent that believes it has an audit trail when it has none acts on a false belief.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="activity-log"/></bpmn:extensionElements>
+      <bpmn:incoming>F_OffOrUnknown</bpmn:incoming>
+      <bpmn:outgoing>F_7</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Task" name="Task logged">
+      <bpmn:incoming>F_6</bpmn:incoming>
+      <bpmn:incoming>F_7</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <!-- ── Emptying ────────────────────────────────────────── -->
+
+    <bpmn:startEvent id="Start_Sweep" name="The periodic sweep fires">
+      <bpmn:timerEventDefinition id="Timer_Sweep"/>
+      <bpmn:outgoing>F_S1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:startEvent id="Start_Empty" name="A person asks to empty the log">
+      <bpmn:outgoing>F_E1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:exclusiveGateway id="Gateway_EmptyScope" name="One entry or all?">
+      <bpmn:documentation>Asked when a person asks to empty the log: which entries? `one` discards a single entry by id; `all / periodic` discards every entry or a whole session, the branch a scheduled clean-up also takes.</bpmn:documentation>
+      <bpmn:incoming>F_E1</bpmn:incoming>
+      <bpmn:outgoing>F_E_One</bpmn:outgoing>
+      <bpmn:outgoing>F_E_All</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_EmptyOne" name="Discard one entry by id">
+      <bpmn:documentation>Remove one entry by its stable id, with emptyLog({ id }). Logs are the one exception to the never-delete rule because an entry records no decision; the exception covers files that declare folio-log/v1, not the directory.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="activity-log"/></bpmn:extensionElements>
+      <bpmn:incoming>F_E_One</bpmn:incoming>
+      <bpmn:outgoing>F_E2</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_A_EmptyOne">
+        <bpmn:targetRef>DSR_log</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+
+    <bpmn:task id="A_EmptyAll" name="Discard all entries, or a whole session">
+      <bpmn:documentation>Remove every entry, one session's, or those before a date — emptyLog with { all }, { session } or { before }; there is no default selector. A file that will not parse is kept, and the result must say what was refused and why, not only what was removed.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="activity-log"/></bpmn:extensionElements>
+      <bpmn:incoming>F_E_All</bpmn:incoming>
+      <bpmn:incoming>F_S1</bpmn:incoming>
+      <bpmn:outgoing>F_E3</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_A_EmptyAll">
+        <bpmn:targetRef>DSR_log</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Emptied" name="Log emptied">
+      <bpmn:incoming>F_E2</bpmn:incoming>
+      <bpmn:incoming>F_E3</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="F_1" sourceRef="Start_Task" targetRef="A_LogStart"/>
+    <bpmn:sequenceFlow id="F_2" sourceRef="A_LogStart" targetRef="A_DoWork"/>
+    <bpmn:sequenceFlow id="Flow_GW_DoWork" sourceRef="A_DoWork" targetRef="GW_DoWork"/>
+    <bpmn:sequenceFlow name="no" id="F_3" sourceRef="GW_DoWork" targetRef="A_LogMessage"/>
+    <bpmn:sequenceFlow id="F_3b" sourceRef="A_LogMessage" targetRef="A_DoWork" name="more work"/>
+    <bpmn:sequenceFlow name="yes" id="F_4" sourceRef="GW_DoWork" targetRef="A_LogEnd"/>
+    <bpmn:sequenceFlow id="F_5" sourceRef="A_LogEnd" targetRef="Gateway_Capture"/>
+    <bpmn:sequenceFlow id="F_On" sourceRef="Gateway_Capture" targetRef="A_PersistLog" name="on"/>
+    <bpmn:sequenceFlow id="F_OffOrUnknown" sourceRef="Gateway_Capture" targetRef="A_ReportCaptureState" name="off or unknown"/>
+    <bpmn:sequenceFlow id="F_6" sourceRef="A_PersistLog" targetRef="End_Task"/>
+    <bpmn:sequenceFlow id="F_7" sourceRef="A_ReportCaptureState" targetRef="End_Task"/>
+    <bpmn:sequenceFlow id="F_E1" sourceRef="Start_Empty" targetRef="Gateway_EmptyScope"/>
+    <bpmn:sequenceFlow id="F_E_One" sourceRef="Gateway_EmptyScope" targetRef="A_EmptyOne" name="one"/>
+    <bpmn:sequenceFlow id="F_E_All" sourceRef="Gateway_EmptyScope" targetRef="A_EmptyAll" name="all / periodic"/>
+    <bpmn:sequenceFlow id="F_E2" sourceRef="A_EmptyOne" targetRef="End_Emptied"/>
+    <bpmn:sequenceFlow id="F_E3" sourceRef="A_EmptyAll" targetRef="End_Emptied"/>
+    <bpmn:sequenceFlow id="F_S1" sourceRef="Start_Sweep" targetRef="A_EmptyAll"/>
+    <bpmn:dataStoreReference id="DSR_log" name="Activity log" dataStoreRef="log"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ActivityLog">
+    <bpmndi:BPMNPlane id="BPMNPlane_ActivityLog" bpmnElement="Collab_ActivityLog">
+      <bpmndi:BPMNShape id="Shape_Participant" bpmnElement="Participant_ActivityLog" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1090" height="840" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1060" height="440" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Operator" bpmnElement="Lane_Operator" isHorizontal="true">
+        <dc:Bounds x="190" y="520" width="1060" height="320" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Sweep" bpmnElement="Lane_Sweep" isHorizontal="true">
+        <dc:Bounds x="190" y="840" width="1060" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Task" bpmnElement="Start_Task">
+        <dc:Bounds x="236" y="152" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="195" width="70" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_LogStart" bpmnElement="A_LogStart">
+        <dc:Bounds x="302" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_DoWork" bpmnElement="A_DoWork">
+        <dc:Bounds x="462" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_DoWork" bpmnElement="GW_DoWork" isMarkerVisible="true">
+        <dc:Bounds x="622" y="145" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="612" y="98" width="70" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_LogEnd" bpmnElement="A_LogEnd">
+        <dc:Bounds x="742" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_Capture" bpmnElement="Gateway_Capture" isMarkerVisible="true">
+        <dc:Bounds x="902" y="145" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="872" y="96" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ReportCaptureState" bpmnElement="A_ReportCaptureState">
+        <dc:Bounds x="1022" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Task" bpmnElement="End_Task">
+        <dc:Bounds x="1182" y="152" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1158" y="125" width="85" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_LogMessage" bpmnElement="A_LogMessage">
+        <dc:Bounds x="587" y="260" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_PersistLog" bpmnElement="A_PersistLog">
+        <dc:Bounds x="867" y="260" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_DSR_log" bpmnElement="DSR_log">
+        <dc:Bounds x="777" y="430" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="690" y="485" width="80" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Empty" bpmnElement="Start_Empty">
+        <dc:Bounds x="560" y="667" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="545" y="708" width="70" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_EmptyScope" bpmnElement="Gateway_EmptyScope" isMarkerVisible="true">
+        <dc:Bounds x="622" y="660" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="515" y="612" width="100" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_EmptyOne" bpmnElement="A_EmptyOne">
+        <dc:Bounds x="742" y="550" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_EmptyAll" bpmnElement="A_EmptyAll">
+        <dc:Bounds x="742" y="700" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Emptied" bpmnElement="End_Emptied">
+        <dc:Bounds x="944" y="667" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="984" y="676" width="82" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Sweep" bpmnElement="Start_Sweep">
+        <dc:Bounds x="784" y="862" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="825" y="870" width="160" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_F_1" bpmnElement="F_1">
+        <di:waypoint x="272" y="170" />
+        <di:waypoint x="302" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_2" bpmnElement="F_2">
+        <di:waypoint x="422" y="170" />
+        <di:waypoint x="462" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_GW_DoWork" bpmnElement="Flow_GW_DoWork">
+        <di:waypoint x="582" y="170" />
+        <di:waypoint x="622" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_3" bpmnElement="F_3">
+        <di:waypoint x="647" y="195" />
+        <di:waypoint x="647" y="260" />
+        <bpmndi:BPMNLabel><dc:Bounds x="652" y="225" width="25" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_3b" bpmnElement="F_3b">
+        <di:waypoint x="587" y="320" />
+        <di:waypoint x="522" y="320" />
+        <di:waypoint x="522" y="230" />
+        <bpmndi:BPMNLabel><dc:Bounds x="443" y="265" width="75" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_4" bpmnElement="F_4">
+        <di:waypoint x="672" y="170" />
+        <di:waypoint x="742" y="170" />
+        <bpmndi:BPMNLabel><dc:Bounds x="680" y="150" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_5" bpmnElement="F_5">
+        <di:waypoint x="862" y="170" />
+        <di:waypoint x="902" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_OffOrUnknown" bpmnElement="F_OffOrUnknown">
+        <di:waypoint x="952" y="170" />
+        <di:waypoint x="1022" y="170" />
+        <bpmndi:BPMNLabel><dc:Bounds x="957" y="128" width="60" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_On" bpmnElement="F_On">
+        <di:waypoint x="927" y="195" />
+        <di:waypoint x="927" y="260" />
+        <bpmndi:BPMNLabel><dc:Bounds x="932" y="225" width="25" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_7" bpmnElement="F_7">
+        <di:waypoint x="1142" y="170" />
+        <di:waypoint x="1182" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_6" bpmnElement="F_6">
+        <di:waypoint x="987" y="320" />
+        <di:waypoint x="1200" y="320" />
+        <di:waypoint x="1200" y="188" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_E1" bpmnElement="F_E1">
+        <di:waypoint x="596" y="685" />
+        <di:waypoint x="622" y="685" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_E_One" bpmnElement="F_E_One">
+        <di:waypoint x="647" y="660" />
+        <di:waypoint x="647" y="610" />
+        <di:waypoint x="742" y="610" />
+        <bpmndi:BPMNLabel><dc:Bounds x="680" y="590" width="35" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_E_All" bpmnElement="F_E_All">
+        <di:waypoint x="647" y="710" />
+        <di:waypoint x="647" y="760" />
+        <di:waypoint x="742" y="760" />
+        <bpmndi:BPMNLabel><dc:Bounds x="650" y="765" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_E2" bpmnElement="F_E2">
+        <di:waypoint x="862" y="610" />
+        <di:waypoint x="962" y="610" />
+        <di:waypoint x="962" y="667" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_E3" bpmnElement="F_E3">
+        <di:waypoint x="862" y="760" />
+        <di:waypoint x="962" y="760" />
+        <di:waypoint x="962" y="703" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_S1" bpmnElement="F_S1">
+        <di:waypoint x="802" y="862" />
+        <di:waypoint x="802" y="820" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_A_LogStart" bpmnElement="DOA_A_LogStart">
+        <di:waypoint x="362" y="230" />
+        <di:waypoint x="362" y="465" />
+        <di:waypoint x="777" y="465" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_A_LogMessage" bpmnElement="DOA_A_LogMessage">
+        <di:waypoint x="647" y="380" />
+        <di:waypoint x="647" y="445" />
+        <di:waypoint x="777" y="445" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_A_LogEnd" bpmnElement="DOA_A_LogEnd">
+        <di:waypoint x="802" y="230" />
+        <di:waypoint x="802" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_A_PersistLog" bpmnElement="DOA_A_PersistLog">
+        <di:waypoint x="927" y="380" />
+        <di:waypoint x="927" y="455" />
+        <di:waypoint x="827" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_A_EmptyOne" bpmnElement="DOA_A_EmptyOne">
+        <di:waypoint x="802" y="550" />
+        <di:waypoint x="802" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_A_EmptyAll" bpmnElement="DOA_A_EmptyAll">
+        <di:waypoint x="862" y="790" />
+        <di:waypoint x="1080" y="790" />
+        <di:waypoint x="1080" y="470" />
+        <di:waypoint x="827" y="470" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

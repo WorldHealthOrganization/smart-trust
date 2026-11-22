@@ -1,0 +1,71 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "translation-candidates-agent",
+    "title": "Candidate translations — agent model",
+    "description": "An agent model proposes a translation for each string of a layer's catalogues, with the locale term base and the string's source context in front of it, and appends them to each catalogue's candidates sidecar with `source.kind: agent` and the model's id. Seeds an empty `msgstr` with the first candidate, fuzzy.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "manual": true
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The layer root whose catalogues to propose for. Default: the current layer.",
+          "required": false
+        },
+        {
+          "name": "locales",
+          "schema": {
+            "$type": "IdList"
+          },
+          "description": "The target locales. Absent: every locale the layer declares.",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "candidates",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "`translations/<locale>/<catalogue>.candidates.json` (`translation-candidates/v1`), appended to; each candidate carries `source: {kind: \"agent\", id: <model>}`."
+        },
+        {
+          "name": "catalogues",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The `.po` catalogues whose empty `msgstr` got the first candidate, `#, fuzzy`."
+        }
+      ]
+    },
+    "satisfies": [
+      "translation-candidate-source"
+    ],
+    "selection": {
+      "when": "Prose that needs the surrounding meaning — paragraphs, diagram labels whose sense depends on the process, terms the locale term base fixes — and an agent session is already running.",
+      "limits": "Not reproducible run to run, and its output is as unreviewed as any engine's. For many short, literal strings an open machine-translation model (OPUS-MT, LibreTranslate / Argos, through `translation:candidates`) is cheaper and repeatable.",
+      "cost": "Model tokens per string, in a session that has a model; nothing to install."
+    },
+    "requires": {
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/requires/network",
+      "comment": "The agent is the session already running; it reaches no host this Tool adds."
+    },
+    {
+      "at": "/invoke",
+      "comment": "`manual`: the agent is the session, following `translation-candidate-source`; there is no command. The open machine-translation engines are ONE Tool, `translation-candidates` (`bun run cat translation:candidates --engine opus-mt,libretranslate`, cat-harness#1329), which picks its engine by flag rather than being a node per engine."
+    }
+  ]
+}

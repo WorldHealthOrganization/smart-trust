@@ -1,0 +1,74 @@
+{
+  "@context": {
+    "@base": "https://litlfred.github.io/cat-harness/v0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "cat-harness": "https://litlfred.github.io/cat-harness/v0/ns/"
+  },
+  "dcterms:description": "Provenance moved out of the narrative of security.md: who decided, when, and under which work item or proposal. The document keeps the rules and their reasons; this log is rendered in its footer.",
+  "@graph": [
+    {
+      "@id": "skills/conduct/security/security.md",
+      "@type": "prov:Entity",
+      "prov:wasInfluencedBy": [
+        {
+          "@id": "skills/conduct/security/security.md#provenance-1"
+        },
+        {
+          "@id": "skills/conduct/security/security.md#provenance-2"
+        },
+        {
+          "@id": "skills/conduct/security/security.md#provenance-3"
+        },
+        {
+          "@id": "skills/conduct/security/security.md#provenance-4"
+        }
+      ]
+    },
+    {
+      "@id": "skills/conduct/security/security.md#provenance-1",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "bean",
+      "cat-harness:section": "The rule that unifies them: refuse, never repair",
+      "prov:value": "**A check returns a refusal, not a cleaned-up value.** This is measured, not\nstylistic. `fuzm`: the staging slug pipeline REPLACED disallowed characters,\nso input `..` survived as output `..`, and a branch of `---` collapsed to the\nempty string — which made `rm -rf \"pages/branches/$SLUG\"` name every preview.\nA repair silently changes which artefact is named. A refusal makes the caller\ndecide, and only the caller knows whether that is a 400, an `exit 1`, or a skip."
+    },
+    {
+      "@id": "skills/conduct/security/security.md#provenance-2",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "bean",
+      "cat-harness:section": "The boundaries, and what guards each one today",
+      "prov:value": "| boundary | the hazard | machinery | state |\n|---|---|---|---|\n| `${{ }}` → a `run:` or `script:` block | the value is substituted into the script TEXT before bash or V8 parses it, so a quote is enough — and inside a JS template literal `${…}` is EVALUATED, so it need not even close one. A step OUTPUT carries whatever the step put in it, so the gate resolves provenance rather than trusting the band | `scripts/check-workflow-injection.ts` + baseline + 2 test files | **gated** (`1wef`, `j0zs`); two surfaces with two remedies, `with:`/`env:`/`if:` still ungraded |\n| an external id → a path | `join(base, external)` escapes the store; `mkdirSync` + `writeFileSync` make it a write primitive | [`path-containment`](path-containment.md), `src/core/safe-path.ts` | **guarded; narrowly gated** — `server-path-sinks.test.ts`, a source ratchet (`6bhf`) |\n| a shell string → a process | `execSync(\"cmd \" + value)` gives the shell a program | [`injection-boundaries`](injection-boundaries.md) | partly (`execFileSync` at the fixed sites) |\n| an archive → a filesystem | a LINK member writes through to its target, which `..`-refusal does not cover | member-TYPE whitelist (`tar tvzf`, accept only `-` and `d`) at the one call site, `tar-member-guard.test.ts` against real archives | **closed at one site** (`6bhf`) |\n| a `.po` catalogue → a render | translated content is authored elsewhere | `scripts/translation/translation_security.py` | exists, unaudited here |\n| a hand-over → a model | a sub-agent report, delegated prompt, tool result or third-party comment carries an instruction the receiver follows because it trusts the sender (protocol pivoting) | `bun run cat handover:screen` (`src/core/handover-screen.ts`): field by field over a declared schema; control fields and undeclared fields refused, data fields quarantined; `fenceUntrusted` labels the origin | **guarded and wired** (`cztn`): every in-code site where foreign text reaches a model calls `guardUntrusted` or `screenHandover`; the sites and the deliberate gaps are in [`zero-trust-handover`](zero-trust-handover.md) §\"Where the screen is wired\" |\n| a remote graph → this instance | a mounted harness's skills steer agents and its code runs, so an untrusted pin is a supply-chain compromise | `bun run cat mount:remote` (Tool `remote-mount`) refuses a mount that is neither consented for its exact pin nor signed in a declared trust network (`schemas/kg/mount-trust.ts`); a signature with no verifier is could-not-determine; `--staging` needs neither (owner, 2026-10-07) | **gated at the mount** (`ieum`); signature verification (e.g. GDHCN) **not built** |\n| content → HTML | XSS in a rendered surface | bean `q2wm`, declared XSS hints on tools and skills | **open** |\n| a third-party action → a runner | a moved tag or rewritten branch runs new code with the job's token and secrets | `bun run cat actions:pin` (`pin-actions.ts`) pins to a full commit SHA; `security:gate` **blocks** on any unpinned action except in a staging-only workflow that holds no write token and has no `pull_request_target` trigger (`stagingExempt`; owner, 2026-10-07: \"unpinned on staging\", then \"pin write-token workflows\") | **gated** (`ieum`, `1ygp` L4.1): the counts are what `bun run cat security:gate` reports now |",
+      "cat-harness:refs": [
+        "bean q2wm",
+        "bean 1wef",
+        "bean 6bhf",
+        "bean cztn",
+        "bean ieum",
+        "2026-10-07"
+      ],
+      "dcterms:date": [
+        "2026-10-07"
+      ]
+    },
+    {
+      "@id": "skills/conduct/security/security.md#provenance-3",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "history",
+      "cat-harness:section": "Where to look when adding a check",
+      "prov:value": "1. **Is the boundary in the table?** Then the machinery exists — extend it.\n   Adding a second guard for a guarded boundary is how they drift apart.\n2. **Is there already a helper?** `src/core/safe-path.ts` is the path one. It got\n   there because `resolveWithin` sat in `scripts/serve-rendering.ts`, complete and\n   correct, while three HTTP handlers did the wrong thing — the exact shape `1wef`\n   names: *\"somebody had understood this hazard exactly. Nothing checked it, so\n   the correctness was one edit from gone.\"*\n3. **Can a gate hold the property?** A hand-maintained invariant drifts and the\n   symptom of forgetting is invisible (`tyyc`). A guard without a gate is a guard\n   with an expiry date.",
+      "cat-harness:refs": [
+        "bean tyyc"
+      ]
+    },
+    {
+      "@id": "skills/conduct/security/security.md#provenance-4",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "history",
+      "cat-harness:section": "What this package does NOT own",
+      "prov:value": "**`rm -rf` in this repository is already well defended**, and that is a measured\nfinding rather than an assumption — all 42 `rm -r*` lines carrying an expansion\nwere read for bean `6bhf`. All four staging deletion sites are guarded by value,\nand 14 of 16 shell files carrying such a line run `set -u`. The hazard the owner\nasked about is real in general and is not, today, where this repository is open.\nThe open surface was the TypeScript I/O layer.",
+      "cat-harness:refs": [
+        "bean 6bhf"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_Process_IgRelease" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:collaboration id="Collaboration_Process_IgRelease">
+    <bpmn:participant id="Participant_Process_IgRelease" name="An IG release: the owner tags, a draft is built, the owner publishes" processRef="Process_IgRelease"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_IgRelease" name="An IG release: the owner tags, a draft is built, the owner publishes" isExecutable="false">
+    <bpmn:documentation>How an IG repository's release is cut, and how a missed one is caught up (skill `ig-binary-artefacts` §"Releasing"). (Owner, 2026-11-10: "need to add this to process (and how to catchup if not tagged) of build".)
+
+THE RULE. A release is a governance decision. The owner tags the IG's CURRENT version from `sushi-config.yaml`, `v&lt;version&gt;`, on the default branch. The tag starts the IG's `ig-release.yml` caller, which builds the tag in full and makes a GitHub DRAFT release carrying `package.tgz` (and its R4/R4B variants), `ast-data.zip` and `SHA256SUMS`. The owner publishes the draft. An agent never chooses a version, never pushes a tag and never publishes a release.
+
+THE CATCH-UP. Every AST refresh of the default branch runs `ig-release.ts check` (advisory, never failing the run): an untagged current version is reported with the commit that set it, for the owner to tag; a tag with no release is reported with the by-hand run of the release workflow; a draft is reported as waiting for the owner.
+
+The site is not the release: it is published from the AST cache (`ig-ast-cache.bpmn`) and carries none of these files.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- ADVISORY: the check reports and never refuses; the owner's steps cannot be relaxed by anyone but the owner. -->
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_IgRelease">
+      <bpmn:lane id="Lane_Check" name="Release check (advisory)">
+        <bpmn:documentation>The `Is the current version tagged and released? (advisory)` step of fhir-harness's `ig-ast-refresh.yml`. Reads `sushi-config.yaml`, the tags and the release list; writes nothing.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="build-pipeline"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_Check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Tagged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Released</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_InOrder</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Owner" name="Owner (release authority, a person)">
+        <bpmn:documentation>Holds `release-authorization`: decides that a version is released by tagging it, and publishes the draft. Never an agent: an agent reports what is missing and stops.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="publication-manager"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_VersionSet</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Tag</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RunRelease</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Publish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Released</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Runner" name="IG release (GitHub runner: full build, draft release)">
+        <bpmn:documentation>fhir-harness's reusable `.github/workflows/ig-release.yml`, run in the IG repository through its caller (`templates/ig-repo-site/ig-release.yml`).</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="ig-publisher-service"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_ReleaseBuild</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_VersionSet" name="Version set&#10;on main">
+      <bpmn:documentation>`sushi-config.yaml` on the default branch carries the version the owner wants released (skill `ig-build-pipeline` §"Version numbering").</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Tag" name="Tag the IG's current version">
+      <bpmn:documentation>The owner tags the commit that set the version with `v&lt;version&gt;` (for example `v0.2.0`) and pushes the tag. A `releaseLabel` of `ci-build`, `ballot` or `draft`, or a version with a suffix, makes it a pre-release (`ig-release.ts kind`). `ig-release.ts check` names the commit: the newest one whose diff of `sushi-config.yaml` sets that version, else HEAD.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:policy relaxable="false"/>
+        <cat-harness.processes:fulfilment kinds="person" reason="choosing to release a version is a governance decision; an agent never pushes a release tag."/>
+        <bootstrap.processes:skill ref="ig-binary-artefacts"/>
+        <bootstrap.processes:skill ref="ig-publication"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_ReleaseBuild" name="Build the tag in full and make the draft release">
+      <bpmn:documentation>`ig-release.yml` (Tool `ig-release`): `ig-ast-refresh.yml` with `force` and `release` (never incremental), then `ig-release.ts assets` gathers `package.tgz` (and `package.r4.tgz`, `package.r4b.tgz`), `ast-data.zip` (the AST, Libraries with their ELM) and `SHA256SUMS`, and `ig-release.ts draft` makes or refreshes the GitHub draft for the tag. A tag with a published release is refused.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-binary-artefacts"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_Publish" name="Publish the draft release">
+      <bpmn:documentation>The owner reads the draft's files and publishes it on GitHub: `Task_AuthorizeRelease` of `draft-to-publication.bpmn`. Until then only the repository's writers see it and `releases.json` leaves it out.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:policy relaxable="false"/>
+        <cat-harness.processes:fulfilment kinds="person" reason="publishing a release is the release authorisation itself; a workflow never changes a published release."/>
+        <bootstrap.processes:skill ref="ig-binary-artefacts"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_Released" name="Release published">
+      <bpmn:documentation>The release and its files are public; `ingest-ig-releases` lists it in `releases.json` and the site's releases page.</bpmn:documentation>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="Start_Check" name="AST refresh&#10;of main">
+      <bpmn:documentation>Every run of `ig-ast-refresh.yml` on the default branch that is not itself a release build.</bpmn:documentation>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_Check" name="Check the current version's tag and release">
+      <bpmn:documentation>`bun run fhir-harness/scripts/ig-release.ts check --ig . --repo &lt;owner/repo&gt;` (Tool `ig-release`). Prints one notice per finding: `version X is untagged: the owner tags commit &lt;sha&gt; with vX`, or `tag vX has no release: run "IG release (draft)" (ig-release.yml) by hand with tag vX`, or that a draft waits for the owner. Exits 0 always; never tags and never releases.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ig-binary-artefacts"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_Tagged" name="Version&#10;tagged?">
+      <bpmn:documentation>Answered by the check: `v&lt;version&gt;` exists locally or on origin.</bpmn:documentation>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="GW_Released" name="Tag&#10;released?">
+      <bpmn:documentation>Answered by the check from the repository's release list (a draft is visible only to a token that may write the repository).</bpmn:documentation>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_RunRelease" name="Run IG release (draft)&#10;by hand for the tag">
+      <bpmn:documentation>Actions → "IG release (draft)" → Run workflow, input `tag` = `v&lt;version&gt;`. For a tag pushed before the IG carried the caller, or whose run failed.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:fulfilment kinds="person" reason="starting a release build is release-management on the owner's tag; an agent dispatches it only when the owner names it for that run."/>
+        <bootstrap.processes:skill ref="ig-binary-artefacts"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_InOrder" name="Released">
+      <bpmn:documentation>The current version's tag has a published release: nothing to catch up.</bpmn:documentation>
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_VersionSet" targetRef="Task_Tag"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Tag" targetRef="Task_ReleaseBuild" name="tag pushed"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_ReleaseBuild" targetRef="Task_Publish" name="draft made"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_Publish" targetRef="End_Released"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Start_Check" targetRef="Task_Check"/>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_Check" targetRef="GW_Tagged"/>
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="GW_Tagged" targetRef="Task_Tag" name="no"/>
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="GW_Tagged" targetRef="GW_Released" name="yes"/>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="GW_Released" targetRef="Task_RunRelease" name="no release"/>
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="GW_Released" targetRef="Task_Publish" name="a draft"/>
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="GW_Released" targetRef="End_InOrder" name="published"/>
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="Task_RunRelease" targetRef="Task_ReleaseBuild"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_IgRelease">
+    <bpmndi:BPMNPlane id="Plane_Process_IgRelease" bpmnElement="Collaboration_Process_IgRelease">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_IgRelease" bpmnElement="Participant_Process_IgRelease" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="1240" height="540" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Check" bpmnElement="Lane_Check" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="1210" height="180" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Owner" bpmnElement="Lane_Owner" isHorizontal="true">
+        <dc:Bounds x="90" y="240" width="1210" height="180" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Runner" bpmnElement="Lane_Runner" isHorizontal="true">
+        <dc:Bounds x="90" y="420" width="1210" height="180" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Check" bpmnElement="Start_Check">
+        <dc:Bounds x="142" y="132" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="130" y="172" width="60" height="34" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Check" bpmnElement="Task_Check">
+        <dc:Bounds x="240" y="90" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Tagged" bpmnElement="GW_Tagged" isMarkerVisible="true">
+        <dc:Bounds x="430" y="125" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="425" y="86" width="60" height="34" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Released" bpmnElement="GW_Released" isMarkerVisible="true">
+        <dc:Bounds x="560" y="125" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="518" y="90" width="60" height="34" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_InOrder" bpmnElement="End_InOrder">
+        <dc:Bounds x="680" y="132" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="670" y="172" width="56" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_VersionSet" bpmnElement="Start_VersionSet">
+        <dc:Bounds x="142" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="130" y="352" width="60" height="34" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Tag" bpmnElement="Task_Tag">
+        <dc:Bounds x="240" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RunRelease" bpmnElement="Task_RunRelease">
+        <dc:Bounds x="525" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Publish" bpmnElement="Task_Publish">
+        <dc:Bounds x="960" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Released" bpmnElement="End_Released">
+        <dc:Bounds x="1212" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1185" y="352" width="90" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReleaseBuild" bpmnElement="Task_ReleaseBuild">
+        <dc:Bounds x="760" y="450" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="178" y="330" />
+        <di:waypoint x="240" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_2" bpmnElement="Flow_2">
+        <di:waypoint x="300" y="390" />
+        <di:waypoint x="300" y="510" />
+        <di:waypoint x="760" y="510" />
+        <bpmndi:BPMNLabel><dc:Bounds x="320" y="484" width="70" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_3" bpmnElement="Flow_3">
+        <di:waypoint x="880" y="510" />
+        <di:waypoint x="1020" y="510" />
+        <di:waypoint x="1020" y="390" />
+        <bpmndi:BPMNLabel><dc:Bounds x="930" y="488" width="80" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_4" bpmnElement="Flow_4">
+        <di:waypoint x="1080" y="330" />
+        <di:waypoint x="1212" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_5" bpmnElement="Flow_5">
+        <di:waypoint x="178" y="150" />
+        <di:waypoint x="240" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_6" bpmnElement="Flow_6">
+        <di:waypoint x="360" y="150" />
+        <di:waypoint x="430" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_7" bpmnElement="Flow_7">
+        <di:waypoint x="455" y="175" />
+        <di:waypoint x="455" y="330" />
+        <di:waypoint x="360" y="330" />
+        <bpmndi:BPMNLabel><dc:Bounds x="462" y="300" width="30" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_8" bpmnElement="Flow_8">
+        <di:waypoint x="480" y="150" />
+        <di:waypoint x="560" y="150" />
+        <bpmndi:BPMNLabel><dc:Bounds x="505" y="128" width="30" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_9" bpmnElement="Flow_9">
+        <di:waypoint x="585" y="175" />
+        <di:waypoint x="585" y="270" />
+        <bpmndi:BPMNLabel><dc:Bounds x="592" y="248" width="70" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_10" bpmnElement="Flow_10">
+        <di:waypoint x="585" y="125" />
+        <di:waypoint x="585" y="80" />
+        <di:waypoint x="1020" y="80" />
+        <di:waypoint x="1020" y="270" />
+        <bpmndi:BPMNLabel><dc:Bounds x="800" y="62" width="60" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_11" bpmnElement="Flow_11">
+        <di:waypoint x="610" y="150" />
+        <di:waypoint x="680" y="150" />
+        <bpmndi:BPMNLabel><dc:Bounds x="615" y="128" width="60" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_12" bpmnElement="Flow_12">
+        <di:waypoint x="645" y="330" />
+        <di:waypoint x="820" y="330" />
+        <di:waypoint x="820" y="450" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

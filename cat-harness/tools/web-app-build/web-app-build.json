@@ -1,0 +1,90 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "web-app-build",
+    "title": "Web app build",
+    "description": "Build every declared `web-app` directory in the checkout and publish each at its own route, `<locale>/<harness>/apps/<id>/`, with no site chrome (every page marked `folio-navbar: none`), plus an `apps/` index in the site's chrome listing each app with its languages and size. Before building, each locale's translated UI strings are written from the layer's `translations/<locale>/apps/<id>.po` to the app's `i18n.out`, so building is the injection. `--extract` writes the translation templates; `--check` validates the declarations and translations and builds nothing.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat web-apps:build"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Validate every declaration (manifest, build script, lockfile, route clashes) and translation (templates current, placeholders kept, no stale entries); build nothing.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        },
+        {
+          "name": "extract",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Write each app's translation templates, `translations/<locale>/apps/<id>.pot`, in the declaring layer: the app's \"refresh the templates\" step of the translation process.",
+          "required": false,
+          "arg": {
+            "flag": "--extract"
+          }
+        },
+        {
+          "name": "site",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A site being built: write the apps and the index at their declared route under it instead of under the harness's own site directory.",
+          "required": false,
+          "arg": {
+            "flag": "--site"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "pages",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Each app's build under `<locale>/<harness>/apps/<id>/`, and the index page at `<locale>/<harness>/apps/`."
+        }
+      ]
+    },
+    "satisfies": [
+      "graph-rendering"
+    ],
+    "selection": {
+      "when": "A site build of a checkout in which any layer declares a `web-app` directory; run with the other declared writers (`visualiser-writers.ts`). `--extract` whenever an app's catalog changes, as the translation watcher's template step; `--check` in the declaring layer's PR checks.",
+      "limits": "Builds with npm or bun from the app's lockfile, so it needs the npm registry. An app's pages are its own: the Tool marks them chrome-less and does not otherwise change them. Untranslated strings fall back to the source text in the app.",
+      "cost": "One install and one build per app; seconds to a minute each."
+    },
+    "requires": {
+      "runtime": [
+        "bun",
+        "node"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "registry.npmjs.org",
+        "none": "Without the registry an app cannot install; the index names it as not built rather than listing it as published."
+      }
+    ],
+    "renders": [
+      "web-app"
+    ]
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "Owner, 2026-11-11 (cards Q-GAME-5 A, Q-GAME-7 A): apps a content layer carries are published by the harness, so the layer need not be a harness; the VaxLink one-off publish route is retired. Implementation: cat-harness-tools scripts/gen-web-apps.ts and scripts/web-app-strings.ts."
+    }
+  ]
+}

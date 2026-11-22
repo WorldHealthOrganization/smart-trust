@@ -1,0 +1,92 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "corpus-search",
+    "title": "Search the corpus and follow the graph",
+    "description": "Seed lexically over the authored folio and every declared library, then expand along graph edges, labelling each hit MATCHED or REACHED and by which edge. Counts are split authored vs ingested, and a root that exists but holds no graph nodes is reported rather than read as an empty answer.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "mcp": {
+        "tool": "corpus_search"
+      },
+      "inProcess": {
+        "module": "src/tools/graph.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "query",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Words to seed on. Seeding is lexical, so a short phrase works; a long query no node contains seeds nothing.",
+          "required": true
+        },
+        {
+          "name": "hops",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "Expansion depth, 0-4 (default 1). 0 is a plain lexical search.",
+          "required": false
+        },
+        {
+          "name": "direction",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "`out`, `in` or `both` (default).",
+          "required": false
+        },
+        {
+          "name": "provenance",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "`authored` or `ingested`: restricts the seeds, not the expansion.",
+          "required": false
+        },
+        {
+          "name": "searchText",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Also seed on companion Markdown bodies.",
+          "required": false
+        },
+        {
+          "name": "limit",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "Seed cap before expansion (default 20).",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "JSON: summary, emptyRoots, dangling, and hits each carrying a `why`."
+        }
+      ]
+    },
+    "satisfies": [
+      "corpus-grep"
+    ],
+    "requires": {
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "The knowledge-graph tools. Their handlers lived only in the viewer\nserver's embedded chat agent, so no MCP client could call them: an agent\nsession got \"Tool corpus_search not found\" for the check a folio runs\nbefore declaring anything open (qou bean `qou-q261`). One module, one\nregistrar, four served names."
+    }
+  ]
+}

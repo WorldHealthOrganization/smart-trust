@@ -1,0 +1,212 @@
+---
+doc_id: 10665-270157
+doc_title: "Acceptability of routine HIV counselling and testing, and HIV seroprevalence in Ugandan hospitals"
+section_id: page-002
+section_title: "Page 2"
+pages: 2-2
+pdf_page: 2
+source_pdf: 10665-270157.pdf
+source_sha256: 8d92e149775a034a
+text_source: ocr
+granularity: page
+---
+Rhoda K Wanyenze et al.
+
+Methods
+
+Setting
+
+Mulago and Mbarara hospitals are the
+largest, tertiary, public, university teach-
+ing hospitals in Uganda. Mulago hos-
+pital has more than 600 000 patient-
+visits per year while Mbarara hospital
+serves over 100 000 patients annually.
+Although outpatient HIV clinics have
+been operational since 1987 in Mulago
+and since 1998 in Mbarara, the services
+offered were limited. Until recently,
+HCT was provided for patients only
+on request and when they were able to
+pay the fee of 5000 Ugandan shillings
+(US$ 3). A survey in July 2003 revealed
+that 67% of medical inpatients at
+Mulago had never been tested for HIV
+and only 20% had been tested during
+hospitalization, although 64% wanted
+to be tested.”
+
+HCT programme
+
+The Mulago and Mbarara routine
+HCT programme was established in
+November 2004. Coverage had ex-
+panded from four to 25 wards or clinics
+(16 in Mulago and nine in Mbarara)
+by February 2006; this represents 31%
+of the wards and clinics in Mulago and
+50% of those in Mbarara. Units that
+were thought to have patient popula-
+tions in which there was a high HIV
+prevalence were prioritized. The units
+offering routine HCT included four
+medical wards, four obstetrics and
+gynaecology wards, two sexually trans-
+mitted disease (STD) outpatient clinics,
+two dermatology outpatient clinics, five
+paediatric inpatient wards, two cancer
+inpatient wards, one tuberculosis ward
+and two medical emergency outpatient
+units. Two surgical wards and one dental
+clinic started offering routine HCT in
+October 2005 to assess the need among
+surgical patients.
+
+In the selected wards and clinics,
+health-care providers offered HCT on
+an opt-out basis to all patients whose
+HIV status was unknown. Patients who
+reported a previous negative test result
+more than three months before the
+current hospital contact were also of-
+fered HCT. Individuals whose medical
+records showed that they were HIV-
+positive were not re-tested. In practice,
+HCT was offered alongside other clinical
+investigations and consent was provided
+for all tests. Patients were informed that
+they were free to decline testing and that
+
+those who opted-out would still receive
+the medical care required. Testing was
+provided to all patients unless they de-
+clined. Pretest information was provided
+to groups of patients, in outpatient
+waiting areas and general wards, and
+emphasized the benefits of HCT, such
+as the care available for HIV-infected
+individuals. Information on risk reduc-
+tion was repeated during one-on-one
+post-test sessions.
+
+Rapid HIV testing was used. The
+sequential rapid testing algorithm in-
+cluded the Determine HIV-1/2 assay
+(Abbott Laboratories, Illinois, United
+States of America) for screening, the
+HIV-1/2 STAT-PAK Dipstick assay
+(Chembio Diagnostic Systems Inc.,
+New York, USA) for confirmatory
+testing, and the Uni-Gold test (Trinity
+Biotech, Wicklow, Ireland) as the tie-
+breaker. An HIV-negative result with
+the Determine assay was reported as
+negative. An HIV-positive result with
+the Determine assay was confirmed
+using the STAT-PAK assay and was
+reported as positive if both tests gave
+positive results. If the Determine and
+STAT-PAK assay results were discor-
+dant, the sample was subjected to a
+third test, the Uni-Gold test. The result
+was reported as positive if the Uni-Gold
+test result was positive and negative if
+both STAT-PAK assay and Uni-Gold
+test results were negative. Children aged
+less than 18 months who were HIV-
+positive had their HIV status confirmed
+by a deoxyribonucleic acid (DNA)
+polymerase chain reaction (PCR) test.
+Patients received pretest and post-test
+counselling on the same day. Test results
+were also provided to the medical team.
+Health-care providers and counsellors
+encouraged patients to disclose their
+HIV status to sexual partners and family
+members when they felt ready to do so.
+The counsellor assisted with disclosure
+if requested by the patient. Health-care
+providers who had undergone ap-
+propriate training also participated in
+disclosing results to patients and their
+family members.
+
+Any of the patients’ spouses, chil-
+dren, parents or other household mem-
+bers who were present in hospital was
+also offered HCT. Couples testing was
+encouraged whenever the patients’
+sexual partners were present. In pae-
+diatric wards, HIV testing was offered
+to children more than 3 months of age
+
+Bulletin of the World Health Organization | Apri 2008, 86 (4)
+
+Research
+Routine HIV testing in Ugandan hospitals
+
+and their parents or carers. Some par-
+ents with documented HIV-positive
+results had children whose HIV status
+was unknown. In these cases, only the
+children were tested. Parents or guard-
+ians provided consent for children aged.
+less than 12 years. Children aged 12 to
+17 years had to agree to testing, in ad-
+dition to receiving consent from their
+parents or guardians.
+
+All patients, whether HIV-negative
+or HIV-positive, were counselled on risk
+reduction after the test. In addition,
+HIV-positive patients were also given
+information on the HIV/AIDS care
+available. Co-trimoxazole prophylaxis
+and tuberculosis screening were initi-
+ated on diagnosis. On discharge, HIV-
+positive patients were given referrals to
+HIV/AIDS clinics for follow-up care.
+
+Data collection
+
+Data collected from individuals who
+were offered HCT included age, sex,
+educational level, marital status, history
+of HIV testing, and last sexual partner's
+HIV status (for those who reported sex-
+ual contact within 12 months). Reasons
+for declining current testing and hos-
+pital category (i.e. medical inpatient,
+medical outpatient, cancer inpatient,
+surgical inpatient, or paediatric, ob-
+stetrics and gynaecology, STD clinic or
+dermatology clinic patient) were also
+documented. Family members who
+were tested were recorded as a father or
+mother (for paediatric patients), sexual
+partner or other family member.
+
+Analysis
+
+Data from all units that offered routine
+HCT between 1 November 2004 and
+28 February 2006 were included. The
+characteristics of patients who were
+tested and those who declined test-
+ing were compared. In addition, HIV
+seroprevalence was analysed by age, sex
+and hospital ward or clinic. The over-
+all HIV burden in each unit (which
+included patients admitted with a
+documented HIV-positive test result
+and HIV-positive patients identified by
+routine HCT during the current visit)
+was also calculated. The accessibility of
+routine HCT in the wards and clinics
+was quantified as the proportion of
+patients who were offered HCT relative
+to those eligible for the test. The uptake
+of routine HCT was quantified as the
+proportion of patients who accepted
+
+303

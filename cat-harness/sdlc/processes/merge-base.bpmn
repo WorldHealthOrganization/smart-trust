@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_MergeBase" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:collaboration id="Collaboration_Process_MergeBase">
+    <bpmn:participant id="Participant_Process_MergeBase" name="Merge the base branch in" processRef="Process_MergeBase"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_MergeBase" name="Merge the base branch in" isExecutable="false">
+    <bpmn:documentation>Bring the base branch into a pull-request branch: merge, classify every conflicted path before resolving any, refuse the whole merge if one is authored or undeclared, otherwise resolve, regenerate and prove the result with the gate set. CALLED FROM `Task_PrepareMerge` in code-change-review.bpmn, and executed by `bun run cat merge:main` (cat-harness-tools/scripts/merge-base.ts). Bean `y7b3`, issue #1707. Owner, 2026-10-01: "put in merge process bpmn".
+
+MEASURED 2026-09-30 over 300 main-into-branch merges: 235 conflicted, 147 (63%) ONLY on generated files, each resolved the same mechanical way. The declared patterns, and why each is or is not automatic, are in the `merge-conflict-patterns` skill.
+
+ALL OR NOTHING: every conflicted path is classified before any is touched, and one refusal aborts the merge and restores the tree. PROVED, NOT ASSUMED: `regen` derives every check/writer pair from the CI workflow, and an unrepaired check aborts too. Only what both gateways pass is committed.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- STRICT: `GW_AllDeclared` and `GW_Proved` each guard a path that
+           COMMITS. Advisory would permit reaching the commit without the
+           gateway that separates a declared, regenerated resolution from a
+           guessed one. -->
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_MergeBase">
+      <bpmn:lane id="Lane_Command" name="merge:main command" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Mechanical. Decides nothing a declaration has not decided: a path no pattern names is refused, and the gate set, not this lane, judges the result.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Conflicts</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Classify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_AllDeclared</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Resolve</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Regen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Proved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Commit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Merged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Abort</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Start_Report</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Report</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_News</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Notified</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Recorded</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Authoring agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Reached only when the command refused: an authored conflict, an undeclared path, or a resolution the gates could not reproduce. The refused paths are listed for it; what to do with an authored conflict is judgement.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ByHand</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_ByHand</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Merge" name="Base moved,&#10;or PR conflicted">
+      <bpmn:outgoing>m1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_Merge" name="Merge the base in,&#10;without committing">
+      <bpmn:documentation>`git merge --no-ff --no-commit origin/main` on a clean tree (untracked files refuse too, so the final stage cannot sweep in a scratch file).</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="prepare-merge"/></bpmn:extensionElements>
+      <bpmn:incoming>m1</bpmn:incoming>
+      <bpmn:outgoing>m2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Conflicts" name="Any&#10;conflict?">
+      <bpmn:documentation>`none` still regenerates: a CLEAN merge can produce an artefact neither side would emit (bean `lxpq`), so only the gates can say it is right.</bpmn:documentation>
+      <bpmn:incoming>m2</bpmn:incoming>
+      <bpmn:outgoing>m3</bpmn:outgoing>
+      <bpmn:outgoing>m4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Classify" name="Classify every conflicted&#10;path against the&#10;declared patterns">
+      <bpmn:documentation>The first matching pattern decides: take-base, owned-tree, generated-regions, or refuse. A path no pattern names refuses.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="merge-conflict-patterns"/></bpmn:extensionElements>
+      <bpmn:incoming>m4</bpmn:incoming>
+      <bpmn:outgoing>m5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_AllDeclared" name="Every path&#10;resolvable?">
+      <bpmn:documentation>`no` if even one path is refused: the merge is aborted whole, never half-resolved.</bpmn:documentation>
+      <bpmn:incoming>m5</bpmn:incoming>
+      <bpmn:outgoing>m6</bpmn:outgoing>
+      <bpmn:outgoing>m7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Resolve" name="Resolve each by&#10;its declared strategy">
+      <bpmn:documentation>take-base paths take the base's copy; generated-regions files take the base's side of each hunk, which lies inside a generated region by construction.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="merge-conflict-patterns"/></bpmn:extensionElements>
+      <bpmn:incoming>m6</bpmn:incoming>
+      <bpmn:outgoing>m8</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Regen" name="Regenerate, asking&#10;every CI gate">
+      <bpmn:documentation>`bun run cat regen`: every check/writer pair the CI workflow runs, repeated until the tree settles.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="prepare-merge"/></bpmn:extensionElements>
+      <bpmn:incoming>m3</bpmn:incoming>
+      <bpmn:incoming>m8</bpmn:incoming>
+      <bpmn:outgoing>m9</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Proved" name="Every gate&#10;reproduced?">
+      <bpmn:documentation>`no` when regen reports an unrepaired check, or one with no writer: a resolution the gates cannot reproduce is not a resolution.</bpmn:documentation>
+      <bpmn:incoming>m9</bpmn:incoming>
+      <bpmn:outgoing>m10</bpmn:outgoing>
+      <bpmn:outgoing>m11</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Commit" name="Commit the merge">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="continual-progress"/></bpmn:extensionElements>
+      <bpmn:incoming>m10</bpmn:incoming>
+      <bpmn:outgoing>m12</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Merged" name="Merged,&#10;proved">
+      <bpmn:incoming>m12</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_Abort" name="Abort, restore the tree,&#10;list what was refused">
+      <bpmn:documentation>`git merge --abort`. Each refused path is listed with its pattern's reason, or "no declared pattern".</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="merge-conflict-patterns"/></bpmn:extensionElements>
+      <bpmn:incoming>m7</bpmn:incoming>
+      <bpmn:incoming>m11</bpmn:incoming>
+      <bpmn:outgoing>m13</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_ByHand" name="Resolve by hand,&#10;then regenerate">
+      <bpmn:extensionElements><bootstrap.processes:skill ref="prepare-merge"/></bpmn:extensionElements>
+      <bpmn:incoming>m13</bpmn:incoming>
+      <bpmn:outgoing>m14</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_ByHand" name="Merged by&#10;a person">
+      <bpmn:incoming>m14</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="Start_Report" name="Every member&#10;reported">
+      <bpmn:documentation>A SECOND trigger, not a step of the merge above: `merge-main.yml` runs one merge per opted-in PR and this fires once per RUN, when all of them have reported. Drawn separately because a diagram that showed it inside one PR's flow would say the run notifies per PR, which is the defect it exists to fix (bean `03nl`).</bpmn:documentation>
+      <bpmn:outgoing>m15</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_Report" name="Report what the run&#10;found, once">
+      <bpmn:documentation>Every member's verdict, in one table in the run's summary: merged, already up to date, refused, an expected race, a repeat of a failure already reported, something new, or a member that could not say. `cat-harness-tools/scripts/merge-main-comment.ts --aggregate`.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="ci-health"/></bpmn:extensionElements>
+      <bpmn:incoming>m15</bpmn:incoming>
+      <bpmn:outgoing>m16</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_News" name="Anything&#10;new?">
+      <bpmn:documentation>`new` on three conditions and no others: a failure whose signature the PR's own comment did not already report; a member that reported no verdict, or one it could not classify; and a systemic failure (every selected PR failed) unless every one of those failures is itself a repeat, in which case each PR's comment already reports its own condition and the run that made it true was the loud one. A repeat of an identical failure on an unchanged head is `already reported`.</bpmn:documentation>
+      <bpmn:incoming>m16</bpmn:incoming>
+      <bpmn:outgoing>m17</bpmn:outgoing>
+      <bpmn:outgoing>m18</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Notified" name="Run red:&#10;one email">
+      <bpmn:incoming>m17</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Recorded" name="Run green: recorded,&#10;not sent again">
+      <bpmn:documentation>Quiet is not silent. The finding stays in the PR's comment, in the member's job summary, in a warning annotation and in that member's own red job; only the email is withheld. `1xhc`: a report nobody receives must still be a report somebody can find.</bpmn:documentation>
+      <bpmn:incoming>m18</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="m1" sourceRef="Start_Merge" targetRef="Task_Merge"/>
+    <bpmn:sequenceFlow id="m2" sourceRef="Task_Merge" targetRef="GW_Conflicts"/>
+    <bpmn:sequenceFlow id="m3" name="none" sourceRef="GW_Conflicts" targetRef="Task_Regen"/>
+    <bpmn:sequenceFlow id="m4" name="yes" sourceRef="GW_Conflicts" targetRef="Task_Classify"/>
+    <bpmn:sequenceFlow id="m5" sourceRef="Task_Classify" targetRef="GW_AllDeclared"/>
+    <bpmn:sequenceFlow id="m6" name="yes" sourceRef="GW_AllDeclared" targetRef="Task_Resolve"/>
+    <bpmn:sequenceFlow id="m7" name="no" sourceRef="GW_AllDeclared" targetRef="Task_Abort"/>
+    <bpmn:sequenceFlow id="m8" sourceRef="Task_Resolve" targetRef="Task_Regen"/>
+    <bpmn:sequenceFlow id="m9" sourceRef="Task_Regen" targetRef="GW_Proved"/>
+    <bpmn:sequenceFlow id="m10" name="yes" sourceRef="GW_Proved" targetRef="Task_Commit"/>
+    <bpmn:sequenceFlow id="m11" name="no" sourceRef="GW_Proved" targetRef="Task_Abort"/>
+    <bpmn:sequenceFlow id="m12" sourceRef="Task_Commit" targetRef="End_Merged"/>
+    <bpmn:sequenceFlow id="m13" sourceRef="Task_Abort" targetRef="Task_ByHand"/>
+    <bpmn:sequenceFlow id="m14" sourceRef="Task_ByHand" targetRef="End_ByHand"/>
+    <bpmn:sequenceFlow id="m15" sourceRef="Start_Report" targetRef="Task_Report"/>
+    <bpmn:sequenceFlow id="m16" sourceRef="Task_Report" targetRef="GW_News"/>
+    <bpmn:sequenceFlow id="m17" name="new, changed or systemic" sourceRef="GW_News" targetRef="End_Notified"/>
+    <bpmn:sequenceFlow id="m18" name="already reported" sourceRef="GW_News" targetRef="End_Recorded"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_MergeBase">
+    <bpmndi:BPMNPlane id="Plane_Process_MergeBase" bpmnElement="Collaboration_Process_MergeBase">
+      <bpmndi:BPMNShape id="Shape_Participant" bpmnElement="Participant_Process_MergeBase" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1280" height="560" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Command" bpmnElement="Lane_Command" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1250" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="480" width="1250" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Merge" bpmnElement="Start_Merge">
+        <dc:Bounds x="236" y="187" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="228" width="95" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Merge" bpmnElement="Task_Merge">
+        <dc:Bounds x="322" y="145" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Conflicts" bpmnElement="GW_Conflicts" isMarkerVisible="true">
+        <dc:Bounds x="472" y="180" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="467" y="235" width="70" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Classify" bpmnElement="Task_Classify">
+        <dc:Bounds x="572" y="145" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_AllDeclared" bpmnElement="GW_AllDeclared" isMarkerVisible="true">
+        <dc:Bounds x="722" y="180" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="707" y="108" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Resolve" bpmnElement="Task_Resolve">
+        <dc:Bounds x="822" y="145" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Regen" bpmnElement="Task_Regen">
+        <dc:Bounds x="972" y="145" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Proved" bpmnElement="GW_Proved" isMarkerVisible="true">
+        <dc:Bounds x="1122" y="180" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1107" y="108" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Commit" bpmnElement="Task_Commit">
+        <dc:Bounds x="1222" y="145" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Merged" bpmnElement="End_Merged">
+        <dc:Bounds x="1372" y="187" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1360" y="228" width="60" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Abort" bpmnElement="Task_Abort">
+        <dc:Bounds x="872" y="295" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Report" bpmnElement="Start_Report">
+        <dc:Bounds x="236" y="337" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="378" width="95" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Report" bpmnElement="Task_Report">
+        <dc:Bounds x="322" y="295" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_News" bpmnElement="GW_News" isMarkerVisible="true">
+        <dc:Bounds x="472" y="330" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="467" y="292" width="70" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Notified" bpmnElement="End_Notified">
+        <dc:Bounds x="672" y="337" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="650" y="377" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Recorded" bpmnElement="End_Recorded">
+        <dc:Bounds x="479" y="420" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="520" y="429" width="160" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ByHand" bpmnElement="Task_ByHand">
+        <dc:Bounds x="872" y="500" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_ByHand" bpmnElement="End_ByHand">
+        <dc:Bounds x="1022" y="542" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1065" y="551" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_m1" bpmnElement="m1">
+        <di:waypoint x="272" y="205" />
+        <di:waypoint x="322" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m2" bpmnElement="m2">
+        <di:waypoint x="442" y="205" />
+        <di:waypoint x="472" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m3" bpmnElement="m3">
+        <di:waypoint x="497" y="180" />
+        <di:waypoint x="497" y="100" />
+        <di:waypoint x="1032" y="100" />
+        <di:waypoint x="1032" y="145" />
+        <bpmndi:BPMNLabel><dc:Bounds x="520" y="82" width="45" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m4" bpmnElement="m4">
+        <di:waypoint x="522" y="205" />
+        <di:waypoint x="572" y="205" />
+        <bpmndi:BPMNLabel><dc:Bounds x="530" y="185" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m5" bpmnElement="m5">
+        <di:waypoint x="692" y="205" />
+        <di:waypoint x="722" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m6" bpmnElement="m6">
+        <di:waypoint x="772" y="205" />
+        <di:waypoint x="822" y="205" />
+        <bpmndi:BPMNLabel><dc:Bounds x="780" y="185" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m7" bpmnElement="m7">
+        <di:waypoint x="747" y="230" />
+        <di:waypoint x="747" y="355" />
+        <di:waypoint x="872" y="355" />
+        <bpmndi:BPMNLabel><dc:Bounds x="752" y="280" width="25" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m8" bpmnElement="m8">
+        <di:waypoint x="942" y="205" />
+        <di:waypoint x="972" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m9" bpmnElement="m9">
+        <di:waypoint x="1092" y="205" />
+        <di:waypoint x="1122" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m10" bpmnElement="m10">
+        <di:waypoint x="1172" y="205" />
+        <di:waypoint x="1222" y="205" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1180" y="185" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m11" bpmnElement="m11">
+        <di:waypoint x="1147" y="230" />
+        <di:waypoint x="1147" y="355" />
+        <di:waypoint x="992" y="355" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1152" y="280" width="25" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m12" bpmnElement="m12">
+        <di:waypoint x="1342" y="205" />
+        <di:waypoint x="1372" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m13" bpmnElement="m13">
+        <di:waypoint x="932" y="415" />
+        <di:waypoint x="932" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m14" bpmnElement="m14">
+        <di:waypoint x="992" y="560" />
+        <di:waypoint x="1022" y="560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m15" bpmnElement="m15">
+        <di:waypoint x="272" y="355" />
+        <di:waypoint x="322" y="355" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m16" bpmnElement="m16">
+        <di:waypoint x="442" y="355" />
+        <di:waypoint x="472" y="355" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m17" bpmnElement="m17">
+        <di:waypoint x="522" y="355" />
+        <di:waypoint x="672" y="355" />
+        <bpmndi:BPMNLabel><dc:Bounds x="532" y="316" width="130" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_m18" bpmnElement="m18">
+        <di:waypoint x="497" y="380" />
+        <di:waypoint x="497" y="420" />
+        <bpmndi:BPMNLabel><dc:Bounds x="502" y="385" width="115" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

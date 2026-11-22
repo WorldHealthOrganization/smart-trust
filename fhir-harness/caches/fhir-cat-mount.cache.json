@@ -1,0 +1,34 @@
+{
+  "$schema": "cache/1.0.0",
+  "id": "fhir-cat-mount",
+  "title": "Remote mounts for the AST refresh (superseded by layers-ref)",
+  "instance": "fhir-harness",
+  "kind": "actions-cache",
+  "trustClass": "a",
+  "location": "cat-mount-v1-<hash>, in the calling IG repository's Actions cache",
+  "keyRecipe": {
+    "source": "hashFiles",
+    "files": [
+      "index.lock.json"
+    ],
+    "expression": "cat-mount-v1-${{ hashFiles('index.lock.json') }}"
+  },
+  "derivedInputs": "the IG repository's index.lock.json",
+  "holds": "/home/runner/.cache/cat-mount: the layers the lock pins, as mount-from-lock fetched them",
+  "producer": "ig-ast-refresh.yml, every run that misses the key",
+  "consumers": [
+    "the same workflow's mount step (CAT_MOUNT_CACHE_DIR)"
+  ],
+  "stateInputs": {
+    "reads": "unmeasured",
+    "how": "not yet derived from a recorded read set; the producer may read state:mount graphs"
+  },
+  "needs": [],
+  "savePolicy": "any run that misses the key",
+  "verify": "mount-from-lock checks each mounted layer against the lock's digests, so a stale entry only costs a fetch",
+  "owner": "fhir-harness",
+  "uses": [
+    ".github/workflows/ig-ast-refresh.yml:116-122"
+  ],
+  "notes": "Superseded by the layers cache ref (`layers-ref`, cat-harness-tools): once the IG repositories mount through it, this step is removed rather than kept beside it. The IG repositories above this layer call it through this reusable workflow."
+}
