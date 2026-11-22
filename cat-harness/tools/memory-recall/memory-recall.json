@@ -1,0 +1,55 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "memory-recall",
+    "title": "Read what was kept",
+    "description": "Read what has been kept about this work so far, oldest first, so you can start where the last person stopped.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "mcp": {
+        "tool": "memory_recall"
+      },
+      "inProcess": {
+        "module": "src/tools/memory.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "shared",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "true: the memory you share with the other agents working with you. Default: your own memory of this work.",
+          "required": false,
+          "arg": {
+            "flag": "--shared"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "entries",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "What was kept, oldest first: when, who, what kind, and the text."
+        }
+      ]
+    },
+    "satisfies": [
+      "work-context"
+    ],
+    "requires": {
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/tool",
+      "comment": "Its own Tool group, apart from the process tools, so a run can offer memory to an agent that is told nothing about how the harness tracks work (owner, 2026-11-03, cat-harness#991 Q11/Q14/Q17, proposal §4.13-4.14: \"in that case it needs to be own tool\"). Everything an agent reads here is neutral on purpose, and check:context-leak scans it. Which store keeps the entries, and what the server adds to each, is the deployment's choice (stores[\"work-context\"]); the launcher binds the session with CAT_WORK_INSTANCE, CAT_MEMORY_SHARED and CAT_AGENT_ID (cat-harness-tools src/tools/memory.ts)."
+    }
+  ]
+}

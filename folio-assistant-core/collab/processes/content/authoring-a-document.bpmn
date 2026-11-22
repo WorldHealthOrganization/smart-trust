@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_DocumentAuthoring" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="author" name="Author"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="work-plan" name="Work plan (beans)"/>
+  <bpmn:collaboration id="Collaboration_Process_DocumentAuthoring">
+    <bpmn:participant id="Participant_Process_DocumentAuthoring" name="Authoring a document" processRef="Process_DocumentAuthoring"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_DocumentAuthoring" name="Authoring a document" isExecutable="false">
+    <bpmn:documentation>How a document folio — structured prose and policy guidance, with no Lean and no required TeX — is authored, built and reviewed end to end.
+      Source of truth: this file. The SVG under docs/assets/img/workflows/ is generated
+      from it by `bun run cat render:bpmn` — never hand-edit the SVG.
+      The shape is the paper process minus the Lean lane and plus one step, the profile
+      check, which is what keeps a document folio publishable without either toolchain.
+
+Review, publish and committee feedback are core's shared Process_FolioReviewPublish, called after rendering. Its `no` answer, changes asked, comes back to Task_AuthorBlocks.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_DocumentAuthoring">
+      <bpmn:lane id="Lane_Author" name="Author (person)" partitionElementRef="author">
+        <bpmn:documentation>The only place a person acts before the process becomes agent- and pipeline-driven: Task_Plan sets the chapters, the blocks each needs and which statements are normative, once, before Lane_WorkPlan seeds a bean and Lane_Agent takes over every later edit, including every iteration the review and profile-check loops send back.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_NewDocument</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Plan</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_BeanNotYours</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_WorkPlan" name="Work plan (beans)" partitionElementRef="work-plan">
+        <bpmn:documentation>Touched exactly once in this process — Task_SeedPlan turns the plan into a bean right after Task_Plan, so a resumed session or a sibling agent can pick the authoring loop up without re-deriving what was decided at the top.</bpmn:documentation>
+        <bpmn:flowNodeRef>Call_BeanOpen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_BeanYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SeedPlan</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Authoring agent (system)" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Task_AuthorBlocks is where every loop in this process lands — a profile violation from Lane_Build and an iterate from Lane_Reviewer both come back here — so this lane, not either gate, is what actually turns a rejection into a fixed block; Task_Scaffold runs once, before either loop exists.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Scaffold</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthorBlocks</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Build" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Owns the one gate this process has that the paper process does not — the profile check — so nothing with a math kind, a lean field or a .lean sibling reaches Task_Validate or Task_Render pretending to be document content; everything downstream of Gateway_ProfileClean assumes that profile.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ProfileCheck</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ProfileClean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Validate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_PublishStatements</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Render</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_ReviewPublish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Published</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanClose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Published</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_NewDocument" name="New document">
+      <bpmn:outgoing>A01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Plan" name="Plan the document">
+      <bpmn:documentation>Scope it: chapters, the blocks each needs, which statements are normative.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-plan"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>A01</bpmn:incoming>
+      <bpmn:outgoing>A02</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_BeanNotYours" name="Not yours: left alone">
+      <bpmn:documentation>Someone else holds the bean; this run stops without touching it.</bpmn:documentation>
+      <bpmn:incoming>A05</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Call_BeanOpen" name="Open the bean" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Process_BeanOpen: check before you create, find out whose the bean is, and claim it — or leave it alone when it is someone else's. The one place a claim is drawn; the gateway after this reads which end it reached.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="bean-coordination"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>A02</bpmn:incoming>
+      <bpmn:outgoing>A03</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_BeanYours" name="Bean claimed?">
+      <bpmn:documentation>Reads which end Process_BeanOpen reached. `claimed`: the bean is in progress and this process works it. `not yours`: a sibling session or a human holds it, nothing was written to it, and this process stops here rather than work a bean it does not own (bean-coordination).</bpmn:documentation>
+      <bpmn:incoming>A03</bpmn:incoming>
+      <bpmn:outgoing>A04</bpmn:outgoing>
+      <bpmn:outgoing>A05</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Task_SeedPlan" name="Seed the work plan" calledElement="GT_SeedWorkPlan">
+      <bpmn:incoming>A04</bpmn:incoming>
+      <bpmn:outgoing>A06</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:serviceTask id="Task_Scaffold" name="Scaffold the folio">
+      <bpmn:documentation>folio_init writes content/, uploads/, library/, the manifests, the builder shim and AGENTS.md. Skipped when the folio already exists.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-structure"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>A06</bpmn:incoming>
+      <bpmn:outgoing>A07</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AuthorBlocks" name="Author blocks">
+      <bpmn:documentation>Every block edit runs the HCI validation gate — see editing-hci-validation.bpmn. A normative statement is a `recommendation` block, drafted through normative-statements: one statement per block, a folio-chosen label, and its strength as a code in a declared code list, so a reviewer signs off each one individually.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-authoring"/>
+        <bootstrap.processes:skill ref="normative-statements"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>A07</bpmn:incoming>
+      <bpmn:incoming>A10</bpmn:incoming>
+      <bpmn:incoming>A17</bpmn:incoming>
+      <bpmn:outgoing>A08</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ProfileCheck" name="Check the profile">
+      <bpmn:documentation>content_profile_check: no math kind, no lean field, no .lean sibling. A paper folio has no such step; this is why a document folio needs neither Lean nor TeX to publish.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-validate"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>A08</bpmn:incoming>
+      <bpmn:outgoing>A09</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_ProfileClean" name="Within the declared profile?">
+      <bpmn:documentation>Answered by the profile check: does every block stay within the folio's declared content profile? `violations` sends the author back to Task_AuthorBlocks to fix the blocks; `clean` goes on to validation.</bpmn:documentation>
+      <bpmn:incoming>A09</bpmn:incoming>
+      <bpmn:outgoing>A10</bpmn:outgoing>
+      <bpmn:outgoing>A11</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Validate" name="Validate">
+      <bpmn:documentation>Schema and constraint checks over every block.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-validate"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>A11</bpmn:incoming>
+      <bpmn:outgoing>A12</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:callActivity id="Call_PublishStatements" name="Publish extracted statements" calledElement="Process_PublishExtractedStatements">
+      <bpmn:documentation>The document draws on library sources; every statement extracted from them is published in the document's own pages and in the shared extraction viewer, each linked to its library entry and section, before the document is rendered. The same sub-process ingestion calls when an entry is promoted: here it catches a source the document took up since, and a statement changed since. How the pages look is this content type's, through its adapter.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="publish-extracted-statements"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>A12</bpmn:incoming>
+      <bpmn:outgoing>A12b</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:serviceTask id="Task_Render" name="Render MD, HTML and PDF">
+      <bpmn:documentation>Assemble to Markdown, then pandoc. The PDF goes through an HTML engine — never latexmk.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-publishing"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>A12b</bpmn:incoming>
+      <bpmn:outgoing>A13</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:callActivity id="Call_ReviewPublish" name="Review and publish" calledElement="Process_FolioReviewPublish">
+      <bpmn:documentation>Core's shared review-and-publish process (Process_FolioReviewPublish): the reviewer reads the rendered folio and approves it, asks for changes, or sends a working draft to the Authoring Committee.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>A13</bpmn:incoming>
+      <bpmn:outgoing>A14</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Published" name="Published?">
+      <bpmn:documentation>Reads which end Process_FolioReviewPublish reached. `yes`: Published, so the bean is closed. `no`: Changes asked, or Feedback in, so the work goes back to Task_AuthorBlocks with the feedback.</bpmn:documentation>
+      <bpmn:incoming>A14</bpmn:incoming>
+      <bpmn:outgoing>A15</bpmn:outgoing>
+      <bpmn:outgoing>A17</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_BeanClose" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>Process_BeanClose: end the bean in a state that says why — complete and archive it, scrap it with its reasons and archive it, or record the blocker and hand it back. The one place resolve and archive are drawn; placed straight before the end so the engine's resolve sees nothing left but the archive step.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>A15</bpmn:incoming>
+      <bpmn:outgoing>A16</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="EndEvent_Published" name="Document published">
+      <bpmn:incoming>A16</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="A01" sourceRef="StartEvent_NewDocument" targetRef="Task_Plan"/>
+    <bpmn:sequenceFlow id="A02" sourceRef="Task_Plan" targetRef="Call_BeanOpen"/>
+    <bpmn:sequenceFlow id="A03" sourceRef="Call_BeanOpen" targetRef="GW_BeanYours"/>
+    <bpmn:sequenceFlow id="A04" sourceRef="GW_BeanYours" targetRef="Task_SeedPlan" name="claimed"/>
+    <bpmn:sequenceFlow id="A05" sourceRef="GW_BeanYours" targetRef="End_BeanNotYours" name="not yours"/>
+    <bpmn:sequenceFlow id="A06" sourceRef="Task_SeedPlan" targetRef="Task_Scaffold"/>
+    <bpmn:sequenceFlow id="A07" sourceRef="Task_Scaffold" targetRef="Task_AuthorBlocks"/>
+    <bpmn:sequenceFlow id="A08" sourceRef="Task_AuthorBlocks" targetRef="Task_ProfileCheck"/>
+    <bpmn:sequenceFlow id="A09" sourceRef="Task_ProfileCheck" targetRef="Gateway_ProfileClean"/>
+    <bpmn:sequenceFlow id="A10" sourceRef="Gateway_ProfileClean" targetRef="Task_AuthorBlocks" name="violations"/>
+    <bpmn:sequenceFlow id="A11" sourceRef="Gateway_ProfileClean" targetRef="Task_Validate" name="clean"/>
+    <bpmn:sequenceFlow id="A12" sourceRef="Task_Validate" targetRef="Call_PublishStatements"/>
+    <bpmn:sequenceFlow id="A12b" sourceRef="Call_PublishStatements" targetRef="Task_Render"/>
+    <bpmn:sequenceFlow id="A13" sourceRef="Task_Render" targetRef="Call_ReviewPublish"/>
+    <bpmn:sequenceFlow id="A14" sourceRef="Call_ReviewPublish" targetRef="GW_Published"/>
+    <bpmn:sequenceFlow id="A15" sourceRef="GW_Published" targetRef="Call_BeanClose" name="yes"/>
+    <bpmn:sequenceFlow id="A16" sourceRef="Call_BeanClose" targetRef="EndEvent_Published"/>
+    <bpmn:sequenceFlow id="A17" sourceRef="GW_Published" targetRef="Task_AuthorBlocks" name="no"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_DocumentAuthoring">
+    <bpmndi:BPMNPlane id="Plane_Process_DocumentAuthoring" bpmnElement="Collaboration_Process_DocumentAuthoring">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_DocumentAuthoring" bpmnElement="Participant_Process_DocumentAuthoring" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="1380" height="740"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Author" bpmnElement="Lane_Author" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="1350" height="150"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_WorkPlan" bpmnElement="Lane_WorkPlan" isHorizontal="true">
+        <dc:Bounds x="90" y="210" width="1350" height="150"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="90" y="360" width="1350" height="150"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Build" bpmnElement="Lane_Build" isHorizontal="true">
+        <dc:Bounds x="90" y="510" width="1350" height="290"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_StartEvent_NewDocument" bpmnElement="StartEvent_NewDocument">
+        <dc:Bounds x="140" y="117" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="125" y="157" width="76" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Plan" bpmnElement="Task_Plan">
+        <dc:Bounds x="200" y="75" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_BeanNotYours" bpmnElement="End_BeanNotYours">
+        <dc:Bounds x="362" y="117" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="405" y="125" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_BeanOpen" bpmnElement="Call_BeanOpen">
+        <dc:Bounds x="200" y="225" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_BeanYours" bpmnElement="GW_BeanYours" isMarkerVisible="true">
+        <dc:Bounds x="355" y="260" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="320" y="314" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_SeedPlan" bpmnElement="Task_SeedPlan">
+        <dc:Bounds x="465" y="225" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Scaffold" bpmnElement="Task_Scaffold">
+        <dc:Bounds x="465" y="375" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AuthorBlocks" bpmnElement="Task_AuthorBlocks">
+        <dc:Bounds x="615" y="375" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ProfileCheck" bpmnElement="Task_ProfileCheck">
+        <dc:Bounds x="615" y="525" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_ProfileClean" bpmnElement="Gateway_ProfileClean" isMarkerVisible="true">
+        <dc:Bounds x="765" y="560" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="730" y="614" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Validate" bpmnElement="Task_Validate">
+        <dc:Bounds x="850" y="525" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_PublishStatements" bpmnElement="Call_PublishStatements">
+        <dc:Bounds x="995" y="525" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Render" bpmnElement="Task_Render">
+        <dc:Bounds x="1140" y="525" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_ReviewPublish" bpmnElement="Call_ReviewPublish">
+        <dc:Bounds x="1285" y="525" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Published" bpmnElement="GW_Published" isMarkerVisible="true">
+        <dc:Bounds x="1320" y="710" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1285" y="764" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_BeanClose" bpmnElement="Call_BeanClose">
+        <dc:Bounds x="1140" y="675" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndEvent_Published" bpmnElement="EndEvent_Published">
+        <dc:Bounds x="960" y="717" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="918" y="757" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_A01" bpmnElement="A01">
+        <di:waypoint x="176" y="135"/>
+        <di:waypoint x="200" y="135"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A02" bpmnElement="A02">
+        <di:waypoint x="260" y="195"/>
+        <di:waypoint x="260" y="225"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A03" bpmnElement="A03">
+        <di:waypoint x="320" y="285"/>
+        <di:waypoint x="355" y="285"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A04" bpmnElement="A04">
+        <di:waypoint x="405" y="285"/>
+        <di:waypoint x="465" y="285"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A05" bpmnElement="A05">
+        <di:waypoint x="380" y="260"/>
+        <di:waypoint x="380" y="153"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="386" y="224" width="75" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A06" bpmnElement="A06">
+        <di:waypoint x="525" y="345"/>
+        <di:waypoint x="525" y="375"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A07" bpmnElement="A07">
+        <di:waypoint x="585" y="435"/>
+        <di:waypoint x="615" y="435"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A08" bpmnElement="A08">
+        <di:waypoint x="675" y="495"/>
+        <di:waypoint x="675" y="525"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A09" bpmnElement="A09">
+        <di:waypoint x="735" y="585"/>
+        <di:waypoint x="765" y="585"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A10" bpmnElement="A10">
+        <di:waypoint x="790" y="560"/>
+        <di:waypoint x="790" y="465"/>
+        <di:waypoint x="735" y="465"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="795" y="480" width="75" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A11" bpmnElement="A11">
+        <di:waypoint x="815" y="585"/>
+        <di:waypoint x="850" y="585"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A12" bpmnElement="A12">
+        <di:waypoint x="970" y="585"/>
+        <di:waypoint x="995" y="585"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A12b" bpmnElement="A12b">
+        <di:waypoint x="1115" y="585"/>
+        <di:waypoint x="1140" y="585"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A13" bpmnElement="A13">
+        <di:waypoint x="1260" y="585"/>
+        <di:waypoint x="1285" y="585"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A14" bpmnElement="A14">
+        <di:waypoint x="1345" y="645"/>
+        <di:waypoint x="1345" y="710"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A15" bpmnElement="A15">
+        <di:waypoint x="1320" y="735"/>
+        <di:waypoint x="1260" y="735"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A16" bpmnElement="A16">
+        <di:waypoint x="1140" y="735"/>
+        <di:waypoint x="996" y="735"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A17" bpmnElement="A17">
+        <di:waypoint x="1370" y="735"/>
+        <di:waypoint x="1425" y="735"/>
+        <di:waypoint x="1425" y="405"/>
+        <di:waypoint x="735" y="405"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1380" y="712" width="35" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "Detangled?" — GW_Detangled in graph-detanglement.bpmn.
+
+  Stage 2, the long one. THIS TABLE IS THE WHOLE REASON THE STAGES ARE A
+  DIAGRAM RATHER THAN A LIST, because it encodes the one rule an agent under
+  pressure skips:
+
+    READ THE UNASSIGNED COLUMN BEFORE THE EDGE COUNT.
+
+  `repo-partition.ts` says it in its own voice — "these are not cross-edges,
+  they are edges this tool declined to judge. Do not read them as clean." A
+  zero cross-edge count over a non-zero unassigned column is NOT a pass, and
+  a human reading a report can talk themselves past that in a sentence. A
+  table cannot: `unassignedEdges > 0` returns "unknown" before the cross-edge
+  rule is ever reached.
+
+  Facts, all from `bun run cat check:partition`:
+
+    unassignedEdges  edges touching a module the tool declined to judge
+    crossEdges       wrong-direction edges between classified modules
+
+  And the corollary the practice measured: the count RISES when the
+  measurement improves, and that is correct — 43 -> 49 when thirteen
+  previously-unjudged edges were folded in. A detangling count that only ever
+  falls is a count that is not being measured honestly, which is why this gate
+  reads the unassigned column rather than the trend.
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_DetanglementGate"
+             name="Detanglement gate"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_DetanglementGate" name="Detangled?">
+    <decisionTable id="Table_DetanglementGate" hitPolicy="FIRST">
+      <input id="In_Unassigned" label="edges the tool declined to judge">
+        <inputExpression id="Expr_Unassigned" typeRef="number">
+          <text>unassignedEdges</text>
+        </inputExpression>
+      </input>
+      <input id="In_CrossEdges" label="wrong-direction cross-edges">
+        <inputExpression id="Expr_CrossEdges" typeRef="number">
+          <text>crossEdges</text>
+        </inputExpression>
+      </input>
+      <output id="Out_DetanglementGate" name="outcome" typeRef="string" />
+
+      <rule id="Rule_Unjudged">
+        <description>An unassigned column above zero means the measurement is incomplete. A low edge count over an unclassified corpus is the same false comfort as a green check over an empty one — and this rule is FIRST so no cross-edge count can outrank it.</description>
+        <inputEntry id="IE_Unjudged_1"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_Unjudged_2"><text>-</text></inputEntry>
+        <outputEntry id="OE_Unjudged"><text>"unknown"</text></outputEntry>
+      </rule>
+      <rule id="Rule_StillTangled">
+        <description>Cross-edges remain. Prune one edge, merge the mutually-defining nodes, factor the shared content into a third — or the CLASSIFICATION is wrong, and check the TARGET's layer before the importer's.</description>
+        <inputEntry id="IE_Tangled_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Tangled_2"><text>&gt; 0</text></inputEntry>
+        <outputEntry id="OE_Tangled"><text>"keep detangling"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Detangled">
+        <description>Every module judged, zero wrong-direction edges. Stage 2 measures zero.</description>
+        <inputEntry id="IE_Detangled_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Detangled_2"><text>-</text></inputEntry>
+        <outputEntry id="OE_Detangled"><text>"detangled"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

@@ -1,0 +1,647 @@
+{
+  "_generated": "smart-base/L1/schemas/emit.ts (npm run build in smart-base/L1/schemas/) — do not hand-edit; edit the layer source in smart-base/<Layer>/schemas/",
+  "schemaVersion": "3.0",
+  "layer": "L3",
+  "namespace": "http://smart.who.int/kg/",
+  "source": "authored",
+  "note": "The FHIR layer, as a THIN TYPED INDEX and nothing more. Each class carries a canonical URL, a resource type, the profile the artefact actually declares, and status metadata -- no action trees, no element definitions, no bindings, no CQL. That is docs/SCOPE.md's corollary applied: FHIR has canonical references, a validator and a publisher, so it is indexed by URL and never re-represented. What this layer adds that FHIR cannot answer is which L2 component an artefact implements, and therefore which L1 recommendation it ultimately rests on.",
+  "profileNote": "NO CLASS ASSERTS A PROFILE. WHO's own sources disagree: smart-base defines 15 SG* profiles (SGPlanDefinition, SGDecisionTable, SGLogicalModel and so on), while the published SOP in smart-ig-starter-kit/input/pagecontent never mentions them and directs authors to CRMI, CPG, CQFM and SDC profiles instead. The immunizations IG settles it in practice -- all 138 of its PlanDefinitions declare cpg-recommendationdefinition and all 41 Measures declare proportion-measure-cqfm; not one SG* profile is used. Rather than hard-code either answer, `profile` is a property read off the artefact, and the disagreement is recorded here for the technical working group.",
+  "imports": [
+    "l2-dmn"
+  ],
+  "groundedIn": [
+    {
+      "what": "The published L2-to-L3 mapping table",
+      "where": "smart-ig-starter-kit input/pagecontent/l2_l3_overview.md",
+      "detail": "The \"Authored L3 artifacts\" table is the authoritative correspondence and the edges below are transcribed from it. Health Interventions is the one row with no L3 representation at all -- `n/a / n/a / n/a` -- so no edge leaves l1:health-intervention. Data Elements has NINE L3 representations, Processes has two, Decision Tables three, User Scenarios four."
+    },
+    {
+      "what": "A real published DAK Implementation Guide",
+      "where": "WHO's immunizations IG repository at 12ec2fc, canonical http://smart.who.int/immunizations",
+      "detail": "138 PlanDefinition (all cpg-recommendationdefinition), 279 Library, 279 .cql files, 192 ValueSet, 41 Measure (all proportion-measure-cqfm), 16 StructureMap .fml, 15 StructureDefinition (10 FSH Logical + 5 JSON), 10 Questionnaire, 8 ConceptMap, 6 CodeSystem, 5 Profile, 3 ActivityDefinition. Every class below is authored against a non-zero count; the three types with none are omitted, listed in deliberatelyOmitted with their zero."
+    },
+    {
+      "what": "The link fields the IG actually populates",
+      "where": "WHO's immunizations IG repository, input/fsh/rulesets/rulesets-plandefinition.fsh",
+      "detail": "`library = Canonical({library}Logic)` joins a PlanDefinition to its Library by an id suffix. `relatedArtifact[+].type = #citation` with `citation = \"WHO recommendations for routine immunization - summary tables (January 2025)\"` is the link back to L1 -- the same publication family the BCG decision table cites, at a different date. `definitionCanonical = Canonical(IMMZD2DTMR)` joins an action to its ActivityDefinition. These are real references and the extractor prefers them over conventions."
+    },
+    {
+      "what": "The id convention that carries the L2 join",
+      "where": "WHO's immunizations IG repository, input/fsh/plandefinitions/*.fsh, and l3_decisiontables.md",
+      "detail": "`Title: \"IMMZ.D2.DT.Dengue.3 doses with pre-vaccination screening\"` on `Instance: IMMZD2DTDengue3DosesWithPreVaccinationScreening` -- the L2 decision table id is the title, and the resource id is that title with dots and spaces removed. The same shape governs indicators (`IMMZ.IND.08` -> `IMMZIND08`). No extension anywhere carries an L2-to-L3 back-pointer, so these conventions ARE the traceability, which is why every implementedBy instance records the rule that matched it."
+    },
+    {
+      "what": "Personas and requirements, which the DAK does not carry",
+      "where": "smart-base input/fsh/actors/*.fsh",
+      "detail": "WHO's immunizations IG (canonical http://smart.who.int/immunizations) has zero ActorDefinition and zero Requirements instances; smart-base, its base dependency, has 22 and 41. Both classes are therefore grounded in real committed instances, just not in the DAK -- which is itself a finding a coverage query should surface."
+    },
+    {
+      "what": "Two SOP pages disagree about the decision-table outputs",
+      "where": "smart-ig-starter-kit input/pagecontent/l2_l3_overview.md and l3_decisiontables.md",
+      "detail": "The overview table's Decision Tables row lists PlanDefinition, Library and CQL. The decision-table page's own Outputs section also lists \"ActivityDefinitions as part of the IG or common repository\", and the immunizations IG has three, one of them titled `IMMZ.D2.DT.CR`. The more specific page wins, so decision-support-logic -> activity-definition is licensed."
+    }
+  ],
+  "valueSets": [
+    {
+      "id": "structure-definition-kind",
+      "note": "FHIR StructureDefinitionKind. Added by the smart-base migration: smart-kg named the property without binding it.",
+      "source": "http://hl7.org/fhir/ValueSet/structure-definition-kind",
+      "codes": [
+        {
+          "code": "primitive-type",
+          "definition": "A primitive type."
+        },
+        {
+          "code": "complex-type",
+          "definition": "A complex data type."
+        },
+        {
+          "code": "resource",
+          "definition": "A resource."
+        },
+        {
+          "code": "logical",
+          "definition": "A logical model."
+        }
+      ]
+    }
+  ],
+  "predicates": [
+    {
+      "predicate": "implementedBy",
+      "iri": "http://smart.who.int/kg/implementedBy",
+      "note": "An L2 component is implemented by a FHIR artefact. Reused from l1 and licensed here per (component, resource) pair transcribed from the published mapping table. ALWAYS `inferred`, never `derived`: with no back-pointer extension in the estate, the join is a naming convention or a canonical reference, and every instance records which rule matched and a resolutionStatus. The optional `targetPath` property on an instance names the element reached (e.g. `PlanDefinition.action[2]`) so traceability can be element-level without this layer modelling FHIR internals as nodes."
+    },
+    {
+      "predicate": "citesSource",
+      "iri": "http://smart.who.int/kg/citesSource",
+      "note": "A FHIR artefact cites an L1 source through `relatedArtifact[type = #citation]`. The target is an l1:citation minted from the same string by tools/extract-citations.mjs, so L3 and L1 join without either extractor knowing about the other -- the same mechanism l2-dmn uses from a decision rule."
+    },
+    {
+      "predicate": "uses",
+      "iri": "http://smart.who.int/kg/uses",
+      "note": "One FHIR artefact references another by canonical: a PlanDefinition its Library, an action its ActivityDefinition, a Questionnaire its StructureMap, a Measure its Library. These are real canonical references rather than conventions, so unlike implementedBy they are `derived` when read straight from the field."
+    }
+  ],
+  "classes": [
+    {
+      "id": "plan-definition",
+      "name": "Plan Definition",
+      "kind": "Knowledge",
+      "iri": "http://smart.who.int/kg/plan-definition",
+      "note": "A FHIR PlanDefinition. The published mapping gives it two sources -- Processes and Decision Tables -- so a PlanDefinition alone does not say which it came from; the implementedBy edge does. 138 in the immunizations IG, all declaring cpg-recommendationdefinition, all decision tables. Shares its IRI with the l1:external-artifact for the same canonical.",
+      "properties": [
+        "canonical",
+        "resourceType",
+        "profile",
+        "status",
+        "version",
+        "title",
+        "name",
+        "publisher",
+        "experimental",
+        "source",
+        "sha256"
+      ],
+      "valueSets": {
+        "status": "publication-status"
+      },
+      "elaborates": "external-artifact"
+    },
+    {
+      "id": "activity-definition",
+      "name": "Activity Definition",
+      "kind": "Knowledge",
+      "iri": "http://smart.who.int/kg/activity-definition",
+      "note": "A FHIR ActivityDefinition -- the concrete act a plan's action invokes. Reached from a PlanDefinition action's `definitionCanonical`, which is a real reference rather than a convention. 3 in the immunizations IG: two cpg-immunizationactivity, one cpg-communicationactivity.",
+      "properties": [
+        "canonical",
+        "resourceType",
+        "profile",
+        "status",
+        "version",
+        "title",
+        "name",
+        "publisher",
+        "experimental",
+        "source",
+        "sha256"
+      ],
+      "valueSets": {
+        "status": "publication-status"
+      },
+      "elaborates": "external-artifact"
+    },
+    {
+      "id": "library",
+      "name": "Library",
+      "kind": "Knowledge",
+      "iri": "http://smart.who.int/kg/library",
+      "note": "A FHIR Library -- the resource that carries CQL. Indexed by canonical and status only. Its CONTENTS are deliberately out of scope: a future l3-cql subgraph will elaborate this same IRI, exactly as l2-bpmn elaborates a BPMN file. 279 in the immunizations IG, joined to their PlanDefinition by the `{id}Logic` suffix.",
+      "properties": [
+        "canonical",
+        "resourceType",
+        "profile",
+        "status",
+        "version",
+        "title",
+        "name",
+        "publisher",
+        "experimental",
+        "libraryType",
+        "source",
+        "sha256"
+      ],
+      "valueSets": {
+        "status": "publication-status"
+      },
+      "elaborates": "external-artifact"
+    },
+    {
+      "id": "cql-library",
+      "name": "CQL File",
+      "kind": "Knowledge",
+      "iri": "http://smart.who.int/kg/cql-library",
+      "note": "A .cql file on disk, as opposed to the FHIR Library resource that wraps it. A node so that the mapping table's four CQL rows -- CQL Concepts and CQL Data Elements under Elements, CQL under Decision Tables, CQL IndicatorLogic under Indicators -- do not dead-end. It carries a name, a path and a hash and NOTHING about the logic: no expressions, no comment tags, no data requirements. 279 in the immunizations IG. The l3-cql subgraph is where that content belongs, and it is not built yet.",
+      "properties": [
+        "name",
+        "path",
+        "libraryType",
+        "source",
+        "sha256"
+      ],
+      "propertyNote": "No canonical, because a .cql file is not a FHIR resource and has no canonical URL. It is reached through the Library that wraps it."
+    },
+    {
+      "id": "measure",
+      "name": "Measure",
+      "kind": "Knowledge",
+      "iri": "http://smart.who.int/kg/measure",
+      "note": "A FHIR Measure -- an indicator made computable. 41 in the immunizations IG, all declaring proportion-measure-cqfm; the SOP makes the profile depend on scoring type, which is why the profile is read rather than assumed. Joined to its L2 indicator by id convention (IMMZ.IND.08 -> IMMZIND08).",
+      "properties": [
+        "canonical",
+        "resourceType",
+        "profile",
+        "status",
+        "version",
+        "title",
+        "name",
+        "publisher",
+        "experimental",
+        "scoring",
+        "source",
+        "sha256"
+      ],
+      "valueSets": {
+        "status": "publication-status"
+      },
+      "elaborates": "external-artifact"
+    },
+    {
+      "id": "questionnaire",
+      "name": "Questionnaire",
+      "kind": "Knowledge",
+      "iri": "http://smart.who.int/kg/questionnaire",
+      "note": "A FHIR Questionnaire -- a data-collection form over a logical model. 10 in the immunizations IG. Its `sdc-questionnaire-targetStructureMap` extension names the StructureMap that extracts it, which is a real canonical reference. The SOP states no linkId convention and none exists in the estate, so no edge is licensed on linkId.",
+      "properties": [
+        "canonical",
+        "resourceType",
+        "profile",
+        "status",
+        "version",
+        "title",
+        "name",
+        "publisher",
+        "experimental",
+        "source",
+        "sha256"
+      ],
+      "valueSets": {
+        "status": "publication-status"
+      },
+      "elaborates": "external-artifact"
+    },
+    {
+      "id": "structure-map",
+      "name": "Structure Map",
+      "kind": "Conformance",
+      "iri": "http://smart.who.int/kg/structure-map",
+      "note": "A FHIR StructureMap. The SOP requires them in threes -- QuestionnaireResponse to logical model, logical model to resource, and a grouping map -- so a count that is not a multiple of three is worth a look. 16 .fml files in the immunizations IG.",
+      "properties": [
+        "canonical",
+        "resourceType",
+        "profile",
+        "status",
+        "version",
+        "title",
+        "name",
+        "publisher",
+        "experimental",
+        "source",
+        "sha256"
+      ],
+      "valueSets": {
+        "status": "publication-status"
+      },
+      "elaborates": "external-artifact"
+    },
+    {
+      "id": "structure-definition",
+      "name": "Logical Model",
+      "kind": "Conformance",
+      "iri": "http://smart.who.int/kg/structure-definition",
+      "note": "A StructureDefinition with kind `logical` -- one data dictionary tab as a data structure. Distinct from `profile`, which constrains a FHIR resource: WHO's ArchiMate model has Logical Model realising Data Object while Profile realises Data Element, and the two are not interchangeable. 15 in the immunizations IG.",
+      "properties": [
+        "canonical",
+        "resourceType",
+        "profile",
+        "status",
+        "version",
+        "title",
+        "name",
+        "publisher",
+        "experimental",
+        "kind",
+        "source",
+        "sha256"
+      ],
+      "valueSets": {
+        "status": "publication-status",
+        "kind": "structure-definition-kind"
+      },
+      "elaborates": "external-artifact"
+    },
+    {
+      "id": "profile",
+      "name": "Profile",
+      "kind": "Conformance",
+      "iri": "http://smart.who.int/kg/profile",
+      "note": "A StructureDefinition constraining a FHIR resource. Separate from structure-definition for the reason above. 5 in the immunizations IG. Its internals -- differentials, element definitions, bindings -- are the clearest case of what this layer refuses to re-represent.",
+      "properties": [
+        "canonical",
+        "resourceType",
+        "profile",
+        "status",
+        "version",
+        "title",
+        "name",
+        "publisher",
+        "experimental",
+        "baseDefinition",
+        "source",
+        "sha256"
+      ],
+      "valueSets": {
+        "status": "publication-status"
+      },
+      "elaborates": "external-artifact"
+    },
+    {
+      "id": "value-set",
+      "name": "Value Set",
+      "kind": "Conformance",
+      "iri": "http://smart.who.int/kg/value-set",
+      "note": "A FHIR ValueSet. 192 in the immunizations IG -- the most numerous artefact of all. Indexed by canonical; its expansion, its compose rules and the codes it contains are terminology, which docs/SCOPE.md keeps at arm's length as firmly here as at L1.",
+      "properties": [
+        "canonical",
+        "resourceType",
+        "profile",
+        "status",
+        "version",
+        "title",
+        "name",
+        "publisher",
+        "experimental",
+        "source",
+        "sha256"
+      ],
+      "valueSets": {
+        "status": "publication-status"
+      },
+      "elaborates": "external-artifact"
+    },
+    {
+      "id": "code-system",
+      "name": "Code System",
+      "kind": "Conformance",
+      "iri": "http://smart.who.int/kg/code-system",
+      "note": "A FHIR CodeSystem. The SOP says each guideline defines one guideline-level code system holding a concept for every data dictionary element -- which is what makes `code[WHO] = IMMZ.DE9` on a logical model element resolvable. 6 in the immunizations IG. The codes themselves are not copied here.",
+      "properties": [
+        "canonical",
+        "resourceType",
+        "profile",
+        "status",
+        "version",
+        "title",
+        "name",
+        "publisher",
+        "experimental",
+        "source",
+        "sha256"
+      ],
+      "valueSets": {
+        "status": "publication-status"
+      },
+      "elaborates": "external-artifact"
+    },
+    {
+      "id": "concept-map",
+      "name": "Concept Map",
+      "kind": "Conformance",
+      "iri": "http://smart.who.int/kg/concept-map",
+      "note": "A FHIR ConceptMap -- one per target code system in the dictionary's terminology mappings. 8 in the immunizations IG. Records that a mapping exists; the mappings themselves belong to terminology.",
+      "properties": [
+        "canonical",
+        "resourceType",
+        "profile",
+        "status",
+        "version",
+        "title",
+        "name",
+        "publisher",
+        "experimental",
+        "sourceScope",
+        "targetScope",
+        "source",
+        "sha256"
+      ],
+      "valueSets": {
+        "status": "publication-status"
+      },
+      "elaborates": "external-artifact"
+    },
+    {
+      "id": "actor-definition",
+      "name": "Actor Definition",
+      "kind": "Conformance",
+      "iri": "http://smart.who.int/kg/actor-definition",
+      "note": "A FHIR ActorDefinition -- an L2 persona made a FHIR resource. ZERO in the immunizations IG and 22 in smart-base, which is itself worth a coverage query. The SOP names no profile for it and says one is not currently possible because SUSHI cannot profile an R5 resource in an R4 IG, and it tells authors not to assign an identifier -- so expect a bare resource and do not infer more.",
+      "properties": [
+        "canonical",
+        "resourceType",
+        "profile",
+        "status",
+        "version",
+        "title",
+        "name",
+        "publisher",
+        "experimental",
+        "actorType",
+        "source",
+        "sha256"
+      ],
+      "valueSets": {
+        "status": "publication-status"
+      },
+      "elaborates": "external-artifact"
+    },
+    {
+      "id": "requirements",
+      "name": "Requirements",
+      "kind": "Conformance",
+      "iri": "http://smart.who.int/kg/requirements",
+      "note": "A FHIR Requirements resource. The ONE place the published SOP names an SG profile -- SGRequirements -- and the grain is one resource per business process holding many statements, not one per requirement. ZERO in the immunizations IG and 41 in smart-base.",
+      "properties": [
+        "canonical",
+        "resourceType",
+        "profile",
+        "status",
+        "version",
+        "title",
+        "name",
+        "publisher",
+        "experimental",
+        "statementCount",
+        "source",
+        "sha256"
+      ],
+      "valueSets": {
+        "status": "publication-status"
+      },
+      "elaborates": "external-artifact"
+    }
+  ],
+  "edges": [
+    {
+      "predicate": "implementedBy",
+      "source": "business-process",
+      "target": "plan-definition"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "business-process",
+      "target": "activity-definition"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "bpmn-process",
+      "target": "plan-definition"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "bpmn-task",
+      "target": "activity-definition"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "decision-support-logic",
+      "target": "plan-definition"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "decision-support-logic",
+      "target": "activity-definition"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "decision-support-logic",
+      "target": "library"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "decision-support-logic",
+      "target": "cql-library"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "dmn-decision",
+      "target": "plan-definition"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "scheduling-logic",
+      "target": "plan-definition"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "scheduling-logic",
+      "target": "cql-library"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "persona",
+      "target": "actor-definition"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "program-indicator",
+      "target": "measure"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "program-indicator",
+      "target": "cql-library"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "data-element",
+      "target": "structure-definition"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "data-element",
+      "target": "questionnaire"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "data-element",
+      "target": "structure-map"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "data-element",
+      "target": "value-set"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "data-element",
+      "target": "code-system"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "data-element",
+      "target": "profile"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "data-element",
+      "target": "concept-map"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "data-element",
+      "target": "cql-library"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "functional-requirement",
+      "target": "requirements"
+    },
+    {
+      "predicate": "implementedBy",
+      "source": "non-functional-requirement",
+      "target": "requirements"
+    },
+    {
+      "predicate": "uses",
+      "source": "plan-definition",
+      "target": "library"
+    },
+    {
+      "predicate": "uses",
+      "source": "plan-definition",
+      "target": "activity-definition"
+    },
+    {
+      "predicate": "uses",
+      "source": "measure",
+      "target": "library"
+    },
+    {
+      "predicate": "uses",
+      "source": "library",
+      "target": "cql-library"
+    },
+    {
+      "predicate": "uses",
+      "source": "questionnaire",
+      "target": "structure-map"
+    },
+    {
+      "predicate": "uses",
+      "source": "questionnaire",
+      "target": "structure-definition"
+    },
+    {
+      "predicate": "uses",
+      "source": "structure-map",
+      "target": "structure-definition"
+    },
+    {
+      "predicate": "uses",
+      "source": "profile",
+      "target": "structure-definition"
+    },
+    {
+      "predicate": "uses",
+      "source": "value-set",
+      "target": "code-system"
+    },
+    {
+      "predicate": "uses",
+      "source": "concept-map",
+      "target": "code-system"
+    },
+    {
+      "predicate": "citesSource",
+      "source": "plan-definition",
+      "target": "citation"
+    },
+    {
+      "predicate": "citesSource",
+      "source": "library",
+      "target": "citation"
+    },
+    {
+      "predicate": "citesSource",
+      "source": "measure",
+      "target": "citation"
+    },
+    {
+      "predicate": "crossReferences",
+      "source": "structure-definition",
+      "target": "terminology-code"
+    },
+    {
+      "predicate": "crossReferences",
+      "source": "measure",
+      "target": "terminology-code"
+    }
+  ],
+  "deliberatelyOmitted": [
+    {
+      "what": "example-scenario, test-plan and test-script classes",
+      "why": "The published mapping gives User Scenarios four L3 outputs -- ExampleScenario, TestPlan, TestScript and example instances. The immunizations IG has ZERO of the first three, and so does smart-base. An edge from user-scenario would have no target and a class would have no instance. That absence is a finding for a coverage query, not a reason to author vocabulary."
+    },
+    {
+      "what": "Any edge from health-intervention",
+      "why": "The published mapping gives Health Interventions `n/a / n/a / n/a`. WHO's ArchiMate model disagrees, having `L3: Plan Definition realises Health Intervention`. The SOP is the procedure authors follow, so it wins; the contradiction is recorded rather than resolved."
+    },
+    {
+      "what": "CQL contents",
+      "why": "cql-library carries a name, a path and a hash. Expressions, @DecisionID / @input / @output comment tags and data requirements belong to a later l3-cql subgraph that elaborates the same IRI. Parsing a language to index it would be the opposite of an index."
+    },
+    {
+      "what": "FHIR internals of every kind",
+      "why": "Action trees, element definitions, differentials, bindings, ValueSet expansions, Measure populations and stratifiers. FHIR has a validator, a publisher and canonical references; this layer records the URL. An element reached by an edge is named in that edge's `targetPath` property, never as a node."
+    },
+    {
+      "what": "A linkId edge from data-element to questionnaire item",
+      "why": "The SOP states no linkId convention and a search of the estate finds none. The implementedBy edge to the Questionnaire as a whole is licensed; the item-level join is not, because nothing says how to make it."
+    },
+    {
+      "what": "Any assertion of which profile is correct",
+      "why": "smart-base defines SG* profiles; the published SOP names CRMI/CPG/CQFM/SDC and never mentions SG*; the immunizations IG uses CPG and CQFM exclusively. `profile` records what the artefact declares. See profileNote."
+    }
+  ]
+}

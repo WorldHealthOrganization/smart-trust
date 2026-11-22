@@ -1,0 +1,219 @@
+/* THE HARNESS ICON ROW'S OWN STYLE — beans `lhvt`, `9rq1`.
+ *
+ * Loaded with `navbar-row.js` wherever the row is drawn: by `head_custom.html`
+ * on the theme's pages and by `injectRail` on every railed page. It was part of
+ * `docs-ui.css`, which 2,709 of the 2,747 railed pages never load (measured on
+ * the built site after #2149).
+ *
+ * Every custom property carries its fallback. `docs-ui.css` declares
+ * `--fa-nav-pad` and `--fa-nav-collapsed` on `:root`; a railed page without it
+ * declares neither, and a `var()` with no fallback would compute to nothing.
+ * The fallbacks are the values `docs-ui.css` declares.
+ *
+ * The rules that only make sense inside the theme's `.side-bar` stay in
+ * `docs-ui.css`; the tooltip on the rail is `navbarCss`'s.
+ */
+
+.fa-nav-icons {
+  display: flex;
+  gap: 0.125rem;
+  align-items: center;
+  /* Aligned to the mark above it rather than to the strip's edge: the avatar
+     starts at the gutter, so the first icon does too and the two lines read as
+     one block. */
+  padding: 0.25rem calc(var(--fa-nav-pad, 0.75rem) - 0.25rem);
+  /* At the FOOT of the navbar since 2026-11-13 (owner: "put these controls at
+     the bottom of the navbar"), so its rule is on top. */
+  border-top: 1px solid rgba(128, 128, 128, 0.25);
+}
+
+/* THE SAME ROW ON THE RAIL — bean `wckf` (#2147). `mountNavIconRow` now draws
+ * into `nav.fa-nav` too, under its fixed top inside `.fa-nav-in`. The rail
+ * clips every child at its collapsed width rather than reflowing them
+ * (`navbarCss`), so — exactly as on `.side-bar` above — the row wraps to one
+ * icon per line at rest, and lies flat once the rail is open by hover, by
+ * keyboard focus or by its pinned checkbox: the rail's own three open
+ * selectors, not a fourth idea of "open". At ANY width: the rail has no
+ * 50rem mode, unlike the theme's sidebar. */
+nav.fa-nav .fa-nav-in > .fa-nav-icons {
+  /* Border-box HERE, not inherited: the rail lands in somebody else's page,
+     and a page that leaves `content-box` would add the row's 16px of padding
+     to the strip's width (measured: 72px in a 56px rail). */
+  box-sizing: border-box;
+  width: var(--fa-nav-collapsed, 3.5rem);
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+}
+/* The rail styles EVERY link in it as a nav row — `.fa-nav a{padding:8px
+ * 12px;gap:8px}` (`navbarCss`) — so the row's four LINK slots inherited 24px
+ * of horizontal padding inside a 32px box and drew their glyph 8px wide, while
+ * the BUTTON slots beside them drew at 18px. Measured in Chromium on the
+ * who-iris replica, 2026-10-05. A row icon is not a nav row. */
+nav.fa-nav .fa-nav-icons > a.fa-nav-icon {
+  padding: 0;
+  gap: 0;
+}
+nav.fa-nav:hover .fa-nav-in > .fa-nav-icons,
+nav.fa-nav:has(:focus-visible) .fa-nav-in > .fa-nav-icons,
+nav.fa-nav:has(.fa-nav-open:checked) .fa-nav-in > .fa-nav-icons {
+  width: auto;
+  flex-wrap: nowrap;
+}
+
+.fa-nav-icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  /* 2.25rem = 36px. Above the 44px pointer target only with the row's gap and
+     padding counted, which is the honest reading -- six of these plus gutters
+     is 232px inside a 248px strip, so a bigger box does not fit the owner's
+     own cap of six. The declared interaction profile here is low-dexterity and
+     this is the constraint binding against it: SIX and FULL WIDTH are the two
+     requirements, and they set the size between them. */
+  /* 2rem since 2026-09-27: the row now carries SEVEN (the five declared
+     slots, the light/dark switch and the [x]), and seven at 2.25rem is 260px
+     in a 248px strip. 32px still clears SC 2.5.8's 24px with room. */
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.25rem;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.8;
+}
+
+.fa-nav-icon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+/* The bulb carries no fill of its own (the header mini-button gets it from
+   its own rule), so in the row it painted the initial black. */
+.fa-nav-scheme svg { fill: currentColor; }
+
+.fa-nav-icon:hover,
+.fa-nav-icon:focus-visible {
+  background: rgba(128, 128, 128, 0.22);
+  text-decoration: none;
+  opacity: 1;
+}
+
+/* DECLARED, WITH NO PUBLISHED VIEWER. Not a link and it must not look like
+ * one — `pb04`, the same rule the harness tabs' graph list follows. Rendered
+ * rather than dropped, because a declared graph missing its viewer is a
+ * FINDING and hiding it answers "where is beans" with silence. */
+.fa-nav-icon--dead {
+  cursor: default;
+  opacity: 0.35;
+}
+
+/* Buttons in the row carry the browser's own chrome otherwise. */
+button.fa-nav-icon {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+/* fsh-guts IN THE ICON ROW (#1925, owner 2026-10-02: "with the others"): the
+ * count rides as a small badge on the fish so the row keeps one glyph width. */
+/* Todos and Beans carry the same badge since bean `gkv6` (owner, 2026-10-05:
+ * "why no count on beans and todos ... as badges like fsh-guts has?"). */
+.fa-nav-icon--fsh-guts,
+.fa-nav-icon--counted { position: relative; }
+.fa-nav-icon--fsh-guts .fa-nav-count,
+.fa-nav-icon--counted .fa-nav-count {
+  position: absolute;
+  right: -0.35rem;
+  top: -0.3rem;
+  min-width: 1rem;
+  padding: 0 0.2rem;
+  border-radius: 0.5rem;
+  background: rgba(128, 128, 128, 0.85);
+  color: #fff;
+  font-size: 0.625rem;
+  line-height: 1rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  pointer-events: none;
+}
+/* Could not be read, or nothing published: no number is better than a wrong one. */
+.fa-nav-icon--counted .fa-nav-count[data-fa-count-state="absent"] { display: none; }
+
+/* THE QR PANEL IN THE NAVBAR — bean 5rmf */
+.fa-qr-panel {
+  display: none;
+  box-sizing: border-box;
+  padding: 0.75rem;
+  margin: 0.5rem calc(var(--fa-nav-pad, 0.75rem) - 0.25rem);
+  width: calc(100% - 2 * (var(--fa-nav-pad, 0.75rem) - 0.25rem));
+  align-self: stretch;
+  background: var(--sidebar-color, #27262b);
+  color: #fff;
+  border: 1px solid rgba(128, 128, 128, 0.45);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+}
+
+:root[data-fa-scheme="light"] .fa-qr-panel {
+  background: #fff;
+  color: #27262b;
+}
+
+.fa-qr-panel[data-open="true"] {
+  display: block;
+}
+
+.fa-qr-panel svg {
+  display: block;
+  width: 100%;
+  max-width: 13rem;
+  height: auto;
+  border-radius: 4px;
+  margin: 0 auto;
+}
+
+.fa-qr-caption {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.65rem;
+  line-height: 1.3;
+  opacity: 0.75;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+@media (max-width: 50rem) {
+  .fa-qr-panel {
+    position: fixed;
+    /* Below the fixed top bar (language, ▾ Folio), which sat over the code's top
+       rows at 390px (bean 5rmf, measured 2026-10-12). */
+    top: 3rem;
+    top: calc(3rem + env(safe-area-inset-top, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    max-width: min(78vw, 20rem);
+    margin: 0;
+    z-index: 1000;
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.45);
+  }
+  .fa-qr-panel svg, .fa-qr-caption { max-width: 100%; }
+}
+
+/* ARRIVING ON AN ICON DOES NOT OPEN THE RAIL EITHER — the `.side-bar` rule in
+ * `docs-ui.css` (bean `ob3m` finding 1), for `nav.fa-nav`. With the row at the
+ * rail's foot (owner, 2026-11-13) a pointer arriving on an icon widened the
+ * rail and laid the row flat, moving the icon out from under it before the
+ * click landed. `navbar-row.js` sets `.fa-nav-tip-hold` while the pointer is
+ * in the row's resting box; the rail stays at rest until it leaves. */
+nav.fa-nav.fa-nav-tip-hold:hover:not(:has(:focus-visible)):not(:has(.fa-nav-open:checked)) {
+  width: var(--fa-nav-collapsed, 3.5rem);
+}
+nav.fa-nav.fa-nav-tip-hold:hover:not(:has(:focus-visible)):not(:has(.fa-nav-open:checked)) .fa-nav-in > .fa-nav-icons {
+  width: var(--fa-nav-collapsed, 3.5rem);
+  flex-wrap: wrap;
+}
+body:has(nav.fa-nav.fa-nav-tip-hold:hover:not(:has(:focus-visible)):not(:has(.fa-nav-open:checked))) {
+  padding-inline-start: var(--fa-nav-collapsed, 3.5rem);
+}

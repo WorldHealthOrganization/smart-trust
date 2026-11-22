@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+ xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_ContentChangeReviewCommittee"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="0.1.0">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="review-coordinator" name="Review coordinator"/>
+  <bpmn:resource id="reviewer" name="Reviewer / SME"/>
+
+  <bpmn:collaboration id="Collaboration_ContentChangeReviewCommittee">
+    <bpmn:participant id="Participant_ContentChangeReviewCommittee" name="Committee review of a content change" processRef="Process_ContentChangeReviewCommittee" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_ContentChangeReviewCommittee" name="Committee review of a content change" isExecutable="false">
+    <bpmn:documentation>The review committee's review of one staged content change, ending in an approval or a request for changes: compare staged against main, slice the change and review each slice, settle withdrawn comments and disputed findings, gate on coverage, review the editorial dependencies and the impact, and decide.
+
+Called from content-change-review when the author submits. Which end it reaches is what the caller's GW_CommitteeApproved reads. Organising the review is the review coordinator's lane and deciding it is the committee's. Merging is not here: it is a separate, confirmed act in content-change-review-publish.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_ContentChangeReviewCommittee">
+      <bpmn:lane id="Lane_Reviewer" name="Review Committee" partitionElementRef="reviewer">
+        <bpmn:documentation>Compares staged against main, reviews the slices it is assigned (review-task.bpmn, one call per slice), takes a disputed finding to adjudication, judges the impact assessment, and decides. Task_Approve records the approval; merging is a separate, confirmed act in the publish phase. A rejection ends this phase with changes requested, and the caller routes it to Task_Iterate in the agent's lane rather than to the author.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Reviewer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CompareBeforeAfter</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_ReviewSlices</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Withdraw</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_WithdrawComment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Disputed_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Disputed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Adjudication</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewUses</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewImpact</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Approved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RequestChanges</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_ChangesRequested</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Approve</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Reviewer</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Coordinator" name="Review Coordinator" partitionElementRef="review-coordinator">
+        <bpmn:documentation>Organises a review large enough to need organising, and decides nothing about the content: ingests the reviewers' tagged comments, slices the change into pieces a reviewer can hold, assigns each slice to a review lane, and watches coverage until every changed block has a verdict or a reasoned waiver. A separate role from the editor: organising a review and deciding its outcome are different accountabilities.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_IngestComments</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SliceAndAssign</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Covered_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Covered</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Reviewer" name="PR submitted for review">
+      <bpmn:outgoing>r1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_CompareBeforeAfter" name="Compare main vs staging">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="staging-review"/>
+        <bootstrap.processes:skill ref="visual-diff"/>
+        <bootstrap.processes:skill ref="rendered-impact"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>
+        The review starts from the Change Set's RENDERED list (skill
+        rendered-impact): every rendered file the change alters, predicted
+        from each renderer's dependency cone and checked against the build.
+        The reviewer opens every content page on it, not only the pages the
+        author mentions; index files are listed but not reviewed. An input
+        the renderer could not place is shown as not known, never as no
+        change.
+        Review committee opens both URLs side by side:
+        - Main site: &lt;pages-url&gt;/ (current published state)
+        - Staging: &lt;pages-url&gt;/branches/&lt;branch-slug&gt;/
+        The staging banner shows the commit SHA so they can verify
+        what they are reviewing matches the PR. A changed figure, diagram
+        or table is also pictured before and after on the review page,
+        with the share of changed pixels in words (skill visual-diff,
+        Tool folio-block-screenshots). Anything the staging job cannot
+        picture (page chrome, scroll behaviour, a PDF page, an IG page) is
+        in the agent's before/after preview (skill before-after-preview).
+      </bpmn:documentation>
+      <bpmn:incoming>r1</bpmn:incoming>
+      <bpmn:outgoing>r2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_IngestComments" name="Ingest tagged review comments">
+      <bpmn:documentation>Every PR conversation comment that starts with `block: &lt;label&gt;` becomes a `review-comment/1.0.0` todo (open), idempotently, and is published with the preview as `review-comments.json`. The staging workflow runs this on every push and on every tagged comment; the coordinator owns that it has run before slicing, because the slices are cut around what reviewers have already said. This is the `ingest` transition of REVIEW_TRANSITIONS. Uses `folio-review-comments`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="review-comments" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>r2</bpmn:incoming>
+      <bpmn:outgoing>c1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_SliceAndAssign" name="Slice the change and assign reviewers">
+      <bpmn:documentation>From the ChangeSet, its rendered list (skill rendered-impact: each changed rendered page is assigned like a changed block) and the heat map on the review page: cut the change into slices a reviewer can hold (usually a section, or a run of sections where the heat map clusters), and assign each slice to a review lane by what it contains — clinical content to a clinical SME, a decision table to a QC reviewer, prose to a narrative reviewer. A block that needs no review (a pure rename, say) is WAIVED here with a written reason, which is what the coverage gate counts. Re-entered from GW_Covered when coverage is incomplete: the uncovered blocks become new slices.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="review-heatmap" />
+        <bootstrap.processes:skill ref="staging-review" />
+        <bootstrap.processes:skill ref="rendered-impact" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>c1</bpmn:incoming>
+      <bpmn:incoming>c8</bpmn:incoming>
+      <bpmn:outgoing>c2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_ReviewSlices" name="Review each slice" calledElement="Process_Review">
+      <bpmn:documentation>review-task.bpmn, once per slice, in parallel lanes by role. What kind of thing changed decides which review the slice descends into; the reviewer takes on that inner lane's role for the call only. Each reviewer gives the slice's blocks a verdict, and comments on the pull request with the `block:` tag where something needs saying.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+        <bootstrap.processes:skill ref="review-comments" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>c2</bpmn:incoming>
+      <bpmn:outgoing>c3</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Withdraw" name="A comment withdrawn?">
+      <bpmn:documentation>Asked after the slices are reviewed: did a reviewer withdraw a comment? `Yes` records the withdrawal first; either way the flow then asks whether a finding is disputed.</bpmn:documentation>
+      <bpmn:incoming>c3</bpmn:incoming>
+      <bpmn:outgoing>c4</bpmn:outgoing>
+      <bpmn:outgoing>c5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_WithdrawComment" name="Withdraw a review comment">
+      <bpmn:documentation>The reviewer who made a comment takes it back (it was a misreading, or a later slice answered it). Recorded with `folio-review-comment-move --to withdrawn`, committed to the edit-set's feature branch like every status change. This is the `withdraw` transition of REVIEW_TRANSITIONS.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="review-comments" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>c4</bpmn:incoming>
+      <bpmn:outgoing>c6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Disputed_Join">
+      <bpmn:documentation>Brings the paths together before the decision after it, so that decision only splits.</bpmn:documentation>
+      <bpmn:incoming>c5</bpmn:incoming>
+      <bpmn:incoming>c6</bpmn:incoming>
+      <bpmn:outgoing>Flow_GW_Disputed_Join</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="GW_Disputed" name="A finding disputed?">
+      <bpmn:documentation>Is any finding disputed between author and reviewer? `Yes` goes to adjudication; `No` goes on to check that every changed block was reviewed.</bpmn:documentation>
+      
+      <bpmn:incoming>Flow_GW_Disputed_Join</bpmn:incoming>
+      <bpmn:outgoing>c7</bpmn:outgoing>
+      <bpmn:outgoing>c9</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_Adjudication" name="Adjudicate the disagreement" calledElement="Process_Adjudication">
+      <bpmn:documentation>adjudication.bpmn. When the editor and a reviewer, or two reviewers, disagree about a finding, an adjudicator settles it and records why; the review comment moves to `adjudicated` with the Decision that closed it.
+
+Permitted answers: `stands` — the finding is right and the author addresses it; `withdrawn` — the finding is wrong and the comment closes. Recorded on the comment, not branched: either way the flow goes on to the coverage check.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="adjudication" />
+        <cat-harness.processes:adjudication codes="stands withdrawn" list="adjudication-content-finding"/>
+        <cat-harness.processes:fulfilment kinds="person agent" reason="the restriction Process_Adjudication states on A_Adjudicate, restated here because this is where the enum is declared; the engine refuses system or external on any step carrying cat-harness.processes:adjudication."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>c7</bpmn:incoming>
+      <bpmn:outgoing>c10</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Covered_Join">
+      <bpmn:documentation>Brings the paths together before the decision after it, so that decision only splits.</bpmn:documentation>
+      <bpmn:incoming>c9</bpmn:incoming>
+      <bpmn:incoming>c10</bpmn:incoming>
+      <bpmn:outgoing>Flow_GW_Covered_Join</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="GW_Covered" name="Every changed block and page reviewed?">
+      <bpmn:documentation>Computed, not chosen: `decisions/review-coverage-gate.dmn` reads `uncoveredBlocks` (changed blocks with neither a verdict nor a reasoned waiver) and `openDefects`, and, where the build published a rendered impact, `unreviewedPages`, `undeterminedInputs` and `missedPages` with their `rendered` and `measured` statuses (skill rendered-impact). Resolved comments are not coverage, and coverage is not approval — that is GW_Approved.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:decision ref="decisions/review-coverage-gate.dmn#Decision_ReviewCoverageGate" />
+      </bpmn:extensionElements>
+      
+      <bpmn:incoming>Flow_GW_Covered_Join</bpmn:incoming>
+      <bpmn:outgoing>c8</bpmn:outgoing>
+      <bpmn:outgoing>c11</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_ReviewUses" name="Review the editorial dependencies">
+      <bpmn:documentation>
+        `uses[]` is what a READER must have read to follow the block — never
+        populated from the formal dependency graph. Once every changed block
+        is covered, the committee checks the editorial dependencies of the
+        change as a whole before judging its impact. Reading order is a
+        property of folio content, so the step belongs to the content
+        process, which reaches the harness's review by calling DOWN into
+        `review-task`.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="uses-editorial-review"/></bpmn:extensionElements>
+      <bpmn:incoming>c11</bpmn:incoming>
+      <bpmn:outgoing>c11b</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_ReviewImpact" name="Review impact assessment">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>
+        Committee reviews the agent's impact assessment:
+        - Were all downstream effects identified?
+        - Are the indicator changes acceptable?
+        - Does the logic change match the narrative intent?
+      </bpmn:documentation>
+      <bpmn:incoming>c11b</bpmn:incoming>
+      <bpmn:outgoing>r3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Approved" name="Changes approved?">
+      <bpmn:documentation>The committee's decision on the impact assessment. `No` requests changes; `Yes` approves.</bpmn:documentation>
+      <bpmn:incoming>r3</bpmn:incoming>
+      <bpmn:outgoing>r4</bpmn:outgoing>
+      <bpmn:outgoing>r6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_RequestChanges" name="Request changes">
+      <bpmn:documentation>
+        Committee provides feedback. PR stays open.
+        Author and agent iterate further.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+        <bootstrap.processes:skill ref="content-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>r4</bpmn:incoming>
+      <bpmn:outgoing>r5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_ChangesRequested" name="changes requested">
+      <bpmn:incoming>r5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_Approve" name="Approve">
+      <bpmn:documentation>
+        The committee approves the change: the judgement, recorded with the
+        evidence it rests on. Approving is not merging: a self-authored
+        change cannot be approved through GitHub's own review (the approver
+        may not be the PR's author), and a merge needs the owner's explicit
+        confirmation whoever approved.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="decision-audit" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>r6</bpmn:incoming>
+      <bpmn:outgoing>r8</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Reviewer" name="approved">
+      <bpmn:incoming>r8</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="r1" sourceRef="Start_Reviewer" targetRef="Task_CompareBeforeAfter" />
+    <bpmn:sequenceFlow id="r2" sourceRef="Task_CompareBeforeAfter" targetRef="Task_IngestComments" />
+    <bpmn:sequenceFlow id="c1" sourceRef="Task_IngestComments" targetRef="Task_SliceAndAssign" />
+    <bpmn:sequenceFlow id="c2" sourceRef="Task_SliceAndAssign" targetRef="Call_ReviewSlices" />
+    <bpmn:sequenceFlow id="c3" sourceRef="Call_ReviewSlices" targetRef="GW_Withdraw" />
+    <bpmn:sequenceFlow id="c4" name="Yes" sourceRef="GW_Withdraw" targetRef="Task_WithdrawComment" />
+    <bpmn:sequenceFlow id="c5" name="No" sourceRef="GW_Withdraw" targetRef="GW_Disputed_Join" />
+    <bpmn:sequenceFlow id="c6" sourceRef="Task_WithdrawComment" targetRef="GW_Disputed_Join" />
+    <bpmn:sequenceFlow id="Flow_GW_Disputed_Join" sourceRef="GW_Disputed_Join" targetRef="GW_Disputed"/>
+    <bpmn:sequenceFlow id="c7" name="Yes" sourceRef="GW_Disputed" targetRef="Call_Adjudication" />
+    <bpmn:sequenceFlow id="c9" name="No" sourceRef="GW_Disputed" targetRef="GW_Covered_Join" />
+    <bpmn:sequenceFlow id="c10" sourceRef="Call_Adjudication" targetRef="GW_Covered_Join" />
+    <bpmn:sequenceFlow id="Flow_GW_Covered_Join" sourceRef="GW_Covered_Join" targetRef="GW_Covered"/>
+    <bpmn:sequenceFlow id="c8" name="no" sourceRef="GW_Covered" targetRef="Task_SliceAndAssign" />
+    <bpmn:sequenceFlow id="c11" name="yes" sourceRef="GW_Covered" targetRef="Task_ReviewUses" />
+    <bpmn:sequenceFlow id="c11b" sourceRef="Task_ReviewUses" targetRef="Task_ReviewImpact" />
+    <bpmn:sequenceFlow id="r3" sourceRef="Task_ReviewImpact" targetRef="GW_Approved" />
+    <bpmn:sequenceFlow id="r4" name="No" sourceRef="GW_Approved" targetRef="Task_RequestChanges" />
+    <bpmn:sequenceFlow id="r5" sourceRef="Task_RequestChanges" targetRef="End_ChangesRequested" />
+    <bpmn:sequenceFlow id="r6" name="Yes" sourceRef="GW_Approved" targetRef="Task_Approve" />
+    <bpmn:sequenceFlow id="r8" sourceRef="Task_Approve" targetRef="End_Reviewer" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ContentChangeReviewCommittee">
+    <bpmndi:BPMNPlane id="BPMNPlane_ContentChangeReviewCommittee" bpmnElement="Collaboration_ContentChangeReviewCommittee">
+      <bpmndi:BPMNShape id="Participant_ContentChangeReviewCommittee_di" bpmnElement="Participant_ContentChangeReviewCommittee" isHorizontal="true">
+        <dc:Bounds x="100" y="80" width="1380" height="450" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Reviewer_di" bpmnElement="Lane_Reviewer" isHorizontal="true">
+        <dc:Bounds x="130" y="80" width="1350" height="290" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Coordinator_di" bpmnElement="Lane_Coordinator" isHorizontal="true">
+        <dc:Bounds x="130" y="370" width="1350" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_Reviewer_di" bpmnElement="Start_Reviewer">
+        <dc:Bounds x="180" y="137" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="160" y="177" width="85" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CompareBeforeAfter_di" bpmnElement="Task_CompareBeforeAfter">
+        <dc:Bounds x="250" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_IngestComments_di" bpmnElement="Task_IngestComments">
+        <dc:Bounds x="250" y="385" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SliceAndAssign_di" bpmnElement="Task_SliceAndAssign">
+        <dc:Bounds x="410" y="385" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_ReviewSlices_di" bpmnElement="Call_ReviewSlices">
+        <dc:Bounds x="410" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Withdraw_di" bpmnElement="GW_Withdraw">
+        <dc:Bounds x="585" y="130" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="565" y="90" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_WithdrawComment_di" bpmnElement="Task_WithdrawComment">
+        <dc:Bounds x="550" y="230" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Disputed_Join" bpmnElement="GW_Disputed_Join" isMarkerVisible="true">
+        <dc:Bounds x="705" y="130" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Disputed_di" bpmnElement="GW_Disputed">
+        <dc:Bounds x="795" y="130" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="775" y="90" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Adjudication_di" bpmnElement="Call_Adjudication">
+        <dc:Bounds x="760" y="230" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Covered_Join" bpmnElement="GW_Covered_Join" isMarkerVisible="true">
+        <dc:Bounds x="915" y="420" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Covered_di" bpmnElement="GW_Covered">
+        <dc:Bounds x="995" y="420" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1055" y="425" width="180" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReviewUses_di" bpmnElement="Task_ReviewUses">
+        <dc:Bounds x="940" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReviewImpact_di" bpmnElement="Task_ReviewImpact">
+        <dc:Bounds x="1090" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Approved_di" bpmnElement="GW_Approved">
+        <dc:Bounds x="1245" y="130" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1225" y="90" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RequestChanges_di" bpmnElement="Task_RequestChanges">
+        <dc:Bounds x="1210" y="230" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_ChangesRequested_di" bpmnElement="End_ChangesRequested">
+        <dc:Bounds x="1390" y="272" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1365" y="312" width="86" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Approve_di" bpmnElement="Task_Approve">
+        <dc:Bounds x="1330" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Reviewer_di" bpmnElement="End_Reviewer">
+        <dc:Bounds x="1372" y="228" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1415" y="236" width="60" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="r1_di" bpmnElement="r1">
+        <di:waypoint x="216" y="155" />
+        <di:waypoint x="250" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="r2_di" bpmnElement="r2">
+        <di:waypoint x="310" y="215" />
+        <di:waypoint x="310" y="385" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c1_di" bpmnElement="c1">
+        <di:waypoint x="370" y="445" />
+        <di:waypoint x="410" y="445" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c2_di" bpmnElement="c2">
+        <di:waypoint x="470" y="385" />
+        <di:waypoint x="470" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c3_di" bpmnElement="c3">
+        <di:waypoint x="530" y="155" />
+        <di:waypoint x="585" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c4_di" bpmnElement="c4">
+        <di:waypoint x="610" y="180" />
+        <di:waypoint x="610" y="230" />
+        <bpmndi:BPMNLabel><dc:Bounds x="616" y="195" width="25" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c5_di" bpmnElement="c5">
+        <di:waypoint x="635" y="155" />
+        <di:waypoint x="705" y="155" />
+        <bpmndi:BPMNLabel><dc:Bounds x="655" y="135" width="20" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c6_di" bpmnElement="c6">
+        <di:waypoint x="670" y="290" />
+        <di:waypoint x="730" y="290" />
+        <di:waypoint x="730" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_GW_Disputed_Join" bpmnElement="Flow_GW_Disputed_Join">
+        <di:waypoint x="755" y="155"/>
+        <di:waypoint x="795" y="155"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c7_di" bpmnElement="c7">
+        <di:waypoint x="820" y="180" />
+        <di:waypoint x="820" y="230" />
+        <bpmndi:BPMNLabel><dc:Bounds x="826" y="195" width="25" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c9_di" bpmnElement="c9">
+        <di:waypoint x="845" y="155" />
+        <di:waypoint x="900" y="155" />
+        <di:waypoint x="900" y="430" />
+        <di:waypoint x="915" y="430" />
+        <bpmndi:BPMNLabel><dc:Bounds x="860" y="135" width="20" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c10_di" bpmnElement="c10">
+        <di:waypoint x="820" y="350" />
+        <di:waypoint x="820" y="445" />
+        <di:waypoint x="915" y="445" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_GW_Covered_Join" bpmnElement="Flow_GW_Covered_Join">
+        <di:waypoint x="965" y="445"/>
+        <di:waypoint x="995" y="445"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c8_di" bpmnElement="c8">
+        <di:waypoint x="1020" y="470" />
+        <di:waypoint x="1020" y="518" />
+        <di:waypoint x="470" y="518" />
+        <di:waypoint x="470" y="505" />
+        <bpmndi:BPMNLabel><dc:Bounds x="735" y="500" width="20" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c11_di" bpmnElement="c11">
+        <di:waypoint x="1020" y="420" />
+        <di:waypoint x="1020" y="215" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1026" y="385" width="25" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c11b_di" bpmnElement="c11b">
+        <di:waypoint x="1060" y="155" />
+        <di:waypoint x="1090" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="r3_di" bpmnElement="r3">
+        <di:waypoint x="1210" y="155" />
+        <di:waypoint x="1245" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="r4_di" bpmnElement="r4">
+        <di:waypoint x="1270" y="180" />
+        <di:waypoint x="1270" y="230" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1276" y="195" width="20" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="r5_di" bpmnElement="r5">
+        <di:waypoint x="1330" y="290" />
+        <di:waypoint x="1390" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="r6_di" bpmnElement="r6">
+        <di:waypoint x="1295" y="155" />
+        <di:waypoint x="1330" y="155" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1302" y="135" width="25" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="r8_di" bpmnElement="r8">
+        <di:waypoint x="1390" y="215" />
+        <di:waypoint x="1390" y="228" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

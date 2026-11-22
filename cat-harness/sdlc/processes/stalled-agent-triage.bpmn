@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_StalledAgentTriage" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="session-coordinator" name="Session coordinator"/>
+  <bpmn:resource id="user" name="User"/>
+  <bpmn:collaboration id="Collaboration_Process_StalledAgentTriage">
+    <bpmn:participant id="Participant_Process_StalledAgentTriage" name="Stalled-agent triage: collect handovers, consolidate themes, recommend, re-route" processRef="Process_StalledAgentTriage"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_StalledAgentTriage" name="Stalled-agent triage: collect handovers, consolidate themes, recommend, re-route" isExecutable="false">
+    <bpmn:documentation>When agents stall (context exhausted, container lost, session timed out) their work is spread over PRs, branches, beans and process runs. Collect each agent's handover report, or reconstruct one, group the work into 2-4 themes, recommend how to pick each up, let the user decide, then record it and re-route open PRs through the merge steward. Owner, 2026-10-02: 'an incoming stalled agent triage process which needs to look at stalled agents (named or over a given time window from active PRs, branches, discussions, beans etc), try to get as many handover reports as possible, if many then consolidate the various workstreams into 2-4 themes, give recommendation on how to pick up the work as part of current/new workplan; if open PRs etc, coordinate with relevant agents (e.g. the Merge Manager)'. Operating skills: stalled-agent-triage, handover-report.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_StalledAgentTriage">
+      <bpmn:lane id="Lane_Triage" name="Triage agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Reads the footprint the stalled agents left, collects or reconstructs a handover report per agent, groups the work into 2-4 themes, and recommends. It never finishes, closes or deletes another agent's work.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_SAT</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Footprint</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Collect</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Consolidate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Record</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_SAT</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Steward" name="Merge steward" partitionElementRef="session-coordinator">
+        <bpmn:documentation>Receives the open PRs that lost their driver: which are green and ready, which are mid-merge, which must be re-driven from their PR head.</bpmn:documentation>
+        <bpmn:flowNodeRef>S_Reroute</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_User" name="User" partitionElementRef="user">
+        <bpmn:documentation>Decides one theme at a time: continue, fold into the plan, new epic, park, or scrap.</bpmn:documentation>
+        <bpmn:flowNodeRef>U_Decide</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_SAT" name="Agents stalled, or owner asks to pick up their work"/>
+    <bpmn:task id="A_Footprint" name="Find the footprint">
+      <bpmn:documentation>handover notes (beans/notes, title 'handover:'), open PRs and branches by session or time window, in-progress beans, workflow instances, last PR and issue comments. REST, one batched pass.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="stalled-agent-triage"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Collect" name="Collect or reconstruct a handover report per agent">
+      <bpmn:documentation>Use the agent's own report and check it against live state; if none, ask the agent if it is still reachable, else reconstruct with the handover-report template and mark it reconstructed. Unpushed state is unknown, never empty.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="handover-report"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Consolidate" name="Consolidate into 2-4 themes, with a recommendation each">
+      <bpmn:documentation>Group by what the work delivers, not by agent. Each theme gets its epic, members, dependencies, risk, and one of: continue, fold in, new epic, park, scrap (owner only).</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="stalled-agent-triage"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:callActivity id="U_Decide" calledElement="Process_AskThePerson" name="Decide each theme">
+      <bpmn:extensionElements><cat-harness.processes:no-skill reason="The user's decision. The triage agent presents each theme with context, options and a recommendation, one decision in full and a count of the rest."/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:task id="A_Record" name="Record the triage and claim the picked-up work">
+      <bpmn:documentation>A 'triage: &lt;date&gt;' bean note on each theme's epic; new or re-parented beans; claims via beans:claim. Owning sessions still alive are notified before their branches are touched.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="S_Reroute" name="Re-route open PRs that lost their driver">
+      <bpmn:documentation>Green, up-to-date PRs join the queue; mid-merge branches are re-driven from the PR head, never guessed at; red PRs go back to the new driver.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="coordinate"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_SAT" name="Stalled work has an owner and a place in the plan"/>
+    <bpmn:sequenceFlow id="SF_Process_StalledAgentTriage_1" sourceRef="Start_SAT" targetRef="A_Footprint"/>
+    <bpmn:sequenceFlow id="SF_Process_StalledAgentTriage_2" sourceRef="A_Footprint" targetRef="A_Collect"/>
+    <bpmn:sequenceFlow id="SF_Process_StalledAgentTriage_3" sourceRef="A_Collect" targetRef="A_Consolidate"/>
+    <bpmn:sequenceFlow id="SF_Process_StalledAgentTriage_4" sourceRef="A_Consolidate" targetRef="U_Decide"/>
+    <bpmn:sequenceFlow id="SF_Process_StalledAgentTriage_5" sourceRef="U_Decide" targetRef="A_Record"/>
+    <bpmn:sequenceFlow id="SF_Process_StalledAgentTriage_6" sourceRef="A_Record" targetRef="S_Reroute"/>
+    <bpmn:sequenceFlow id="SF_Process_StalledAgentTriage_7" sourceRef="S_Reroute" targetRef="End_SAT"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_StalledAgentTriage">
+    <bpmndi:BPMNPlane id="Plane_Process_StalledAgentTriage" bpmnElement="Collaboration_Process_StalledAgentTriage">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_StalledAgentTriage" bpmnElement="Participant_Process_StalledAgentTriage" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1320" height="510" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Triage" bpmnElement="Lane_Triage" isHorizontal="true">
+        <dc:Bounds x="190" y="250" width="1290" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Steward" bpmnElement="Lane_Steward" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1290" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_User" bpmnElement="Lane_User" isHorizontal="true">
+        <dc:Bounds x="190" y="420" width="1290" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_SAT" bpmnElement="Start_SAT">
+        <dc:Bounds x="274" y="317" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="224" y="357" width="136" height="54" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Footprint" bpmnElement="A_Footprint">
+        <dc:Bounds x="370" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Collect" bpmnElement="A_Collect">
+        <dc:Bounds x="530" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Consolidate" bpmnElement="A_Consolidate">
+        <dc:Bounds x="690" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_U_Decide" bpmnElement="U_Decide">
+        <dc:Bounds x="850" y="445" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Record" bpmnElement="A_Record">
+        <dc:Bounds x="1010" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_S_Reroute" bpmnElement="S_Reroute">
+        <dc:Bounds x="1170" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_SAT" bpmnElement="End_SAT">
+        <dc:Bounds x="1330" y="317" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1370" y="290" width="90" height="90" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_StalledAgentTriage_1" bpmnElement="SF_Process_StalledAgentTriage_1">
+        <di:waypoint x="310" y="335" />
+        <di:waypoint x="370" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_StalledAgentTriage_2" bpmnElement="SF_Process_StalledAgentTriage_2">
+        <di:waypoint x="490" y="335" />
+        <di:waypoint x="530" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_StalledAgentTriage_3" bpmnElement="SF_Process_StalledAgentTriage_3">
+        <di:waypoint x="650" y="335" />
+        <di:waypoint x="690" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_StalledAgentTriage_4" bpmnElement="SF_Process_StalledAgentTriage_4">
+        <di:waypoint x="810" y="335" />
+        <di:waypoint x="830" y="335" />
+        <di:waypoint x="830" y="505" />
+        <di:waypoint x="850" y="505" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_StalledAgentTriage_5" bpmnElement="SF_Process_StalledAgentTriage_5">
+        <di:waypoint x="970" y="505" />
+        <di:waypoint x="990" y="505" />
+        <di:waypoint x="990" y="335" />
+        <di:waypoint x="1010" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_StalledAgentTriage_6" bpmnElement="SF_Process_StalledAgentTriage_6">
+        <di:waypoint x="1130" y="335" />
+        <di:waypoint x="1150" y="335" />
+        <di:waypoint x="1150" y="165" />
+        <di:waypoint x="1170" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_StalledAgentTriage_7" bpmnElement="SF_Process_StalledAgentTriage_7">
+        <di:waypoint x="1290" y="165" />
+        <di:waypoint x="1310" y="165" />
+        <di:waypoint x="1310" y="335" />
+        <di:waypoint x="1330" y="335" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,344 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://litlfred.github.io/folio-assistant/cat-harness/skills/content-review/output.schema.json",
+  "title": "Content Review Output",
+  "description": "What a review produces: findings, a decision about them, and the audit notes that justify it. A finding is an observation; a decision is an act about a set of findings; neither determines the other. Mirrors schemas/sdlc/qa-review.ts — see skills/process/process-core/decision-audit.md.",
+  "type": "object",
+  "required": [
+    "findings",
+    "decision",
+    "notes"
+  ],
+  "properties": {
+    "findings": {
+      "type": "array",
+      "description": "One entry per observation. Immutable once raised: to disagree with one, overrule it in the decision.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "subject",
+          "reviewer",
+          "detail"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Block label, skill name or repo-relative path."
+          },
+          "criterion": {
+            "type": "string"
+          },
+          "reviewer": {
+            "type": "object",
+            "required": [
+              "kind",
+              "id"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "script",
+                  "agent",
+                  "human"
+                ]
+              },
+              "id": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            }
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "major",
+              "minor"
+            ],
+            "description": "Machine axis — what kind of breakage. Required of a script reviewer."
+          },
+          "weight": {
+            "type": "string",
+            "enum": [
+              "blocking",
+              "suggestion",
+              "praise"
+            ],
+            "description": "Human axis — what the reviewer asks of the gate. Required of a human reviewer. `praise` has no image under the machine axis."
+          },
+          "detail": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/citation"
+            }
+          },
+          "raised_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "required": [
+        "outcome",
+        "role",
+        "by",
+        "considered",
+        "notes"
+      ],
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "approve",
+            "request-changes",
+            "reject"
+          ]
+        },
+        "role": {
+          "type": "string",
+          "description": "Role id from schemas/process/role-graph.ts — the lane this was decided in."
+        },
+        "by": {
+          "type": "object",
+          "required": [
+            "kind",
+            "id"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "script",
+                "agent",
+                "human"
+              ]
+            },
+            "id": {
+              "type": "string"
+            }
+          }
+        },
+        "considered": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Finding ids weighed, overruled or not."
+        },
+        "overrules": {
+          "type": "array",
+          "description": "Findings the decision went against. The finding stays on the record; the note says why.",
+          "items": {
+            "type": "object",
+            "required": [
+              "finding",
+              "note"
+            ],
+            "properties": {
+              "finding": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Audit-note ids. At least one."
+        },
+        "decided_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "description": "Why the decision was made, and why each overruled finding was left.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "author",
+          "rationale",
+          "cites"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "author": {
+            "type": "object",
+            "required": [
+              "kind",
+              "id"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "script",
+                  "agent",
+                  "human"
+                ]
+              },
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "cites": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/definitions/citation"
+            },
+            "description": "A rationale with no citation is an assertion."
+          },
+          "proposed_by": {
+            "type": "string",
+            "description": "The agent that assembled the citations. Never the author — searching the corpus is clerical work."
+          },
+          "written_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "stagingLinks": {
+      "$ref": "#/definitions/stagingLinks",
+      "description": "The staging preview of the work this output asks a person to look at: one deep link per changed page, with the same page on main. Required whenever a preview exists; when it does not, say so in `missing`. Rule: cat-harness skills/authoring/content-lifecycle/feedback-deep-links.md."
+    }
+  },
+  "definitions": {
+    "citation": {
+      "type": "object",
+      "required": [
+        "kind",
+        "ref"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "witness",
+            "finding",
+            "qa-report",
+            "block",
+            "file",
+            "bib",
+            "workflow-instance"
+          ]
+        },
+        "ref": {
+          "type": "string"
+        },
+        "locator": {
+          "type": "string"
+        },
+        "quote": {
+          "type": "string"
+        }
+      }
+    },
+    "stagingLinks": {
+      "title": "Staging links",
+      "description": "The staging preview of the work a request for feedback is about: one deep link per changed page (the page and the anchor where the change sits) with the same page on main as `before`. Mirrors StagingComparison in schemas/sdlc/staging.ts. The rule is skills/authoring/content-lifecycle/feedback-deep-links.md. Copied inline as `definitions.stagingLinks` into every skill contract that carries it; schemas/staging.test.ts fails when a copy drifts.",
+      "type": "object",
+      "required": [
+        "branch",
+        "slug",
+        "branchUrl",
+        "mainBaseUrl",
+        "stagingBaseUrl",
+        "pages"
+      ],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "Feature branch name."
+        },
+        "slug": {
+          "type": "string",
+          "description": "Branch slug used in the staging URL path."
+        },
+        "branchUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pr": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mainBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "stagingBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pages": {
+          "type": "array",
+          "description": "One entry per changed page, deep-linked; from the change's rendered-impact list, never chosen by judgement.",
+          "items": {
+            "type": "object",
+            "required": [
+              "title"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string",
+                "format": "uri",
+                "description": "Same page on main; absent for a new page."
+              },
+              "after": {
+                "type": "string",
+                "format": "uri",
+                "description": "The page on the staging preview, with the anchor where the change sits; absent for a deleted page."
+              },
+              "summary": {
+                "type": "string",
+                "description": "What to look at on this page."
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What could not be linked, said rather than hidden: no preview yet (and when it will exist), no page list computed, or a changed page the publish ref does not hold."
+        }
+      },
+      "$comment": "Copy of cat-harness schemas/staging-comparison.schema.json; cat-harness schemas/staging.test.ts fails when a copy drifts."
+    }
+  }
+}

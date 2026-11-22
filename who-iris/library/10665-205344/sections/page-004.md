@@ -1,0 +1,54 @@
+---
+doc_id: 10665-205344
+doc_title: "Information, education and communication: a guide for AIDS programme managers"
+section_id: page-004
+section_title: "Page 4"
+pages: 4-4
+pdf_page: 4
+source_pdf: 10665-205344.pdf
+source_sha256: 0fdcc9d570f32d5f
+text_source: ocr
+granularity: page
+---
+SEA/AIDS/81
+
+1. INTRODUCTION
+
+The pandemic of Acquired Immuno-deficiency Syndrome (AIDS) poses a unique
+challenge to public health planners and programme developers. With no cure in sight, we are
+forced to look closely at behavioural patterns and how to alter them to prevent AIDS. Since
+AIDS is primarily a sexually transmitted disease (STD), it is important that policy-makers,
+communicators and public health professionals examine the sexual behaviour patterns of the
+communities they are serving and develop strategies aimed at behavioural change.
+
+Information, education and communication (IEC) plays a crucial role in bringing about
+this change. IEC is seen as an essential component of an AIDS prevention and care
+programme. However, IEC alone is not enough; it must be supported by health and social
+services and should be planned for in the context of the overall programme objectives and
+activities. One of the necessary conditions for effective implementation is the understanding
+of (and commitment to) the IEC framework among the key personnel in each country.
+Promoting this may need specific steps, including:
+
+— Involvement of such key persons in the finalization of an overall strategy.
+— Workshops that help to disseminate and clarify the strategy.
+
+Implementation of IEC efforts in relation to HIV/AIDS requires an appropriate
+organizational set-up in each country and this must take place in close collaboration with
+other services. There are advantages in having an integrated IEC organization for all activities
+in the health sector. However, in such a case it is essential to have a nodal person — or even
+a small group — for focusing specifically on the IEC activities for HIV/AIDS. Implementation
+should be done in the context of the totality of the problem and the overall framework of the
+strategy. Thus, a ‘total system’ or holistic approach is essential. Not only does each of the
+elements — including planning, research, message design, production, dissemination,
+monitoring and evaluation — need attention, but the relationship between each, as also the
+overall process, must be addressed.
+
+A concerted effort, through a well-planned and effectively implemented IEC strategy,
+should create the necessary conditions for bringing about favourable behavioural changes. It
+is only through this that the preventive steps will succeed and help in combating the spread
+of HIV/AIDS.
+
+1.1 What is IEC?
+
+IEC is a broad term comprising a range of approaches, activities and outputs. Although
+the most visible component of IEC is frequently the materials produced and used, such as

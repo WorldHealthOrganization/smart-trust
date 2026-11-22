@@ -1,0 +1,137 @@
+/* A workshop's days as a calendar (cat-harness-tools
+   scripts/journeys/schedule.ts): a <table> per day, time down the side, a
+   column per track, joint sessions, breaks and logistics across them all
+   (colspan) and rowspan so the tracks' times line up. On the workshop's page
+   (journeys.css, light and dark) and on its overview (present.css, the
+   presentation frame's light palette): its own tokens, so it reads in either,
+   dark only where the page itself turns dark. Below 720px each day stacks
+   into one column in time order, each cell with its own time and track.
+   The same tokens draw the schedule at a glance (`.jv-glance`), near the
+   top of a page. */
+.jv-cal, .jv-glance {
+  --cal-paper: #ffffff;
+  --cal-ink: #1c1f24;
+  --cal-muted: #5c6370;
+  --cal-line: #dedcd5;
+  --cal-soft: #f3f2ee;
+  --cal-joint: #e7eefc;
+  --cal-joint-ink: #1e3a8a;
+  --cal-break: #f6f5f1;
+  --cal-t0: #0f766e; --cal-t0-soft: #e6f4f1;
+  --cal-t1: #6d28d9; --cal-t1-soft: #f1ebfd;
+  --cal-t2: #b45309; --cal-t2-soft: #fdf3e5;
+  --cal-t3: #be185d; --cal-t3-soft: #fcebf3;
+  --cal-focus: #2563eb;
+  margin: 28px 0;
+  color: var(--cal-ink);
+}
+@media (prefers-color-scheme: dark) {
+  body:not(.jp) .jv-cal, body:not(.jp) .jv-glance {
+    --cal-paper: #1d2024;
+    --cal-ink: #e8e6e1;
+    --cal-muted: #a3a8b1;
+    --cal-line: #343840;
+    --cal-soft: #24282d;
+    --cal-joint: #1c2a48;
+    --cal-joint-ink: #bcd0ff;
+    --cal-break: #202327;
+    --cal-t0: #5fd1c0; --cal-t0-soft: #17312d;
+    --cal-t1: #c4a8ff; --cal-t1-soft: #2a2140;
+    --cal-t2: #f6b860; --cal-t2-soft: #352817;
+    --cal-t3: #f59cc6; --cal-t3-soft: #3a1f2c;
+    --cal-focus: #8ab4ff;
+  }
+}
+.jp-cal-wrap .jv-cal { margin: 0; }
+.jv-cal h2, .jv-cal h3, .jv-cal h4 { margin: 0 0 8px; }
+.jv-cal-intro { max-width: 70ch; margin: 0 0 12px; color: var(--cal-muted); }
+.jv-cal-intro p { margin: 0 0 6px; }
+.jv-cal ul { margin: 0; padding: 0; list-style: none; }
+.jv-cal p { margin: 0; }
+
+.jv-cal-day { width: 100%; border-collapse: separate; border-spacing: 6px 4px; margin: 14px 0 26px; table-layout: fixed; }
+.jv-cal-day caption { text-align: left; padding: 0 6px 6px; caption-side: top; }
+.jv-cal-day caption b { display: block; font-size: 1.05rem; }
+.jv-cal-sum { display: block; max-width: 70ch; color: var(--cal-muted); font-size: 0.92rem; }
+.jv-cal-timeh { width: 4.2rem; text-align: left; font-size: 0.78rem; color: var(--cal-muted); font-weight: 600; }
+.jv-cal-head { text-align: left; font-weight: 700; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--t); padding: 4px 2px 6px; border-bottom: 3px solid var(--t); }
+.jv-cal-head.is-here::after { content: " ●"; }
+.jv-cal-time { vertical-align: top; text-align: left; font-weight: 400; font-size: 0.78rem; color: var(--cal-muted); font-variant-numeric: tabular-nums; padding: 8px 2px 0; border-top: 1px solid var(--cal-line); height: 2.4rem; }
+.jv-cal-empty { border: 1px dashed transparent; }
+.jv-cal-slot { vertical-align: top; text-align: left; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--cal-line); background: var(--cal-paper); font-size: 0.9rem; line-height: 1.4; }
+.jv-cal-when { font-size: 0.78rem; color: var(--cal-muted); font-variant-numeric: tabular-nums; }
+.jv-cal-where { font-weight: 600; margin-left: 4px; }
+.jv-cal-title { font-weight: 600; }
+.jv-cal-type { font-weight: 500; font-size: 0.74rem; padding: 0 6px; border-radius: 999px; border: 1px solid currentColor; opacity: 0.85; white-space: nowrap; }
+.jv-cal-note { color: var(--cal-muted); font-size: 0.82rem; }
+.jv-cal-parts { margin-top: 4px !important; font-size: 0.82rem; color: var(--cal-muted); }
+.jv-cal-parts li { padding-left: 12px; position: relative; }
+.jv-cal-parts li::before { content: "·"; position: absolute; left: 3px; }
+.jv-cal-code { display: inline-block; font: 700 0.78rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding: 0 6px; border-radius: 6px; background: var(--cal-soft); color: inherit; }
+a.jv-cal-code { text-decoration: underline; text-underline-offset: 2px; }
+a.jv-cal-code:focus-visible { outline: 2px solid var(--cal-focus); outline-offset: 2px; }
+.jv-cal-joint { background: var(--cal-joint); color: var(--cal-joint-ink); border-color: transparent; }
+.jv-cal-joint .jv-cal-when, .jv-cal-joint .jv-cal-note, .jv-cal-joint .jv-cal-parts { color: inherit; opacity: 0.85; }
+.jv-cal-break, .jv-cal-logistics { background: var(--cal-break); border-style: dashed; color: var(--cal-muted); }
+.jv-cal-break .jv-cal-title, .jv-cal-logistics .jv-cal-title { font-weight: 500; }
+.jv-cal-t0 { --t: var(--cal-t0); --t-soft: var(--cal-t0-soft); }
+.jv-cal-t1 { --t: var(--cal-t1); --t-soft: var(--cal-t1-soft); }
+.jv-cal-t2 { --t: var(--cal-t2); --t-soft: var(--cal-t2-soft); }
+.jv-cal-t3 { --t: var(--cal-t3); --t-soft: var(--cal-t3-soft); }
+.jv-cal-session { border-left: 4px solid var(--t); background: var(--t-soft); }
+.jv-cal-session .jv-cal-where { color: var(--t); }
+.jv-cal-session.is-here { box-shadow: inset 0 0 0 1px var(--t); }
+/* In the table the column says the track: the cell's own track label is for a screen reader. */
+.jv-cal-session .jv-cal-where { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.jv-cal-slot { position: relative; }
+
+/* The phone: each day one column, in time order, each cell saying its time and track. */
+@media (max-width: 719.98px) {
+  .jv-cal-day, .jv-cal-day tbody, .jv-cal-day tr, .jv-cal-day td, .jv-cal-day caption { display: block; width: auto; }
+  .jv-cal-day { border-spacing: 0; }
+  .jv-cal-day caption { padding: 0 0 8px; }
+  .jv-cal-day thead, .jv-cal-time, .jv-cal-empty { display: none; }
+  .jv-cal-slot { margin: 0 0 6px; }
+  .jv-cal-session .jv-cal-where { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
+}
+@media print {
+  .jv-cal { --cal-paper: #fff; --cal-ink: #000; }
+  .jv-cal-day { break-inside: avoid; }
+}
+@media (forced-colors: active) {
+  .jv-cal-slot { border: 1px solid CanvasText; }
+  .jv-cal-head { border-bottom-color: CanvasText; }
+}
+
+/* The schedule at a glance: a day's sessions of this track and the shared slots, one line each; now and next marked by this device's clock. */
+.jv-glance { margin: 16px 0 20px; padding: 12px 14px; background: var(--cal-paper); border: 1px solid var(--cal-line); border-left: 4px solid var(--cal-t0); border-radius: 8px; }
+.jv-glance-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.jv-glance-head h2, .jv-glance-head h3 { margin: 0; font-size: 18px; }
+.jv-glance-tabs { display: inline-flex; gap: 4px; }
+.jv-glance-tab { font: inherit; font-size: 14px; padding: 3px 12px; border: 1px solid var(--cal-line); border-radius: 999px; background: transparent; color: var(--cal-ink); cursor: pointer; }
+.jv-glance-tab[aria-pressed="true"] { background: var(--cal-t0); border-color: var(--cal-t0); color: #fff; font-weight: 600; }
+.jv-glance-tab:focus-visible, .jv-glance-full:focus-visible { outline: 2px solid var(--cal-focus); outline-offset: 2px; }
+.jv-glance-full { margin-left: auto; font-size: 14px; color: var(--cal-t0); text-decoration: underline; }
+.jp .jv-glance { margin: 0 0 20px; }
+.jv-glance-now { margin: 8px 0 0; font-weight: 700; color: var(--cal-t0); }
+.jv-glance-day[hidden] { display: none; }
+.jv-glance-day { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; column-gap: 12px; }
+.jv-glance-slot { display: contents; }
+.jv-glance-slot > span { padding: 4px 0; border-top: 1px solid var(--cal-line); font-size: 14px; }
+.jv-glance-time { font-variant-numeric: tabular-nums; color: var(--cal-muted); white-space: nowrap; }
+.jv-glance-where { color: var(--cal-muted); white-space: nowrap; }
+.jv-glance-slot.jv-cal-session .jv-glance-what { font-weight: 600; }
+.jv-glance-slot.jv-cal-break > span, .jv-glance-slot.jv-cal-logistics > span { color: var(--cal-muted); }
+.jv-glance-slot.jv-cal-joint .jv-glance-what { color: var(--cal-joint-ink); }
+.jv-glance-flag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.jv-glance-slot.is-now > span { background: var(--cal-t0-soft); }
+.jv-glance-slot.is-now .jv-glance-flag { color: var(--cal-t0); }
+.jv-glance-slot.is-next .jv-glance-flag { color: var(--cal-muted); }
+.jv-glance .jv-cal-code { font-weight: 700; color: var(--cal-t0); margin-right: 2px; }
+@media (max-width: 720px) {
+  .jv-glance-day { grid-template-columns: auto minmax(0, 1fr); }
+  .jv-glance-where { grid-column: 2; padding-top: 0 !important; border-top: 0 !important; font-size: 13px !important; }
+  .jv-glance-flag { grid-column: 2; border-top: 0 !important; padding-top: 0 !important; }
+  .jv-glance-flag:empty { display: none; }
+  .jv-glance-full { margin-left: 0; }
+}
