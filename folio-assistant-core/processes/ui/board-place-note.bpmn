@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_BoardPlaceNote"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="author" name="Author"/>
+  <bpmn:resource id="corpus" name="Corpus"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Placing a note on a board — folio-assistant
+       The moving board is an overlay, an extra; a standard folio shows a
+       plain tile listing. Notes sit below the folio in the dependency
+       arrows.
+
+       THE POINT OF DRAWING THIS is that creating a sticky and placing
+       one are TWO WRITES TO TWO GRAPHS, and the common bug is to make
+       them one. The note goes into the folio and carries no coordinate;
+       the coordinate goes into `board-positions.json`, keyed by board
+       and then by note. A reader who drags an existing card takes only
+       the second path, which is why the gateway exists at all.
+
+       ADVISORY, like `board-open-close`. Dragging a card is a gesture,
+       not a gate; what must not drift is WHICH GRAPH each write lands
+       in, and that is asserted in `board-positions.test.ts` against the
+       source rather than gated here.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:collaboration id="Collab_BoardPlaceNote">
+    <bpmn:participant id="Participant_BoardPlaceNote" name="Board: place a note" processRef="Process_BoardPlaceNote"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_BoardPlaceNote" name="Board: place a note" isExecutable="true">
+    <bpmn:documentation>Putting a note at a spot on a board: write the note into the folio, record where it was drawn on THIS board, and sweep any position whose note has gone.
+
+You are in this process whenever a note is to appear somewhere. The first gateway exists because the note may already be there — placing is not the same as creating, and a process that conflated them would duplicate content every time somebody moved something.
+
+The rule the diagram holds is in the first activity's own wording: the note goes into the folio WITH NO COORDINATE. A folio is complete with no board, so a coordinate on a note would make the content depend on a drawing of it. The x,y belongs to the layer, keyed to one board, and an orphaned position is swept from the LAYER rather than being allowed to keep a note alive.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_BoardPlaceNote">
+      <bpmn:lane id="Lane_Author" name="Author" partitionElementRef="author">
+        <bpmn:documentation>Reached only on the `new sticky` branch of GW_Exists — dragging an existing card never re-enters this lane, because A_CreateNote is the one write to the folio and everything after it is positioning. Placement is not an authoring decision.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Place</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Exists</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_CreateNote</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <!-- The layout layer. It is written every time and read by nothing
+           that decides anything — losing it loses where, never what. -->
+      <bpmn:lane id="Lane_Layer" name="Layout layer" partitionElementRef="corpus">
+        <bpmn:documentation>Every placement writes here, and nothing that decides anything reads it back — losing this graph loses WHERE a note sits, never WHAT it says. So A_SweepOrphans removes a position whose note is gone, never a note whose position is.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_Place</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_SweepOrphans</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Placed</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Place" name="A note is to appear at a spot">
+      <bpmn:outgoing>F_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:exclusiveGateway id="GW_Exists" name="Does the note exist already?">
+      <bpmn:documentation>Is the note already in the folio? A `new sticky` is written into the folio first, with no coordinate; an `existing card, dragged` only needs its x,y recorded on this board, since position belongs to the board and not to the note.</bpmn:documentation>
+      <bpmn:incoming>F_1</bpmn:incoming>
+      <bpmn:outgoing>F_New</bpmn:outgoing>
+      <bpmn:outgoing>F_Existing</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_CreateNote" name="Write the note into the folio — with no coordinate">
+      <bpmn:documentation>A new note: write it into the folio with no x, no y, no board and no position. A folio is complete with no board, and one note may sit on several boards, which a coordinate on the note could not express.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <!-- No `x`, no `y`, no `board`, no `position`, for the same reason
+             a BPMN task carries none. One note may then sit on several
+             boards at once without arbitrating between them. -->
+        <bootstrap.processes:skill ref="board-diagram-interchange"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_New</bpmn:incoming>
+      <bpmn:outgoing>F_Created</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_Place" name="Record x,y for this note on THIS board">
+      <bpmn:documentation>Record the note's x,y in the layout layer for THIS board, naming the note by id. An existing card dragged here only gets a new position — placing is not creating, so no content is duplicated.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="board-diagram-interchange"/></bpmn:extensionElements>
+      <bpmn:incoming>F_Created</bpmn:incoming>
+      <bpmn:incoming>F_Existing</bpmn:incoming>
+      <bpmn:outgoing>F_2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_SweepOrphans" name="Sweep positions whose note is gone">
+      <bpmn:documentation>Remove every position in this board's layer whose note no longer exists. The sweep edits only the layer — one file, one pass — and never a note a person owns; a stale position must not keep a note alive.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <!-- Swept from the LAYER, which is the easy direction: one file,
+             one pass, and nothing edited out of a note a person owns. -->
+        <bootstrap.processes:skill ref="board-diagram-interchange"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_2</bpmn:incoming>
+      <bpmn:outgoing>F_3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Placed" name="The board shows it there">
+      <bpmn:incoming>F_3</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="F_1" sourceRef="Start_Place" targetRef="GW_Exists"/>
+    <bpmn:sequenceFlow id="F_New" name="new sticky" sourceRef="GW_Exists" targetRef="A_CreateNote"/>
+    <bpmn:sequenceFlow id="F_Existing" name="an existing card, dragged" sourceRef="GW_Exists" targetRef="A_Place"/>
+    <bpmn:sequenceFlow id="F_Created" sourceRef="A_CreateNote" targetRef="A_Place"/>
+    <bpmn:sequenceFlow id="F_2" sourceRef="A_Place" targetRef="A_SweepOrphans"/>
+    <bpmn:sequenceFlow id="F_3" sourceRef="A_SweepOrphans" targetRef="End_Placed"/>
+  </bpmn:process>
+
+  <!-- Layout only. Nothing below changes what the process does. -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_BoardPlaceNote">
+    <bpmndi:BPMNPlane id="BPMNPlane_BoardPlaceNote" bpmnElement="Collab_BoardPlaceNote">
+      <bpmndi:BPMNShape id="Shape_Participant_BoardPlaceNote" bpmnElement="Participant_BoardPlaceNote" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="920" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Author" bpmnElement="Lane_Author" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="890" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Layer" bpmnElement="Lane_Layer" isHorizontal="true">
+        <dc:Bounds x="190" y="280" width="890" height="200" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start_Place" bpmnElement="Start_Place">
+        <dc:Bounds x="220" y="162" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="219.09" y="197.5" width="90" height="54" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Exists" bpmnElement="GW_Exists" isMarkerVisible="true">
+        <dc:Bounds x="320" y="155" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="277.5" y="97" width="135" height="54" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_CreateNote" bpmnElement="A_CreateNote">
+        <dc:Bounds x="440" y="120" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Place" bpmnElement="A_Place">
+        <dc:Bounds x="630" y="320" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_SweepOrphans" bpmnElement="A_SweepOrphans">
+        <dc:Bounds x="830" y="320" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Placed" bpmnElement="End_Placed">
+        <dc:Bounds x="1000" y="362" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_F_1" bpmnElement="F_1">
+        <di:waypoint x="256" y="180"/>
+        <di:waypoint x="320" y="180"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_New" bpmnElement="F_New">
+        <di:waypoint x="370" y="180" />
+        <di:waypoint x="440" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Existing" bpmnElement="F_Existing">
+        <di:waypoint x="345" y="205" />
+        <di:waypoint x="345" y="380" />
+        <di:waypoint x="630" y="380" />
+        <bpmndi:BPMNLabel><dc:Bounds x="349" y="300.25" width="90" height="72" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Created" bpmnElement="F_Created">
+        <di:waypoint x="560" y="180" />
+        <di:waypoint x="595" y="180" />
+        <di:waypoint x="595" y="380" />
+        <di:waypoint x="630" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_2" bpmnElement="F_2">
+        <di:waypoint x="750" y="380" />
+        <di:waypoint x="830" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_3" bpmnElement="F_3">
+        <di:waypoint x="950" y="380" />
+        <di:waypoint x="1000" y="380" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

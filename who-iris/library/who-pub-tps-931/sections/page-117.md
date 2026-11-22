@@ -1,0 +1,64 @@
+---
+doc_id: who-pub-tps-931
+doc_title: "WHO Editorial Style Manual"
+section_id: page-117
+section_title: "Page 117"
+section_number: null
+pages: 117-117
+source_pdf: WHO_PUB_TPS_93.1.pdf
+source_sha256: ecc88eee99756755
+toc_source: undetermined
+---
+WHO Editorial Style Manual
+
+Alphabetical list by local/other names
+
+local/other name English/approved name local/other name English/approved name
+Abu Zabi Abu Dhabi Brussel, Bruxelles Brussels
+Ad-Dawhah Doha Bucuresti Bucharest
+
+Addis Abeba Addis Ababa Bulgariya Bulgaria*
+Al-Agsur Luxor Burma Myanmar*
+Algérie Algeria* Bur Sa’id Port Said
+Al-Iskandariyah Alexandria Byelorussia Belarus*
+Al-Maghribiyah, Morocco*
+
+Al-Mamlakah . Cameroun Cameroon*
+Al-Manamah Manama Canton Guangzhou
+Alma-Ata Almaty Corse Corsica
+Al-Qahirah Cairo
+Al-Qusur, Luxor Dacca Dhaka
+
+Al-Ugsor Damas Damascus
+Antwerpen, Antwerp Danzig Gdansk
+
+Anvers Daressalam Dar es Salaam
+Ash Sham Damascus Den Haag The Hague
+Athinai Athens Dimash Damascus
+Azerbaidzhan Azerbaijan* Djakarta Jakarta
+
+Druk-yul Bhutan*
+Bagdad Baghdad
+Bahrein Bahrain* Eesti Estonia*
+Bale Basel Eire Ireland*
+Bangi Bangui Erevan, Erivan Yerevan
+Basle Basel Er Riad Riyadh
+Bayrut Beirut Esthonia Estonia*
+Belau, Belew Palau*
+Belice Belize* Firenze Florence
+Belorussia Belarus* Fort-Lamy N’Djamena
+Beograd Belgrade
+Bern Berne Gaboon, Gabun Gabon*
+Beyrouth Beirut Gana Ghana*
+Biha Doha Gand Ghent
+Bosna & Bosnia & Genéve, Genf Geneva
+
+Hercegovina Herzegovina* Genova Genoa
+Brasil Brazil* Gent Ghent
+Braunschweig Brunswick Géteborg Gothenburg
+Breslau Wroclaw *s Gravenhage The Hague
+Brugge Bruges Guiné(e) Guinea*
+
+* WHO Member States. For full, official names, see Annex 2.
+
+112

@@ -1,0 +1,94 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "ci-health",
+    "title": "Is CI passing on the default branch?",
+    "description": "Report each workflow's state on the default branch, which a checkout cannot see: a red workflow looks exactly like a green one from in here. One API call over the recent run history, not one request per workflow, so it stays inside the unauthenticated 60/hr limit and stays usable at session start.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat check:ci-health"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "markdown",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Emit the block the session-start sweep prints. ALWAYS exits 0: the sweep runs it as `if ! …; then`, and a non-zero exit would print the report AND declare it unchecked every time CI is red.",
+          "required": false,
+          "arg": {
+            "flag": "--markdown"
+          }
+        },
+        {
+          "name": "warn",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Report only, never fail. For a caller that wants the state without a verdict.",
+          "required": false,
+          "arg": {
+            "flag": "--warn"
+          }
+        },
+        {
+          "name": "out",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Write the markdown report to a file AND keep the exit code — which `--markdown` cannot do, since it always exits 0. Its own flag, so one API call is not spent twice.",
+          "required": false,
+          "arg": {
+            "flag": "--out"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "One row per workflow. Five verdicts, not two: green, red, `running`, `superseded` (a red whose workflow file changed after the failing run, so the verdict is against code that no longer exists), and possibly-stale (a red that has not re-run in a week). Three exit codes carry them to a caller that reads no rows: 0 nothing is red, 1 something is, 2 COULD NOT LOOK — the API was unreachable, or `--out` could not be written. A caller must never read 2 as either verdict. `--markdown` and `--warn` always exit 0 by design, so a caller wanting the verdict uses neither.",
+          "render": {
+            "as": "markdown",
+            "reason": "a table a reader reads; rendered with raw HTML off"
+          }
+        }
+      ]
+    },
+    "satisfies": [
+      "ci-health"
+    ],
+    "selection": {
+      "when": "Before trusting ANY workflow's outcome, and at session start: a workflow's result is invisible from a checkout.",
+      "limits": "It reads the DEFAULT BRANCH, so on a PR it describes `main` and not the diff — which is why it is deliberately not one of the `gates`. `GITHUB_TOKEN`/`GH_TOKEN` is used when present; without one a public repo still works and a private one fails. A REFUSED OR FAILING API CALL EXITS 2 AND IS NEVER GREEN: could-not-look must stay distinguishable from looked-and-it-was-fine.",
+      "cost": "One HTTP request; fast enough for the session-start sweep, which is why it makes a single call."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "api.github.com",
+        "none": "Workflow outcomes are held by GitHub, not the checkout. It reports 'could not check', which is never green."
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "/requires",
+      "comment": "`network: true` is the unusual part, and it is what makes the third\nstate load-bearing rather than decorative — see `selection.limits`."
+    },
+    {
+      "at": "",
+      "comment": "── Is CI actually passing? A different question from \"do the gates pass\" ──\n\nBean `6qaq`, found while working `6366`, whose criterion asked the `gates`\nnode to satisfy `ci-health`. It must not, and `1xhc` had already recorded\nwhy in the list of scripts deliberately left OUT of the gate set:\n\"check:ci-health (a report, reads the default branch, so on a PR it\ndescribes main not the diff)\". `gates` RUNS the checks; this REPORTS\nwhether the workflows passed. Two capabilities, two nodes.\n\nIt had no node at all, and was invisible with it: `tools:coverage` triaged\n`ci-health` into tier D — \"no evidence. Almost certainly judgement.\" —\nbecause that triage tests the SKILL's markdown for a fenced shell block\nand `ci-health.md` states its three reading rules without ever showing the\ncommand. A real command, documented in AGENTS.md, and an empty evidence\nlist. Fixed under `6366` by counting a declared script as evidence too."
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "pdf-cover",
+    "title": "PDF page raster",
+    "description": "Render one page of a PDF to a PNG — the thumbnail a repository listing shows — and print the provenance a catalogue needs to record it as DERIVED: source, digest, page, geometry, renderer.",
+    "install": {
+      "cli": "pip install pymupdf"
+    },
+    "invoke": {
+      "shell": "bun run cat pdf:cover"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "pdf",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The PDF to render from. Its bytes must be here; nothing is fetched.",
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "out",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The PNG to write.",
+          "required": true,
+          "arg": {
+            "flag": "--out"
+          }
+        },
+        {
+          "name": "page",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "1-based page to render, default 1. Asking for a page past the end is refused, not clamped.",
+          "required": false,
+          "arg": {
+            "flag": "--page"
+          }
+        },
+        {
+          "name": "width",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "Output width in pixels, default 300. `Count` admits zero and a zero width does not; the script refuses it rather than writing a 0x0 PNG, which is the tighter bound stated at the port as `CountSchema` asks. Height follows the page's own aspect and is never forced.",
+          "required": false,
+          "arg": {
+            "flag": "--width"
+          }
+        },
+        {
+          "name": "checkOnly",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Write nothing; exit non-zero if the target differs from what would be written.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "facts",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "With `--json`: source path and sha256, page, page count, point geometry, pixel geometry, output bytes and sha256, media type, renderer version. Everything a provenance record needs and nothing it has to guess."
+        }
+      ]
+    },
+    "satisfies": [
+      "asset-extraction"
+    ],
+    "selection": {
+      "when": "A listing needs a cover and the bytes are already held. It renders page 1 by default and calls that the cover, because page 1 is a determined answer and \"the cover\" is not — the same choice `pdf-pages.py` makes about sections.",
+      "limits": "It decides nothing beyond the raster. WHICH documents get a cover, where the file lands, and what the catalogue must say about the derivation are the catalogue's to declare — see the content core's `scripts/gen-covers.ts`, which reads them from a layer's catalogue and refuses to write bytes for a THUMBNAIL that does not declare itself derived. It also cannot tell you whether the page it rendered IS the cover; it can only tell you it is page 1.",
+      "cost": "One PyMuPDF wheel, no network at run time, and a few milliseconds per page. Deterministic — identical input gives identical bytes, which is what lets a caller gate on `--check` rather than re-deciding."
+    },
+    "requires": {
+      "runtime": [
+        "python3",
+        "pymupdf"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/install",
+      "comment": "PyMuPDF only. Not the `ingest-extended` install line: that one also\nbrings tesseract and Pillow, which a page raster does not need, and a\nTool node that overstates its install is a Tool nobody can schedule."
+    },
+    {
+      "at": "",
+      "comment": "── The ingest pair ────────────────────────────────────────────────\n\nTwo Tools, one skill, deliberately. `library-ingestion` states the\ncapability; these are the two mechanisms, and which one an agent can\nuse is a fact about the MACHINE rather than about the document.\n\nThe split is not stdlib-for-its-own-sake. It is where the dependency\nboundary actually falls: reading a zip's central directory, sniffing\nmagic bytes and parsing an xlsx's XML are all in the Python standard\nlibrary, while rendering a PDF's text layer is not and never will be.\nMeasured 2026-09-19: reaching a working image extractor in a bare\ncontainer took three installs (`pypdf`, then `cffi` — whose absence\nmakes `cryptography` panic under pyo3 on IMPORT — then `Pillow`).\n\nBean `68dt` asked whether to declare Python dependencies and install\nthem in CI. This reframes it: the dependency posture becomes a property\nof a named Tool that an agent can read, instead of a repository-wide\nyes/no nobody can see from a skill."
+    }
+  ]
+}

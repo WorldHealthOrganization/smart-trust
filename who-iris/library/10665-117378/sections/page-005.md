@@ -1,0 +1,100 @@
+---
+doc_id: 10665-117378
+doc_title: "[Pilot study of antiretroviral therapy in Djibouti]"
+section_id: page-005
+section_title: "Page 5"
+pages: 5-5
+pdf_page: 5
+source_pdf: 10665-117378.pdf
+source_sha256: a1da9552b4648697
+text_source: ocr
+granularity: page
+---
+1278 La Revue de Santé de la Méditerranée orientale, Vol. 13, N°6, 2007
+
+Tableau 2 Description clinique, biologique et
+thérapeutique de la population d’étude
+
+Caractéristiques Initiation
+IK(%)
+Médiane (ElQ) 80 (70-90)
+
+IMC (kg/m?)
+
+Médiane (ElQ)
+Affections opportunistes
+[Nbre (%)]
+
+Stade clinique à l'inclusion
+[Nbre (%)]
+
+18,6 (15,9-21,5)
+
+101 (90,2 %)
+
+Stade À 8 (7)
+Stade B 29 (26)
+Stade C 75 (67)
+
+Taux de CD4 (Imm*)
+
+Médiane (EIQ)
+Lignes thérapeutiques
+[Nbre (%)]
+
+118 (52-186)
+
+2 INTI + 1INNTI 57 (51)
+3 INTI 50 (45)
+2 INTI + 11P 5 (4)
+
+IK : indice de Karnofsky.
+IMC : indice de masse corporelle.
+EIQ : écart interquartile.
+
+immunologique initial (stades selon le CDC
+d'Atlanta, p = 0,065).
+
+L'amélioration des indicateurs cliniques
+est statistiquement significative (Tableau
+5). En effet, les gains médians en IK sont de
+20 %, en IMC de 2,1 kg/m°. Une réduction
+de 62,2 % des affections opportunistes est
+retrouvée. Si l’on compare les patients en
+succès et ceux en échec virologique, les
+patients en succès ont moins d’affections
+opportunistes (p = 0,002), une meilleure
+amélioration de l’état général (gain en IK
+de 4 %, p = 0,04) mais l’IMC n’est pas
+distribué différemment parmi les patients en
+succès et ceux en échec (p = 0,33).
+
+Corrélation entre les lymphocytes
+totaux et les LT CDA4 à l'initiation du
+traitement
+
+La Figure 1 permet de déceler que les deux
+variables évoluent dans le même sens dans
+une relation linéaire directement propor-
+tionnelle.
+
+Tableau 3 Les différentes associations de molécules antirétrovirales
+
+prescrites aux patients de l’étude
+
+Type de combinaisons Nbre
+Zidovudine (AZT) + Lamivudine (3TC) + Nelfinavir (NFV) 3 2,68
+Zidovudine (AZT) + Abacavir (ABC) + Lamivudine (3TC) 46 41,07
+Lamivudine (3TC) + Didanosine (DDI) + Nelfinavir (NFV) 1 0,89
+Zidovudine (AZT) + Lamivudine (3TC) + Efavirenz (EFZ) 40 35,71
+Zidovudine (AZT) + Didanosine (DDI) + Efavirenz (EFZ) 1 0,89
+Stavudine (DAT) + Lamivudine (3TC) + Efavirenz (EFZ) 2 1,79
+Zidovudine (AZT) + Lamivudine (3TC) + Lopinavir/ritonavir (LPV/r) 1 0,89
+Zidovudine (AZT) + Névirapine (NVP) + Lamivudine (3TC) 14 12,50
+Stavudine (DAT) + Abacavir (ABC) + Lopinavir/ritonavir (LPV/r) 1 0,89
+Zidovudine (AZT) + Abacavir (ABC) + Lopinavir/ritonavir (LPV/r) 1 0,89
+Didanosine (DDI) + Stavudine (DAT) + Indinavir (IND) 1 0,89
+Didanosine (DDI) + Abacavir (ABC) + Lopinavir/ritonavir (LPV/r) 1 0,89
+Total 112 100
+
+Yes V et ol he EU Al Aa ill ioliue clou ll Ga aol all

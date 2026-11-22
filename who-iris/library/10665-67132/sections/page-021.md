@@ -1,0 +1,50 @@
+---
+doc_id: 10665-67132
+doc_title: "Breastfeeding and replacement feeding practices in the context of mother-to-child transmission of HIV : an assessment tool for research"
+section_id: page-021
+section_title: "Page 21"
+pages: 21-21
+pdf_page: 21
+source_pdf: 10665-67132.pdf
+source_sha256: 2c2fb689392e00e3
+text_source: ocr
+granularity: page
+---
+6.3 Module 3 - Maternal Health (all visits)
+
+The aim of documenting maternal health in the context of this questionnaire is to rule out
+reverse causality. A sick mother might change her infant's feeding behaviour due to her
+disease, e.g. switching from feeding her infant with breast milk to other foods. The maternal
+illness might be the direct cause of increased transmission through breast milk (for example if
+this results in an increased viral load in the breast milk). Infant HIV infection possibly
+occurring around this time could be wrongly attributed to the change in his infant feeding
+pattern.
+
+« Since your last visit, have you ever been sick? (yes) (no) (don’t know)
+For each event of sickness, record the following:
+e Specify what sickness
+
+* Did you seek treatment for this condition at the health centre?
+
+* Have you consulted a doctor? (yes) (no)
+e Have you been admitted to Hospital? (yes) (no)
+« What date did the disease start? (day, month, year)
+« What date did the disease finish? (day, month, year)
+e Did you change the way you fed your child during that time? (yes) (no)
+
+e What did you do differently? (Ask the question and tick only the answers given.)
+
+- Stopped breastfeeding
+
+- Stopped non-human milks
+
+- Stopped other liquids
+
+- Stopped solid foods
+
+- Began giving non-human milks
+- Began giving other liquids
+
+- Began giving solid foods
+
+21

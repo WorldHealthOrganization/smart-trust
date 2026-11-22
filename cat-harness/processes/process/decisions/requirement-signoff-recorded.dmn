@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "Is the sign-off on the record, and what did it say?" — GW_SignoffRecorded
+  in crdm-signoff.bpmn and crdm-close.bpmn. Issue #2405, FR-011 / SC-008.
+
+  The facts are READ FROM THE RECORD, never supplied by hand:
+  `check:requirements`, given the set's id with its signoff-facts flag, reads
+  the set's `requirement-signoff` attestations and prints both:
+
+    signoffRecorded  "yes" | "no": a sign-off scoped to the set exists in the
+                     attestations graph (or in the set's own signOffs)
+    signoffOutcome   the latest such sign-off's outcome — approve, amend,
+                     reject, defer, cancel — or "none"
+
+  So the step after a sign-off cannot proceed on a decision nobody wrote
+  down: an adjudication that left no attestation reads "missing" and loops
+  back to the step that records it. "proceed" and "stop" are read off the
+  recorded outcome, which is the adjudicator's, not this table's.
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_RequirementSignoffRecorded"
+             name="Requirement sign-off recorded"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_RequirementSignoffRecorded" name="Is the sign-off recorded, and does it let the work proceed?">
+    <decisionTable id="Table_RequirementSignoffRecorded" hitPolicy="FIRST">
+      <input id="In_Recorded" label="a requirement-signoff attestation scoped to the set exists">
+        <inputExpression id="Expr_Recorded" typeRef="string">
+          <text>signoffRecorded</text>
+        </inputExpression>
+      </input>
+      <input id="In_Outcome" label="the latest recorded sign-off's outcome">
+        <inputExpression id="Expr_Outcome" typeRef="string">
+          <text>signoffOutcome</text>
+        </inputExpression>
+      </input>
+      <output id="Out_Recorded" name="outcome" typeRef="string" />
+      <rule id="Rule_Missing">
+        <description>No attestation: the judgement was not written down, so nothing may follow it.</description>
+        <inputEntry id="IE_Missing_1"><text>"no"</text></inputEntry>
+        <inputEntry id="IE_Missing_2"><text>-</text></inputEntry>
+        <outputEntry id="OE_Missing"><text>"missing"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Proceed">
+        <description>Approved, as written or with amendments: the work may proceed.</description>
+        <inputEntry id="IE_Proceed_1"><text>"yes"</text></inputEntry>
+        <inputEntry id="IE_Proceed_2"><text>"approve","amend"</text></inputEntry>
+        <outputEntry id="OE_Proceed"><text>"proceed"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Stop">
+        <description>Rejected, deferred or cancelled — recorded, with its reason, and the work does not proceed.</description>
+        <inputEntry id="IE_Stop_1"><text>"yes"</text></inputEntry>
+        <inputEntry id="IE_Stop_2"><text>-</text></inputEntry>
+        <outputEntry id="OE_Stop"><text>"stop"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

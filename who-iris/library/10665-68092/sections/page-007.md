@@ -1,0 +1,34 @@
+---
+doc_id: 10665-68092
+doc_title: "Control of smallpox in Delhi Municipal Corporation / by P.H. Jeswani"
+section_id: page-007
+section_title: "Page 7"
+pages: 7-7
+pdf_page: 7
+source_pdf: 10665-68092.pdf
+source_sha256: 206d459e9b44854d
+text_source: ocr
+granularity: page
+---
+SE/WP/72,14
+page 7
+
+TABLE I
+
+Indicating the year-wise vaccination coverage from 1962 to 1972 (up to August)
+
+Year Population Primary Percentage Revaccination Percentage
+vaccination
+1962 24 69 149 1 19 80 4.9 7 94 980 32.0
+1963 25 50 298 1 14 956 4.5 11 34 407 44.0
+1964 26 31 429 1 34 229 5.1 8 72 257 33.0°
+1965 27 12 569 1 36 680 5.0 6 87 547 25.3
+1966 27 93 708 1 61 266 5.8 6 47 362 23.2
+1967 28 74 849 1 40 830 4.9 14 07 150 48.9
+1968 29 55 989 1 39 965 4.7 7 32 060 24.8
+1969 30 37 129 1 50 100 4.9 9 67 997 31.8
+1970 31 18 269 1 34 053 4.3 5 25 032 16.8
+1971 36 94 451 1 73 751 4.7 6 30 249 17.0
+1972 37 96 580 1 40 092 3.8 9 17 582 24.1
+(Aug. )
+TOTAL 15 45 722 93 16 623

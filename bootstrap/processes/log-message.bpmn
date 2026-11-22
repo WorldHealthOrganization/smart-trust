@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  id="Definitions_Process_LogMessage"
+                  targetNamespace="https://litlfred.github.io/bootstrap/v0/workflows"
+                  exporter="bootstrap" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="logger" name="Logger"/>
+  <bpmn:collaboration id="Collaboration_Process_LogMessage">
+    <bpmn:participant id="Participant_Process_LogMessage" name="Log a message" processRef="Process_LogMessage"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_LogMessage" name="Log a message" isExecutable="false">
+    <bpmn:documentation>A SUB-PROCESS, never an entry point. Nobody starts here; it is reached by a call activity from a task in another process.
+
+It may be called OPTIONALLY from any task in any process — an actor logging what it is doing needs no permission — and a diagram may also REQUIRE it, which it says by drawing the call activity explicitly. The two are the same sub-process; the difference is whether the caller drew it.
+
+It lives in bootstrap because a Bootstrapping Agent has no harness yet; everything built on bootstrap inherits it.
+
+NO work-plan element, and isExecutable is false, for the same reasons as initialize-harness.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_Process_LogMessage">
+      <bpmn:lane id="Lane_Actor" name="Actor">
+        <!-- NO ROLE, DECLARED rather than merely absent. The
+             actor here is whoever called this sub-process, which is why
+             `log-message` takes `actor` as a required input and why the
+             `logger` role says the skill belongs to whoever is DOING the
+             thing being logged. A role binding `Actor` would assert the
+             opposite. -->
+        <bpmn:documentation>Whichever process called this sub-process, composing the five required fields and nothing more. GW_Complete then refuses an incomplete message rather than logging it anyway, because a partial entry that reads as a whole one is worse than no entry at all.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role variable="true"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Start_LogMessage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Compose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Complete</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Logged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NotLogged</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Logger" name="Logger" partitionElementRef="logger">
+        <bpmn:documentation>Records and decides nothing — the composing and the completeness judgement both happen in the Actor's lane before anything reaches here. In bootstrap the one destination available to it is the discussion the human actor is already in.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_Record</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_LogMessage" name="An actor has something to record"/>
+
+    <bpmn:task id="A_Compose" name="Compose the message">
+      <bpmn:documentation>Five required strings — timestamp, actor, process, task, message — and one optional markdown body. The five are required because each answers a question a reader of the log will otherwise have to guess, and a guessed answer in a log is worse than a missing one.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="log-message"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Complete" name="Required fields: all five present?">
+      <bpmn:documentation>Checks the composed message against the five required fields of the log-message skill (skills/log-message.md, table "The message"): timestamp, actor, process, task and message. The optional body is not counted. If any one of the five is missing or empty, the answer is no.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_Record" name="Record it where a
+person can read it">
+      <bpmn:documentation>Performed by the Logger, which records and decides nothing. In bootstrap the one available destination is the discussion the human actor is already in.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="logger"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Logged" name="Recorded"/>
+    <bpmn:endEvent id="End_NotLogged" name="Not recorded — say so">
+      <bpmn:documentation>An incomplete message is NOT logged and the actor says it could not log. A log line missing its actor or its task reads as a record while answering nothing, and a reader cannot tell it from a complete one. Silence is recoverable; a misleading entry is not.</bpmn:documentation>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="SF_LM_1" sourceRef="Start_LogMessage" targetRef="A_Compose"/>
+    <bpmn:sequenceFlow id="SF_LM_2" sourceRef="A_Compose" targetRef="GW_Complete"/>
+    <bpmn:sequenceFlow id="SF_LM_3" name="no" sourceRef="GW_Complete" targetRef="End_NotLogged"/>
+    <bpmn:sequenceFlow id="SF_LM_4" name="yes" sourceRef="GW_Complete" targetRef="A_Record"/>
+    <bpmn:sequenceFlow id="SF_LM_5" sourceRef="A_Record" targetRef="End_Logged"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Process_LogMessage">
+    <bpmndi:BPMNPlane id="BPMNPlane_Process_LogMessage" bpmnElement="Collaboration_Process_LogMessage">
+      <bpmndi:BPMNShape id="Shape_Participant" bpmnElement="Participant_Process_LogMessage" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="760" height="344" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Actor" bpmnElement="Lane_Actor" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="730" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Logger" bpmnElement="Lane_Logger" isHorizontal="true">
+        <dc:Bounds x="190" y="280" width="730" height="144" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start_LogMessage" bpmnElement="Start_LogMessage">
+        <dc:Bounds x="232" y="147" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="225.06" y="189.5" width="85.89" height="53" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Compose" bpmnElement="A_Compose">
+        <dc:Bounds x="310" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Complete" bpmnElement="GW_Complete" isMarkerVisible="true">
+        <dc:Bounds x="480" y="140" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="445" y="86" width="120" height="45"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_NotLogged" bpmnElement="End_NotLogged">
+        <dc:Bounds x="600" y="147" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="578" y="190" width="82" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Logged" bpmnElement="End_Logged">
+        <dc:Bounds x="800" y="147" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="785.48" y="126" width="65.05" height="17" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Record" bpmnElement="A_Record">
+        <dc:Bounds x="445" y="292" width="120" height="120" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_SF_LM_1" bpmnElement="SF_LM_1">
+        <di:waypoint x="268" y="165" />
+        <di:waypoint x="320" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_LM_2" bpmnElement="SF_LM_2">
+        <di:waypoint x="420" y="165" />
+        <di:waypoint x="480" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_LM_3" bpmnElement="SF_LM_3">
+        <di:waypoint x="530" y="165"/>
+        <di:waypoint x="600" y="165"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="555" y="140" width="22" height="20"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_LM_4" bpmnElement="SF_LM_4">
+        <di:waypoint x="505" y="190" />
+        <di:waypoint x="505" y="295" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_LM_5" bpmnElement="SF_LM_5">
+        <di:waypoint x="555" y="335" />
+        <di:waypoint x="818" y="335" />
+        <di:waypoint x="818" y="183" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

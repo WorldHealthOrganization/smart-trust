@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glossary Curator</title>
+  <style>
+    /* ── Theme ──────────────────────────────────────────── */
+    [data-theme="dark"] {
+      --bg:#0e0e12; --bg-s:#16161c; --bg-r:#1e1e26; --bg-c:#12121a;
+      --fg:#c8c8d0; --fg-d:#70707c; --fg-b:#eeeef4;
+      --ac:#7ca8e6; --ac-d:#4a6a9a;
+      --grn:#7ce6a4; --yel:#e6c87c; --red:#e67c7c; --ora:#e6a47c;
+      --brd:#2a2a34;
+    }
+    [data-theme="light"] {
+      --bg:#fafafa; --bg-s:#ffffff; --bg-r:#f0f0f4; --bg-c:#f5f5fa;
+      --fg:#2c2c34; --fg-d:#888894; --fg-b:#111118;
+      --ac:#2a6bc4; --ac-d:#6a9ad4;
+      --grn:#1a8a44; --yel:#9a7a20; --red:#c44a4a; --ora:#b07030;
+      --brd:#d8d8e0;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      font-size: 14px; line-height: 1.5; min-height: 100vh;
+    }
+    a { color: var(--ac); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace; font-size: .85em; }
+
+    /* ── Top bar ────────────────────────────────────────── */
+    .top-bar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg-s); border-bottom: 1px solid var(--brd);
+      display: flex; align-items: center; gap: 1rem;
+      padding: .5rem 1.5rem; height: 44px;
+    }
+    .top-bar h1 {
+      font-size: .95rem; font-weight: 600; color: var(--fg-b);
+    }
+    .top-bar .spacer { flex: 1; }
+    .top-bar .meta {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .65rem; color: var(--fg-d);
+    }
+    .top-bar button {
+      background: var(--bg-r); border: 1px solid var(--brd);
+      color: var(--fg-d); font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .65rem; padding: .25rem .7rem; border-radius: 3px;
+      cursor: pointer; transition: all .15s;
+    }
+    .top-bar button:hover { color: var(--fg-b); border-color: var(--ac-d); }
+    .top-bar button.primary {
+      color: var(--ac); border-color: var(--ac-d);
+    }
+    .top-bar button.primary:hover { background: var(--ac-d); color: var(--fg-b); }
+
+    /* ── Summary ────────────────────────────────────────── */
+    .summary {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: .6rem; padding: 1rem 1.5rem;
+    }
+    .card {
+      background: var(--bg-s); border: 1px solid var(--brd);
+      border-radius: 6px; padding: .8rem; text-align: center;
+    }
+    .card .num { font-size: 1.6rem; font-weight: 600; }
+    .card .lbl {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .6rem; color: var(--fg-d); margin-top: .15rem;
+    }
+    .card.green .num { color: var(--grn); }
+    .card.yellow .num { color: var(--yel); }
+    .card.blue .num { color: var(--ac); }
+
+    /* ── Filter bar ─────────────────────────────────────── */
+    .controls {
+      display: flex; gap: .5rem; padding: .5rem 1.5rem;
+      align-items: center; flex-wrap: wrap;
+    }
+    .controls input[type="text"] {
+      flex: 1; min-width: 200px;
+      background: var(--bg-s); border: 1px solid var(--brd);
+      color: var(--fg); padding: .35rem .6rem; border-radius: 4px;
+      font-size: .8rem; font-family: inherit;
+    }
+    .controls input:focus { outline: none; border-color: var(--ac); }
+    .filter-btn {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .6rem; padding: .25rem .6rem; border-radius: 3px;
+      border: 1px solid var(--brd); background: var(--bg-r);
+      color: var(--fg-d); cursor: pointer; transition: all .15s;
+    }
+    .filter-btn:hover { color: var(--fg-b); }
+    .filter-btn.active { color: var(--ac); border-color: var(--ac); }
+
+    /* ── Slug list ──────────────────────────────────────── */
+    .slug-list { padding: 0 1.5rem 2rem; }
+
+    .slug-card {
+      background: var(--bg-s); border: 1px solid var(--brd);
+      border-radius: 6px; margin-bottom: .8rem;
+    }
+    .slug-card.has-decision { border-color: var(--grn); }
+    .slug-card.skipped { opacity: .55; }
+
+    .slug-header {
+      display: grid; grid-template-columns: 1fr auto auto;
+      align-items: center; gap: .8rem;
+      padding: .8rem 1rem;
+    }
+    .slug-name { font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+      font-size: .8rem; color: var(--ac); font-weight: 500; }
+    .slug-visible {
+      font-size: .85rem; color: var(--fg-b); margin-top: .15rem;
+    }
+    .slug-decision {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace; font-size: .65rem;
+      color: var(--grn); white-space: nowrap;
+    }
+
+    .slug-candidates {
+      padding: 0 1rem 1rem;
+      border-top: 1px solid var(--brd);
+    }
+    .candidate {
+      display: grid; grid-template-columns: 1fr auto;
+      gap: .6rem; padding: .6rem 0;
+      border-bottom: 1px solid var(--bg-r);
+      align-items: center;
+    }
+    .candidate:last-child { border-bottom: none; }
+    .candidate-info { min-width: 0; }
+    .candidate-label {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace; font-size: .75rem;
+      color: var(--fg-b); font-weight: 500;
+    }
+    .candidate-meta {
+      font-size: .7rem; color: var(--fg-d); margin-top: .15rem;
+    }
+    .candidate-reason {
+      font-size: .7rem; color: var(--fg-d); margin-top: .15rem;
+      font-style: italic;
+    }
+    .candidate-kind {
+      display: inline-block;
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace; font-size: .55rem;
+      padding: .1rem .4rem; border-radius: 3px;
+      border: 1px solid var(--brd); margin-right: .4rem;
+      color: var(--fg-d);
+    }
+    .candidate-kind.definition { color: var(--ac); border-color: var(--ac-d); }
+    .candidate-kind.remark { color: var(--yel); border-color: var(--yel); }
+    .candidate-kind.proposition,
+    .candidate-kind.theorem,
+    .candidate-kind.lemma { color: var(--grn); border-color: var(--grn); }
+
+    .candidate-pick {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace; font-size: .65rem;
+      padding: .35rem .8rem; border-radius: 3px; cursor: pointer;
+      border: 1px solid var(--brd); background: var(--bg-r);
+      color: var(--fg-d); transition: all .15s;
+    }
+    .candidate-pick:hover { color: var(--fg-b); border-color: var(--ac); }
+    .candidate.picked .candidate-pick {
+      background: var(--grn); color: var(--bg); border-color: var(--grn);
+    }
+    .candidate.picked .candidate-label { color: var(--grn); }
+
+    .skip-row {
+      display: flex; justify-content: flex-end; gap: .4rem;
+      margin-top: .4rem;
+    }
+    .skip-btn {
+      font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace; font-size: .6rem;
+      padding: .2rem .6rem; border-radius: 3px; cursor: pointer;
+      border: 1px solid var(--brd); background: transparent;
+      color: var(--fg-d);
+    }
+    .skip-btn:hover { color: var(--red); border-color: var(--red); }
+    .skip-btn.active { color: var(--red); border-color: var(--red); }
+
+    .empty {
+      text-align: center; padding: 4rem 2rem;
+      color: var(--fg-d); font-size: .85rem;
+    }
+    .empty code { color: var(--ac); }
+
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--bg-s); border: 1px solid var(--ac);
+      color: var(--fg-b); padding: .6rem 1rem; border-radius: 4px;
+      font-size: .8rem; opacity: 0; transition: opacity .25s;
+      z-index: 200;
+    }
+    .toast.show { opacity: 1; }
+    .toast.error { border-color: var(--red); color: var(--red); }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <h1>Glossary Curator</h1>
+    <span class="meta" id="meta">loading…</span>
+    <div class="spacer"></div>
+    <button id="theme-toggle" title="Toggle theme">☼</button>
+    <button id="reload">reload</button>
+    <button id="save" class="primary">save</button>
+  </div>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="controls">
+    <input type="text" id="search" placeholder="filter by slug or visible label…">
+    <button class="filter-btn active" data-filter="all">all</button>
+    <button class="filter-btn" data-filter="undecided">undecided</button>
+    <button class="filter-btn" data-filter="picked">picked</button>
+    <button class="filter-btn" data-filter="skipped">skipped</button>
+  </div>
+
+  <div class="slug-list" id="slug-list"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── State ───────────────────────────────────────────
+    const PAPER = new URLSearchParams(location.search).get("paper") || "quantum-observable-universe";
+    let candidates = null;
+    let decisions = new Map();   // slug → { ownerBlock, tsPath } | "skip"
+    let filter = "all";
+    let search = "";
+
+    // ── Theme ───────────────────────────────────────────
+    const themeToggle = document.getElementById("theme-toggle");
+    themeToggle.addEventListener("click", () => {
+      const cur = document.documentElement.dataset.theme || "dark";
+      document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
+    });
+
+    // ── Toast ───────────────────────────────────────────
+    function toast(msg, kind = "info") {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.className = "toast show" + (kind === "error" ? " error" : "");
+      setTimeout(() => t.classList.remove("show"), 2500);
+    }
+
+    // ── Render ──────────────────────────────────────────
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+
+    function summary() {
+      const total = candidates.unowned.length + candidates.owned.length;
+      const owned = candidates.owned.length;
+      const picked = [...decisions.values()].filter(d => d !== "skip").length;
+      const skipped = [...decisions.values()].filter(d => d === "skip").length;
+      const undecided = candidates.unowned.length - picked - skipped;
+      document.getElementById("summary").innerHTML = `
+        <div class="card blue"><div class="num">${total}</div><div class="lbl">slugs total</div></div>
+        <div class="card green"><div class="num">${owned}</div><div class="lbl">already owned</div></div>
+        <div class="card green"><div class="num">${picked}</div><div class="lbl">picked here</div></div>
+        <div class="card yellow"><div class="num">${undecided}</div><div class="lbl">undecided</div></div>
+        <div class="card"><div class="num">${skipped}</div><div class="lbl">skipped</div></div>
+      `;
+      document.getElementById("meta").textContent = `${PAPER} · ${total} slugs`;
+    }
+
+    function visible(slug) {
+      const lower = slug.toLowerCase();
+      const sLower = search.toLowerCase();
+      if (sLower && !lower.includes(sLower)) {
+        const v = candidates.unowned.find(u => u.slug === slug)?.visible || "";
+        if (!v.toLowerCase().includes(sLower)) return false;
+      }
+      const dec = decisions.get(slug);
+      if (filter === "picked" && (!dec || dec === "skip")) return false;
+      if (filter === "skipped" && dec !== "skip") return false;
+      if (filter === "undecided" && dec) return false;
+      return true;
+    }
+
+    function slugCard(s) {
+      const dec = decisions.get(s.slug);
+      const isSkipped = dec === "skip";
+      const pickedLabel = dec && dec !== "skip" ? dec.ownerBlock : null;
+      const cls = "slug-card" +
+        (pickedLabel ? " has-decision" : "") +
+        (isSkipped ? " skipped" : "");
+
+      const candList = s.candidates.map(c => {
+        const picked = pickedLabel === c.label;
+        return `<div class="candidate ${picked ? "picked" : ""}" data-slug="${esc(s.slug)}" data-label="${esc(c.label)}">
+          <div class="candidate-info">
+            <span class="candidate-kind ${esc(c.kind)}">${esc(c.kind)}</span>
+            <span class="candidate-label">${esc(c.label)}</span>
+            <div class="candidate-meta">
+              ${esc(c.chapterTitle)}${c.section ? " · " + esc(c.section) : ""}
+              ${c.title ? " · " + esc(c.title) : ""}
+              · ${c.mentions} mention${c.mentions === 1 ? "" : "s"}
+            </div>
+            <div class="candidate-reason">${esc(c.reason)}</div>
+          </div>
+          <button class="candidate-pick">${picked ? "picked ✓" : "pick"}</button>
+        </div>`;
+      }).join("");
+
+      return `<div class="${cls}">
+        <div class="slug-header">
+          <div>
+            <div class="slug-name">${esc(s.slug)}</div>
+            <div class="slug-visible">${esc(s.visible)}</div>
+          </div>
+          ${pickedLabel ? `<div class="slug-decision">→ ${esc(pickedLabel)}</div>` : ""}
+          ${isSkipped ? `<div class="slug-decision" style="color:var(--red)">skipped</div>` : ""}
+        </div>
+        <div class="slug-candidates">
+          ${candList || '<div class="candidate-meta">No candidate blocks mention this term.</div>'}
+          <div class="skip-row">
+            <button class="skip-btn ${isSkipped ? "active" : ""}" data-slug="${esc(s.slug)}" data-action="skip">
+              ${isSkipped ? "unskip" : "skip for now"}
+            </button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function render() {
+      summary();
+      const filtered = candidates.unowned.filter(s => visible(s.slug));
+      const list = document.getElementById("slug-list");
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty">No slugs match your filters.</div>`;
+      } else {
+        list.innerHTML = filtered.map(slugCard).join("");
+      }
+    }
+
+    // ── Events ──────────────────────────────────────────
+    document.getElementById("slug-list").addEventListener("click", (e) => {
+      const btn = e.target.closest(".candidate-pick");
+      if (btn) {
+        const cand = btn.closest(".candidate");
+        const slug = cand.dataset.slug;
+        const label = cand.dataset.label;
+        const s = candidates.unowned.find(u => u.slug === slug);
+        const c = s.candidates.find(x => x.label === label);
+        const cur = decisions.get(slug);
+        if (cur && cur !== "skip" && cur.ownerBlock === label) {
+          decisions.delete(slug);  // toggle off
+        } else {
+          decisions.set(slug, { ownerBlock: c.label, tsPath: c.tsPath });
+        }
+        render();
+        return;
+      }
+      const skip = e.target.closest(".skip-btn");
+      if (skip) {
+        const slug = skip.dataset.slug;
+        if (decisions.get(slug) === "skip") decisions.delete(slug);
+        else decisions.set(slug, "skip");
+        render();
+      }
+    });
+
+    document.getElementById("search").addEventListener("input", (e) => {
+      search = e.target.value;
+      render();
+    });
+    document.querySelectorAll(".filter-btn").forEach(b => {
+      b.addEventListener("click", () => {
+        document.querySelectorAll(".filter-btn").forEach(x => x.classList.remove("active"));
+        b.classList.add("active");
+        filter = b.dataset.filter;
+        render();
+      });
+    });
+
+    document.getElementById("reload").addEventListener("click", load);
+    document.getElementById("save").addEventListener("click", save);
+
+    // ── Data ────────────────────────────────────────────
+    async function load() {
+      try {
+        document.getElementById("meta").textContent = "loading candidates…";
+        const r = await fetch(`/api/glossary/candidates?paper=${encodeURIComponent(PAPER)}`);
+        if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+        candidates = await r.json();
+
+        // Load existing decisions.
+        const dr = await fetch(`/api/glossary/curation?paper=${encodeURIComponent(PAPER)}`);
+        if (dr.ok) {
+          const data = await dr.json();
+          decisions = new Map();
+          for (const d of (data.decisions || [])) {
+            if (d.skipped) decisions.set(d.slug, "skip");
+            else decisions.set(d.slug, { ownerBlock: d.ownerBlock, tsPath: d.tsPath });
+          }
+        }
+        render();
+      } catch (e) {
+        toast("load failed: " + e.message, "error");
+        document.getElementById("meta").textContent = "load failed";
+      }
+    }
+
+    async function save() {
+      const payload = { paper: PAPER, decisions: [] };
+      for (const [slug, val] of decisions) {
+        if (val === "skip") {
+          payload.decisions.push({ slug, skipped: true });
+        } else {
+          payload.decisions.push({ slug, ownerBlock: val.ownerBlock, tsPath: val.tsPath });
+        }
+      }
+      try {
+        const r = await fetch("/api/glossary/curation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+        const j = await r.json();
+        toast(`saved ${j.count} decision${j.count === 1 ? "" : "s"}`);
+      } catch (e) {
+        toast("save failed: " + e.message, "error");
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>

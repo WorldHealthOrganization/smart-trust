@@ -1,0 +1,79 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "ns-vocabulary",
+    "title": "Namespace vocabulary",
+    "description": "Emit the folio namespace as a document that dereferences — one node per class and property, each with an @id, a type, a label and a definition, so a consumer holding only the JSON-LD can resolve any term it meets.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat ns:export"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "layer",
+          "schema": {
+            "$type": "NamespaceLayer"
+          },
+          "description": "Emit one namespace layer — `bootstrap` for the layer that must resolve before anything else does.",
+          "required": false,
+          "arg": {
+            "flag": "--layer"
+          }
+        },
+        {
+          "name": "out",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Where to write; defaults under `_kg/`, which is build output.",
+          "required": false,
+          "arg": {
+            "flag": "--out"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "vocabulary",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The written namespace document."
+        }
+      ]
+    },
+    "satisfies": [
+      "kg-export"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    },
+    "maintains": [
+      {
+        "source": "schemas/content/vocabulary.ts",
+        "artefact": "cat-harness/ns.jsonld",
+        "format": "json-ld"
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "/io/inputs/1",
+      "comment": "input-site: inert #13384224 — prose naming the directory, in a message or a description"
+    },
+    {
+      "at": "/maintains",
+      "comment": "The PRIMARY job is the graph documenting itself — the owner's\ncorrection, 2026-09-19, and the order matters. That `--check` also lets\nCI assert every minted term is defined is a second use of one artefact,\nnot the reason it exists. Stated here because a node whose description\nled with \"conformance test\" would invert that and invite someone to\ndrop the document once CI was satisfied another way."
+    },
+    {
+      "at": "",
+      "comment": "── The two JSON-LD artefacts a consumer dereferences ─────────────────\n\nBoth are `maintains` nodes in the same sense as the three zod carriers\nbelow, and they were missing for the same reason those were: the relation\nbetween a source module and the public document it keeps true lived in a\n`package.json` script and nowhere a tool could read it.\n\nThey are separate nodes because they answer different questions. A\nconsumer that meets `folio:Actor` needs the VOCABULARY to learn what it\nmeans; a consumer parsing a block needs the CONTEXT to expand its keys.\nOne document cannot be both. The vocabulary is one document per layer\n(`<stub>/ns`); the all-layers union at `ns/vocabulary.jsonld` was retired\non 2026-09-30 (owner, bean `xsqm`), and bootstrap's layer document is\nbootstrap-tools' to write."
+    }
+  ]
+}
