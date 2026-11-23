@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "Every changed block reviewed?" — GW_Covered in content-change-review.bpmn.
+  Bean `en2d`, epic `q4jm`.
+
+  The facts are counted over the edit-set's ChangeSet:
+
+    uncoveredBlocks  blocks the ChangeSet lists as added or changed that have
+                     NEITHER a verdict from a reviewer in a review lane NOR a
+                     waiver the review coordinator wrote a reason for (for
+                     example, a pure rename), on the block's CURRENT version.
+                     The engine reads a fact by name and does no arithmetic,
+                     so the `folio-review-coverage` Tool computes both counts
+                     (bean px0t) and the coordinator passes them in.
+    openDefects      review comments of kind `defect` still open or addressed
+
+  and, since bean `bnjs`, over the RENDERED pages the change alters, from the
+  staging build's `rendered-impact.json` and `rendered-measured.json`:
+
+    rendered            "known" | "absent": whether a rendered impact was
+                        published. "absent" is a folio whose site has no
+                        renderer; its page counts are 0 because UNKNOWN, and
+                        no page rule reads them.
+    unreviewedPages     pages and data files on the review list with no
+                        current page verdict, not covered block by block,
+                        and (a data file) sharing no pin with a reviewed page
+    undeterminedInputs  inputs no renderer could place, neither reviewed nor
+                        waived with a reason (`input:` in the verdict tag)
+    measured            "known" | "absent" | "not-base": whether the build was
+                        measured against a before side built from its BASE
+    missedPages         pages the build measured and the prediction missed,
+                        not reviewed since; read only when measured is "known"
+
+  The engine refuses a fact it is not given, so `review-coverage` supplies
+  every fact on every run, and the two status facts keep an uncomputed count
+  from ever reading as 0.
+
+  Covered means every changed block has either a verdict or a waiver, and no
+  defect is still open. Two things this table deliberately does NOT read:
+
+  - Resolved COMMENTS are not coverage. A block whose comments are all
+    resolved but that nobody gave a verdict on has not been reviewed, and the
+    heat map's `review-heatmap` skill says the same thing from the other side.
+  - An unplaced input is not "no page changed". A renderer that could not
+    place an input says the change may reach ANY page, so the review is not
+    complete until somebody has looked and said so (or waived it, with a
+    reason), and the page list is not the whole story until then.
+  - Approval is not here. Coverage says the review is COMPLETE; whether the
+    change is ACCEPTED is GW_Approved, downstream, and it is the committee's.
+
+  Those are policy choices, in a table a coordinator can change without
+  touching code, which is the argument for putting them in DMN at all.
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_ReviewCoverageGate"
+             name="Review coverage gate"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_ReviewCoverageGate" name="Every changed block and rendered page reviewed?">
+    <decisionTable id="Table_ReviewCoverageGate" hitPolicy="FIRST">
+      <input id="In_Uncovered" label="changed blocks with neither a verdict nor a waiver">
+        <inputExpression id="Expr_Uncovered" typeRef="number">
+          <text>uncoveredBlocks</text>
+        </inputExpression>
+      </input>
+      <input id="In_OpenDefects" label="open defect comments">
+        <inputExpression id="Expr_OpenDefects" typeRef="number">
+          <text>openDefects</text>
+        </inputExpression>
+      </input>
+      <input id="In_Rendered" label="rendered impact published">
+        <inputExpression id="Expr_Rendered" typeRef="string">
+          <text>rendered</text>
+        </inputExpression>
+      </input>
+      <input id="In_UnreviewedPages" label="rendered pages nobody has reviewed at their current pin">
+        <inputExpression id="Expr_UnreviewedPages" typeRef="number">
+          <text>unreviewedPages</text>
+        </inputExpression>
+      </input>
+      <input id="In_Undetermined" label="inputs no renderer could place, neither reviewed nor waived">
+        <inputExpression id="Expr_Undetermined" typeRef="number">
+          <text>undeterminedInputs</text>
+        </inputExpression>
+      </input>
+      <input id="In_Measured" label="build measured against its base">
+        <inputExpression id="Expr_Measured" typeRef="string">
+          <text>measured</text>
+        </inputExpression>
+      </input>
+      <input id="In_Missed" label="pages the prediction missed, not reviewed since">
+        <inputExpression id="Expr_Missed" typeRef="number">
+          <text>missedPages</text>
+        </inputExpression>
+      </input>
+      <output id="Out_Covered" name="outcome" typeRef="string" />
+
+      <rule id="Rule_Uncovered">
+        <description>A changed block nobody has given a verdict on, and nobody waived with a reason, means the review is not complete.</description>
+        <inputEntry id="IE_Uncovered_1"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_Uncovered_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Uncovered_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Uncovered_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Uncovered_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Uncovered_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Uncovered_7"><text>-</text></inputEntry>
+        <outputEntry id="OE_Uncovered"><text>"no"</text></outputEntry>
+      </rule>
+      <rule id="Rule_OpenDefect">
+        <description>An open defect is unfinished review work, whatever the verdict count says.</description>
+        <inputEntry id="IE_OpenDefect_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_OpenDefect_2"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_OpenDefect_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_OpenDefect_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_OpenDefect_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_OpenDefect_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_OpenDefect_7"><text>-</text></inputEntry>
+        <outputEntry id="OE_OpenDefect"><text>"no"</text></outputEntry>
+      </rule>
+      <rule id="Rule_UnreviewedPage">
+        <description>A rendered page the change alters that nobody has reviewed at its current version, block by block or as a page, means the review is not complete.</description>
+        <inputEntry id="IE_UnreviewedPage_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_UnreviewedPage_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_UnreviewedPage_3"><text>"known"</text></inputEntry>
+        <inputEntry id="IE_UnreviewedPage_4"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_UnreviewedPage_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_UnreviewedPage_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_UnreviewedPage_7"><text>-</text></inputEntry>
+        <outputEntry id="OE_UnreviewedPage"><text>"no"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Undetermined">
+        <description>An input no renderer could place may change any page: until somebody has looked, or waived it with a reason, the page list is not known to be complete.</description>
+        <inputEntry id="IE_Undetermined_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Undetermined_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Undetermined_3"><text>"known"</text></inputEntry>
+        <inputEntry id="IE_Undetermined_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Undetermined_5"><text>&gt; 0</text></inputEntry>
+        <inputEntry id="IE_Undetermined_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Undetermined_7"><text>-</text></inputEntry>
+        <outputEntry id="OE_Undetermined"><text>"no"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Missed">
+        <description>A page the build changed that the prediction never listed was never shown to a reviewer. Counted only against a before side built from the base, so main's own changes are not read as this change's.</description>
+        <inputEntry id="IE_Missed_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Missed_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Missed_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Missed_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Missed_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Missed_6"><text>"known"</text></inputEntry>
+        <inputEntry id="IE_Missed_7"><text>&gt; 0</text></inputEntry>
+        <outputEntry id="OE_Missed"><text>"no"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Covered">
+        <description>Every changed block has a verdict or a reasoned waiver, no defect is open, and, where the build published them, every rendered page and unplaced input has been reviewed and the prediction missed none that went unreviewed.</description>
+        <inputEntry id="IE_Covered_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Covered_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_Covered_3"><text>-</text></inputEntry>
+        <inputEntry id="IE_Covered_4"><text>-</text></inputEntry>
+        <inputEntry id="IE_Covered_5"><text>-</text></inputEntry>
+        <inputEntry id="IE_Covered_6"><text>-</text></inputEntry>
+        <inputEntry id="IE_Covered_7"><text>-</text></inputEntry>
+        <outputEntry id="OE_Covered"><text>"yes"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

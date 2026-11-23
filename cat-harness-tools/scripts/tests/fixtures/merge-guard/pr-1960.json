@@ -1,0 +1,114 @@
+{
+  "_source": "https://github.com/litlfred/folio-assistant/pull/1960 as it stood when the Merge Manager merged it at 2026-10-03T10:45:33Z: comments, timeline events and workflow runs created before that instant; labels replayed from the timeline. Captured 2026-10-03 for bean uoob by merge-guard's own fetchSnapshot, then trimmed to the fields evaluate() reads.",
+  "mergedAt": "2026-10-03T10:45:33Z",
+  "snapshot": {
+    "pr": {
+      "number": 1960,
+      "state": "open",
+      "draft": false,
+      "merged": false,
+      "body": "Bean `l4ay` (parent `fs43`). Follow-up bean: `r5wu`.\n\n## Owner rulings (2026-10-03, verbatim)\n- \"todos = subgraph node + todo content nodes\" → option 1, \"and make pattern for declared repo branches (and declared dir subgraphs)\"\n- \"It's the same pattern. One of them is mounting the directory while one of them is mounting a branch. Another mount type could come in the future. A sub graph declares where it's getting its content.. It could also be a graph database in the future. That same information can be overwritten by the harness instance config. Update skills process processes and tools\"\n\n## What this does\nA directory-backed subgraph and a branch-backed subgraph are now one concept. Each declared subgraph says where its content comes from (its **source**). There is one resolver, and publishers use the declared Subgraph node as their container.\n\n### Schema: `cat-harness/schemas/kg/subgraph-source.ts`\n- `directories[].source` is a discriminated union on `kind`.\n- `{ kind: \"directory\" }` is the default, and also what an absent `source` means.\n- `{ kind: \"branch\", branch, keyedBy: \"commit\" | \"tip\" }` means the content lives on a branch.\n- A future kind such as `graph-db` is added as a new union member. That makes it a compile error at every `switch` that has not handled it yet.\n- Branch names are still declared once, in `special-branches.json`. The resolver attaches the matching row (exact name or family, legacy names included).\n\n### How the old fields map\n| old | new |\n|---|---|\n| `storage: { branch, keyedBy }` (#1764, on main; `tip` added by #1937) | `source: { kind: \"branch\", branch, keyedBy }`. `storage` stays as the **legacy spelling**. The resolver reads either field, reports `declaredIn: \"storage\"`, and **refuses an entry that carries both**. A `qa` subgraph keyed by `tip` is refused whichever field it is set through. |\n| presence checks reading `storage?.branch` (`materialiseDirectories`, `check:declared-dirs`, `audit:coverage`) | `contentIsOffCheckout(entry)`, which honours both fields. |\n| `qa-store.ts` reading `storage` | **Unchanged.** It is #1937's file, and moving it onto the resolver is that session's call. |\n\n### Override in the instance config, matched on id\n`<instance>.config.json` → `subgraphSources: { \"<dir-id>\": <source> }`. The checkout root's config has the last word.\n\n### One resolver\n`declaredSubgraph(start, id)` in `schemas/kg/harness-config.ts`. Precedence: config override, then `source`, then `storage`, then `directory`. The result carries `declaredIn`. The KG export, the publishers, the CLI and (as proposed on #1957) `branch-store mount`/`push` all call it.\n\n### JSON-LD\n- Every Subgraph node in the KG export now carries `contentSource`.\n- **Vocabulary is reused where possible:**\n  - `contentSource` is `dcterms:source`;\n  - the scoped `kind` is `dcterms:type`;\n  - the scoped `branch` is `dcterms:identifier`.\n- **Two terms are minted** and glossed in `vocabulary.ts`: `keyedBy` and `sourceDeclaredIn`. No published vocabulary says how entries are keyed on a branch, or which configuration layer gave an answer.\n- A branch hosted on GitHub gets an `@id` equal to its tree URL. Any other forge gets a blank node, because a link that 404s is worse than none.\n- `storedOn` was considered and not minted: `dcterms:source` already means \"the resource this one is derived from\", and that covers a future graph-db source too.\n\n### The pattern: `scripts/subgraph-node.ts`\n- `subgraphIri(docIri, id)` is pinned equal to kg-export's `makeIri(doc, \"directory\", id)`.\n- `subgraphContainer` uses the declared node's IRI as the container `@id`, typed `Subgraph`, with `hasPart`.\n- `memberOf` adds `inSubgraph` to each member. That is kg-export's existing term for this edge, and it expands to `dcterms:isPartOf`.\n- No parallel collection node is minted.\n- `subgraphPublicationFindings` is the check.\n\n### Applied to todos\n- `todos.jsonld`'s container is the declared `todos` Subgraph node: `<base>/folio-assistant/folio-assistant.jsonld#directory/todos`. The checkout root instance declares `todos`.\n- `TodoGraph` → `schema:Collection` is gone.\n- Each todo, in the graph and in its own document, gains `inSubgraph`.\n- **The `@graph` array and every todo `@id` are unchanged.** I commented on #1953 with exactly what changed for `fetchTodoGraph`: nothing it reads.\n- `docs-site.yml` and `feature-staging.yml` now export the checkout root's graph, so the container `@id` dereferences.\n- `check:published-instance-exports` now names a sidecar by the instance's **stub** rather than the directory basename. The two differ for `.`.\n- Verified with `publish:verify` (#1950's `jsonld-object-links` and `jsonld-own-base`) over `todos.jsonld`, the per-todo documents, and both instance graphs. All passed.\n\n### Skills, processes and tools (the owner's \"update skills process processes and tools\")\n- **Skill `directory-conventions`:** new section §\"Where a subgraph gets its content — `source`\", plus the STRICT subsection §\"Publishing a subgraph's contents — the declared Subgraph node is the container\", plus a new checklist item.\n- **Skill `content-context-and-state-graphs`:** new section §\"The layer is not the source\". `todos` is `state` whether it is mounted from a directory or from a branch.\n- **Process `processes/kg/mount-subgraph.bpmn`:** resolve the source once, then a gateway on kind. `directory` is used in place, `branch` mounts the tip, and an unknown kind is refused. It is indexed on the publication-workflow page.\n- **Tool `subgraph-resolve`:** `bun run cat subgraph:resolve <id> [--json] | --all`.\n- **Interface for #1957:** posted at https://github.com/litlfred/folio-assistant/pull/1957#issuecomment-5967425740. The mount/push dispatch on kind is #1957's change; its files are untouched here.\n\n### Gates\n- `subgraph-source.test.ts` tests the union, precedence, the legacy mapping, both refusals, and the special-branch lookup. It also asserts that **every subgraph the checkout declares resolves, and that each branch source names a declared branch**.\n- `subgraph-node.test.ts` checks that every adopting publisher passes `subgraphPublicationFindings` against the declared node, and mutation-checks each failure the check is meant to catch.\n\n## Declarations affected\n- Every `directories[]` entry, in every instance, gains an **optional** `source`, so no existing declaration changes.\n- #1949's new `merge-queue` → `beans/queue/` (`state`, `recordsWork: true`) is covered as it stands: absent `source` means `directory`. If it later moves to a branch, it declares `source: { kind: \"branch\", … }` with a branch row in `special-branches.json`.\n- #1937's intended `beans/` and `todos/` flips can be written either as `storage: { branch, keyedBy: \"tip\" }` or as `source: { kind: \"branch\", … }`. **Prefer `source`.**\n\n## Audit: other publishers that mint their own container (not converted here, bean `r5wu`)\n- `fsh-guts-export.ts`: its own `FshGutsGraph` container; its nodes carry no `inSubgraph`.\n- `schemas/process/role-graph.ts` `toJsonLd`: a `RoleGraph` container.\n- `glossary-export.ts`: a `skos:ConceptScheme` for `swimlane-glossary`. This is a real SKOS concept, so it should be linked to the Subgraph, not replaced by it.\n- `pipeline/gen-library-jsonld.ts`: `SourceDocument` manifests with no `inSubgraph` to `library`.\n- `pipeline/gen-site-jsonld.ts`: site pages with no `inSubgraph`. A page's `contains` is document structure and stays.\n- beans and qa: plain-JSON indexes today. Each must follow the pattern when it becomes JSON-LD.\n\n## Order\nThis PR targets `main` and depends on neither #1937 nor #1957. Because of the `storage` mapping, it and #1937 can land in either order. #1957 adopts the interface after this lands.\n\n## Checklist\n- [x] `source` union, plus the mapping from `storage`\n- [x] the instance config overrides by id; one resolver\n- [x] Subgraph JSON-LD node carries `contentSource`\n- [x] `subgraphContainer` / `memberOf`; todos converted\n- [x] gates (`subgraph-source.test.ts`, `subgraph-node.test.ts`)\n- [x] skills, process and tool\n- [x] audit of the other publishers, plus follow-up bean `r5wu`\n- [x] #1957 interface comment; #1953 reader check\n- [x] `publish:verify` on the outputs\n- [ ] CI green\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_01CbYZTAubUAZhitov4NiPR9",
+      "user": {
+        "login": "litlfred"
+      },
+      "labels": [],
+      "head": {
+        "sha": "b9391d7c4c10100e6035ada4d72399307438099b",
+        "ref": "claude/subgraph-node-pattern"
+      },
+      "base": {
+        "ref": "main",
+        "repo": {
+          "owner": {
+            "login": "litlfred"
+          }
+        }
+      }
+    },
+    "comments": [],
+    "timeline": [],
+    "commits": [
+      {
+        "sha": "ffbd2858745d7c0c29d5f6f18f888088894f7dee",
+        "author": {
+          "login": "claude"
+        },
+        "commit": {
+          "author": {
+            "name": "Claude",
+            "date": "2026-10-03T08:31:56Z"
+          },
+          "message": "bean l4ay: subgraph source + node pattern — opened and claimed"
+        },
+        "parents": [
+          {
+            "sha": "d089aca961675a2aa91afd7d493ac559de6cbb5e"
+          }
+        ]
+      },
+      {
+        "sha": "d11eb634f1c7b844af85340fcbb9591ad743bc3c",
+        "author": {
+          "login": "claude"
+        },
+        "commit": {
+          "author": {
+            "name": "Claude",
+            "date": "2026-10-03T09:54:54Z"
+          },
+          "message": "beans(folio-assistant-l4ay): parent under epic fs43; refresh beans/README count"
+        },
+        "parents": [
+          {
+            "sha": "ffbd2858745d7c0c29d5f6f18f888088894f7dee"
+          }
+        ]
+      },
+      {
+        "sha": "b9391d7c4c10100e6035ada4d72399307438099b",
+        "author": {
+          "login": "claude"
+        },
+        "commit": {
+          "author": {
+            "name": "Claude",
+            "date": "2026-10-03T10:09:00Z"
+          },
+          "message": "Merge origin/main into claude/subgraph-node-pattern"
+        },
+        "parents": [
+          {
+            "sha": "d11eb634f1c7b844af85340fcbb9591ad743bc3c"
+          },
+          {
+            "sha": "077c3673acc09946ecd3d6b3bfbd7c247d392ce5"
+          }
+        ]
+      }
+    ],
+    "baseMergedAsHeadOf": [],
+    "runs": {
+      "state": "has-run",
+      "runs": [
+        {
+          "id": 37115462652,
+          "name": "Code-quality gates",
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/litlfred/folio-assistant/actions/runs/37115462652",
+          "created_at": "2026-10-03T10:09:25Z"
+        },
+        {
+          "id": 37115461831,
+          "name": "JSON-LD generated-file drift",
+          "event": "push",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/litlfred/folio-assistant/actions/runs/37115461831",
+          "created_at": "2026-10-03T10:09:24Z"
+        }
+      ]
+    }
+  }
+}

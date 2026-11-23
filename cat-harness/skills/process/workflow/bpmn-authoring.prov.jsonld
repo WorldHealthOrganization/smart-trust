@@ -1,0 +1,149 @@
+{
+  "@context": {
+    "@base": "https://litlfred.github.io/cat-harness/v0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "cat-harness": "https://litlfred.github.io/cat-harness/v0/ns/"
+  },
+  "dcterms:description": "Provenance moved out of the narrative of bpmn-authoring.md: who decided, when, and under which work item or proposal. The document keeps the rules and their reasons; this log is rendered in its footer.",
+  "@graph": [
+    {
+      "@id": "skills/process/workflow/bpmn-authoring.md",
+      "@type": "prov:Entity",
+      "prov:wasInfluencedBy": [
+        {
+          "@id": "skills/process/workflow/bpmn-authoring.md#provenance-1"
+        },
+        {
+          "@id": "skills/process/workflow/bpmn-authoring.md#provenance-2"
+        },
+        {
+          "@id": "skills/process/workflow/bpmn-authoring.md#provenance-3"
+        },
+        {
+          "@id": "skills/process/workflow/bpmn-authoring.md#provenance-4"
+        },
+        {
+          "@id": "skills/process/workflow/bpmn-authoring.md#provenance-5"
+        },
+        {
+          "@id": "skills/process/workflow/bpmn-authoring.md#provenance-6"
+        },
+        {
+          "@id": "skills/process/workflow/bpmn-authoring.md#provenance-7"
+        },
+        {
+          "@id": "skills/process/workflow/bpmn-authoring.md#provenance-8"
+        }
+      ]
+    },
+    {
+      "@id": "skills/process/workflow/bpmn-authoring.md#provenance-1",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "owner-decision",
+      "cat-harness:section": "Readable at 100%: check it before and after (author check)",
+      "prov:value": "Owner, 2026-10-31: *\"make the font a bit bigger, the spacing a bit more\ncompact so dont need to zoom as much\"*, *\"add as QA and author check\"*.\nEvery diagram you write or touch must, when you are done:",
+      "cat-harness:refs": [
+        "2026-10-31"
+      ],
+      "dcterms:date": [
+        "2026-10-31"
+      ]
+    },
+    {
+      "@id": "skills/process/workflow/bpmn-authoring.md#provenance-2",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "owner-decision",
+      "cat-harness:section": "Readable at 100%: check it before and after (author check)",
+      "prov:value": "- **fit 1400 × 900** in diagram units, so its 16px text reads at about\n  14px in a 1200px band without zooming; **every task a fixed 120 × 120\n  square** (owner, 2026-11-01: boxes never grow to fit their names; a name\n  that does not fit is shortened, `TASK_SIZE` in the tools layer);\n- have **no label on another label, on a flow (its own included), on a box\n  or across a lane line** (owner, 2026-10-31: *\"need to check for text on\n  arrows\"*): a gateway's question above the diamond, its answers beside\n  their flows, every label inside one lane;\n- have **right-angled flows** and **every name inside its box**, pool and\n  lane names inside their strips;\n- have **no crossing flows**, and the **lane order that keeps flows between\n  lanes shortest**.",
+      "cat-harness:refs": [
+        "2026-11-01",
+        "2026-10-31"
+      ],
+      "dcterms:date": [
+        "2026-10-31",
+        "2026-11-01"
+      ]
+    },
+    {
+      "@id": "skills/process/workflow/bpmn-authoring.md#provenance-3",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "issue",
+      "cat-harness:section": "In this repository, a diagram is executable",
+      "prov:value": "- **Every activity carries `<bootstrap.processes:skill ref=\"…\"/>`** naming the skill that\n  implements it, and `<cat-harness.processes:bean store=\"beans/\"/>` where it touches the work\n  plan. `bun run cat check:workflow-refs` fails on a ref that resolves to nothing,\n  and `bun run cat kg:audit` additionally fails when the named skill exists but no\n  package can **serve** it.\n- **Every lane names a role.** Declare the role once as a top-level\n  `<bpmn:resource id=\"<role id>\" name=\"<title>\"/>` (before the collaboration\n  and the process), and set `partitionElementRef=\"<role id>\"` on the lane; the\n  id is the role's in `scenarios/roles.json`, verbatim. Lane names are free\n  text and sixty of them once spelled two dozen positions; an explicit ref is\n  the join that does not depend on spelling. `<bootstrap.processes:role ref>`\n  is the deprecated form (owner, 2026-10-16). A diagram using any\n  `bootstrap.processes:` element declares the namespace as the first child of\n  `<bpmn:definitions>`: `<bpmn:import\n  namespace=\"https://litlfred.github.io/bootstrap/v0/processes/ns/\"\n  location=\"https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld\"\n  importType=\"http://www.w3.org/ns/json-ld\"/>`.\n- **A store is not a lane.** Lanes are for people and agents, the roles that\n  act. A place where things are kept, such as the work plan (beans), a corpus,\n  a session record, an activity log or a published bucket, is a\n  `<bpmn:dataStoreReference>`. The tasks that read or write it point at it\n  with data associations, and each task sits in the lane of whoever does it\n  (owner, 2026-11-01, Q-BR-3 A). A \"Work plan — beans\" lane holding \"Open the\n  bean\" says the store does the work, when the agent does.\n- **The process's own `bpmn:documentation` opens with what it is for.** Its\n  first sentence is the diagram's row on the publication-workflow page.\n  `kg-export` carries it on the `Process` node as `summary` (the whole text as\n  `description`), the page reads it from the published named-subgraph JSON-LD\n  (`bun run cat subgraph:jsonld`) rather than from anything written by hand, and\n  `check:process-index` fails when a declared diagram's node has none. So that sentence says what the process does or answers\n  — not who asked for it, which bean or issue it came from, or where the work\n  got to. Those belong later in the documentation, or in the bean.\n- **A gateway may be computed rather than chosen** — see `dmn-authoring`.\n- **Policy is declared on the process.** `<cat-harness.processes:policy enforcement=\"strict\"/>`\n  means `workflow_gate` refuses a step that is not enabled; absent policy means\n  strict. Steps marked `relaxable=\"false\"` may never be relaxed by any package.",
+      "cat-harness:refs": [
+        "2026-10-16",
+        "2026-11-01"
+      ],
+      "dcterms:date": [
+        "2026-10-16",
+        "2026-11-01"
+      ]
+    },
+    {
+      "@id": "skills/process/workflow/bpmn-authoring.md#provenance-4",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "owner-decision",
+      "cat-harness:section": "Readable diagrams: what the research supports",
+      "prov:value": "Owner, 2026-10-31: take what holds up from the BPMN comprehension research and\ncheck it mechanically. `kg:audit` reports each rule below per process\n(`src/workflow/diagram-quality.ts` in the tools layer). The\nsources, and how strong each rule's evidence is, are in the\n[`process-model-quality`](../../../methodologies/process-model-quality.md)\nmethodology.",
+      "cat-harness:refs": [
+        "2026-10-31"
+      ],
+      "dcterms:date": [
+        "2026-10-31"
+      ]
+    },
+    {
+      "@id": "skills/process/workflow/bpmn-authoring.md#provenance-5",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "owner-decision",
+      "cat-harness:section": "Readable diagrams: what the research supports",
+      "prov:value": "- **Separate routing from work.** A task never has two outgoing flows: put an\n  exclusive or parallel gateway after it, or a reader must guess fork vs\n  choice (`activity-implicit-split`, major). A loop-back INTO a task is fine.\n  A gateway either joins or splits, not both (`gateway-mixed`).\n  **A question is a gateway, never a task**: a box named \"Should it leave\n  now?\" or \"Separate this graph?\" is a decision drawn as work. If someone must\n  judge first, draw that as a task (\"Judge whether it should leave\") or a call\n  to `Process_AskThePerson`, then the question on the gateway after it.\n- **Keep it small.** Split by phase into call activities past 20 flow nodes\n  (`process-size`). That 20 is house style. The only threshold with evidence is\n  7PMG's 50 (`process-decompose`, major), and it predicts modelling errors\n  such as deadlocks, not reading speed.\n- **One start event per process level** (`process-single-start`). Several\n  named end events are fine, and the bean CLOSE pattern needs them.\n- **A decision is a question, its branches are the answers**\n  (`decision-label-question`).\n- **Label activities verb-object**: imperative verb, then its object (*Review\n  the draft*, not *Draft review*) (`activity-label-verb-first`). The evidence\n  is one study of how ambiguous labels felt (29 students), so this is reported,\n  never gated.\n- **A name says the step, nothing else.** No trailing `[skill]` slug: the\n  skill is in `<bootstrap.processes:skill ref>`, and the page links it from\n  there (owner, 2026-11-01, Q-RED-3 B). No step numbers (\"1 ·\", \"Phase 2:\",\n  \"P1.1\"): the flows already give the order, and a number in front breaks\n  verb-first. A number that cites a section of a source document goes in the\n  task's documentation. A list of numbered steps is a sign the diagram copies\n  a document's outline; group the steps into phases instead.",
+      "cat-harness:refs": [
+        "2026-11-01"
+      ],
+      "dcterms:date": [
+        "2026-11-01"
+      ]
+    },
+    {
+      "@id": "skills/process/workflow/bpmn-authoring.md#provenance-6",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "owner-decision",
+      "cat-harness:section": "Split by phase: how",
+      "prov:value": "Owner, 2026-10-31, on the rendered `content-change-review` page: *\"long and\nhard to read. can we improve make use of subprocess or something?\"* That\ndiagram had grown to 43 flow nodes in five lanes, with a start event per lane.\nEvery step was right; the page was unreadable. When `process-size` fires, or\na diagram has a start event per lane, split it like this:",
+      "cat-harness:refs": [
+        "2026-10-31"
+      ],
+      "dcterms:date": [
+        "2026-10-31"
+      ]
+    },
+    {
+      "@id": "skills/process/workflow/bpmn-authoring.md#provenance-7",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "date",
+      "cat-harness:section": "Split by phase: how",
+      "prov:value": "- **The top-level process shows the phases.** Each phase is a\n  `<bpmn:callActivity calledElement=\"…\">` to its own process. Keep at the top\n  only what moves the work between phases: who hands off to whom, and the\n  decisions that send it back (rejected → revise). A loop that crosses phases\n  is drawn at the top; a loop inside a phase stays in that phase.\n- **A phase lives in its own file**, `<parent>-<phase>.bpmn`, next to the\n  parent, with its own process id (`Process_<Parent><Phase>`) and a first\n  documentation sentence that says what the phase does. It becomes the\n  phase's row on the publication-workflow page like any other diagram's.\n- **A phase that ends two ways ends in two named end events**, and the\n  caller's gateway right after the call reads which one it reached, as\n  `GW_BeanYours` reads `Process_BeanOpen`'s.\n- **Keep the node ids when you move nodes into a phase.** A test, a schema or\n  a skill that points at `Task_X` then changes only its file and process, not\n  its id.\n- **Open and close the bean at the top, once.** A process that is only ever\n  called runs on its caller's bean, so a phase calls neither\n  `Process_BeanOpen` nor `Process_BeanClose` (`check:bean-calls`).\n  \"Once\" holds for the top as well: a process with several outcomes routes\n  them all into **one** `Process_BeanClose` call, which decides itself whether\n  the bean is completed, scrapped or blocked, and only then branches to its\n  named end events. One close per outcome (seven in one diagram, before\n  2026-11-01) repeats the same box and makes the diagram wide for no reason.\n- **A caller's `adjudication accepts` looks one level down.** If the judgement\n  moves into a phase, put `accepts` on the call to that phase, and take it off\n  any caller further up.\n- **Name a call activity for the phase**, verb-object like any activity\n  (\"Review the change\"), not for its file.",
+      "cat-harness:refs": [
+        "2026-11-01"
+      ],
+      "dcterms:date": [
+        "2026-11-01"
+      ]
+    },
+    {
+      "@id": "skills/process/workflow/bpmn-authoring.md#provenance-8",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "date",
+      "cat-harness:section": "Why a DAK section sits in a platform package",
+      "prov:value": "This skill lived in `authoring-who-smart-guidelines` until 2026-09-20, and it\nnever belonged there: its own first line says it covers *both* a DAK's L2\nbusiness processes **and this repository's own `processes/**/*.bpmn`*, five\nof its six sections are content-agnostic, and `crdm-requirements.bpmn` — a\nPLATFORM process — names it from the `Agent` lane. A platform process\ndepending on a content-type package is the boundary\nthe `platform-boundary-guard` subagent exists to keep — measured under bean\n`ugid`, moved under `3g13`.",
+      "cat-harness:refs": [
+        "2026-09-20"
+      ],
+      "dcterms:date": [
+        "2026-09-20"
+      ]
+    }
+  ]
+}

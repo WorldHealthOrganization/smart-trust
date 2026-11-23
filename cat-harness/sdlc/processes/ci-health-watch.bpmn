@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_CiHealth" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:collaboration id="Collaboration_Process_CiHealth">
+    <bpmn:participant id="Participant_Process_CiHealth" name="Is CI actually working on the default branch?" processRef="Process_CiHealth"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_CiHealth" name="Is CI actually working on the default branch?" isExecutable="false">
+    <bpmn:documentation>Is CI actually working on the default branch: record each workflow's state on one tracking issue, and fail the job only when the state could not be determined. A WORKFLOW'S OUTCOME IS INVISIBLE FROM A CHECKOUT. Bean `xom7`: one workflow here fired on every push to `main` and FAILED ALL 30 TIMES OVER TWO MONTHS with nothing in the repository saying so. This is the backstop.
+
+WEEKLY, NOT DAILY, and the cadence is an argument rather than a default: the defect is "nobody noticed for two months", not "nobody noticed for a day", and the session-start sweep already covers every day somebody is working. A weekly run bounds the blind spot to seven days without turning the tracking issue into a feed.
+
+`Could we tell?` IS NOT SIMPLY THE EXIT CODE, and that is the subtlety worth drawing. `bun` exits 1 on an uncaught exception as well as on a live failure, so exit 1 alone does not separate "found something red" from "crashed". The REPORT FILE separates them: `--out` writes it before any exit path, so a genuine red always has one and a crash before that point does not. Exit 1 with no report is reclassified as `unknown`. Without that, a crash would open a tracking issue quoting a stale file.
+
+THE THIRD STATE IS THE WHOLE POINT, AND IT IS THE ONLY ONE THAT FAILS THE JOB. Verified 2026-09-20 by reading the `if:` guards: `unknown` runs `exit 1`; a finding does NOT. A repository in trouble leaves this workflow GREEN and speaks through the tracking issue, while a sweep that could not look turns the job red. That inversion is deliberate and is invisible from the run list, which is the argument for drawing it.
+
+ONE TRACKING ISSUE, EDITED IN PLACE, never a comment and never a second issue — a feed nobody reads is the failure mode a watchdog invites. On `unknown` the issue is left UNTOUCHED: not closed, not opened, not edited. Closing it would assert the thing the sweep just failed to establish.
+
+`Ensure the tracking label exists` sits AFTER `Could we tell?` and before the split, because both issue paths need the label — the clean path filters on it too, and on a repository where nothing has ever gone wrong it would not otherwise exist. It is skipped on `unknown`, where neither path runs and a label hiccup must not be what fails the job.
+
+The verdict is reported through the shared `tracked-watch` process (Process_TrackedWatch), with the label `ci-health`. Its three ends say what happened: unknown (job red, issue untouched), clean (issue closed), or found (issue opened or edited, job green).</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_CiHealth">
+      <bpmn:lane id="Lane_Ci" name="Scheduled log sweep" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Named a 'sweep' but every path through it writes something — the report file, the tracking label, and the issue itself (opened, edited or closed) — and keeping all three in one lane is what makes 'one tracking issue, edited in place' enforceable: a write split across lanes would leave two different actors able to touch the same issue with no ordering between them.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Sweep</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Watch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Reported</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Sweep" name="Weekly (Mon 09:17 UTC), a FAILING gating run on main, or on dispatch">
+      <bpmn:documentation>Three ways in, and the first two answer different questions. The weekly cron bounds a QUIET stretch, with nobody working — ynu8's original case. A workflow_run on a failing gating run bounds an ACTIVE one, where main moves every 7.7 min (186 merges in 24h, measured 2026-09-30) and the cost is the time to NOTICE rather than the time to detect; main already gate-checks every push, so all nine of 391j's incidents were detected automatically. Bean kgho. On workflow_run the job is conditioned on the triggering run having FAILED, so a green main starts no sweep at all: the cost scales with the defect, not with the merge cadence. Not a push trigger — a push-triggered run starts alongside the workflows it reports on and would read them as in_progress, which check:ci-health rightly calls neither red nor green, giving a job that runs 186 times a day to report could-not-determine.</bpmn:documentation>
+      <bpmn:outgoing>Flow_0</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_Check" name="Run check:ci-health, WRITING the report file">
+      <bpmn:documentation>Run check:ci-health --out, writing the report file before any exit path. Exit 0 clean, 1 live failures, 2 could not check. bun also exits 1 on an uncaught exception, so an exit 1 with no report file is a crash and is treated as could-not-check.
+
+Where its verdict comes from: Asked of the `verdict` output that the `check` step of .github/workflows/ci-health.yml writes, not of the raw exit code. `check:ci-health` exits 0 clean, 1 live failure(s), 2 could not check; an exit 1 with no report file is a crash and is reclassified as could-not-check, as is any other code. `no` is verdict == 'unknown': the last step runs `exit 1` and no issue step runs, so the tracking issue is left untouched. `yes` is verdict != 'unknown', the guard on the label step and so on both issue paths. Weekly, also measure each workflow's job shape (owner, 2026-11-13, card "A. Collapse into one job"): from the Actions API, each job's queue wait (started_at minus created_at) and run time (completed_at minus started_at), as medians over recent default-branch runs. A job whose median wait exceeds its run time, or a serial chain of more than 2 jobs each under 1 minute, is a candidate to fold into one job as steps: open a work item naming it. Heavy or parallel shards, jobs with other permissions or runners, and jobs whose check names merge:guard, branch protection or verdict reuse read stay separate (skill ci-health).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ci-health"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0</bpmn:incoming>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_Watch" name="Report the verdict on the tracking issue" calledElement="Process_TrackedWatch">
+      <bpmn:documentation>Runs the shared tracking watch with the label `ci-health`. Asked of the same `verdict`, once it is known. `clean` is verdict == 'clean' (exit 0): the open `ci-health` issue, if there is one, is closed saying main is clean. `not clean` is verdict == 'red' (exit 1 with a report): the one open issue labelled `ci-health` is edited in place with the report as its body, or created if there is none. Neither branch fails the job — a red main speaks through the issue, not through this workflow's status. Clean here means main is clean.</bpmn:documentation>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+
+      <bpmn:ioSpecification id="Call_Watch_IO">
+        <bpmn:dataInput id="Call_Watch_label" name="label"/>
+        <bpmn:inputSet id="Call_Watch_In"><bpmn:dataInputRefs>Call_Watch_label</bpmn:dataInputRefs></bpmn:inputSet>
+        <bpmn:outputSet id="Call_Watch_Out"/>
+      </bpmn:ioSpecification>
+      <bpmn:dataInputAssociation id="Call_Watch_label_Value">
+        <bpmn:targetRef>Call_Watch_label</bpmn:targetRef>
+        <bpmn:assignment id="Call_Watch_label_Assign">
+          <bpmn:from xsi:type="bpmn:tFormalExpression">ci-health</bpmn:from>
+          <bpmn:to xsi:type="bpmn:tFormalExpression">Call_Watch_label</bpmn:to>
+        </bpmn:assignment>
+      </bpmn:dataInputAssociation>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_Reported" name="Verdict reported">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0" sourceRef="Start_Sweep" targetRef="Task_Check"/>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Task_Check" targetRef="Call_Watch"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Call_Watch" targetRef="End_Reported"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_CiHealth">
+    <bpmndi:BPMNPlane id="Plane_Process_CiHealth" bpmnElement="Collaboration_Process_CiHealth">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_CiHealth" bpmnElement="Participant_Process_CiHealth" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="626" height="360"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Ci" bpmnElement="Lane_Ci" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="596" height="360"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Sweep" bpmnElement="Start_Sweep">
+        <dc:Bounds x="130" y="182" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="124" y="222" width="110" height="110"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Check" bpmnElement="Task_Check">
+        <dc:Bounds x="230" y="140" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Watch" bpmnElement="Call_Watch">
+        <dc:Bounds x="410" y="140" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Reported" bpmnElement="End_Reported">
+        <dc:Bounds x="590" y="182" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="550" y="222" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_0" bpmnElement="Flow_0">
+        <di:waypoint x="166" y="200"/>
+        <di:waypoint x="230" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="350" y="200"/>
+        <di:waypoint x="410" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_2" bpmnElement="Flow_2">
+        <di:waypoint x="530" y="200"/>
+        <di:waypoint x="590" y="200"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

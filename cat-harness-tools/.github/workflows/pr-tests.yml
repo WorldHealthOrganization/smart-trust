@@ -1,0 +1,824 @@
+# PR checks for cat-harness-tools (issue #32).
+#
+# This repository's tests run inside the folio-assistant index, where the other
+# instances are mounted beside it: most of them read the index's workflows,
+# `bootstrap/`, the content instances' directories and so on. So each run checks out folio-assistant
+# main, mounts every instance from its `index.lock.json`, then puts this
+# repository (at the ref under test) and cat-harness main in place of their
+# locked mounts, since this repository's main tracks cat-harness main. Their
+# `.git` directories are removed so they are discovered as instances, the
+# same as a lock mount.
+#
+# bootstrap-tools and bootstrap are put at main beside cat-harness main, for
+# the same reason one level down: cat-harness main's generated files are
+# produced with bootstrap-tools main. The index lock pinned an older
+# bootstrap-tools, whose `subgraph-readmes` splice predates the blank line
+# before the end marker (bootstrap-tools e9fb7d1d). Every library README that
+# cat-harness main committed then read as stale, and `library-readmes` failed
+# on main and on every PR for a reason no PR here could fix.
+#
+# Two layers above this one are put at main too, because this repository's
+# main moves with theirs (#510). Which instances are taken at main is listed in
+# `test/pr-tests-mains.json`, with the reasons: test material may name a layer
+# above this one, and this workflow, which is not test material, names none
+# (check:reference-direction).
+#
+# Many tests already fail on main. Rather than skipping them, the `tests` job
+# judges the PR's run of the whole suite against main's, and fails only on
+# tests the PR newly breaks. The step summary lists every failure, old and new.
+#
+# MAIN IS RECORDED ONCE PER COMMIT (owner 2026-11-01, Q-SPD-1 A; #1263).
+# Measured 2026-11-01 07:30-11:05Z: `bun test (base)` ran on 42 of 43 PR
+# runs (17.7 min median) and `standalone (base)` on 48 (7 min). The old cache
+# key was this exact main plus the other layers' mains plus the index, main
+# moved 72 times in 3.5 hours, and a cache a PR run saves is visible to that
+# PR only, so it never hit. Now:
+#   - a push to main runs the base side only (`tests-base`, `standalone-base`)
+#     and `record` keeps main's answer (junit, root gates, standalone) in a
+#     cache every PR can read;
+#   - on a PR, the `pin` job also finds main's answer (once its own job, `main-answer`). It takes, in order: the exact answer; one recorded
+#     for the same main commit (other layers or the index moved); the newest
+#     recorded for any main, at most 6 hours old. Its step summary says which.
+#     With none, the base side runs as before;
+#   - an answer that is not exact can charge the PR with a failure main took
+#     on since. So `prejudge` judges against it first, and on any new failure
+#     main is computed exactly (`tests-base-exact`, `standalone-base-exact`)
+#     and the judges use that. A PR is never failed against a record alone.
+#   What it costs: a test main FIXED after the record, which the PR breaks
+#   again, reads as "failing on both" and is not caught here; main's next
+#   record and layer-main-qa show it. Re-running all jobs (attempt 2) takes
+#   only the exact answer, else computes main.
+#
+# `bun test` runs in four parts a side (`--shard=i/4`, Q-SPD-6 A): one 20-minute
+# job became four of about five. The judges join a side's parts
+# (`.github/scripts/merge-junit.py`); the index's own gates run in part 1.
+#
+# The same two runs also run the INDEX's own gates over the composed root
+# (`root-gates.json`, and `index-gates.json`: the index's gates that read every
+# layer, which this workflow ran nowhere before #1445 and #1417 broke them)
+# (owner, 2026-10-23, item 2: a layer PR merges only on a green index run with
+# it pinned). The index lints every mounted instance with this layer's eslint
+# config and typechecks every instance; #385 passed every check here and
+# failed the index's lint once pinned. Which gates is data,
+# `.github/scripts/layer-pr-checks/root-gates.json`, shared with
+# `layer-pr-checks.yml`; the `tests` job ("Tests (no new failures)") judges them error by error, so
+# one already red on main still fails the PR that adds an error to it.
+#
+# NO E2E JOB, and why (bean cat-tools-g9m3, Done-when 3). The Playwright suite
+# (`bun run cat test:e2e`, 83 `*.e2e.ts` specs under `test/` on 2026-10-12) cannot be run
+# meaningfully against this mount yet: with the paths fixed (#65), collection
+# still stops at a spec that throws "no instance named <catalogue instance>
+# declares a visualiser catalogue", because the instance that declares the
+# visualiser catalogue the spec needs is pinned, in folio-assistant's
+# `index.lock.json`, at a commit that predates that visualiser. A job here would report 0 specs,
+# which reads as a pass and is the 1xhc shape this repository keeps paying for.
+# The job belongs here once that instance is re-pinned (lane A, bean kpci) --
+# or in the index's CI, which mounts every layer: then add
+# a job that fails when `playwright test --list` collects fewer than the specs
+# on disk, and runs them.
+
+# NON-RELEASE PRs RUN THE FAST TIER ONLY (release-gated CI, owner, card
+# Q-CIB-4 A, 2026-11-08: "CI not gate on non-release merge to main";
+# cat-harness#1158). This replaces the 2026-10-23 draft rule (bean `dft1`).
+# On a PR without the `release` label, `pin` and `typecheck` run. The tests,
+# the standalone measurement, the index's own gates and the base side
+# (`tests-*`, `standalone-*`) are skipped, and "Tests (no new failures)"
+# passes with "fast tier" in its summary. merge-guard's check 5 treats CI on
+# a non-release merge as advisory. A PR labelled `release` runs the full tier.
+#
+# ADDING THE `release` LABEL STARTS THE FULL TIER (`labeled` is a trigger;
+# owner, 2026-11-11, card B: every PR passes the full tier before merge).
+# Before, the label started nothing, and a re-run replays the original
+# payload with the OLD labels, so the only ways to start it were an empty
+# commit or a close and reopen, both forbidden. A `labeled` run for the
+# `release` label joins the PR's concurrency group and replaces a fast-tier
+# run in flight on the same head (the full tier is a superset). Any OTHER
+# label (`ready-to-merge`, ...) is a no-op: every job skips, and its group is
+# its own (keyed by the run id), so it never cancels the PR's real run. An
+# all-skipped run judges nothing; merge-guard's check 5 lets it never
+# displace an earlier run of this workflow on the same head.
+#
+# MAIN'S INTEGRATION RUN IS BATCHED. A push to main runs the base side and
+# records main's answer only for the first push of each hour (`pin` stamps the
+# hour); the hour's later pushes run nothing.
+
+name: PR checks
+
+on:
+  pull_request:
+    # `labeled`: only the `release` label does any work (header above).
+    types: [opened, synchronize, reopened, ready_for_review, closed, labeled]
+  # main's own run keeps main's answer where every PR can read it (#1263).
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Keyed by the PR number on a PR event, never by `github.ref`: on a
+  # `closed` event GitHub sets the ref to the BASE branch, so the closing
+  # run of a merged PR joined main's group and cancelled main's push run,
+  # the one that records main's answer (run 41322304221, the merge of #1266).
+  # A `labeled` run for any label but `release` is a no-op in a group of its
+  # own: in the PR's group it would cancel the PR's real run.
+  group: pr-checks-${{ (github.event.action == 'labeled' && github.event.label.name != 'release') && format('noop-label-{0}', github.run_id) || (github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || github.ref) }}
+  # A push to main is never cancelled while it runs; a newer push waiting
+  # behind it replaces an older waiting one, so the newest main is recorded.
+  # On a PR only an event that moves the head, starts the full tier (`release`)
+  # or closes the PR cancels the run in flight; `ready_for_review` and the
+  # like wait behind it, so they never cancel a full tier the `release` label
+  # started on the same head (layer-pr-checks.yml's `concurrency`).
+  cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'reopened' || github.event.action == 'labeled' || github.event.action == 'closed') }}
+
+jobs:
+  pin:
+    # Every job stands on the SAME cat-harness and index commits, read once
+    # here. Cloned per job, `main` moved between the base and head jobs (minutes
+    # apart), and the comparison charged that move to the PR: ingest-and-l1's
+    # verdicts flipped "new failure" / "fixed by this PR" with the corpus's
+    # timing (cat-harness-tools#217, #223).
+    # On `closed`, the workflow triggers in the same concurrency group so
+    # `cancel-in-progress: true` cancels any running PR check run immediately,
+    # and this job skips in 0s (bean cis3). A `labeled` event for any label
+    # but `release` skips it too, and every job that needs it with it.
+    name: Pin cat-harness and the index
+    if: github.event.action != 'closed' && (github.event.action != 'labeled' || github.event.label.name == 'release')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    outputs:
+      # `name:sha` pairs, space-separated, for every instance
+      # test/pr-tests-mains.json lists; `mains-key` is their digest, for the
+      # cache keys.
+      mains: ${{ steps.pin.outputs.mains }}
+      mains-key: ${{ steps.pin.outputs.mains-key }}
+      index: ${{ steps.pin.outputs.index }}
+      # Main's recorded answer (a PR, not a draft): found here, in the same job, so
+      # no second job waits for a runner to read one cache entry (Q-CIB-1).
+      tier: ${{ steps.tier.outputs.tier }}
+      base: ${{ steps.keys.outputs.base }}
+      matched: ${{ steps.lookup.outputs.cache-matched-key }}
+      # True on a push to main whose window's integration run already started
+      # (release-gated CI, below): the base side and the record are not run.
+      batched: ${{ steps.integ-lookup.outputs.cache-hit == 'true' }}
+    steps:
+      # Main's integration run is batched (release-gated CI, owner, card
+      # Q-CIB-4 A, 2026-11-08): the first push to main in each hour runs the
+      # full suite and stamps the hour; the hour's later pushes run nothing,
+      # and the next hour's first push judges every merge since. Nothing that
+      # started is cancelled (Q-CIS-1).
+      - name: Is main's integration run due this hour? (a push)
+        id: integ-bucket
+        if: github.event_name == 'push'
+        run: echo "bucket=$(( $(date -u +%s) / 3600 ))" >> "$GITHUB_OUTPUT"
+      - name: Has this hour's integration run started?
+        id: integ-lookup
+        if: steps.integ-bucket.outcome == 'success'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ${{ runner.temp }}/integration-stamp
+          key: integration-stamp-v1-${{ github.repository }}-${{ steps.integ-bucket.outputs.bucket }}
+          lookup-only: true
+      - name: Stamp this hour's integration run
+        if: steps.integ-bucket.outcome == 'success' && steps.integ-lookup.outputs.cache-hit != 'true'
+        run: mkdir -p "$RUNNER_TEMP/integration-stamp" && echo "$GITHUB_SHA $GITHUB_RUN_ID" > "$RUNNER_TEMP/integration-stamp/stamp"
+      - name: Save the stamp
+        if: steps.integ-bucket.outcome == 'success' && steps.integ-lookup.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ${{ runner.temp }}/integration-stamp
+          key: integration-stamp-v1-${{ github.repository }}-${{ steps.integ-bucket.outputs.bucket }}
+      - name: Batched push
+        if: steps.integ-lookup.outputs.cache-hit == 'true'
+        run: |
+          echo "main's integration run already started this hour: this push runs nothing, and the next hour's first push judges it" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Read which instances are taken at main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          sparse-checkout: test/pr-tests-mains.json
+          sparse-checkout-cone-mode: false
+      - id: pin
+        run: |
+          set -euo pipefail
+          mains=""
+          for name in $(python3 -c 'import json; print(" ".join(json.load(open("test/pr-tests-mains.json"))["mains"]))'); do
+            sha="$(git ls-remote "https://github.com/litlfred/$name" refs/heads/main | cut -f1)"
+            test -n "$sha" || { echo "::error::no main for $name"; exit 1; }
+            mains="$mains $name:$sha"
+          done
+          mains="${mains# }"
+          echo "mains=$mains" >> "$GITHUB_OUTPUT"
+          echo "mains-key=$(printf '%s' "$mains" | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+          echo "index=$(git ls-remote https://github.com/litlfred/folio-assistant refs/heads/main | cut -f1)" >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
+      # Main's recorded answer, recorded once per main commit (owner 2026-11-01, Q-SPD-1 A;
+      # issue #1263). See "MAIN IS RECORDED ONCE PER COMMIT" in the header. It was its own
+      # job, `main-answer`; folded in here to save a runner wait (Q-CIB-1).
+      - name: Check out the PR's judging scripts
+        if: github.event_name == 'pull_request' && github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'release')
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: src
+          fetch-depth: 2
+          sparse-checkout: |
+            .github/scripts/layer-pr-checks
+            scripts/check-standalone.ts
+          sparse-checkout-cone-mode: false
+      # The key says what main's answer is computed from: the judging
+      # scripts (the PR's own, as both sides run them), main's commit, the
+      # mains the pin job read and the index. Same computation on a push.
+      - name: Key main's answer
+        if: github.event_name == 'pull_request' && github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'release')
+        id: keys
+        working-directory: src
+        env:
+          MAINS_KEY: ${{ steps.pin.outputs.mains-key }}
+          INDEX: ${{ steps.pin.outputs.index }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+            base="$(git rev-parse HEAD)"
+          elif git rev-parse -q --verify 'HEAD^2' >/dev/null; then
+            base="$(git rev-parse 'HEAD^1')"
+          else
+            base="$(git ls-remote origin refs/heads/main | cut -f1)"
+          fi
+          judge="$(cat .github/scripts/layer-pr-checks/run-root-gates.py .github/scripts/layer-pr-checks/root-gates.json .github/scripts/layer-pr-checks/index-gates.json .github/scripts/layer-pr-checks/gate_diagnostics.py scripts/check-standalone.ts | sha256sum | cut -c1-16)"
+          {
+            echo "base=$base"
+            echo "any=pr-tests-main-v1-$judge-"
+            echo "same=pr-tests-main-v1-$judge-$base-"
+            echo "key=pr-tests-main-v1-$judge-$base-$MAINS_KEY-$INDEX"
+          } >> "$GITHUB_OUTPUT"
+      - name: Exact answer (attempt 2 and later), else this main's, else the newest
+        if: github.event_name == 'pull_request' && github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'release')
+        id: lookup
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ${{ runner.temp }}/main-answer
+          key: ${{ steps.keys.outputs.key }}
+          restore-keys: ${{ github.run_attempt == '1' && format('{0}{1}{2}', steps.keys.outputs.same, fromJSON('"\n"'), steps.keys.outputs.any) || '' }}
+      - name: Which answer it is
+        if: github.event_name == 'pull_request' && github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'release')
+        id: tier
+        env:
+          MATCHED: ${{ steps.lookup.outputs.cache-matched-key }}
+          KEY: ${{ steps.keys.outputs.key }}
+          SAME: ${{ steps.keys.outputs.same }}
+          BASE: ${{ steps.keys.outputs.base }}
+          DIR: ${{ runner.temp }}/main-answer
+          MAX_HOURS: "6"
+        run: |
+          set -euo pipefail
+          tier=none
+          if [ -n "$MATCHED" ] && [ -s "$DIR/junit.xml" ] && [ -s "$DIR/root-gates.json" ] && [ -s "$DIR/standalone.json" ]; then
+            case "$MATCHED" in
+              "$KEY") tier=exact ;;
+              "$SAME"*) tier=same-main ;;
+              *) tier=older-main ;;
+            esac
+            if [ "$tier" = older-main ]; then
+              age="$(python3 -c 'import json,sys,time; print(int((time.time()-json.load(open(sys.argv[1]))["at"])/3600))' "$DIR/from.json" 2>/dev/null || echo 999)"
+              [ "$age" -le "$MAX_HOURS" ] || { echo "newest record is ${age} h old, over ${MAX_HOURS} h: main is computed"; tier=none; }
+            fi
+          fi
+          echo "tier=$tier" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Main's answer: $tier"
+            echo
+            case "$tier" in
+              exact) echo "Recorded for main \`${BASE:0:7}\` with the same layers and index." ;;
+              same-main) echo "Recorded for main \`${BASE:0:7}\`; the other layers or the index moved since." ;;
+              older-main) echo "Recorded for an earlier main: \`$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["sha"][:7], "at", d["when"])' "$DIR/from.json")\`. This PR merges into \`${BASE:0:7}\`. If the PR shows new failures against it, main is computed exactly and the PR is judged again." ;;
+              none) echo "No usable record: main's side is computed by this run." ;;
+            esac
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Hand main's answer to the judges
+        if: github.event_name == 'pull_request' && github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'release') && steps.tier.outputs.tier != 'none'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: main-answer
+          path: ${{ runner.temp }}/main-answer
+          if-no-files-found: error
+          retention-days: 1
+
+  typecheck:
+    name: Typecheck
+    needs: pin
+    if: github.event_name != 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - &checkout-index
+        name: Check out the folio-assistant index
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: litlfred/folio-assistant
+          ref: ${{ needs.pin.outputs.index }}
+          path: fa
+      - &setup-bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+      - id: base-cache
+        if: false
+        run: ":"
+      - &mount
+        name: Mount every instance from the index lock
+        if: steps.base-cache.outputs.cache-hit != 'true'
+        run: bash fa/.github/mount-from-lock.sh --root fa
+      - &cat-harness-main
+        # cat-harness and the closure its main is generated with, and the two
+        # layers this repository's main moves with: all at the commits the pin
+        # job read (see the header).
+        name: Use cat-harness main, and the instances it moves with, at the pinned commits
+        if: steps.base-cache.outputs.cache-hit != 'true'
+        env:
+          MAINS: ${{ needs.pin.outputs.mains }}
+        run: |
+          set -euo pipefail
+          test -n "$MAINS" || { echo "::error::the pin job read no mains"; exit 1; }
+          for pair in $MAINS; do
+            name="${pair%%:*}" sha="${pair#*:}"
+            test -n "$sha" || { echo "::error::no pinned commit for $name"; exit 1; }
+            rm -rf "fa/$name"
+            git init -q "fa/$name"
+            git -C "fa/$name" fetch -q --depth 1 "https://github.com/litlfred/$name" "$sha"
+            git -C "fa/$name" checkout -q --detach FETCH_HEAD
+            rm -rf "fa/$name/.git"
+          done
+      - name: Check out the PR
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: src
+      - &swap
+        # A directory holding its own `.git` inside the index checkout is a
+        # FOREIGN checkout to `layerRootsIn` (cat-harness
+        # schemas/kg/instance-roots.ts), so it is not discovered as an instance
+        # and its scripts drop out of the script table. Lock mounts carry no
+        # `.git`; make these two look the same.
+        name: Put cat-harness-tools in place of the locked mount
+        if: steps.base-cache.outputs.cache-hit != 'true'
+        run: |
+          rm -rf fa/cat-harness-tools src/.git fa/cat-harness/.git
+          mv src fa/cat-harness-tools
+      - &install
+        name: Install
+        if: steps.base-cache.outputs.cache-hit != 'true'
+        working-directory: fa
+        run: bun install
+      - name: tsc --noEmit
+        working-directory: fa/cat-harness-tools
+        run: bunx tsc --noEmit -p tsconfig.json
+
+
+  tests-head:
+    name: bun test (head, ${{ matrix.shard }}/4)
+    needs: pin
+    # The full tier: not on a draft, not on a push (see the header).
+    if: github.event_name == 'pull_request' && github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'release')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SIDE: head
+      TAG: head
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps: &tests-steps
+      - *checkout-index
+      - *setup-bun
+      - id: base-cache
+        if: false
+        run: ":"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: src
+          fetch-depth: 2
+      - name: Keep the PR's root-gate runner, so both sides run the same one
+        # And its Chromium installer, which the base side may not have yet.
+        run: |
+          cp -r src/.github/scripts/layer-pr-checks judge
+          mkdir -p pw/.github/scripts && cp -r src/.github/scripts/playwright-chromium pw/.github/scripts/
+      - &base-side
+        # Both sides check out the PR's merge commit; the base side steps to its
+        # first parent, the main it merges into. Never `pull_request.base.sha`:
+        # that is main as of the PR's last push, older than the main the merge
+        # commit holds whenever main moved since. A push is main itself.
+        # workflow_dispatch: main's tip.
+        name: Base side, the merge commit's first parent
+        if: env.SIDE == 'base' && github.event_name == 'pull_request'
+        working-directory: src
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify 'HEAD^2' >/dev/null; then
+            git checkout -q --detach 'HEAD^1'
+          else
+            git fetch -q --depth 1 origin main
+            git checkout -q --detach FETCH_HEAD
+          fi
+          git log -1 --format='base side: %h %s'
+      - *mount
+      - *cat-harness-main
+      - *swap
+      - *install
+      - name: Mount the graphs kept on branches
+        # beans, todos and fsh-guts live on `cat/cat-harness/<id>` branches,
+        # not on main, as in the index's own CI (`state:mount`). Many tests read
+        # them and refuse an unmounted copy. Mounted one id at a time with
+        # --json, which skips the tools-graph report that fails on lock skew,
+        # and each must come back `mounted`.
+        working-directory: fa
+        run: |
+          for id in beans todos fsh-guts; do
+            bun cat-harness-tools/scripts/state-mount.ts --id "$id" --json > "$RUNNER_TEMP/mount-$id.json"
+            python3 - "$RUNNER_TEMP/mount-$id.json" "$id" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          bad = [g for g in d.get("graphs", []) if g.get("state") != "mounted"]
+          if d.get("state") != "mounted" or bad or not d.get("graphs"):
+              print(f"::error::{sys.argv[2]} did not mount: {json.dumps(d)}")
+              sys.exit(1)
+          print(f"{sys.argv[2]}: mounted")
+          PY
+          done
+      - name: Install Chromium, for render:bpmn:check (shard 1)
+        # The index's own Playwright, so the browser build is the one it
+        # expects (as layer-pr-checks.yml installs it).
+        if: matrix.shard == 1
+        working-directory: fa
+        run: |
+          if [ -x node_modules/.bin/playwright ]; then
+            # Browser always; apt only when a system library is missing.
+            bash ../pw/.github/scripts/playwright-chromium/install.sh node_modules/.bin/playwright
+          else
+            echo "no playwright in the index: no browser installed"
+          fi
+      - name: The index's own gates over the composed root (shard 1)
+        # Before the tests, which write into the tree. Judged by the
+        # `tests` job, not by this exit code. One shard runs them.
+        # `index-gates.json` adds the index's gates that read every layer
+        # (check:reference-direction:check, check:prov-qaqc, the generated-
+        # file checks), one at a time after the pooled ones: none of them ran
+        # on this layer's PRs, and #1445 and #1417 each broke the index with
+        # one of them at re-pin.
+        if: matrix.shard == 1
+        working-directory: fa
+        run: python3 ../judge/run-root-gates.py . ../judge/root-gates.json "$RUNNER_TEMP/root-gates.json" ../judge/index-gates.json || true
+      - name: bun test, part ${{ matrix.shard }} of 4
+        working-directory: fa
+        # The result is judged by the tests job, not by this exit code. The
+        # judge joins a side's four parts.
+        run: |
+          bun test ./cat-harness-tools --shard=${{ matrix.shard }}/4 --reporter=junit --reporter-outfile="$RUNNER_TEMP/junit.xml" || true
+          test -s "$RUNNER_TEMP/junit.xml"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: junit-${{ env.TAG }}-${{ matrix.shard }}
+          path: |
+            ${{ runner.temp }}/junit.xml
+            ${{ runner.temp }}/root-gates.json
+          if-no-files-found: ignore
+
+  tests-base:
+    # Main's side: on a push or dispatch (main's own record), or on a PR when
+    # no record could be used (any main-answer tier but a found one).
+    name: bun test (base, ${{ matrix.shard }}/4)
+    needs: pin
+    if: >-
+      !cancelled() && needs.pin.result == 'success' &&
+      ((github.event_name != 'pull_request' && needs.pin.outputs.batched != 'true') ||
+       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'release') &&
+        !contains(fromJSON('["exact", "same-main", "older-main"]'), needs.pin.outputs.tier)))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SIDE: base
+      TAG: base
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps: *tests-steps
+
+  standalone-head:
+    # The standalone ratchet (bean `ho66`; owner, 2026-10-14). The tracked
+    # files of this layer and of its declared closure (`needs`: cat-harness,
+    # bootstrap-tools) are laid out as sibling git repositories with no index
+    # around them, and `bun test` is run in this layer. A test that fails there
+    # reads something only the monorepo has. Measured on BOTH main and the PR,
+    # like the tests: both stand on cat-harness main, which moves, so a test
+    # that starts failing on main because cat-harness changed is not this PR's.
+    # The `standalone` job below judges the pair against the committed
+    # `scripts/standalone-baseline.json`. The baseline is measured in THIS
+    # layout (the index mounts, cat-harness main, bun 1.4.4) with no state
+    # graphs mounted: a mount is the monorepo's, and the rehearsal copies only
+    # the closure anyway.
+    name: standalone (head)
+    needs: pin
+    if: github.event_name == 'pull_request' && github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'release')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      SIDE: head
+      TAG: head
+    steps: &standalone-steps
+      - *checkout-index
+      - *setup-bun
+      - id: base-cache
+        if: false
+        run: ":"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: src
+          fetch-depth: 2
+      - *base-side
+      - name: Measure with the PR's checker on both sides
+        # So a main that predates --measured-out is still measured. Only the
+        # checker file is taken from the PR; the tree it measures is main's.
+        if: env.SIDE == 'base'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: pr-checker
+          sparse-checkout: scripts/check-standalone.ts
+          sparse-checkout-cone-mode: false
+      - *mount
+      - *cat-harness-main
+      - *swap
+      - if: env.SIDE == 'base'
+        run: cp pr-checker/scripts/check-standalone.ts fa/cat-harness-tools/scripts/check-standalone.ts && rm -rf pr-checker
+      - *install
+      - name: Measure cat-harness-tools standalone
+        working-directory: fa
+        # Called directly, not through `bun run cat`: folio-assistant's root
+        # `cat` alias points at cat-harness/scripts/run-script.ts, which has
+        # moved to this repository. The result is judged by the standalone job,
+        # not by this exit code; a side that could not be measured is judged
+        # as such (head) or leaves the baseline alone to judge (base).
+        run: |
+          bun run cat-harness-tools/scripts/check-standalone.ts --layer cat-harness-tools --measured-out "$RUNNER_TEMP/standalone.json" || true
+          test -s "$RUNNER_TEMP/standalone.json" || echo '{"state":"not-run","note":"this side wrote no measurement"}' > "$RUNNER_TEMP/standalone.json"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: standalone-${{ env.TAG }}
+          path: ${{ runner.temp }}/standalone.json
+
+  standalone-base:
+    name: standalone (base)
+    needs: pin
+    if: >-
+      !cancelled() && needs.pin.result == 'success' &&
+      ((github.event_name != 'pull_request' && needs.pin.outputs.batched != 'true') ||
+       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'release') &&
+        !contains(fromJSON('["exact", "same-main", "older-main"]'), needs.pin.outputs.tier)))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      SIDE: base
+      TAG: base
+    steps: *standalone-steps
+
+  prejudge:
+    # Judged against a record of an EARLIER state (tier same-main or
+    # older-main): when that shows a new failure, it may be main's, not the
+    # PR's. Then main is computed exactly (the two *-exact jobs) and the
+    # judges below use that instead. Never fails itself.
+    name: Judge against main's record first
+    needs: [pin, tests-head, standalone-head]
+    if: >-
+      !cancelled() && needs.tests-head.result == 'success' && needs.standalone-head.result == 'success' &&
+      (needs.pin.outputs.tier == 'same-main' || needs.pin.outputs.tier == 'older-main')
+    runs-on: ubuntu-24.04
+    outputs:
+      need-exact: ${{ steps.judge.outputs.need-exact }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          sparse-checkout: |
+            .github/scripts
+            scripts/standalone-baseline.json
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          path: art
+      - id: judge
+        run: |
+          set -uo pipefail
+          SUMMARY="$GITHUB_STEP_SUMMARY"
+          python3 .github/scripts/merge-junit.py head.xml art/junit-head-*/junit.xml
+          ok=true
+          export GITHUB_STEP_SUMMARY=/dev/null  # the judges below write the report
+          python3 .github/scripts/compare-test-failures.py art/main-answer/junit.xml head.xml > /dev/null || ok=false
+          python3 .github/scripts/layer-pr-checks/compare-gates.py art/main-answer/root-gates.json art/junit-head-1/root-gates.json > /dev/null || ok=false
+          python3 .github/scripts/compare-standalone.py scripts/standalone-baseline.json cat-harness-tools art/main-answer/standalone.json art/standalone-head/standalone.json > /dev/null || ok=false
+          if [ "$ok" = true ]; then
+            echo "No new failures against main's record: main is not computed." | tee -a "$SUMMARY"
+            echo "need-exact=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New failures against main's record: computing main exactly before judging." | tee -a "$SUMMARY"
+            echo "need-exact=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  tests-base-exact:
+    name: bun test (base exact, ${{ matrix.shard }}/4)
+    needs: [pin, prejudge]
+    if: ${{ !cancelled() && needs.prejudge.outputs.need-exact == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SIDE: base
+      TAG: base-exact
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps: *tests-steps
+
+  standalone-base-exact:
+    name: standalone (base exact)
+    needs: [pin, prejudge]
+    if: ${{ !cancelled() && needs.prejudge.outputs.need-exact == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      SIDE: base
+      TAG: base-exact
+    steps: *standalone-steps
+
+  record:
+    # A push to main (or a dispatch on main): keep main's answer where every
+    # PR can read it (a cache saved by a PR run is visible to that PR only).
+    name: Keep main's answer for the PRs
+    needs: [pin, tests-base, standalone-base]
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.tests-base.result == 'success' && needs.standalone-base.result == 'success' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: src
+          sparse-checkout: |
+            .github/scripts
+            scripts/check-standalone.ts
+          sparse-checkout-cone-mode: false
+      # The key says what main's answer is computed from: the judging
+      # scripts (the PR's own, as both sides run them), main's commit, the
+      # mains the pin job read and the index. The same computation as the pin job's.
+      - name: Key main's answer
+        id: keys
+        working-directory: src
+        env:
+          MAINS_KEY: ${{ needs.pin.outputs.mains-key }}
+          INDEX: ${{ needs.pin.outputs.index }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+            base="$(git rev-parse HEAD)"
+          elif git rev-parse -q --verify 'HEAD^2' >/dev/null; then
+            base="$(git rev-parse 'HEAD^1')"
+          else
+            base="$(git ls-remote origin refs/heads/main | cut -f1)"
+          fi
+          judge="$(cat .github/scripts/layer-pr-checks/run-root-gates.py .github/scripts/layer-pr-checks/root-gates.json .github/scripts/layer-pr-checks/index-gates.json .github/scripts/layer-pr-checks/gate_diagnostics.py scripts/check-standalone.ts | sha256sum | cut -c1-16)"
+          {
+            echo "base=$base"
+            echo "any=pr-tests-main-v1-$judge-"
+            echo "same=pr-tests-main-v1-$judge-$base-"
+            echo "key=pr-tests-main-v1-$judge-$base-$MAINS_KEY-$INDEX"
+          } >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          path: art
+      - name: Join the four parts and the measurements
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/main-answer"
+          python3 src/.github/scripts/merge-junit.py "$RUNNER_TEMP/main-answer/junit.xml" art/junit-base-*/junit.xml
+          cp art/junit-base-1/root-gates.json "$RUNNER_TEMP/main-answer/root-gates.json"
+          cp art/standalone-base/standalone.json "$RUNNER_TEMP/main-answer/standalone.json"
+          python3 -c 'import json,sys,time; json.dump({"sha":sys.argv[1],"at":int(time.time()),"when":time.strftime("%Y-%m-%d %H:%MZ",time.gmtime()),"mains":sys.argv[2],"index":sys.argv[3]},open(sys.argv[4],"w"))' \
+            "$GITHUB_SHA" "${{ needs.pin.outputs.mains }}" "${{ needs.pin.outputs.index }}" "$RUNNER_TEMP/main-answer/from.json"
+          ls -l "$RUNNER_TEMP/main-answer"
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ${{ runner.temp }}/main-answer
+          key: ${{ steps.keys.outputs.key }}
+
+  tests:
+    # One job judges all three, the tests, the standalone measure and the
+    # index's own gates. They were three jobs of a few seconds each, and each
+    # waited for a runner (about 600 queue-minutes a day apiece, measured
+    # 2026-11-07; Q-CIB-1). Each judge still runs and reports on its own;
+    # the job fails if any of them does.
+    name: Tests (no new failures)
+    needs: [pin, tests-head, tests-base, standalone-head, standalone-base, prejudge, tests-base-exact, standalone-base-exact]
+    # On a draft the full tier above was skipped: pass, and say so.
+    # Never skipped on a PR: a skipped required check reads as passed, so a
+    # side that failed fails here instead.
+    # Skipped only on `closed` and on a no-op `labeled` run (any label but
+    # `release`), which judges nothing and must not report a verdict.
+    if: github.event_name == 'pull_request' && github.event.action != 'closed' && (github.event.action != 'labeled' || github.event.label.name == 'release') && !cancelled()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Fast tier (a non-release PR)
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'release') }}
+        run: |
+          echo "fast tier: the tests, the standalone measure and the index's gates run on main's integration run and on a PR labelled \`release\` (release-gated CI, owner, card Q-CIB-4 A, 2026-11-08)" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Every side ran
+        id: sides
+        if: contains(github.event.pull_request.labels.*.name, 'release')
+        env:
+          TESTS_HEAD: ${{ needs.tests-head.result }}
+          TESTS_BASE: ${{ needs.tests-base.result }}
+          TESTS_EXACT: ${{ needs.tests-base-exact.result }}
+          SA_HEAD: ${{ needs.standalone-head.result }}
+          SA_BASE: ${{ needs.standalone-base.result }}
+          SA_EXACT: ${{ needs.standalone-base-exact.result }}
+        run: |
+          echo "tests head: $TESTS_HEAD, base: $TESTS_BASE, base exact: $TESTS_EXACT"
+          echo "standalone head: $SA_HEAD, base: $SA_BASE, base exact: $SA_EXACT"
+          for r in "$TESTS_HEAD" "$SA_HEAD"; do
+            [ "$r" = success ] || { echo "::error::a PR side did not finish ($r): could not determine"; exit 2; }
+          done
+          for r in "$TESTS_BASE" "$TESTS_EXACT" "$SA_BASE" "$SA_EXACT"; do
+            case "$r" in success|skipped) ;; *) echo "::error::a main side did not finish ($r): could not determine"; exit 2 ;; esac
+          done
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: contains(github.event.pull_request.labels.*.name, 'release')
+        with:
+          sparse-checkout: |
+            .github/scripts
+            scripts/standalone-baseline.json
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        if: contains(github.event.pull_request.labels.*.name, 'release')
+        with:
+          path: art
+      - name: Which main the PR is judged against
+        id: main
+        if: contains(github.event.pull_request.labels.*.name, 'release')
+        run: |
+          set -euo pipefail
+          if [ -d art/junit-base-exact-1 ] || [ -d art/standalone-base-exact ]; then src=exact; echo "Judged against main computed exactly (the record showed new failures)." >> "$GITHUB_STEP_SUMMARY"
+          elif [ -d art/main-answer ]; then src=record; echo "Judged against main's record (${{ needs.pin.outputs.tier }}: \`${{ needs.pin.outputs.matched }}\`)." >> "$GITHUB_STEP_SUMMARY"
+          else src=computed; fi
+          echo "src=$src" >> "$GITHUB_OUTPUT"
+      - name: Compare PR failures with main
+        id: tests
+        if: contains(github.event.pull_request.labels.*.name, 'release')
+        continue-on-error: true
+        env:
+          SRC: ${{ steps.main.outputs.src }}
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/merge-junit.py head.xml art/junit-head-*/junit.xml
+          case "$SRC" in
+            exact) python3 .github/scripts/merge-junit.py base.xml art/junit-base-exact-*/junit.xml ;;
+            record) cp art/main-answer/junit.xml base.xml ;;
+            *) python3 .github/scripts/merge-junit.py base.xml art/junit-base-*/junit.xml ;;
+          esac
+          python3 .github/scripts/compare-test-failures.py base.xml head.xml
+      - name: Judge the standalone measure against main and the baseline
+        id: standalone
+        if: contains(github.event.pull_request.labels.*.name, 'release') && !cancelled() && steps.main.outcome == 'success'
+        continue-on-error: true
+        env:
+          SRC: ${{ steps.main.outputs.src }}
+        run: |
+          set -euo pipefail
+          case "$SRC" in
+            exact) base=art/standalone-base-exact/standalone.json ;;
+            record) base=art/main-answer/standalone.json ;;
+            *) base=art/standalone-base/standalone.json ;;
+          esac
+          python3 .github/scripts/compare-standalone.py scripts/standalone-baseline.json cat-harness-tools "$base" art/standalone-head/standalone.json
+      - name: Compare the index's own gates with main
+        id: gates
+        if: contains(github.event.pull_request.labels.*.name, 'release') && !cancelled() && steps.main.outcome == 'success'
+        continue-on-error: true
+        env:
+          SRC: ${{ steps.main.outputs.src }}
+        # A side that wrote no report could not be judged: never a pass.
+        run: |
+          set -euo pipefail
+          case "$SRC" in
+            exact) base=art/junit-base-exact-1/root-gates.json ;;
+            record) base=art/main-answer/root-gates.json ;;
+            *) base=art/junit-base-1/root-gates.json ;;
+          esac
+          for f in "$base" art/junit-head-1/root-gates.json; do
+            test -s "$f" || { echo "::error::$f is missing: could not determine"; exit 2; }
+          done
+          python3 .github/scripts/layer-pr-checks/compare-gates.py "$base" art/junit-head-1/root-gates.json
+      - name: The verdict (tests, standalone, index gates)
+        if: contains(github.event.pull_request.labels.*.name, 'release') && !cancelled() && steps.main.outcome == 'success'
+        env:
+          TESTS: ${{ steps.tests.outcome }}
+          STANDALONE: ${{ steps.standalone.outcome }}
+          GATES: ${{ steps.gates.outcome }}
+        run: |
+          echo "tests: $TESTS, standalone: $STANDALONE, index gates: $GATES" | tee -a "$GITHUB_STEP_SUMMARY"
+          fail=0
+          [ "$TESTS" = success ] || { echo "::error::Tests: new failures against main, or could not determine"; fail=1; }
+          [ "$STANDALONE" = success ] || { echo "::error::Standalone: new failures against main and the baseline, or could not determine"; fail=1; }
+          [ "$GATES" = success ] || { echo "::error::Index gates: new failures against main, or could not determine"; fail=1; }
+          exit $fail

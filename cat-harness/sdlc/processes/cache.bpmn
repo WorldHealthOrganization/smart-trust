@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_Cache" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="publication-manager" name="Publication manager"/>
+  <bpmn:collaboration id="Collaboration_Process_Cache">
+    <bpmn:participant id="Participant_Process_Cache" name="The cache process: restore and save every cache a run can use" processRef="Process_Cache"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Cache" name="The cache process: restore and save every cache a run can use" isExecutable="false">
+    <!-- Provenance: the owner's ruling of 2026-11-05 (cache-first CI, work item
+         folio-assistant-9ml4 under k3vv): "put them all in one (optional) "cache"
+         process (that can parallelize/have dependencies on components) but is
+         used by render and CI and publish etc". -->
+    <bpmn:documentation>One optional process for every cache in the harness, used by render, CI, publish and every other consumer, whose components run in parallel where they are independent and in order where they are not. The rule every component follows is the skill `cache-first-ci`: a step is a pure function of its inputs; the key is DERIVED from them (`cache:key`, a lock digest, `key.sh`), never hand-listed; on a hit restore and skip, on a miss build and save; the full set still runs on main and nightly.
+
+OPTIONAL, AND SKIPPING IS ALWAYS CORRECT. Every consumer — the render pipeline, the code-quality gates, feature staging and the preview, publish, the docs-site publish, the merge train, and a committer's local mount — may call it as a call activity, once with phase `restore` before its own work and once with phase `save` after that work came back green. A consumer that does not call it, or a run that cannot reach a store, simply builds: every component's miss is the consumer doing its own work, so this process can cost a run time, never correctness.
+
+PARALLEL WHERE INDEPENDENT, IN ORDER WHERE NOT. The layers come first, because every other component reads mounted content. Then the prepared image and node_modules, the bun/pip downloads, the gate results and the generated sets restore side by side. Then the compiled Lean artefacts. Then the render seed (derive:publish's writer records) and the FHIR IG ASTs side by side; the IG ASTs in their own lane, as the FHIR IG layer's `Process_IgAstCache`, whose "valid for this commit?" is the component's verify and whose AST refresh is its save. The Jekyll cache is last, because it caches the rendering of what the rest produce.
+
+ONLY WHAT THE TARGET NEEDS, ONLY WHAT IS STALE (owner, 2026-11-05: "not all rendering/CI/merge processes need all caches. be optimal in what needs caching" and "... be optimal in which caches need to be updated to perform a specific render"). A component runs only when the plan (`cache:plan`, the first gateway) marks it needed for this target; a component the target does not read is passed through untouched, neither restored nor refreshed. A needed component that is fresh is RESTORED, never rebuilt. A needed component that is stale, or whose staleness cannot be determined, is REFRESHED, incrementally where its node says so (the changed writers, the changed Lean modules over the restored .oleans, the IG AST delta, the moved layers), never wholesale when a delta is valid. A stale component no target here needs is left for the next target that needs it, or for main's run. The plan and what actually happened are both reported (`cached-step` phase `report`), and the daily report flags a component restored and never read.
+
+EACH COMPONENT, BOTH PHASES. Restore: look up the derived key, verify the entry by its trust class — (a) against a reference derived from THIS tree, so a bad entry is only a miss; (a′) a bundle's own manifest plus a source rule; (b) a committer's verdict, honoured then re-verified off the critical path; (c) main-only entries, by exact key — and report hit, warm or miss with why. Save: only after the consumer's work is green, only from main or into the run's own ref scope, never from `pull_request_target`. Each component is a `cache` node in the knowledge graph (key recipe, derived inputs, producer, consumers, trust class, location, budget), and the cache viewer compares its current key with the key today's pins imply, so staleness is computed, never claimed.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- ADVISORY: the process is optional by the owner's ruling; skipping it is always correct. -->
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_Cache">
+      <bpmn:lane id="Lane_Ci" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>The run that consumes the caches: a CI job, a render, a publish, a preview, or a committer's local mount.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Cache</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Enabled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Layers</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>PG_After_Layers</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Image</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Deps</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Gates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Sets</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>PG_Join_Independent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Lean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>PG_After_Lean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RenderSeed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>PG_Join_Render</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Jekyll</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Ready</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Skipped</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_IgAst" name="FHIR IG AST cache (the FHIR IG layer)" partitionElementRef="publication-manager">
+        <bpmn:documentation>the FHIR IG layer's `Process_IgAstCache`, whose site build and AST refresh sit under the publication manager: the component's verify is that process's "valid for this commit?", and its save is that process's refresh dispatch.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_IgAst</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Cache" name="A consumer asks for its caches">
+      <bpmn:outgoing>f1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="GW_Enabled" name="cache:plan:&#10;anything needed?">
+      <bpmn:documentation>Run `bun run cat cache:plan &lt;target&gt;`. For each `cache` node it decides NEEDED (derived: the target's recorded read set, from the CI cone and the writer cone, touches what the node `materializes`, plus the `needs` closure), FRESH or STALE (the node's key against the key today's inputs imply; undetermined counts as stale), and so restore, refresh or skip. `nothing needed` when the plan needs no node, when the target has no recorded read set (it could not be derived: the safe direction is to build), when the consumer does not call this process, cannot reach a store, or is told not to (a forced cold run). Skipping is ALWAYS correct: every component's miss path is the consumer building what it needs, so a skip costs time and never correctness.</bpmn:documentation>
+      <bpmn:incoming>f1</bpmn:incoming>
+      <bpmn:outgoing>f2</bpmn:outgoing>
+      <bpmn:outgoing>f3</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Layers" name="Layers ref:&#10;restore / save">
+      <bpmn:documentation>Component 1, which everything else needs. RESTORE: `mount-from-lock` replays the lock from `refs/cat/layers/&lt;key&gt;` (key = sha256 of the lock's layers), verifying every layer's tree digest, declaration and asset sha256 against the committed lock — class (a), verified against THIS tree, so a bad entry is only a miss, and a stale `refs/cat/layers/main` still serves every layer that did not move. SAVE: the committer (`layers:publish`, run by `mount:remote` after it changes the lock), with the re-pin train and main as fallbacks. Not wrapped in `cached-step`: its per-layer verify is finer than one hit. Owner role: the layers-ref session (CI speed 13). `cache` node: `layers`. It reports one line in `cached-step`'s format — `cached-step &lt;step&gt;: hit|warm|miss (&lt;trust&gt;) — &lt;why&gt;. Key &lt;key&gt;.` — to the job summary, which the daily hit-rate report counts.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="cache-first-ci"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f2</bpmn:incoming>
+      <bpmn:outgoing>f4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="PG_After_Layers" name="Independent&#10;components">
+      <bpmn:documentation>Each component below needs only the layers and none of the others, so they restore (and later save) in parallel.</bpmn:documentation>
+      <bpmn:incoming>f4</bpmn:incoming>
+      <bpmn:outgoing>f50</bpmn:outgoing>
+      <bpmn:outgoing>f51</bpmn:outgoing>
+      <bpmn:outgoing>f52</bpmn:outgoing>
+      <bpmn:outgoing>f53</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="Task_Image" name="Prepared image +&#10;node_modules">
+      <bpmn:documentation>Component 2a. RESTORE: the prepared CI image `ghcr.io/&lt;owner&gt;/&lt;repo&gt;-ci`, keyed by `.github/ci-image/key.sh` (the lock, `bun.lock`, `package.json`, the recipe files, the bun version and `ImageOS`) — computed BEFORE anything is mounted, so it is not `cache:key`; `cache:key --check image` asserts the two agree. Each layer's sha256 is checked as it streams and `mount:lock:check` re-hashes the result: class (a). SAVE: main or a dispatch only (the one job with `packages: write`). Owner role: the prepared-image session (CI speed 9). `cache` node: `ci-image`. It reports one line in `cached-step`'s format — `cached-step &lt;step&gt;: hit|warm|miss (&lt;trust&gt;) — &lt;why&gt;. Key &lt;key&gt;.` — to the job summary, which the daily hit-rate report counts.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="cache-first-ci"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f50</bpmn:incoming>
+      <bpmn:outgoing>f60</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Deps" name="bun / pip&#10;dependencies">
+      <bpmn:documentation>Component 2b. RESTORE: the package managers' download caches, keyed by the lockfile digest (`bun.lock`; the pip requirements file) and the tool version — never by a hand-listed version string. A restored download is re-verified by the package manager against the lockfile's integrity hashes: class (a). SAVE: main; a PR into its own ref scope. Owner role: the integrator (CI speed 14). `cache` node: `bun-deps`, `pip-deps`. It reports one line in `cached-step`'s format — `cached-step &lt;step&gt;: hit|warm|miss (&lt;trust&gt;) — &lt;why&gt;. Key &lt;key&gt;.` — to the job summary, which the daily hit-rate report counts.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="cache-first-ci"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f51</bpmn:incoming>
+      <bpmn:outgoing>f61</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Gates" name="Gate results:&#10;restore / save">
+      <bpmn:documentation>Component 2c. RESTORE: the result store (`build/result-store/`) and the CI cone records, by prefix — a WARM start: the cone (`ci-cone.ts`) then matches each stored entry exactly (fingerprint from `cache:key --base`, every recorded path state, every replayed git answer) and only an exact match is reported SKIPPED, never passed. A committer's local gate record is class (b): honoured on the critical path, then re-verified off it. SAVE: main only (class c for CI's records). Owner roles: the gate-reuse session (CI speed 8) and the committer-side session (CI speed 3). `cache` nodes: `result-store`, `ci-cone`, `local-gate-records`. It reports one line in `cached-step`'s format — `cached-step &lt;step&gt;: hit|warm|miss (&lt;trust&gt;) — &lt;why&gt;. Key &lt;key&gt;.` — to the job summary, which the daily hit-rate report counts.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="cache-first-ci"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f52</bpmn:incoming>
+      <bpmn:outgoing>f62</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Sets" name="Generated sets:&#10;QA copy, pages">
+      <bpmn:documentation>Component 2d. RESTORE: the QA working copy and the publish-time pages, keyed by `bundle-cache.sh digest` (the tree and the exact tool versions). A bundle is checked against the manifest it carries AND a source rule (the source run's head is this head, a parent, or a commit with this tree; or a main-scoped save) — class (a′), because a manifest alone proves a bundle intact, not built from these inputs. Hits across commits wait on the producers being byte-reproducible (the determinism audit). SAVE: the run that built it, recorded; main's records are read by every branch. Owner role: the generated-sets session (CI speed 10); the preview's copy, the preview session (CI speed 2). `cache` nodes: `qa-working-copy`, `publish-pages`. It reports one line in `cached-step`'s format — `cached-step &lt;step&gt;: hit|warm|miss (&lt;trust&gt;) — &lt;why&gt;. Key &lt;key&gt;.` — to the job summary, which the daily hit-rate report counts.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="cache-first-ci"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f53</bpmn:incoming>
+      <bpmn:outgoing>f63</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="PG_Join_Independent" name="">
+      <bpmn:incoming>f60</bpmn:incoming>
+      <bpmn:incoming>f61</bpmn:incoming>
+      <bpmn:incoming>f62</bpmn:incoming>
+      <bpmn:incoming>f63</bpmn:incoming>
+      <bpmn:outgoing>f7</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="Task_Lean" name="Lean .oleans:&#10;restore / save">
+      <bpmn:documentation>Component 3, after the layers (the Lean packages are mounted content). RESTORE: the compiled `.olean`s of each declared Lean package, keyed by the package, the toolchain AND the lake manifest (the Mathlib revision) — the manifest is part of the key, so an entry from another revision is a miss. `lake build` re-checks every restored module's trace, so a stale module is rebuilt, not trusted: class (a). SAVE: main; a contributor's warm build may be offered back (`compiled-artefact-cache`) and is accepted only through that same trace check. Owner role: the integrator (CI speed 14). `cache` node: `lean-oleans`. It reports one line in `cached-step`'s format — `cached-step &lt;step&gt;: hit|warm|miss (&lt;trust&gt;) — &lt;why&gt;. Key &lt;key&gt;.` — to the job summary, which the daily hit-rate report counts.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="compiled-artefact-cache"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f7</bpmn:incoming>
+      <bpmn:outgoing>f8</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="PG_After_Lean" name="Independent&#10;components">
+      <bpmn:documentation>The render seed (writer records) and the IG ASTs need the layers and the compiled artefacts, and not each other. The IG ASTs run in their own lane: the FHIR IG layer's process.</bpmn:documentation>
+      <bpmn:incoming>f8</bpmn:incoming>
+      <bpmn:outgoing>f90</bpmn:outgoing>
+      <bpmn:outgoing>f91</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="Task_RenderSeed" name="Render seed:&#10;writer records">
+      <bpmn:documentation>Component 4a, the seed of CI's render (owner, 2026-11-05: CI does not run `render`; its render is `derive:publish`). SAVE: main's `writer-records.yml` records each publish-time writer under trace (`writer-cone`): its read set, the state of every path it read, and the outputs it wrote. RESTORE: a run with `CAT_WRITER_SKIP=1` (a pull request, staging, the preview) skips every writer whose recorded reads all still match and puts back main's recorded outputs; a writer whose reads moved runs. The key is the writer's recorded read set; trust (a′): the outputs are the recording's own, so their PROVENANCE is checked — they come only from main's recording run, never from a run a pull request could write. Owner roles: the integrator and the preview session (CI speed 2). `cache` node: `writer-records`. It reports one line in `cached-step`'s format — `cached-step &lt;step&gt;: hit|warm|miss (&lt;trust&gt;) — &lt;why&gt;. Key &lt;key&gt;.` — to the job summary, which the daily hit-rate report counts.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="incremental-render"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f90</bpmn:incoming>
+      <bpmn:outgoing>f100</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_IgAst" name="FHIR IG ASTs:&#10;Process_IgAstCache">
+      <bpmn:documentation>Component 4b, in its own lane: the FHIR IG layer's IG AST cache, `Process_IgAstCache` (declared by that layer), integrated, not replaced. It is drawn as a task because this layer may not name a process of a layer above it; the steps are that process's. RESTORE: read the cached AST from its branch store and judge it — that process's "valid for this commit?" IS this component's verify (class a: the AST is judged against this commit's IG sources and tooling); valid → the site is built from it. SAVE: that process's own path, not `cached-step` — a miss dispatches an AST refresh on a Java runner with 10 GB, which rewrites the branch store. The branch store is a `cache` node (`fhir-ast`, fhir-harness `caches/fhir-ast.cache.json`). Owner: CI speed 12, the IG layers' session. It reports one line in `cached-step`'s format — `cached-step &lt;step&gt;: hit|warm|miss (&lt;trust&gt;) — &lt;why&gt;. Key &lt;key&gt;.` — to the job summary, which the daily hit-rate report counts.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="It stands in for a process the FHIR IG layer declares, and that process names the skills its own steps follow; a layer below it may not name them."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f91</bpmn:incoming>
+      <bpmn:outgoing>f101</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="PG_Join_Render" name="">
+      <bpmn:incoming>f100</bpmn:incoming>
+      <bpmn:incoming>f101</bpmn:incoming>
+      <bpmn:outgoing>f11</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="Task_Jekyll" name="Jekyll cache:&#10;restore / save">
+      <bpmn:documentation>Component 5, last: it caches the rendering of what the components above produce. RESTORE: `.jekyll-cache`, keyed by the theme, the layouts, includes and plugins, `Gemfile.lock` and the Ruby version, by exact key only. Jekyll invalidates an entry whose source changed, but a template change is not visible to it, which is why the templates are in the key. SAVE: main only — class (c). Owner role: the preview session (CI speed 2). `cache` node: `jekyll-cache`. It reports one line in `cached-step`'s format — `cached-step &lt;step&gt;: hit|warm|miss (&lt;trust&gt;) — &lt;why&gt;. Key &lt;key&gt;.` — to the job summary, which the daily hit-rate report counts.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="cache-first-ci"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f11</bpmn:incoming>
+      <bpmn:outgoing>f12</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Ready" name="Caches restored, or saved">
+      <bpmn:incoming>f12</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Skipped" name="Skipped: the consumer builds">
+      <bpmn:incoming>f3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="f1" sourceRef="Start_Cache" targetRef="GW_Enabled"/>
+    <bpmn:sequenceFlow id="f2" name="needed" sourceRef="GW_Enabled" targetRef="Task_Layers"/>
+    <bpmn:sequenceFlow id="f3" name="nothing needed" sourceRef="GW_Enabled" targetRef="End_Skipped"/>
+    <bpmn:sequenceFlow id="f4" sourceRef="Task_Layers" targetRef="PG_After_Layers"/>
+    <bpmn:sequenceFlow id="f50" sourceRef="PG_After_Layers" targetRef="Task_Image"/>
+    <bpmn:sequenceFlow id="f60" sourceRef="Task_Image" targetRef="PG_Join_Independent"/>
+    <bpmn:sequenceFlow id="f51" sourceRef="PG_After_Layers" targetRef="Task_Deps"/>
+    <bpmn:sequenceFlow id="f61" sourceRef="Task_Deps" targetRef="PG_Join_Independent"/>
+    <bpmn:sequenceFlow id="f52" sourceRef="PG_After_Layers" targetRef="Task_Gates"/>
+    <bpmn:sequenceFlow id="f62" sourceRef="Task_Gates" targetRef="PG_Join_Independent"/>
+    <bpmn:sequenceFlow id="f53" sourceRef="PG_After_Layers" targetRef="Task_Sets"/>
+    <bpmn:sequenceFlow id="f63" sourceRef="Task_Sets" targetRef="PG_Join_Independent"/>
+    <bpmn:sequenceFlow id="f7" sourceRef="PG_Join_Independent" targetRef="Task_Lean"/>
+    <bpmn:sequenceFlow id="f8" sourceRef="Task_Lean" targetRef="PG_After_Lean"/>
+    <bpmn:sequenceFlow id="f90" sourceRef="PG_After_Lean" targetRef="Task_RenderSeed"/>
+    <bpmn:sequenceFlow id="f100" sourceRef="Task_RenderSeed" targetRef="PG_Join_Render"/>
+    <bpmn:sequenceFlow id="f91" sourceRef="PG_After_Lean" targetRef="Task_IgAst"/>
+    <bpmn:sequenceFlow id="f101" sourceRef="Task_IgAst" targetRef="PG_Join_Render"/>
+    <bpmn:sequenceFlow id="f11" sourceRef="PG_Join_Render" targetRef="Task_Jekyll"/>
+    <bpmn:sequenceFlow id="f12" sourceRef="Task_Jekyll" targetRef="End_Ready"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_Cache">
+    <bpmndi:BPMNPlane id="Plane_Process_Cache" bpmnElement="Collaboration_Process_Cache">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_Cache" bpmnElement="Participant_Process_Cache" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="1395" height="620"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Ci" bpmnElement="Lane_Ci" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="1365" height="440"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_IgAst" bpmnElement="Lane_IgAst" isHorizontal="true">
+        <dc:Bounds x="90" y="500" width="1365" height="180"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Cache" bpmnElement="Start_Cache">
+        <dc:Bounds x="130" y="262" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="128" y="310" width="80" height="52" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Enabled" bpmnElement="GW_Enabled" isMarkerVisible="true">
+        <dc:Bounds x="196" y="255" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="176" y="196" width="90" height="53" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Layers" bpmnElement="Task_Layers">
+        <dc:Bounds x="296" y="240" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_PG_After_Layers" bpmnElement="PG_After_Layers">
+        <dc:Bounds x="446" y="255" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="428" y="212" width="84" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Image" bpmnElement="Task_Image">
+        <dc:Bounds x="541" y="90" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Deps" bpmnElement="Task_Deps">
+        <dc:Bounds x="541" y="190" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Gates" bpmnElement="Task_Gates">
+        <dc:Bounds x="541" y="290" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Sets" bpmnElement="Task_Sets">
+        <dc:Bounds x="541" y="390" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_PG_Join_Independent" bpmnElement="PG_Join_Independent">
+        <dc:Bounds x="706" y="255" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Lean" bpmnElement="Task_Lean">
+        <dc:Bounds x="786" y="240" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_PG_After_Lean" bpmnElement="PG_After_Lean">
+        <dc:Bounds x="936" y="255" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="916" y="212" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RenderSeed" bpmnElement="Task_RenderSeed">
+        <dc:Bounds x="1016" y="240" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_IgAst" bpmnElement="Task_IgAst">
+        <dc:Bounds x="1016" y="550" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_PG_Join_Render" bpmnElement="PG_Join_Render">
+        <dc:Bounds x="1166" y="255" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Jekyll" bpmnElement="Task_Jekyll">
+        <dc:Bounds x="1246" y="240" width="120" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Ready" bpmnElement="End_Ready">
+        <dc:Bounds x="1396" y="262" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1374" y="302" width="80" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Skipped" bpmnElement="End_Skipped">
+        <dc:Bounds x="203" y="382" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="171" y="422" width="100" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_f1" bpmnElement="f1">
+        <di:waypoint x="166" y="280" />
+        <di:waypoint x="196" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f2" bpmnElement="f2">
+        <di:waypoint x="246" y="280" />
+        <di:waypoint x="296" y="280" />
+        <bpmndi:BPMNLabel><dc:Bounds x="250" y="262" width="42" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f3" bpmnElement="f3">
+        <di:waypoint x="221" y="305" />
+        <di:waypoint x="221" y="382" />
+        <bpmndi:BPMNLabel><dc:Bounds x="226" y="334" width="110" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f4" bpmnElement="f4">
+        <di:waypoint x="416" y="280" />
+        <di:waypoint x="446" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f50" bpmnElement="f50">
+        <di:waypoint x="496" y="280" />
+        <di:waypoint x="516" y="280" />
+        <di:waypoint x="516" y="130" />
+        <di:waypoint x="541" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f60" bpmnElement="f60">
+        <di:waypoint x="661" y="130" />
+        <di:waypoint x="686" y="130" />
+        <di:waypoint x="686" y="280" />
+        <di:waypoint x="706" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f51" bpmnElement="f51">
+        <di:waypoint x="496" y="280" />
+        <di:waypoint x="516" y="280" />
+        <di:waypoint x="516" y="230" />
+        <di:waypoint x="541" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f61" bpmnElement="f61">
+        <di:waypoint x="661" y="230" />
+        <di:waypoint x="686" y="230" />
+        <di:waypoint x="686" y="280" />
+        <di:waypoint x="706" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f52" bpmnElement="f52">
+        <di:waypoint x="496" y="280" />
+        <di:waypoint x="516" y="280" />
+        <di:waypoint x="516" y="330" />
+        <di:waypoint x="541" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f62" bpmnElement="f62">
+        <di:waypoint x="661" y="330" />
+        <di:waypoint x="686" y="330" />
+        <di:waypoint x="686" y="280" />
+        <di:waypoint x="706" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f53" bpmnElement="f53">
+        <di:waypoint x="496" y="280" />
+        <di:waypoint x="516" y="280" />
+        <di:waypoint x="516" y="430" />
+        <di:waypoint x="541" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f63" bpmnElement="f63">
+        <di:waypoint x="661" y="430" />
+        <di:waypoint x="686" y="430" />
+        <di:waypoint x="686" y="280" />
+        <di:waypoint x="706" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f7" bpmnElement="f7">
+        <di:waypoint x="756" y="280" />
+        <di:waypoint x="786" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f8" bpmnElement="f8">
+        <di:waypoint x="906" y="280" />
+        <di:waypoint x="936" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f90" bpmnElement="f90">
+        <di:waypoint x="986" y="280" />
+        <di:waypoint x="1016" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f100" bpmnElement="f100">
+        <di:waypoint x="1136" y="280" />
+        <di:waypoint x="1166" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f91" bpmnElement="f91">
+        <di:waypoint x="961" y="305" />
+        <di:waypoint x="961" y="590" />
+        <di:waypoint x="1016" y="590" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f101" bpmnElement="f101">
+        <di:waypoint x="1136" y="590" />
+        <di:waypoint x="1191" y="590" />
+        <di:waypoint x="1191" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f11" bpmnElement="f11">
+        <di:waypoint x="1216" y="280" />
+        <di:waypoint x="1246" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_f12" bpmnElement="f12">
+        <di:waypoint x="1366" y="280" />
+        <di:waypoint x="1396" y="280" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

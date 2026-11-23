@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Review Decision Support Guidance Input",
+  "type": "object",
+  "required": [
+    "guidance",
+    "subject",
+    "renderedOn"
+  ],
+  "properties": {
+    "guidance": {
+      "type": "object",
+      "description": "The guidance, as apply-decision-support returned it: a RequestGroup/RequestOrchestration, or CDS Hooks cards, or both.",
+      "properties": {
+        "requestGroup": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "resourceType"
+              ],
+              "properties": {
+                "resourceType": {
+                  "const": "RequestGroup"
+                }
+              },
+              "description": "FHIR R4 RequestGroup (https://hl7.org/fhir/R4/requestgroup.html): the proposed actions, each request a draft proposal."
+            },
+            {
+              "type": "object",
+              "required": [
+                "resourceType"
+              ],
+              "properties": {
+                "resourceType": {
+                  "const": "RequestOrchestration"
+                }
+              },
+              "description": "FHIR R5 RequestOrchestration (https://hl7.org/fhir/R5/requestorchestration.html), RequestGroup's R5 name."
+            }
+          ]
+        },
+        "cards": {
+          "type": "array",
+          "description": "CDS Hooks 2.0 cards (https://cds-hooks.hl7.org/2.0/#card-attributes), when the guidance came from a CDS service.",
+          "items": {
+            "type": "object",
+            "required": [
+              "summary",
+              "indicator",
+              "source"
+            ],
+            "properties": {
+              "uuid": {
+                "type": "string"
+              },
+              "summary": {
+                "type": "string"
+              },
+              "detail": {
+                "type": "string"
+              },
+              "indicator": {
+                "enum": [
+                  "info",
+                  "warning",
+                  "critical"
+                ]
+              },
+              "source": {
+                "type": "object"
+              },
+              "suggestions": {
+                "type": "array"
+              }
+            }
+          }
+        }
+      },
+      "minProperties": 1,
+      "additionalProperties": false
+    },
+    "subject": {
+      "type": "object",
+      "description": "A FHIR R4 Reference (https://hl7.org/fhir/R4/references.html).",
+      "properties": {
+        "reference": {
+          "type": "string"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
+    "renderedOn": {
+      "type": "object",
+      "description": "How the person's device shows it. The form filler renders; this says what the person saw.",
+      "properties": {
+        "formFactor": {
+          "enum": [
+            "mobile",
+            "tablet",
+            "desktop"
+          ]
+        },
+        "language": {
+          "type": "string",
+          "description": "BCP 47 tag of the language shown."
+        },
+        "offline": {
+          "type": "boolean",
+          "description": "True when the device had no connection: the result is queued and synchronised later."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

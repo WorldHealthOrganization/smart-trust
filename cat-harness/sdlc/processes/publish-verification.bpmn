@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_PublishVerification" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:collaboration id="Collaboration_Process_PublishVerification">
+    <bpmn:participant id="Participant_Process_PublishVerification" name="Verify the export before it is deployed" processRef="Process_PublishVerification"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_PublishVerification" name="Verify the export before it is deployed" isExecutable="false">
+    <bpmn:documentation>Run the verifier set over the built tree between the export and the deploy, and report pass, fail or could-not-tell. This process only verifies and says how it went. The caller (docs-site-publish) deploys either way, judges the outcome after the push, and routes anything but a pass through Process_PublishAlert, the one alert every failure shares.</bpmn:documentation>
+    <bpmn:extensionElements><cat-harness.processes:policy enforcement="strict"/></bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_PublishVerification">
+      <bpmn:lane id="Lane_Ci" name="CI/CD Pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Runs every verifier over the exported documents before anything is deployed, and reports pass, fail or could-not-tell. It decides nothing about the release: the caller blocks on anything but a pass.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Exported</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Verify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Determined</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Unknown</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Pass</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Verified</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Failed</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Exported" name="Documents exported,&#10;not yet deployed">
+      <bpmn:outgoing>F_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="A_Verify" name="Run every verifier&#10;over the export">
+      <bpmn:documentation>Run the verifier set (scripts/publish-verify.ts, `bun run cat publish:verify -- --dir &lt;site&gt;`) over the built tree. A SET: each verifier is one entry, and adding one changes nothing else. The first is JSON-LD expansion under a real processor, network refused — a property the context does not declare, a relative IRI or a context that will not load is a finding. Only documents of OURS are verified; third-party data in the tree is counted and cannot block.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="publish-verification"/></bpmn:extensionElements>
+      <bpmn:incoming>F_1</bpmn:incoming>
+      <bpmn:outgoing>F_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_Determined" name="Could every&#10;verifier tell?">
+      <bpmn:documentation>Answered by the verifier set's exit code. `no` (exit 2 — nothing to verify, or a verifier could not run) ends as could-not-verify, which the caller treats as a failure: an unverified release is not a verified one. `yes` asks whether everything passed.</bpmn:documentation>
+      <bpmn:incoming>F_2</bpmn:incoming>
+      <bpmn:outgoing>F_3</bpmn:outgoing>
+      <bpmn:outgoing>F_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Unknown" name="Could not verify —&#10;treated as failed">
+      <bpmn:incoming>F_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="GW_Pass" name="Did every in-scope&#10;document pass?">
+      <bpmn:documentation>Answered by the findings. `yes` (exit 0) ends verified; `no` (exit 1) ends failed, and the caller alerts the publication manager with the report after the deploy.</bpmn:documentation>
+      <bpmn:incoming>F_4</bpmn:incoming>
+      <bpmn:outgoing>F_5</bpmn:outgoing>
+      <bpmn:outgoing>F_6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Verified" name="Verified">
+      <bpmn:incoming>F_5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Failed" name="A verifier failed">
+      <bpmn:incoming>F_6</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="F_1" sourceRef="Start_Exported" targetRef="A_Verify"/>
+    <bpmn:sequenceFlow id="F_2" sourceRef="A_Verify" targetRef="GW_Determined"/>
+    <bpmn:sequenceFlow id="F_3" sourceRef="GW_Determined" targetRef="End_Unknown" name="no"/>
+    <bpmn:sequenceFlow id="F_4" sourceRef="GW_Determined" targetRef="GW_Pass" name="yes"/>
+    <bpmn:sequenceFlow id="F_5" sourceRef="GW_Pass" targetRef="End_Verified" name="yes"/>
+    <bpmn:sequenceFlow id="F_6" sourceRef="GW_Pass" targetRef="End_Failed" name="no"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_PublishVerification">
+    <bpmndi:BPMNPlane id="Plane_Process_PublishVerification" bpmnElement="Collaboration_Process_PublishVerification">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_PublishVerification" bpmnElement="Participant_Process_PublishVerification" isHorizontal="true">
+        <dc:Bounds x="160" y="50" width="700" height="290" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Ci" bpmnElement="Lane_Ci" isHorizontal="true">
+        <dc:Bounds x="190" y="50" width="670" height="290" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Exported" bpmnElement="Start_Exported">
+        <dc:Bounds x="236" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="215" y="183" width="85" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Verify" bpmnElement="A_Verify">
+        <dc:Bounds x="302" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Determined" bpmnElement="GW_Determined" isMarkerVisible="true">
+        <dc:Bounds x="462" y="135" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="445" y="88" width="85" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Unknown" bpmnElement="End_Unknown">
+        <dc:Bounds x="469" y="250" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="400" y="290" width="140" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Pass" bpmnElement="GW_Pass" isMarkerVisible="true">
+        <dc:Bounds x="582" y="135" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="552" y="64" width="110" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Verified" bpmnElement="End_Verified">
+        <dc:Bounds x="702" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="745" y="151" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Failed" bpmnElement="End_Failed">
+        <dc:Bounds x="589" y="250" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="630" y="259" width="120" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_F_1" bpmnElement="F_1">
+        <di:waypoint x="272" y="160" />
+        <di:waypoint x="302" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_2" bpmnElement="F_2">
+        <di:waypoint x="422" y="160" />
+        <di:waypoint x="462" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_4" bpmnElement="F_4">
+        <di:waypoint x="512" y="160" />
+        <di:waypoint x="582" y="160" />
+        <bpmndi:BPMNLabel><dc:Bounds x="530" y="140" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_3" bpmnElement="F_3">
+        <di:waypoint x="487" y="185" />
+        <di:waypoint x="487" y="250" />
+        <bpmndi:BPMNLabel><dc:Bounds x="492" y="205" width="20" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_5" bpmnElement="F_5">
+        <di:waypoint x="632" y="160" />
+        <di:waypoint x="702" y="160" />
+        <bpmndi:BPMNLabel><dc:Bounds x="650" y="140" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_6" bpmnElement="F_6">
+        <di:waypoint x="607" y="185" />
+        <di:waypoint x="607" y="250" />
+        <bpmndi:BPMNLabel><dc:Bounds x="612" y="205" width="20" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
