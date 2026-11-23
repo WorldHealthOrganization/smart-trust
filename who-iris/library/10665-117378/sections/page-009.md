@@ -1,0 +1,94 @@
+---
+doc_id: 10665-117378
+doc_title: "[Pilot study of antiretroviral therapy in Djibouti]"
+section_id: page-009
+section_title: "Page 9"
+pages: 9-9
+pdf_page: 9
+source_pdf: 10665-117378.pdf
+source_sha256: a1da9552b4648697
+text_source: ocr
+granularity: page
+---
+1282
+
+La Revue de Santé de la Méditerranée orientale, Vol. 13, N°6, 2007
+
+Tableau 6 Analyse multivariée selon un modèle de régression
+
+logistique permettant d'identifier les facteurs prédictifs du succès
+thérapeutique
+Variables incluses Analyse univariée Analyse multivariée
+dans le modèle OR (IC 95 %) OR (IC 95 %)
+Centre
+
+CHA 1,00
+
+CPF 0,4 (0,1-1,8) 0,4 (0,06-2,4)
+
+CYT 6,4 (1,5-27) 6,1 (1,2-30,3)
+
+HGP 0,9 (0,4-2,7) 1,3 (0,3-4,5)
+
+Oops 2,1 (0,4-12,9) 3,5 (0,4-28,4)
+Sexe
+
+Masculin 1,00 1
+
+Féminin 0,5 (0,2-1,1) 0,5 (0,2-1,1)
+Âge (ans)
+
+<35 1,6 (0,7-3,4)
+
+> 35 1,00
+Chômage
+
+Oui 1,00
+
+Non 1,8 (0,6-5,4)
+Taux d'hémoglobine (g/dL)
+
+> 12 1,00
+
+<12 0,9 (0,4-2,4)
+Taux de CD4 (Imm)
+
+= 200 1,00
+
+< 200 0,7 (0,4-2,6)
+Indice de Karnofsky initial
+
+<0,7 1,00
+
+>0,7 5,3 (2,2-12,5) 6,1 (2-19)
+Stade clinique initial
+
+Stade À 1,00 1
+
+Stade B 0,2 (0,02-2,2) 0,03 (0,001-0,1)
+
+Stade C 0,2 (0,03-2,2) 0,01 (0,001-0,1)
+Protocole thérapeutique
+
+2INTI+11P 1,00 1
+
+2 INTI + 1 INNTI 1,9 (0,30-12,38) 2,1 (0,25-17,67)
+
+3 INTI
+
+5,3 (0,79-35,92) 5,6 (0,63-49,37)
+
+Variable dépendante : 1 succès (n = 83), 0 échec (n = 29)
+CHA : Centre Hospitalier Bouffard.
+
+CPF : Centre Paul Faure.
+
+CYT : Centre Yonis Toussaint.
+
+HGP : Hôpital général Peltier.
+
+OPS : Organisme de Protection Sociale.
+
+OR : Odds ratio ; IC : intervalle de confiance.
+
+Yes V et ol he EU Al Aa ill ioliue clou ll Ga aol all

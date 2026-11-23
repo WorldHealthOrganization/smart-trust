@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  smart-base — authoring a WHO SMART Guidelines L2 Digital Adaptation Kit.
+
+  Source of truth: this file. The picture beside it (l2-dak-authoring.svg) is drawn by
+  `bun run cat render:bpmn`;
+  never hand-edit it.
+
+  The <bootstrap.processes:skill> extension on an activity names the skill
+  that implements it; <cat-harness.processes:bean> marks a step that reads or
+  writes the shared work plan in beans/.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/0.1.0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/0.1.0/processes/ns/"
+                  id="Definitions_L2Dak"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+
+  <bpmn:collaboration id="Collaboration_L2Dak">
+    <bpmn:participant id="Participant_L2Dak" name="WHO SMART Guidelines — authoring the L2 DAK" processRef="Process_L2Dak" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_L2Dak" name="L2 DAK authoring" isExecutable="false">
+    <bpmn:documentation>How a WHO SMART Guidelines L2 Digital Adaptation Kit is authored by a business analyst, a terminologist and a clinical SME under a programme manager. Each of the six authoring tracks calls l2-component-edit-review.bpmn (Process_L2ComponentEditReview): the agent edits, checks, renders and stages the component and hands it on, while a person in the component's reviewing role reviews it alongside, never as a gate. Each track's renderer, checker and reviewer are tabled in the skill l2-component-edit-review.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_L2Dak_LaneSet">
+      <bpmn:lane id="Lane_Programme" name="Programme manager / technical officer">
+        <bpmn:documentation>Sets the scope once, before the fork into six parallel authoring tracks. Every later lane is scoped against the actors and processes enumerated here; nothing later revisits that boundary.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="programme-manager"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>StartEvent_Guideline</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ScopeDak</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_WorkPlan" name="Work plan — beans (shared by humans and agents)">
+        <bpmn:documentation>Claims the DAK's bean (Process_BeanOpen) once the L1 library is built, then seeds the DAK's work plan with one child bean per component, before the parallel fork. Nothing returns to this lane: the bean is closed at each end (Process_BeanClose), and per-track progress is not tracked here.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="work-plan"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_SeedBeans</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanOpen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_BeanYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_BeanNotYours</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Analyst" name="Business analyst">
+        <bpmn:documentation>Builds the DAK's L1 library from Component 1 before the work plan is seeded, so every track starts with its guidance in the library and the L1 graph. Opens the parallel fork into six authoring tracks (five in this lane, terminology in its own) and re-enters it whenever clinical validation sends work back, so a fix revisits every entangled track, not only the one the SME flagged. Assembles and validates the DAK in parallel with clinical validation, and again after any rework.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="business-analyst"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_L1Library</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_PublishStatements</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_AuthorMerge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_AuthorFork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Personas</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Bpmn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Dmn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DataDict</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Indicators</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_AuthorJoin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ReviewFork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AssembleDak</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_L2Ready</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanClose</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Terminologist" name="Terminologist">
+        <bpmn:documentation>One branch of the fork: produces the bindings the other five tracks cite, calling the same edit-and-review subprocess with a different terminologist as reviewer. A separate lane because governance of a code binding is independent of the artefact that cites it.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="terminologist"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_Terminology</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Sme" name="Clinical SME">
+        <bpmn:documentation>Clinical validation runs beside assembly, not before it: QA, not a gate. A "no" loops back through Gateway_AuthorMerge into the fork, so this lane decides whether personas, BPMN, DMN, data dictionary and indicators are all revisited together.</bpmn:documentation>
+        <bpmn:extensionElements><bootstrap.processes:role ref="clinical-sme"/></bpmn:extensionElements>
+        <bpmn:flowNodeRef>Task_SmeValidate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Accurate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Validated</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanClose_2</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Guideline" name="WHO guideline / recommendations">
+      <bpmn:outgoing>B01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_ScopeDak" name="Scope the DAK">
+      <bpmn:documentation>Enumerate the processes, decisions and data elements the guideline implies; identify the actors.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-plan" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>B01</bpmn:incoming>
+      <bpmn:outgoing>B02</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_L1Library" name="Build the L1 library from Component 1">
+      <bpmn:documentation>Ingest the DAK into the library; it is L2, so it gets no L1 graph. Read Component 1 §1.2 for its sources (extract-dak-l1-references.ts --context-only), fetch each L1 source (fetch-dspace-item.ts for an IRIS handle, fetch-who-publication.ts for a who.int item page) and ingest it. Record on its intake whether each is L1 (declared &gt; context &gt; inferred; --record-context writes §1.2's context). For each L1 source, run l1-specialise.ts: its publication, sections and elements as specialisations of its library nodes, since the library is upstream of L1. Validate with the smart-base Zod validator. Citation fidelity (does each citation name the source it resolves to) and a cited edition older than the one fetched are left to a person, never passed automatically.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="dak-l1-library" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>B02</bpmn:incoming>
+      <bpmn:outgoing>B22a</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:callActivity id="Call_PublishStatements" name="Publish extracted&#10;statements" calledElement="Process_PublishExtractedStatements">
+      <bpmn:documentation>Statements extracted from the Component 1 sources are published as pages of the DAK and in the shared l1-extraction viewer, each linked to its library entry and section, before L2 authoring starts from them. The sub-process is core's, the same for every content type; smart-base supplies the collector (`l1-statement-lists`) and the DAK only the page look.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="publish-extracted-statements" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>B22a</bpmn:incoming>
+      <bpmn:outgoing>B22</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:task id="Task_SeedBeans" name="Seed the work plan">
+      <bpmn:documentation>Turn the scope into child beans of the DAK's bean, one per DAK component: the DAK's work plan holds the work plan of each component. beans create is not idempotent: check for an existing bean before every create, or a re-run duplicates the plan.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager" />
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>B03</bpmn:outgoing>
+      <bpmn:incoming>SF_Bean_1</bpmn:incoming>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_AuthorMerge" name="">
+      <bpmn:incoming>B03</bpmn:incoming>
+      <bpmn:incoming>B19</bpmn:incoming>
+      <bpmn:outgoing>B04</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:parallelGateway id="Gateway_AuthorFork" name="">
+      <bpmn:incoming>B04</bpmn:incoming>
+      <bpmn:outgoing>B05</bpmn:outgoing>
+      <bpmn:outgoing>B06</bpmn:outgoing>
+      <bpmn:outgoing>B08</bpmn:outgoing>
+      <bpmn:outgoing>B09</bpmn:outgoing>
+      <bpmn:outgoing>B10</bpmn:outgoing>
+      <bpmn:outgoing>B07</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:callActivity id="Task_Personas" name="Personas and scenarios" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>Author the DAK's personas and the user scenarios they appear in. Calls Process_L2ComponentEditReview with the personas-and-scenarios inputs of the skill l2-component-edit-review (checker: dak-swimlanes.ts and traceability to L1 recommendations; renderer: the persona card and a prose diff; reviewer: clinical SME). These are the DAK's own actors, not this harness's scenarios/roles.json; do not conflate the two.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l2-dak-authoring" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>B05</bpmn:incoming>
+      <bpmn:outgoing>B11</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Task_Bpmn" name="Business processes · BPMN 2.0" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>Author the DAK's L2 business processes as BPMN 2.0 with Diagram Interchange: a .bpmn with no x/y on its shapes renders blank. Stay at L2, reviewable by a clinician, not FHIR. Calls Process_L2ComponentEditReview with the BPMN inputs of the skill l2-component-edit-review (checker: bpmn-js import with no warnings, dak-swimlanes.ts, artefact-reachability; renderer: render:bpmn with a visual-diff before/after; reviewer: clinical SME).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="bpmn-authoring" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>B06</bpmn:incoming>
+      <bpmn:outgoing>B12</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Task_Dmn" name="Decision logic · DMN tables" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>Author the decision and scheduling logic as DMN tables within the FEEL subset the interpreter implements (any, literals, comparisons, one-of); ranges, not() and function calls are refused at load. Calls Process_L2ComponentEditReview with the DMN inputs of the skill l2-component-edit-review (checker: load, reachability, test cases; renderer: dmn2html table before/after, each rule beside its L1 citation; reviewer: clinical SME).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="dmn-authoring" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>B07</bpmn:incoming>
+      <bpmn:outgoing>B13</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Task_DataDict" name="Data dictionary and core data elements" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>Author the data dictionary and core data elements: structured but not FHIR, reviewable by a clinician, so L3 can be derived from them rather than written twice. Calls Process_L2ComponentEditReview with the glossary inputs of the skill l2-component-edit-review (checker: check-web-annexes.ts on the data dictionary web annex; renderer: the term diff from dak-data-dictionary-diff.ts and each form's chosen wireframe; reviewer: clinical SME, terminologist for codes).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l2-dak-authoring" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>B08</bpmn:incoming>
+      <bpmn:outgoing>B14</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Task_Indicators" name="Indicators and requirements" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>Author the indicators and the functional and non-functional requirements. These are the DAK's requirements, not skills/requirements/*.json (this harness's own conformance obligations). Calls Process_L2ComponentEditReview with the indicators-and-requirements inputs of the skill l2-component-edit-review (checker: each names the persona and process it serves and traces to L1; renderer: prose diff; reviewer: business analyst with the programme manager).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="l2-dak-authoring" />
+        <bootstrap.processes:skill ref="indicator-extraction" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>B09</bpmn:incoming>
+      <bpmn:outgoing>B15</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Task_Terminology" name="Terminology bindings" calledElement="Process_L2ComponentEditReview">
+      <bpmn:documentation>ICD-11, SNOMED CT and LOINC bindings, governed separately from the artefacts that cite them. Calls Process_L2ComponentEditReview with the terminology inputs of the skill l2-component-edit-review (checker: bindings resolve and unmappedConcepts is reported; renderer: the term diff on the code columns; reviewer: a terminologist other than the one who bound it).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="terminology-management" />
+        <bootstrap.processes:skill ref="l2-component-edit-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>B10</bpmn:incoming>
+      <bpmn:outgoing>B16</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:parallelGateway id="Gateway_AuthorJoin" name="">
+      <bpmn:incoming>B11</bpmn:incoming>
+      <bpmn:incoming>B12</bpmn:incoming>
+      <bpmn:incoming>B14</bpmn:incoming>
+      <bpmn:incoming>B15</bpmn:incoming>
+      <bpmn:incoming>B16</bpmn:incoming>
+      <bpmn:incoming>B13</bpmn:incoming>
+      <bpmn:outgoing>B17</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:parallelGateway id="Gateway_ReviewFork" name="">
+      <bpmn:documentation>Clinical validation and assembly start together: adjudication is QA, not a gate. The DAK is assembled and handed to L3 while the SME reviews it; a "changes needed" sends the work round again, which re-assembles it.</bpmn:documentation>
+      <bpmn:incoming>B17</bpmn:incoming>
+      <bpmn:outgoing>B23</bpmn:outgoing>
+      <bpmn:outgoing>B24</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:userTask id="Task_SmeValidate" name="Clinical validation">
+      <bpmn:documentation>Ground truth: does the DAK say what the guideline says? The whole-DAK reading across components: whether personas, processes, decisions, data elements and indicators tell one consistent story. Per-component reviews already happened inside each track (Process_L2ComponentEditReview) and are not repeated.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>B23</bpmn:incoming>
+      <bpmn:outgoing>B18</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_Accurate" name="Clinically accurate?">
+      <bpmn:documentation>`changes needed` goes back to the author and the reworked DAK is assembled again; `validated` records the adjudication. Assembly does not wait for this decision.</bpmn:documentation>
+      <bpmn:incoming>B18</bpmn:incoming>
+      <bpmn:outgoing>B19</bpmn:outgoing>
+      <bpmn:outgoing>B20</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_AssembleDak" name="Assemble and validate the DAK">
+      <bpmn:documentation>Assemble the validated components and run content validation: schemas, cross-component consistency and terminology bindings. The smart-base extractors read the authored artefacts; with SMART_BASE_HOME unset they report skip, never a clean run.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-validate" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>B24</bpmn:incoming>
+      <bpmn:outgoing>B21</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Validated" name="Clinically validated">
+      <bpmn:documentation>The SME's adjudication is recorded. The process instance completes only when this and EndEvent_L2Ready have both been reached.</bpmn:documentation>
+      <bpmn:incoming>SF_Bean_5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_L2Ready" name="L2 DAK ready for L3">
+      <bpmn:incoming>SF_Bean_4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Call_BeanOpen" name="Open the bean" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Process_BeanOpen: check before creating, find out whose the bean is, and claim it, or leave it alone when it is someone else's. The gateway after it reads which end it reached.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+      <bpmn:incoming>B22</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_2</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_BeanYours" name="Bean claimed?">
+      <bpmn:documentation>`claimed`: the bean is in progress and this process works it. `not yours`: a sibling session or a person holds it, nothing was written to it, and this process stops (bean-coordination).</bpmn:documentation>
+      <bpmn:outgoing>SF_Bean_1</bpmn:outgoing>
+      <bpmn:incoming>SF_Bean_2</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_3</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_BeanNotYours" name="Not yours —&#10;left alone">
+      <bpmn:documentation>Someone else holds the bean; this run stops without touching it.</bpmn:documentation>
+      <bpmn:incoming>SF_Bean_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Call_BeanClose" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>Process_BeanClose: end the bean in a state that says why: complete and archive it, scrap it with its reasons and archive it, or record the blocker and hand it back. Placed straight before the end so the engine's resolve sees nothing left but the archive step.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+      <bpmn:incoming>B21</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_4</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_BeanClose_2" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>Process_BeanClose: end the bean in a state that says why: complete and archive it, scrap it with its reasons and archive it, or record the blocker and hand it back. Placed straight before the end so the engine's resolve sees nothing left but the archive step.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+      <bpmn:incoming>B20</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_5</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="B01" sourceRef="StartEvent_Guideline" targetRef="Task_ScopeDak" />
+    <bpmn:sequenceFlow id="B02" sourceRef="Task_ScopeDak" targetRef="Task_L1Library" />
+    <bpmn:sequenceFlow id="B22a" sourceRef="Task_L1Library" targetRef="Call_PublishStatements" />
+    <bpmn:sequenceFlow id="B22" sourceRef="Call_PublishStatements" targetRef="Call_BeanOpen" />
+    <bpmn:sequenceFlow id="B03" sourceRef="Task_SeedBeans" targetRef="Gateway_AuthorMerge" />
+    <bpmn:sequenceFlow id="B04" sourceRef="Gateway_AuthorMerge" targetRef="Gateway_AuthorFork" />
+    <bpmn:sequenceFlow id="B05" sourceRef="Gateway_AuthorFork" targetRef="Task_Personas" />
+    <bpmn:sequenceFlow id="B06" sourceRef="Gateway_AuthorFork" targetRef="Task_Bpmn" />
+    <bpmn:sequenceFlow id="B08" sourceRef="Gateway_AuthorFork" targetRef="Task_DataDict" />
+    <bpmn:sequenceFlow id="B09" sourceRef="Gateway_AuthorFork" targetRef="Task_Indicators" />
+    <bpmn:sequenceFlow id="B10" sourceRef="Gateway_AuthorFork" targetRef="Task_Terminology" />
+    <bpmn:sequenceFlow id="B07" sourceRef="Gateway_AuthorFork" targetRef="Task_Dmn" />
+    <bpmn:sequenceFlow id="B11" sourceRef="Task_Personas" targetRef="Gateway_AuthorJoin" />
+    <bpmn:sequenceFlow id="B12" sourceRef="Task_Bpmn" targetRef="Gateway_AuthorJoin" />
+    <bpmn:sequenceFlow id="B14" sourceRef="Task_DataDict" targetRef="Gateway_AuthorJoin" />
+    <bpmn:sequenceFlow id="B15" sourceRef="Task_Indicators" targetRef="Gateway_AuthorJoin" />
+    <bpmn:sequenceFlow id="B16" sourceRef="Task_Terminology" targetRef="Gateway_AuthorJoin" />
+    <bpmn:sequenceFlow id="B13" sourceRef="Task_Dmn" targetRef="Gateway_AuthorJoin" />
+    <bpmn:sequenceFlow id="B17" sourceRef="Gateway_AuthorJoin" targetRef="Gateway_ReviewFork" />
+    <bpmn:sequenceFlow id="B23" sourceRef="Gateway_ReviewFork" targetRef="Task_SmeValidate" />
+    <bpmn:sequenceFlow id="B24" sourceRef="Gateway_ReviewFork" targetRef="Task_AssembleDak" />
+    <bpmn:sequenceFlow id="B18" sourceRef="Task_SmeValidate" targetRef="Gateway_Accurate" />
+    <bpmn:sequenceFlow id="B19" name="changes needed" sourceRef="Gateway_Accurate" targetRef="Gateway_AuthorMerge" />
+    <bpmn:sequenceFlow id="B20" name="validated" sourceRef="Gateway_Accurate" targetRef="Call_BeanClose_2" />
+    <bpmn:sequenceFlow id="B21" sourceRef="Task_AssembleDak" targetRef="Call_BeanClose" />
+    <bpmn:sequenceFlow id="SF_Bean_1" name="claimed" sourceRef="GW_BeanYours" targetRef="Task_SeedBeans"/>
+    <bpmn:sequenceFlow id="SF_Bean_2" sourceRef="Call_BeanOpen" targetRef="GW_BeanYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_3" name="not yours" sourceRef="GW_BeanYours" targetRef="End_BeanNotYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_4" sourceRef="Call_BeanClose" targetRef="EndEvent_L2Ready"/>
+    <bpmn:sequenceFlow id="SF_Bean_5" sourceRef="Call_BeanClose_2" targetRef="EndEvent_Validated"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_L2Dak">
+      <bpmndi:BPMNShape id="Participant_L2Dak_di" bpmnElement="Participant_L2Dak" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="2260" height="1210" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Programme_di" bpmnElement="Lane_Programme" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="2230" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_WorkPlan_di" bpmnElement="Lane_WorkPlan" isHorizontal="true">
+        <dc:Bounds x="190" y="230" width="2230" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Analyst_di" bpmnElement="Lane_Analyst" isHorizontal="true">
+        <dc:Bounds x="190" y="380" width="2230" height="550" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Terminologist_di" bpmnElement="Lane_Terminologist" isHorizontal="true">
+        <dc:Bounds x="190" y="930" width="2230" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Sme_di" bpmnElement="Lane_Sme" isHorizontal="true">
+        <dc:Bounds x="190" y="1080" width="2230" height="210" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Guideline_di" bpmnElement="StartEvent_Guideline">
+        <dc:Bounds x="262" y="137" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="225" y="177" width="110" height="30" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ScopeDak_di" bpmnElement="Task_ScopeDak">
+        <dc:Bounds x="375" y="110" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_L1Library_di" bpmnElement="Task_L1Library">
+        <dc:Bounds x="375" y="420" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SeedBeans_di" bpmnElement="Task_SeedBeans">
+        <dc:Bounds x="815" y="260" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_AuthorMerge_di" bpmnElement="Gateway_AuthorMerge" isMarkerVisible="true">
+        <dc:Bounds x="1015" y="630" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_AuthorFork_di" bpmnElement="Gateway_AuthorFork">
+        <dc:Bounds x="1175" y="630" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Personas_di" bpmnElement="Task_Personas">
+        <dc:Bounds x="1295" y="390" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Bpmn_di" bpmnElement="Task_Bpmn">
+        <dc:Bounds x="1295" y="500" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Dmn_di" bpmnElement="Task_Dmn">
+        <dc:Bounds x="1295" y="610" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DataDict_di" bpmnElement="Task_DataDict">
+        <dc:Bounds x="1295" y="720" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Indicators_di" bpmnElement="Task_Indicators">
+        <dc:Bounds x="1295" y="830" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Terminology_di" bpmnElement="Task_Terminology">
+        <dc:Bounds x="1295" y="960" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_AuthorJoin_di" bpmnElement="Gateway_AuthorJoin">
+        <dc:Bounds x="1495" y="630" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ReviewFork_di" bpmnElement="Gateway_ReviewFork">
+        <dc:Bounds x="1655" y="630" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Validated_di" bpmnElement="EndEvent_Validated">
+        <dc:Bounds x="2142" y="1137" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2105" y="1177" width="110" height="30" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SmeValidate_di" bpmnElement="Task_SmeValidate">
+        <dc:Bounds x="1615" y="1110" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Accurate_di" bpmnElement="Gateway_Accurate" isMarkerVisible="true">
+        <dc:Bounds x="1815" y="1130" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1780" y="1100" width="120" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AssembleDak_di" bpmnElement="Task_AssembleDak">
+        <dc:Bounds x="1935" y="610" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_L2Ready_di" bpmnElement="EndEvent_L2Ready">
+        <dc:Bounds x="2302" y="637" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2265" y="677" width="110" height="30" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="B01_di" bpmnElement="B01">
+        <di:waypoint x="298" y="155" />
+        <di:waypoint x="375" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B02_di" bpmnElement="B02">
+        <di:waypoint x="440" y="200" />
+        <di:waypoint x="440" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B22_di" bpmnElement="B22">
+        <di:waypoint x="505" y="600" />
+        <di:waypoint x="515" y="600" />
+        <di:waypoint x="515" y="305" />
+        <di:waypoint x="535" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Call_PublishStatements_di" bpmnElement="Call_PublishStatements">
+        <dc:Bounds x="375" y="540" width="130" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="B22a_di" bpmnElement="B22a">
+        <di:waypoint x="440" y="510" />
+        <di:waypoint x="440" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B03_di" bpmnElement="B03">
+        <di:waypoint x="945" y="305" />
+        <di:waypoint x="1055" y="305" />
+        <di:waypoint x="1055" y="630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B04_di" bpmnElement="B04">
+        <di:waypoint x="1065" y="655" />
+        <di:waypoint x="1175" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B05_di" bpmnElement="B05">
+        <di:waypoint x="1200" y="630" />
+        <di:waypoint x="1200" y="435" />
+        <di:waypoint x="1295" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B06_di" bpmnElement="B06">
+        <di:waypoint x="1200" y="630" />
+        <di:waypoint x="1200" y="545" />
+        <di:waypoint x="1295" y="545" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B08_di" bpmnElement="B08">
+        <di:waypoint x="1200" y="680" />
+        <di:waypoint x="1200" y="765" />
+        <di:waypoint x="1295" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B09_di" bpmnElement="B09">
+        <di:waypoint x="1200" y="680" />
+        <di:waypoint x="1200" y="875" />
+        <di:waypoint x="1295" y="875" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B10_di" bpmnElement="B10">
+        <di:waypoint x="1200" y="680" />
+        <di:waypoint x="1200" y="1005" />
+        <di:waypoint x="1295" y="1005" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B07_di" bpmnElement="B07">
+        <di:waypoint x="1225" y="655" />
+        <di:waypoint x="1295" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B11_di" bpmnElement="B11">
+        <di:waypoint x="1425" y="435" />
+        <di:waypoint x="1520" y="435" />
+        <di:waypoint x="1520" y="630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B12_di" bpmnElement="B12">
+        <di:waypoint x="1425" y="545" />
+        <di:waypoint x="1520" y="545" />
+        <di:waypoint x="1520" y="630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B14_di" bpmnElement="B14">
+        <di:waypoint x="1425" y="765" />
+        <di:waypoint x="1520" y="765" />
+        <di:waypoint x="1520" y="680" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B15_di" bpmnElement="B15">
+        <di:waypoint x="1425" y="875" />
+        <di:waypoint x="1520" y="875" />
+        <di:waypoint x="1520" y="680" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B16_di" bpmnElement="B16">
+        <di:waypoint x="1425" y="1005" />
+        <di:waypoint x="1520" y="1005" />
+        <di:waypoint x="1520" y="680" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B13_di" bpmnElement="B13">
+        <di:waypoint x="1425" y="655" />
+        <di:waypoint x="1495" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B17_di" bpmnElement="B17">
+        <di:waypoint x="1545" y="655" />
+        <di:waypoint x="1655" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B23_di" bpmnElement="B23">
+        <di:waypoint x="1680" y="680" />
+        <di:waypoint x="1680" y="1110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B24_di" bpmnElement="B24">
+        <di:waypoint x="1705" y="655" />
+        <di:waypoint x="1935" y="655" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B18_di" bpmnElement="B18">
+        <di:waypoint x="1745" y="1155" />
+        <di:waypoint x="1815" y="1155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B19_di" bpmnElement="B19">
+        <di:waypoint x="1840" y="1180" />
+        <di:waypoint x="1840" y="1245" />
+        <di:waypoint x="1040" y="1245" />
+        <di:waypoint x="1040" y="680" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1385" y="1252" width="110" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B20_di" bpmnElement="B20"><di:waypoint x="1865" y="1155"/><di:waypoint x="1982" y="1155"/><bpmndi:BPMNLabel>
+          <dc:Bounds x="1880" y="1122" width="70" height="27" />
+        </bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="B21_di" bpmnElement="B21"><di:waypoint x="2065" y="655"/><di:waypoint x="2142" y="655"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Call_BeanOpen_di" bpmnElement="Call_BeanOpen"><dc:Bounds x="535" y="265" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SF_Bean_1_di" bpmnElement="SF_Bean_1"><di:waypoint x="735" y="305"/><di:waypoint x="815" y="305"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="GW_BeanYours_di" bpmnElement="GW_BeanYours" isMarkerVisible="true"><dc:Bounds x="685" y="280" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_BeanNotYours_di" bpmnElement="End_BeanNotYours"><dc:Bounds x="692" y="214" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SF_Bean_2_di" bpmnElement="SF_Bean_2"><di:waypoint x="655" y="305"/><di:waypoint x="685" y="305"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_3_di" bpmnElement="SF_Bean_3"><di:waypoint x="710" y="280"/><di:waypoint x="710" y="250"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Call_BeanClose_di" bpmnElement="Call_BeanClose"><dc:Bounds x="2142" y="615" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SF_Bean_4_di" bpmnElement="SF_Bean_4"><di:waypoint x="2262" y="655"/><di:waypoint x="2302" y="655"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Call_BeanClose_2_di" bpmnElement="Call_BeanClose_2"><dc:Bounds x="1982" y="1115" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SF_Bean_5_di" bpmnElement="SF_Bean_5"><di:waypoint x="2102" y="1155"/><di:waypoint x="2142" y="1155"/></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

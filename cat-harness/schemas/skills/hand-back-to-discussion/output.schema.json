@@ -1,0 +1,318 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://litlfred.github.io/folio-assistant/cat-harness/skills/hand-back-to-discussion/output.schema.json",
+  "title": "Hand Back To Discussion Output",
+  "description": "The record of one hand-back: where it was shown, its state, the person's answer quoted, how every copy was marked answered, and proof the answer reached the sibling. A dismissed card is not an answer.",
+  "type": "object",
+  "required": [
+    "shown",
+    "state",
+    "deliveredBack"
+  ],
+  "properties": {
+    "shown": {
+      "type": "array",
+      "minItems": 1,
+      "description": "One entry per copy, the discussion's first.",
+      "items": {
+        "type": "object",
+        "required": [
+          "channel",
+          "ref"
+        ],
+        "properties": {
+          "channel": {
+            "type": "string",
+            "enum": [
+              "discussion",
+              "own-thread",
+              "project-chat",
+              "review-sheet",
+              "github-issue",
+              "github-pr"
+            ]
+          },
+          "ref": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Message id, card id, sheet cell (tab!header/row key) or comment URL."
+          },
+          "card": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The card's id when this copy offered one."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "open",
+        "answered",
+        "withdrawn",
+        "superseded",
+        "informed"
+      ],
+      "description": "open: waiting. answered: the person chose, in any channel. withdrawn: the question no longer needs an answer. superseded: a later hand-back replaced it. informed: a context, result or blocker that needed no answer was shown."
+    },
+    "ask": {
+      "$ref": "#/definitions/askThePersonOutput",
+      "description": "The ask-the-person output, when the hand-back carried a question."
+    },
+    "chosen": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[A-D]$",
+      "description": "The letter chosen; null unless answered."
+    },
+    "quote": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The person's answer verbatim, with who, when and the message id or sheet cell it came from."
+    },
+    "answeredIn": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "discussion",
+        "own-thread",
+        "project-chat",
+        "review-sheet",
+        "github-issue",
+        "github-pr",
+        null
+      ],
+      "description": "Which copy the answer came from."
+    },
+    "marked": {
+      "type": "array",
+      "description": "How each copy was closed once answered or withdrawn. A chat copy keeps its text: the question is struck through and \"[Edit: <letter> chosen by <who>, <time>]\" added, so the record still says what was asked. A sheet copy's \"Decision needed\" block is replaced by the decision and who made it.",
+      "items": {
+        "type": "object",
+        "required": [
+          "ref",
+          "edit"
+        ],
+        "properties": {
+          "ref": {
+            "type": "string"
+          },
+          "edit": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The text applied, e.g. \"~~Which layout?~~ [Edit: A chosen by litlfred, 2026-10-31 15:50Z]\"."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "deliveredBack": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Proof the answer reached the sibling; null only while open or for state informed.",
+      "required": [
+        "how",
+        "target",
+        "at"
+      ],
+      "properties": {
+        "how": {
+          "type": "string",
+          "enum": [
+            "thread-message",
+            "send-message",
+            "return-value",
+            "issue-comment",
+            "sheet"
+          ]
+        },
+        "target": {
+          "type": "string"
+        },
+        "ref": {
+          "type": "string",
+          "description": "The message id of the delivery."
+        },
+        "citesPerson": {
+          "type": "boolean",
+          "description": "true when the person's own message was attached by id, so the sibling may treat it as the person's approval. A paraphrase is never approval."
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "stagingLinks": {
+      "$ref": "#/definitions/stagingLinks",
+      "description": "When the question asks the person to look at changed pages: the staging preview, one deep link per changed page with the same page on main, shown in the chat copy. When there is no preview, say so in `missing`. Rule: cat-harness skills/authoring/content-lifecycle/feedback-deep-links.md."
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "askThePersonOutput": {
+      "title": "Ask The Person Output",
+      "description": "What the calling step gets back: proof the question went out twice, and the person's answer or the default taken. A dismissed card is not an answer.",
+      "type": "object",
+      "required": [
+        "asked",
+        "outcome",
+        "chosen",
+        "quote",
+        "defaultTaken"
+      ],
+      "properties": {
+        "asked": {
+          "type": "object",
+          "required": [
+            "chat",
+            "card"
+          ],
+          "description": "Where the two copies went. The chat copy is posted first.",
+          "properties": {
+            "chat": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Id or link of the chat message holding the full question."
+            },
+            "card": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Id of the card offered after it; null only when the host has no card tool, which the chat text then says."
+            }
+          },
+          "additionalProperties": false
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "answered",
+            "silent",
+            "dismissed"
+          ],
+          "description": "answered: the person chose. silent: no answer came. dismissed: the card was closed without a choice; the question stays open in the chat."
+        },
+        "chosen": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-D]$",
+          "description": "The letter chosen; null unless outcome is answered."
+        },
+        "quote": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The person's answer, verbatim, with who and when; null unless answered."
+        },
+        "defaultTaken": {
+          "type": "boolean",
+          "description": "true when the work went ahead on ifSilent. Never true for an irreversible step."
+        },
+        "rule": {
+          "type": "string",
+          "description": "When the answer settles how a kind of thing is decided: the skill it was written into, in the same turn."
+        },
+        "stagingLinks": {
+          "$ref": "#/definitions/stagingLinks",
+          "description": "When the question asks the person to look at changed pages: the staging preview, one deep link per changed page with the same page on main, shown in the chat copy. When there is no preview, say so in `missing`. Rule: cat-harness skills/authoring/content-lifecycle/feedback-deep-links.md."
+        }
+      },
+      "additionalProperties": false,
+      "$comment": "Copy of cat-harness schemas/skills/ask-the-person/output.schema.json; inlined so this contract reads standalone."
+    },
+    "stagingLinks": {
+      "title": "Staging links",
+      "description": "The staging preview of the work a request for feedback is about: one deep link per changed page (the page and the anchor where the change sits) with the same page on main as `before`. Mirrors StagingComparison in schemas/sdlc/staging.ts. The rule is skills/authoring/content-lifecycle/feedback-deep-links.md. Copied inline as `definitions.stagingLinks` into every skill contract that carries it; schemas/staging.test.ts fails when a copy drifts.",
+      "type": "object",
+      "required": [
+        "branch",
+        "slug",
+        "branchUrl",
+        "mainBaseUrl",
+        "stagingBaseUrl",
+        "pages"
+      ],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "Feature branch name."
+        },
+        "slug": {
+          "type": "string",
+          "description": "Branch slug used in the staging URL path."
+        },
+        "branchUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pr": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mainBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "stagingBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pages": {
+          "type": "array",
+          "description": "One entry per changed page, deep-linked; from the change's rendered-impact list, never chosen by judgement.",
+          "items": {
+            "type": "object",
+            "required": [
+              "title"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string",
+                "format": "uri",
+                "description": "Same page on main; absent for a new page."
+              },
+              "after": {
+                "type": "string",
+                "format": "uri",
+                "description": "The page on the staging preview, with the anchor where the change sits; absent for a deleted page."
+              },
+              "summary": {
+                "type": "string",
+                "description": "What to look at on this page."
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What could not be linked, said rather than hidden: no preview yet (and when it will exist), no page list computed, or a changed page the publish ref does not hold."
+        }
+      },
+      "$comment": "Copy of cat-harness schemas/staging-comparison.schema.json; cat-harness schemas/staging.test.ts fails when a copy drifts."
+    }
+  }
+}

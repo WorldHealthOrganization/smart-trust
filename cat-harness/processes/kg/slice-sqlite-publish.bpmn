@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_SliceSqlitePublish" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="platform-authoring-agent" name="Platform authoring agent"/>
+  <bpmn:collaboration id="Collaboration_Process_SliceSqlitePublish">
+    <bpmn:participant id="Participant_Process_SliceSqlitePublish" name="Build and publish a per-slice SQLite file" processRef="Process_SliceSqlitePublish"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_SliceSqlitePublish" name="Build and publish a per-slice SQLite file" isExecutable="false">
+    <bpmn:documentation>Build one named slice of a knowledge graph as a SQLite file a browser mounts without parsing, and publish it beside its manifest and its payloads. The contract is `kg-export` §"Per-slice SQLite"; the builder is the `slice-sqlite` Tool (`cat-harness-tools/scripts/gen-slice-sqlite.ts`), one table-driven builder with one definition per slice; the search is one page, `slices/search.html?slice=&lt;name&gt;`.
+
+THE SIZE IS MEASURED BEFORE THE SLICE IS WIRED. A slice that is wired first and measured afterwards ships whatever it weighs, because by then a manifest, a gate, two deploy steps and a page depend on it. The budget gateway sits between measuring and wiring so that an oversized slice stops with its measurement reported, rather than arriving on a reader's connection.
+
+NO BINARY IS COMMITTED. The file is built at deploy from the tree being published, so the gate cannot compare against a committed copy; it proves determinism (two builds, one sha256) and a row-content digest read back from the file against one computed from the source.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- STRICT. The order is the point: measuring before wiring, and the
+           gate before the deploy build. A run that wired before measuring has
+           shipped a slice no-one decided to ship. -->
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_SliceSqlitePublish">
+      <bpmn:lane id="Lane_Author" name="Platform authoring agent" partitionElementRef="platform-authoring-agent">
+        <bpmn:documentation>Whoever adds or changes a slice: writes its definition in the builder's slice table, measures the built file against the budget, wires it when it fits, and looks at the published search once it has deployed. The judgement in this process is theirs, at the budget gateway.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Need</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Define</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Measure</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Budget</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Report</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Stopped</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Wire</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Verify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Shipped</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Ci" name="CI/CD Pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>The gate and the deploy. `code-quality-gates.yml` runs `slice:sqlite:check` on every pull request; `docs-site.yml` and `feature-staging.yml` build each slice into `_site/` from the tree they publish, one line per slice.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_Check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Green</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Red</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Deploy</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Need" name="A corpus needs&#10;client-side search">
+      <bpmn:outgoing>Flow_0</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="A_Define" name="Write the slice&#10;definition">
+      <bpmn:documentation>Add one `SliceDef` to the builder's slice table: the DDL (one table per node type, edge tables, one CONTENTLESS full-detail FTS5), the order each table's rows go in, the `load` that turns the source into rows, where the payloads live (written at deploy, or already published), and the `search` block the generic page reads. Choose the heavy fields by `kg-export` §"What is heavy": a heavy field is a `payload_sha256` pointer, never a stored column. Never copy the builder.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-export"/>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+      <bpmn:incoming>Flow_0</bpmn:incoming>
+    </bpmn:task>
+    <bpmn:task id="A_Measure" name="Build it locally and&#10;measure the file">
+      <bpmn:documentation>Run `bun run cat slice:sqlite -- --slice &lt;name&gt; --out &lt;scratch&gt;` and read the manifest: `bytes`, the row counts, the payload count and bytes, `overBudget`, `duplicateIds` and `findings`. Record the measurement in the work context with its provenance (the command and the date), beside the size of the source it replaces.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-export"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Budget" name="Under the&#10;~5 MB budget?">
+      <bpmn:documentation>Answered by the manifest `A_Measure` read: `bytes` against `SIZE_BUDGET_BYTES`. Under it, the slice is wired. Over it, the slice stops here and the measurement is reported, because shipping it would be a decision about every reader's download that nobody made. The no-body variant (nodes, edges and an FTS over names, titles and summaries, bodies as payload pointers) is the first thing to try before reporting.</bpmn:documentation>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="A_Report" name="Report the measurement;&#10;ship nothing">
+      <bpmn:documentation>Write the measurement and what was tried into the work context, and ask the owner whether the slice should ship at that size, be cut further, or not exist. Nothing is wired: no manifest is published, no gate added, no deploy line written.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-export"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Stopped" name="Stopped, with&#10;its measurement">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="A_Wire" name="Wire it: gate, deploy&#10;line, search, tests">
+      <bpmn:documentation>Give the slice everything a slice owes: its manifest (written by the builder from the definition), its `--check` (covered by `slice:sqlite:check`), one deploy line in `docs-site.yml` and in `feature-staging.yml`, its search (the generic page needs no code, only the definition's `search` block), a unit test over a fixture and over the real source, and a search in `slice-sqlite.e2e.ts`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-export"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:serviceTask id="A_Check" name="Gate every slice:&#10;slice:sqlite:check">
+      <bpmn:documentation>For every slice: build twice and require one sha256; read the row digest back from the file and require it to equal the digest computed from the source without SQLite; run an FTS5 phrase query for a known row; and audit the payloads with `auditPayloadTree` (deploy payloads as written, the kg slice's pointers against the committed payload tree). A slice whose rows do not match its source fails; it never passes as whole.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-export"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_Green" name="Every slice&#10;green?">
+      <bpmn:documentation>Answered by the exit code of `slice:sqlite:check`, one line per slice. Any red line fails the pull request; a source the builder could not read is could-not-determine, which is red rather than an empty green slice.</bpmn:documentation>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Red" name="Job RED">
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="A_Deploy" name="Build each slice into&#10;_site at deploy">
+      <bpmn:documentation>`gen-slice-sqlite.ts --out ./_site/assets/slices --payload-out ./_site/payload/sha256 --slice &lt;name&gt;`, once per slice, from the tree being published: the file, its manifest, the slice index, and the deploy payloads beside the committed KG payloads. Never into the committed `docs/payload/`, whose orphan audit admits KG nodes only.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-export"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:task id="A_Verify" name="Search the published&#10;slice in a browser">
+      <bpmn:documentation>Open `slices/search.html?slice=&lt;name&gt;` on the deployed site, run a phrase search for a known row, open it so its payload is fetched, and look at the result; send the screenshot rather than a description of it. Report the mode the page says it used (OPFS or in memory), never an assumed one.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="rendered-verification"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Shipped" name="Slice searchable&#10;on the site">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0" sourceRef="Start_Need" targetRef="A_Define"/>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="A_Define" targetRef="A_Measure"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="A_Measure" targetRef="GW_Budget"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="GW_Budget" targetRef="A_Wire" name="yes — under"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="GW_Budget" targetRef="A_Report" name="no — over"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="A_Report" targetRef="End_Stopped"/>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="A_Wire" targetRef="A_Check"/>
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="A_Check" targetRef="GW_Green"/>
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="GW_Green" targetRef="A_Deploy" name="yes — green"/>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="GW_Green" targetRef="End_Red" name="no — red"/>
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="A_Deploy" targetRef="A_Verify"/>
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="A_Verify" targetRef="End_Shipped"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_SliceSqlitePublish">
+    <bpmndi:BPMNPlane id="Plane_Process_SliceSqlitePublish" bpmnElement="Collaboration_Process_SliceSqlitePublish">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_SliceSqlitePublish" bpmnElement="Participant_Process_SliceSqlitePublish" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1400" height="500" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Ci" bpmnElement="Lane_Ci" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1370" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Author" bpmnElement="Lane_Author" isHorizontal="true">
+        <dc:Bounds x="190" y="240" width="1370" height="340" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Check" bpmnElement="A_Check">
+        <dc:Bounds x="1012" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Green" bpmnElement="GW_Green" isMarkerVisible="true">
+        <dc:Bounds x="1162" y="135" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1160" y="82" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Deploy" bpmnElement="A_Deploy">
+        <dc:Bounds x="1312" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Need" bpmnElement="Start_Need">
+        <dc:Bounds x="486" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="469" y="355" width="70" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Define" bpmnElement="A_Define">
+        <dc:Bounds x="562" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Measure" bpmnElement="A_Measure">
+        <dc:Bounds x="712" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Budget" bpmnElement="GW_Budget" isMarkerVisible="true">
+        <dc:Bounds x="862" y="305" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="845" y="248" width="85" height="52" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Wire" bpmnElement="A_Wire">
+        <dc:Bounds x="1012" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Report" bpmnElement="A_Report">
+        <dc:Bounds x="827" y="420" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Verify" bpmnElement="A_Verify">
+        <dc:Bounds x="1312" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Stopped" bpmnElement="End_Stopped">
+        <dc:Bounds x="1007" y="462" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="965" y="505" width="120" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Red" bpmnElement="End_Red">
+        <dc:Bounds x="1169" y="462" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1152" y="505" width="70" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Shipped" bpmnElement="End_Shipped">
+        <dc:Bounds x="1354" y="462" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1322" y="505" width="100" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_0" bpmnElement="Flow_0">
+        <di:waypoint x="522" y="330" />
+        <di:waypoint x="562" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="682" y="330" />
+        <di:waypoint x="712" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_2" bpmnElement="Flow_2">
+        <di:waypoint x="832" y="330" />
+        <di:waypoint x="862" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_3" bpmnElement="Flow_3">
+        <di:waypoint x="912" y="330" />
+        <di:waypoint x="1012" y="330" />
+        <bpmndi:BPMNLabel><dc:Bounds x="915" y="335" width="95" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_4" bpmnElement="Flow_4">
+        <di:waypoint x="887" y="355" />
+        <di:waypoint x="887" y="420" />
+        <bpmndi:BPMNLabel><dc:Bounds x="812" y="398" width="70" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_6" bpmnElement="Flow_6">
+        <di:waypoint x="1072" y="270" />
+        <di:waypoint x="1072" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_7" bpmnElement="Flow_7">
+        <di:waypoint x="1132" y="160" />
+        <di:waypoint x="1162" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_8" bpmnElement="Flow_8">
+        <di:waypoint x="1212" y="160" />
+        <di:waypoint x="1312" y="160" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1216" y="165" width="95" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_9" bpmnElement="Flow_9">
+        <di:waypoint x="1187" y="185" />
+        <di:waypoint x="1187" y="462" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1192" y="250" width="65" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_10" bpmnElement="Flow_10">
+        <di:waypoint x="1372" y="220" />
+        <di:waypoint x="1372" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_11" bpmnElement="Flow_11">
+        <di:waypoint x="1372" y="390" />
+        <di:waypoint x="1372" y="462" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_5" bpmnElement="Flow_5">
+        <di:waypoint x="947" y="480" />
+        <di:waypoint x="1007" y="480" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

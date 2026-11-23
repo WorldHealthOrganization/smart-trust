@@ -1,0 +1,31 @@
+# TEMPLATE — compile and check an IG repository's translation CodeSystem
+# supplements (`input/fsh/translations/<locale>.fsh`) with SUSHI on every pull
+# request. Copy to `.github/workflows/translation-supplements.yml` unchanged:
+# it has no placeholders.
+#
+# The steps are fhir-harness's, not this repository's: this caller runs
+# `fhir-harness/.github/workflows/translation-supplements.yml`, which runs
+# `fhir-harness/scripts/check-translation-supplements.ts` with the SUSHI and
+# the FHIR core package fhir-harness pins. An IG with no
+# `input/fsh/translations/` passes as not applicable.
+#
+# Needs: index.lock.json mounting fhir-harness (as site-publish.yml does), and
+# `input/fsh/` in `contentTypes.ig.include` of index.config.json.
+name: Translation supplements
+
+on:
+  pull_request:
+    paths:
+      - "input/fsh/**"
+      - "sushi-config.yaml"
+      - "index.config.json"
+      - "index.lock.json"
+      - ".github/workflows/translation-supplements.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  supplements:
+    uses: litlfred/fhir-harness/.github/workflows/translation-supplements.yml@main

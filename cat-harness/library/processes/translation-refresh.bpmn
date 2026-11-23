@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_TranslationRefresh" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="locale-translator" name="Locale translator"/>
+  <bpmn:resource id="translation-source-lead" name="Source-language lead"/>
+
+  <bpmn:collaboration id="Collaboration_TranslationRefresh">
+    <bpmn:participant id="Participant_TranslationRefresh" name="Translation refresh" processRef="Process_TranslationRefresh"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_TranslationRefresh" name="Translation refresh (watcher)" isExecutable="false">
+    <bpmn:documentation>Keep every locale current after the source moves: detect, refresh the templates, merge them into each locale, translate only what is new or fuzzy, check it, and land one PR per layer on main.
+
+You are in this process when the watcher scheduled by `multi-locale-translation` wakes, or when a template check has failed. It is the loop that process ends with. A fresh session can run it cold: the skill `translation-refresh` gives each step as a command, and each layer's own AGENTS.md names what is particular to it. One run walks every layer in turn, and each layer with something to refresh gets its own PR.
+
+A refresh never re-translates a finished string. Obsolete strings are kept as `#~` entries, new ones arrive empty, and only new and fuzzy strings are translated, with the terms the term base already fixes. The round trip runs on the changed strings only.
+
+Round-trip rulings are keyed by content: each is pinned by the hash of the msgid it judged (and of the msgstr), never by its position in the catalogue. So removing or reordering strings invalidates no ruling and needs no agent re-run. Once main no longer holds a removed string, its ruling is dropped mechanically by the prune step.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_TranslationRefresh">
+      <bpmn:lane id="Lane_TR_Translator" name="Locale translator" partitionElementRef="locale-translator">
+        <bpmn:documentation>The same position as in the first translation, now working on a delta: only the strings the merge left empty or fuzzy, in every locale, then the gates and the round trip over those strings.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_TR_Translate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TR_Gates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TR_Gates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_TR_RoundTrip</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TR_Report</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_TR_Lead" name="Source-language lead (watcher)" partitionElementRef="translation-source-lead">
+        <bpmn:documentation>Owns the watcher. It decides whether anything changed from the files, not from memory, refreshes the templates once for every locale, and merges the layer's PR only where the layer declares merge-when-green, every check is green and the round trip records no fail.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_TR</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TR_ColdStart</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TR_Detect</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TR_Changed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_TR_Current</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TR_Templates</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TR_MergeLocales</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TR_SourceIssue</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TR_Window</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TR_Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TR_PruneRulings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_TR_Merged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_TR_Waiting</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_TR" name="Scheduled run">
+      <bpmn:documentation>A scheduled fresh session, or a template check that failed on a PR or on main.</bpmn:documentation>
+      <bpmn:outgoing>Flow_TR_1</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Timer_TR"/>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="Task_TR_ColdStart" name="Cold start: mount and attach">
+      <bpmn:documentation>Lay down every pinned layer from each layer's lock, as its AGENTS.md cold start says, and attach each repository the run will change.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-refresh"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TR_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_TR_Detect" name="Detect what moved">
+      <bpmn:documentation>`translation:status --instance &lt;root&gt;` for new, obsolete and fuzzy strings, and the instance's template check. Either failing, or showing anything but zero, is a change.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-refresh"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TR_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_TR_Changed" name="Anything to refresh?">
+      <bpmn:documentation>Answered from the detection commands' output: `Yes` when any template check fails or any count of new, obsolete or fuzzy strings is above zero. `No` ends the run for this layer. A command that exits 2 is neither: it is reported for the layer, and the run moves on.</bpmn:documentation>
+      <bpmn:incoming>Flow_TR_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TR_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_TR_Current" name="Current">
+      <bpmn:incoming>Flow_TR_No</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:serviceTask id="Task_TR_Templates" name="Refresh the templates">
+      <bpmn:documentation>Re-run the layer's extractors, once for every locale: pages, diagrams, glossary schemes.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-refresh"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TR_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_TR_MergeLocales" name="Merge into each locale">
+      <bpmn:documentation>Merge each refreshed template into every locale's catalogue: new strings arrive empty, changed ones fuzzy, and obsolete ones are kept as `#~` entries, never deleted.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-refresh"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TR_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_TR_Translate" name="Translate new and fuzzy only">
+      <bpmn:documentation>Only the empty and fuzzy entries, in every locale, with the terms the term base fixes. A finished string is not touched. Candidates for the empty and fuzzy entries may come first from `translation:candidates` (Tool translation-candidates: open engines, OPUS-MT and/or self-hosted LibreTranslate), recorded in &lt;catalogue&gt;.candidates.json; an empty entry also gets the first good candidate, fuzzy, until it is re-translated here or a person picks or accepts one on the review page.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TR_5</bpmn:incoming>
+      <bpmn:incoming>Flow_TR_GatesNo</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_6</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics isSequential="false"/>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_TR_Gates" name="Re-run the gates">
+      <bpmn:documentation>Officiality, catalogue coverage, translated links, `kg:locale`, `translation:glossary:check`, and the supplements compiling.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TR_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_7</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics isSequential="false"/>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_TR_Gates" name="Gates pass?">
+      <bpmn:documentation>`Yes` only when every gate exits 0. `No` fixes the catalogue, manifest or supplement and re-runs the gates; an exit 2 is a `No`.</bpmn:documentation>
+      <bpmn:incoming>Flow_TR_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_GatesYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TR_GatesNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:callActivity id="Call_TR_RoundTrip" calledElement="Process_TranslationRoundTrip" name="Round trip on the changed strings">
+      <bpmn:documentation>The untainted round trip, with the sample restricted to the strings this run translated.</bpmn:documentation>
+      <bpmn:incoming>Flow_TR_GatesYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_8</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics isSequential="false"/>
+    </bpmn:callActivity>
+
+    <bpmn:serviceTask id="Task_TR_Report" name="QA report and one PR to main">
+      <bpmn:documentation>Write each locale's QA report, then open one PR for the layer, based on and targeting main.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TR_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_9</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_TR_SourceIssue" name="Report source errors as one issue">
+      <bpmn:documentation>Any source-text error the translators found goes into one issue on the source, with its location. When there is none, this step writes nothing.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-refresh"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TR_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_10</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_TR_Window" name="Merge-when-green, and all green?">
+      <bpmn:documentation>Three facts, all read live: the layer's AGENTS.md declares merge-when-green, every check on the PR is green, and the untainted round trip on the changed strings records no fail. `Yes` merges. `No` leaves the PR open and reports it to the owner; the default policy, open only, always answers `No`.</bpmn:documentation>
+      <bpmn:incoming>Flow_TR_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_WindowYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TR_WindowNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_TR_Merge" name="Merge the PR">
+      <bpmn:documentation>Merge the layer's PR to main, then confirm the template checks pass on main.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-refresh"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TR_WindowYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_11</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_TR_PruneRulings" name="Prune the rulings of removed strings">
+      <bpmn:documentation>Drop the round-trip rulings of strings main no longer holds, with the layer's prune command (its AGENTS.md names it, by convention `translation-qa:prune`), once the PR is on main. Only a layer that keeps per-string rulings on an attestations state branch has one. Run it as a dry run first: it lists each ruling whose msgid main no longer holds but once did, and the indices it renumbers to catalogue order. Push the result (`--write`, then the state-branch push) only when the diff is purely dropped and renumbered rulings. It never changes or invents a verdict, and it keeps a ruling recorded ahead of a PR that has not merged. Never run it before the removal is on main: the state branch serves main too, and main would be left with strings that have no ruling. Nothing to prune is the usual result, and this step then writes nothing.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-refresh"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TR_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_TR_12</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="End_TR_Merged" name="Refreshed">
+      <bpmn:incoming>Flow_TR_12</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:endEvent id="End_TR_Waiting" name="PR left open">
+      <bpmn:documentation>Open only, red, uncertain or failing: the PR stays open, the owner is told, and the next run looks again.</bpmn:documentation>
+      <bpmn:incoming>Flow_TR_WindowNo</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_TR_1" sourceRef="Start_TR" targetRef="Task_TR_ColdStart"/>
+    <bpmn:sequenceFlow id="Flow_TR_2" sourceRef="Task_TR_ColdStart" targetRef="Task_TR_Detect"/>
+    <bpmn:sequenceFlow id="Flow_TR_3" sourceRef="Task_TR_Detect" targetRef="Gateway_TR_Changed"/>
+    <bpmn:sequenceFlow id="Flow_TR_Yes" name="Yes" sourceRef="Gateway_TR_Changed" targetRef="Task_TR_Templates"/>
+    <bpmn:sequenceFlow id="Flow_TR_No" name="No" sourceRef="Gateway_TR_Changed" targetRef="End_TR_Current"/>
+    <bpmn:sequenceFlow id="Flow_TR_4" sourceRef="Task_TR_Templates" targetRef="Task_TR_MergeLocales"/>
+    <bpmn:sequenceFlow id="Flow_TR_5" sourceRef="Task_TR_MergeLocales" targetRef="Task_TR_Translate"/>
+    <bpmn:sequenceFlow id="Flow_TR_6" sourceRef="Task_TR_Translate" targetRef="Task_TR_Gates"/>
+    <bpmn:sequenceFlow id="Flow_TR_7" sourceRef="Task_TR_Gates" targetRef="Gateway_TR_Gates"/>
+    <bpmn:sequenceFlow id="Flow_TR_GatesYes" name="Yes" sourceRef="Gateway_TR_Gates" targetRef="Call_TR_RoundTrip"/>
+    <bpmn:sequenceFlow id="Flow_TR_GatesNo" name="No: fix" sourceRef="Gateway_TR_Gates" targetRef="Task_TR_Translate"/>
+    <bpmn:sequenceFlow id="Flow_TR_8" sourceRef="Call_TR_RoundTrip" targetRef="Task_TR_Report"/>
+    <bpmn:sequenceFlow id="Flow_TR_9" sourceRef="Task_TR_Report" targetRef="Task_TR_SourceIssue"/>
+    <bpmn:sequenceFlow id="Flow_TR_10" sourceRef="Task_TR_SourceIssue" targetRef="Gateway_TR_Window"/>
+    <bpmn:sequenceFlow id="Flow_TR_WindowYes" name="Yes" sourceRef="Gateway_TR_Window" targetRef="Task_TR_Merge"/>
+    <bpmn:sequenceFlow id="Flow_TR_WindowNo" name="No" sourceRef="Gateway_TR_Window" targetRef="End_TR_Waiting"/>
+    <bpmn:sequenceFlow id="Flow_TR_11" sourceRef="Task_TR_Merge" targetRef="Task_TR_PruneRulings"/>
+    <bpmn:sequenceFlow id="Flow_TR_12" sourceRef="Task_TR_PruneRulings" targetRef="End_TR_Merged"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_TranslationRefresh">
+    <bpmndi:BPMNPlane id="Plane_TranslationRefresh" bpmnElement="Collaboration_TranslationRefresh">
+      <bpmndi:BPMNShape id="Participant_TranslationRefresh_di" bpmnElement="Participant_TranslationRefresh" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1340" height="520"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_TR_Translator_di" bpmnElement="Lane_TR_Translator" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1310" height="180"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_TR_Lead_di" bpmnElement="Lane_TR_Lead" isHorizontal="true">
+        <dc:Bounds x="190" y="260" width="1310" height="340"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Start_TR_di" bpmnElement="Start_TR">
+        <dc:Bounds x="230" y="332" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="221.05" y="372.5" width="70.91" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TR_ColdStart_di" bpmnElement="Task_TR_ColdStart">
+        <dc:Bounds x="290" y="290" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TR_Detect_di" bpmnElement="Task_TR_Detect">
+        <dc:Bounds x="440" y="290" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TR_Changed_di" bpmnElement="Gateway_TR_Changed" isMarkerVisible="true">
+        <dc:Bounds x="590" y="325" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="570" y="272" width="90" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_TR_Current_di" bpmnElement="End_TR_Current">
+        <dc:Bounds x="597" y="492" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="590" y="533" width="50" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TR_Templates_di" bpmnElement="Task_TR_Templates">
+        <dc:Bounds x="670" y="290" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TR_MergeLocales_di" bpmnElement="Task_TR_MergeLocales">
+        <dc:Bounds x="820" y="290" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TR_SourceIssue_di" bpmnElement="Task_TR_SourceIssue">
+        <dc:Bounds x="1350" y="290" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TR_Window_di" bpmnElement="Gateway_TR_Window" isMarkerVisible="true">
+        <dc:Bounds x="1270" y="325" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1250" y="268" width="90" height="53" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TR_Merge_di" bpmnElement="Task_TR_Merge">
+        <dc:Bounds x="1120" y="290" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TR_PruneRulings_di" bpmnElement="Task_TR_PruneRulings">
+        <dc:Bounds x="1120" y="450" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_TR_Merged_di" bpmnElement="End_TR_Merged">
+        <dc:Bounds x="1050" y="492" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1036" y="533" width="64" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_TR_Waiting_di" bpmnElement="End_TR_Waiting">
+        <dc:Bounds x="1277" y="492" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1250" y="533" width="90" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_TR_Translate_di" bpmnElement="Task_TR_Translate">
+        <dc:Bounds x="820" y="100" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TR_Gates_di" bpmnElement="Task_TR_Gates">
+        <dc:Bounds x="970" y="100" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TR_Gates_di" bpmnElement="Gateway_TR_Gates" isMarkerVisible="true">
+        <dc:Bounds x="1120" y="135" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1100" y="105" width="90" height="20"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_TR_RoundTrip_di" bpmnElement="Call_TR_RoundTrip">
+        <dc:Bounds x="1200" y="100" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TR_Report_di" bpmnElement="Task_TR_Report">
+        <dc:Bounds x="1350" y="100" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Flow_TR_1_di" bpmnElement="Flow_TR_1">
+        <di:waypoint x="266" y="350"/>
+        <di:waypoint x="290" y="350"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_2_di" bpmnElement="Flow_TR_2">
+        <di:waypoint x="410" y="350"/>
+        <di:waypoint x="440" y="350"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_3_di" bpmnElement="Flow_TR_3">
+        <di:waypoint x="560" y="350"/>
+        <di:waypoint x="590" y="350"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_No_di" bpmnElement="Flow_TR_No">
+        <di:waypoint x="615" y="375"/>
+        <di:waypoint x="615" y="492"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="620" y="430" width="24" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_Yes_di" bpmnElement="Flow_TR_Yes">
+        <di:waypoint x="640" y="350"/>
+        <di:waypoint x="670" y="350"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="640" y="356" width="28" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_4_di" bpmnElement="Flow_TR_4">
+        <di:waypoint x="790" y="350"/>
+        <di:waypoint x="820" y="350"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_5_di" bpmnElement="Flow_TR_5">
+        <di:waypoint x="880" y="290"/>
+        <di:waypoint x="880" y="220"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_6_di" bpmnElement="Flow_TR_6">
+        <di:waypoint x="940" y="160"/>
+        <di:waypoint x="970" y="160"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_7_di" bpmnElement="Flow_TR_7">
+        <di:waypoint x="1090" y="160"/>
+        <di:waypoint x="1120" y="160"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_GatesYes_di" bpmnElement="Flow_TR_GatesYes">
+        <di:waypoint x="1170" y="160"/>
+        <di:waypoint x="1200" y="160"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1170" y="166" width="28" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_GatesNo_di" bpmnElement="Flow_TR_GatesNo">
+        <di:waypoint x="1145" y="185"/>
+        <di:waypoint x="1145" y="240"/>
+        <di:waypoint x="910" y="240"/>
+        <di:waypoint x="910" y="220"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1000" y="242" width="50" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_8_di" bpmnElement="Flow_TR_8">
+        <di:waypoint x="1320" y="160"/>
+        <di:waypoint x="1350" y="160"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_9_di" bpmnElement="Flow_TR_9">
+        <di:waypoint x="1410" y="220"/>
+        <di:waypoint x="1410" y="290"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_10_di" bpmnElement="Flow_TR_10">
+        <di:waypoint x="1350" y="350"/>
+        <di:waypoint x="1320" y="350"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_WindowYes_di" bpmnElement="Flow_TR_WindowYes">
+        <di:waypoint x="1270" y="350"/>
+        <di:waypoint x="1240" y="350"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1242" y="328" width="28" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_WindowNo_di" bpmnElement="Flow_TR_WindowNo">
+        <di:waypoint x="1295" y="375"/>
+        <di:waypoint x="1295" y="492"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1300" y="470" width="24" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_11_di" bpmnElement="Flow_TR_11">
+        <di:waypoint x="1180" y="410"/>
+        <di:waypoint x="1180" y="450"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TR_12_di" bpmnElement="Flow_TR_12">
+        <di:waypoint x="1120" y="510"/>
+        <di:waypoint x="1086" y="510"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

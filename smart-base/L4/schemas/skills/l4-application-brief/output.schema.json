@@ -1,0 +1,233 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "L4 Application Brief Output",
+  "description": "The application brief, and the wireframe-design-review input (design use) made from it, which stage 8a takes unchanged.",
+  "type": "object",
+  "required": [
+    "applicationBrief",
+    "wireframeRequest"
+  ],
+  "properties": {
+    "applicationBrief": {
+      "$ref": "#/definitions/applicationBrief"
+    },
+    "wireframeRequest": {
+      "$ref": "#/definitions/wireframeRequest"
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The numbered questions put to the requester, verbatim."
+    },
+    "stagingLinks": {
+      "$ref": "#/definitions/stagingLinks"
+    }
+  },
+  "definitions": {
+    "applicationBrief": {
+      "title": "Application brief",
+      "description": "What the consuming application is, in the requester's words where they gave any. Defined by the l4-application-brief output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "topic",
+        "kind",
+        "users",
+        "devices",
+        "l2Processes"
+      ],
+      "properties": {
+        "topic": {
+          "type": "string",
+          "description": "Kebab-case name of the application, used as the wireframe topic.",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "kind": {
+          "type": "string",
+          "description": "The option chosen: a point-of-care app, a reporting or indicator dashboard, a decision-support service an EMR calls, or something else.",
+          "enum": [
+            "point-of-care",
+            "dashboard",
+            "decision-support",
+            "other"
+          ]
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The L2 persona ids who use it.",
+          "minItems": 1
+        },
+        "devices": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "web",
+              "mobile",
+              "tablet",
+              "emr-embedded",
+              "service"
+            ]
+          },
+          "minItems": 1
+        },
+        "l2Processes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The L2 business-process ids it covers.",
+          "minItems": 1
+        },
+        "l3Resources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Canonicals of the L3 resources it reads or writes."
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "FHIR operations it calls: $apply, $evaluate-measure, CDS Hooks services."
+        },
+        "connectivity": {
+          "type": "string",
+          "description": "Online, intermittent or offline-first."
+        },
+        "systems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The systems it talks to: an EMR, a registry, a reporting server."
+        },
+        "words": {
+          "type": "string",
+          "description": "The requester's own description, verbatim."
+        }
+      }
+    },
+    "wireframeRequest": {
+      "title": "Wireframe request",
+      "description": "The input cat-harness wireframe-design-review takes, filled for design use. The fields are that contract's (use, topic, surface, intent, humanReviewer, branch), so stage 8a is called with it unchanged. Defined by the l4-application-brief output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "use",
+        "topic",
+        "surface",
+        "intent"
+      ],
+      "properties": {
+        "use": {
+          "type": "string",
+          "enum": [
+            "design"
+          ]
+        },
+        "topic": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "surface": {
+          "type": "string",
+          "description": "The application's screens."
+        },
+        "intent": {
+          "type": "string",
+          "description": "Who the screens are for, what they need to do, and what they must show, from the brief."
+        },
+        "humanReviewer": {
+          "type": "string",
+          "description": "Who chooses between candidates: the requester, by GitHub handle."
+        },
+        "branch": {
+          "type": "string",
+          "description": "The feature branch the candidates are committed on."
+        }
+      }
+    },
+    "stagingLinks": {
+      "title": "Staging links",
+      "description": "The staging preview of the work a request for feedback is about: one deep link per changed page (the page and the anchor where the change sits) with the same page on main as `before`. Mirrors StagingComparison in schemas/staging.ts. The rule is skills/authoring/content-lifecycle/feedback-deep-links.md. Copied inline as `definitions.stagingLinks` into every skill contract that carries it; schemas/staging.test.ts fails when a copy drifts.",
+      "type": "object",
+      "required": [
+        "branch",
+        "slug",
+        "branchUrl",
+        "mainBaseUrl",
+        "stagingBaseUrl",
+        "pages"
+      ],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "Feature branch name."
+        },
+        "slug": {
+          "type": "string",
+          "description": "Branch slug used in the staging URL path."
+        },
+        "branchUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pr": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mainBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "stagingBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pages": {
+          "type": "array",
+          "description": "One entry per changed page, deep-linked; from the change's rendered-impact list, never chosen by judgement.",
+          "items": {
+            "type": "object",
+            "required": [
+              "title"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string",
+                "format": "uri",
+                "description": "Same page on main; absent for a new page."
+              },
+              "after": {
+                "type": "string",
+                "format": "uri",
+                "description": "The page on the staging preview, with the anchor where the change sits; absent for a deleted page."
+              },
+              "summary": {
+                "type": "string",
+                "description": "What to look at on this page."
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What could not be linked, said rather than hidden: no preview yet (and when it will exist), no page list computed, or a changed page the publish ref does not hold."
+        }
+      },
+      "$comment": "Copy of cat-harness schemas/staging-comparison.schema.json; cat-harness schemas/staging.test.ts fails when a copy drifts."
+    }
+  }
+}

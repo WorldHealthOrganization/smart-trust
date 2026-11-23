@@ -1,0 +1,172 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "build-instance-site",
+    "title": "Build, check and (on request) publish a layer's own site, or a branches/<branch> preview",
+    "description": "From a checkout whose layers arrive by remote mount: mount the pinned closure, install, run the layer's own gates (`--pre`), compose the harness chrome for THIS layer, run its source steps, build with Jekyll at the base path read from the git remote (`/<repo>`, or `/<repo>/branches/<branch>` for a preview), run the post-build steps (mount-instance-docs, pdf-viewer, set-html-lang, publish-id-lookup, rail-standalone-pages), and check that every relative or base-rooted link in every page resolves to a file under the site, reading each page with an HTML parser. Any failing step stops the run; a link that does not resolve means nothing is published. It never decides to publish: only `--publish` does, and then a root publish keeps `branches/` and `_render-log/` on the branch, and a preview replaces only its own `branches/<branch>/`.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat site:instance"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "root",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The layer checkout (holds `index.config.json`). Default: the working directory.",
+          "required": false,
+          "arg": {
+            "flag": "--root"
+          }
+        },
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "The declared layer name; must match the checkout's declaration.",
+          "required": true,
+          "arg": {
+            "flag": "--instance"
+          }
+        },
+        {
+          "name": "home",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A page that becomes the site's index.md.",
+          "required": false,
+          "arg": {
+            "flag": "--home"
+          }
+        },
+        {
+          "name": "pre",
+          "schema": {
+            "$type": "ScriptName"
+          },
+          "description": "A package script to run in the checkout first, as `bun run <name>` (repeatable): the layer's own gates. Any non-zero exit stops the build.",
+          "required": false,
+          "arg": {
+            "flag": "--pre"
+          }
+        },
+        {
+          "name": "sourceStep",
+          "schema": {
+            "$type": "ScriptName"
+          },
+          "description": "A package script that writes into the site source, run as `bun run <name> <site source>` (repeatable).",
+          "required": false,
+          "arg": {
+            "flag": "--source-step"
+          }
+        },
+        {
+          "name": "siteStep",
+          "schema": {
+            "$type": "ScriptName"
+          },
+          "description": "A package script that writes finished pages into the BUILT site, run as `bun run <name> <built site>` after Jekyll (repeatable): Jekyll drops `_`-prefixed directories, so a generator whose pages sit under one runs here.",
+          "required": false,
+          "arg": {
+            "flag": "--site-step"
+          }
+        },
+        {
+          "name": "staging",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "Build (and with --publish, publish) a preview of this branch at branches/<branch>/.",
+          "required": false,
+          "arg": {
+            "flag": "--staging"
+          }
+        },
+        {
+          "name": "noMount",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Use the mounts already on disk.",
+          "required": false,
+          "arg": {
+            "flag": "--no-mount"
+          }
+        },
+        {
+          "name": "publish",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Publish after every check passes; needs --remote.",
+          "required": false,
+          "arg": {
+            "flag": "--publish"
+          }
+        },
+        {
+          "name": "remote",
+          "schema": {
+            "$type": "Url"
+          },
+          "description": "The https git URL the caller can push the pages branch to.",
+          "required": false,
+          "arg": {
+            "flag": "--remote"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "site",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The built site directory, and its base path."
+        },
+        {
+          "name": "links",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "Pages checked, unresolved links (must be 0), files."
+        }
+      ]
+    },
+    "satisfies": [
+      "remote-mount"
+    ],
+    "selection": {
+      "when": "Publishing a layer's site, or a branch preview of it, from an agent or a Routine: the agent-run replacement for a pages workflow.",
+      "limits": "Layer sites only. A FHIR IG's site (the IG pipeline layer's `stage-ig-sites`) is not built here yet; it needs the IG's FHIR packages, which some environments cannot reach.",
+      "cost": "A full mount, install and Jekyll build: minutes, not seconds. `--no-mount` reuses what is on disk."
+    },
+    "requires": {
+      "runtime": [
+        "bun",
+        "git",
+        "ruby"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "The mount and the publish both need the git host; offline, `--no-mount` still builds and checks from what is on disk."
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "Owner, 2026-10-10: publishing is agent-run, never a GitHub Actions\nworkflow, and staging previews are agent-run too (bean `n3h9`). The\nrecipe lived only as prose in a publish Routine's prompt; this is it as\none Tool, the same for an agent, a person or a Routine."
+    }
+  ]
+}

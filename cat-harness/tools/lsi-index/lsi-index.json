@@ -1,0 +1,71 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "lsi-index",
+    "title": "Build the Latent Semantic Indexing index of a prose graph",
+    "description": "Build the per-graph LSI index sidecar for every declared prose graph (or the one named): input fingerprint, parameters, dimension summaries, nearest neighbours and near-duplicate findings, never the vectors. Records each run's outcome and input fingerprint, success or failure, as a `folio-tool-run/v1` record.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat lsi index"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "Layer declaring the graph, e.g. `cat-harness`.",
+          "required": false,
+          "arg": {
+            "flag": "--instance"
+          }
+        },
+        {
+          "name": "graph",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "Graph id within the layer, e.g. `skills`.",
+          "required": false,
+          "arg": {
+            "flag": "--graph"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "index",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "`test/results/lsi/<instance>/<graph>.lsi.json`, and the run record under `test/results/tool-runs/lsi-index/`."
+        }
+      ]
+    },
+    "satisfies": [
+      "lsi-indexing"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    },
+    "downstream": {
+      "output": "cat-harness/test/results/lsi/",
+      "inputs": [
+        "every declared prose graph (graph typologies library, skills, folio, docs, methodology, memory, policies, glossary)"
+      ],
+      "judgedAt": "checkout"
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "── Downstream outputs ─────────────────────────────────────────────\n\nBean `fq5u`: a Tool that keeps a derived output current declares it,\nwith its inputs, so `kg:audit`'s `tool-downstream-fresh` can say whether\nthe last run SUCCEEDED over the current inputs — and never reads \"no\nrun recorded\" as green. See `schemas/tools/tool.ts#ToolDownstreamSchema`."
+    }
+  ]
+}
