@@ -1,0 +1,124 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "skill-update",
+    "title": "Edit a skill",
+    "description": "Change one existing local skill's instruction file through a gate: it must resolve as skill-fetch serves it, be tracked in the working repository, not be generated, be granted `skill-update` to the actor by a policy, be unchanged since it was read, keep its name and parse, and add only links that resolve. A gate that cannot decide refuses. Writes the working tree; the caller commits.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "mcp": {
+        "tool": "skill_update"
+      },
+      "inProcess": {
+        "module": "src/tools/skill-update.ts"
+      }
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "skill",
+          "schema": {
+            "$type": "SkillName"
+          },
+          "required": true
+        },
+        {
+          "name": "package_name",
+          "schema": {
+            "$type": "PackageName"
+          },
+          "required": false
+        },
+        {
+          "name": "new_content",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "The whole new file: front matter and body.",
+          "required": true,
+          "arg": {
+            "stdin": true
+          }
+        },
+        {
+          "name": "base_sha256",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "SHA-256 hex of the file as the caller read it.",
+          "required": true
+        },
+        {
+          "name": "reason",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Why the skill changes.",
+          "required": true
+        },
+        {
+          "name": "actor",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The declared actor making the write; a policy must grant it skill-update.",
+          "required": false
+        },
+        {
+          "name": "process",
+          "schema": {
+            "$type": "ProcessId"
+          },
+          "description": "The BPMN process the write is a step of, for the PROV-O activity.",
+          "required": false
+        },
+        {
+          "name": "task",
+          "schema": {
+            "$type": "NodeId"
+          },
+          "description": "The task in that process.",
+          "required": false
+        },
+        {
+          "name": "role",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The role the lane binds.",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "verdict",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "Written or not, every gate's verdict with its reason, findings, and the PROV-O activity of an accepted write when a step was named."
+        },
+        {
+          "name": "activity",
+          "schema": {
+            "$type": "ProvActivity"
+          },
+          "description": "The PROV-O activity of an accepted write that named its process, task and role; absent otherwise. Pass it to workflow_complete's `activities` for that step."
+        }
+      ]
+    },
+    "satisfies": [
+      "skills-and-tools"
+    ],
+    "requires": {
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "folio-assistant#875: a skill edit goes through a governed Tool node, not a\nraw file write. The spec is the spec-kit comment on #875, Adjudicated by\nthe owner 2026-10-29. Implemented in the tools layer (https://github.com/litlfred/cat-harness-tools)."
+    }
+  ]
+}

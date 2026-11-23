@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_NarrativeCodeReview"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="reviewer" name="Reviewer / SME"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Prose and the code it describes — folio-assistant
+       Issue #1042, feature bean folio-assistant-flbx, stage C (bean chhd).
+
+       Called from review-task.bpmn when a change touches both sides of a
+       DECLARED prose/code pair. The machine has already run: kg:audit
+       carries prose-reviewed-since-code-changed (stage B) and
+       prose-claims-resolve (stage A) on the subject's sidecar. This diagram
+       is the judgement over what those two could not settle.
+
+       ADVISORY, like every review subprocess: a reviewer's reading cannot
+       be gated. What is recorded is: an attestation carries a reason
+       (pairs:attest refuses one without it), a confirmed mismatch is a
+       finding against a named side, and a disagreement with a checker is
+       never settled here — it descends into adjudication.
+
+       Skill: sdlc/skills/sdlc-core/narrative-asserts-code.md
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:collaboration id="Collab_NarrativeCodeReview">
+    <bpmn:participant id="Participant_NarrativeCodeReview" name="Prose and the code it describes" processRef="Process_NarrativeCodeReview"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_NarrativeCodeReview" name="Prose and the code it describes" isExecutable="true">
+    <bpmn:documentation>Judging whether the prose side of a declared prose/code pair still says what the code does, once the machine has done what it can. You are in this process when a change touches both sides of a declared pair — a diagram and the workflow it implements, a skill and the code beside it — and review-task has sent it here.
+
+The mechanical half is already on the subject's kg-qa sidecar: prose-reviewed-since-code-changed says whether the code moved while the prose stood still, and prose-claims-resolve says which claims the prose makes about the code hold, are false, or could not be determined. This process judges only what is left — the stale pairs, the false claims and the undetermined ones — and never re-derives what the checks already settled.
+
+Three outcomes, each leaving a record: the prose holds (attested, with a reason), the two really disagree (a finding against the side that is wrong), or the reviewer disagrees with a checker's verdict (adjudication, which keeps the checker's entry beneath the judgement). A proof and its Lean are the one pair kind a proof assistant can settle; that specialisation is proof-narrative-lean-equivalence, not this diagram.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_NarrativeCodeReview">
+      <bpmn:lane id="Lane_PairReviewer" name="Reviewer" partitionElementRef="reviewer">
+        <bpmn:documentation>The generic reviewer, taking this lane for the call path only: it reads what the pair checks left open and settles each item one of three ways. It can attest and raise findings but cannot overrule a checker on its own say-so — that is what the call into adjudication is for.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_PairChanged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ReadPairFindings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Open</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NothingOpen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ReRead</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Verdict</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Attest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_RaiseFinding</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Adjudication</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Settled</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_PairChanged" name="A declared pair changed">
+      <bpmn:outgoing>F_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="A_ReadPairFindings" name="Read the pair checks' findings">
+      <bpmn:documentation>Open the subject's kg-qa sidecar and list what is open: a failing prose-reviewed-since-code-changed (code moved, prose did not), and every false or undetermined claim from prose-claims-resolve — `bun run cat pairs:claims` prints the full list, including what it did not check. Claims that hold and pairs that are not stale need nothing.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="narrative-asserts-code"/></bpmn:extensionElements>
+      <bpmn:incoming>F_1</bpmn:incoming>
+      <bpmn:outgoing>F_2</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- Computable from the sidecar, so it carries no cat-harness.processes:judgement. No
+         DMN table decides it yet; that is the q0tc column, not this one. -->
+    <bpmn:exclusiveGateway id="GW_Open" name="Anything left open?">
+      <bpmn:documentation>Whether the sidecar holds anything the machine could not settle: a stale pair, or a claim that is false or undetermined. Computable from the two criteria's results, not a judgement. Nothing open means the pair review has nothing to add.</bpmn:documentation>
+      <bpmn:incoming>F_2</bpmn:incoming>
+      <bpmn:outgoing>F_Open</bpmn:outgoing>
+      <bpmn:outgoing>F_None</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_NothingOpen" name="Nothing open — the checks settled it">
+      <bpmn:incoming>F_None</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:task id="A_ReRead" name="Re-read the prose against the code">
+      <bpmn:documentation>For each open item, read the prose claim beside the code it describes and decide what is true. For a stale pair, read what changed in the code and whether the prose still describes it. For an undetermined claim, say whether it points at something real outside this repository. For a false claim, check the checker's reading before trusting it.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="narrative-asserts-code"/></bpmn:extensionElements>
+      <bpmn:incoming>F_Open</bpmn:incoming>
+      <bpmn:outgoing>F_3</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Verdict" name="What did the re-read find?">
+      <bpmn:documentation>The reviewer's reading, one of three: the prose still holds; the prose and the code really disagree; or the reviewer disagrees with a checker's own verdict. The third is never resolved in this lane, because a reviewer overruling a checker quietly loses the disagreement, which is information.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="Reading prose against code is exactly what the stage A checks could not do — the open items are, by construction, the claims no rule resolved. A table here would have to decide the undetermined cases the machine already declined to decide."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_3</bpmn:incoming>
+      <bpmn:outgoing>F_Holds</bpmn:outgoing>
+      <bpmn:outgoing>F_Mismatch</bpmn:outgoing>
+      <bpmn:outgoing>F_Disagree</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_Attest" name="Attest the pair, with a reason">
+      <bpmn:documentation>The prose holds: record it with `bun run cat pairs:attest -- --sidecar … --by agent|human --reason "…"`, naming what was compared. The attestation moves the pair's baseline to the current hashes, so the staleness flag clears and stays cleared until the code moves again.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="narrative-asserts-code"/></bpmn:extensionElements>
+      <bpmn:incoming>F_Holds</bpmn:incoming>
+      <bpmn:outgoing>F_4</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_RaiseFinding" name="Raise a finding against the wrong side">
+      <bpmn:documentation>The prose and the code really disagree: raise a finding that names which side is wrong and why. Usually the prose, because the code is what runs — but a skill can state intended behaviour correctly while the code has regressed, and then the finding is against the code.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-feedback"/></bpmn:extensionElements>
+      <bpmn:incoming>F_Mismatch</bpmn:incoming>
+      <bpmn:outgoing>F_5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:callActivity id="Call_Adjudication" name="Adjudicate against the checker" calledElement="Process_CriterionAdjudication">
+      <bpmn:documentation>The reviewer and a checker read the same claim differently — a disagreement about ONE kg-qa criterion (prose-claims-resolve). Descend into Process_CriterionAdjudication, which runs the shared adjudication and then one of its three outcomes: the checker's finding stands, the criterion is scoped, or a dispensation is granted with its reason. The checker's entry is kept beneath the verdict rather than overwritten (requirement R4 of issue #1042).</bpmn:documentation>
+      <bpmn:extensionElements><cat-harness.processes:adjudication accepts="stands scope dispensation"/></bpmn:extensionElements>
+      <bpmn:incoming>F_Disagree</bpmn:incoming>
+      <bpmn:outgoing>F_6</bpmn:outgoing>
+    </bpmn:callActivity>
+
+    <bpmn:endEvent id="End_Settled" name="Settled, with a record">
+      <bpmn:incoming>F_4</bpmn:incoming>
+      <bpmn:incoming>F_5</bpmn:incoming>
+      <bpmn:incoming>F_6</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="F_1" sourceRef="Start_PairChanged" targetRef="A_ReadPairFindings"/>
+    <bpmn:sequenceFlow id="F_2" sourceRef="A_ReadPairFindings" targetRef="GW_Open"/>
+    <bpmn:sequenceFlow id="F_Open" name="yes" sourceRef="GW_Open" targetRef="A_ReRead"/>
+    <bpmn:sequenceFlow id="F_None" name="no" sourceRef="GW_Open" targetRef="End_NothingOpen"/>
+    <bpmn:sequenceFlow id="F_3" sourceRef="A_ReRead" targetRef="GW_Verdict"/>
+    <bpmn:sequenceFlow id="F_Holds" name="the prose holds" sourceRef="GW_Verdict" targetRef="A_Attest"/>
+    <bpmn:sequenceFlow id="F_Mismatch" name="they disagree" sourceRef="GW_Verdict" targetRef="A_RaiseFinding"/>
+    <bpmn:sequenceFlow id="F_Disagree" name="I disagree with the checker" sourceRef="GW_Verdict" targetRef="Call_Adjudication"/>
+    <bpmn:sequenceFlow id="F_4" sourceRef="A_Attest" targetRef="End_Settled"/>
+    <bpmn:sequenceFlow id="F_5" sourceRef="A_RaiseFinding" targetRef="End_Settled"/>
+    <bpmn:sequenceFlow id="F_6" sourceRef="Call_Adjudication" targetRef="End_Settled"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_NarrativeCodeReview">
+    <bpmndi:BPMNPlane id="Plane_NarrativeCodeReview" bpmnElement="Collab_NarrativeCodeReview">
+      <bpmndi:BPMNShape id="Shape_Participant_NarrativeCodeReview" bpmnElement="Participant_NarrativeCodeReview" isHorizontal="true">
+        <dc:Bounds x="160" y="50" width="1220" height="410" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_PairReviewer" bpmnElement="Lane_PairReviewer" isHorizontal="true">
+        <dc:Bounds x="190" y="50" width="1190" height="410" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_PairChanged" bpmnElement="Start_PairChanged">
+        <dc:Bounds x="232" y="232" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="274" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ReadPairFindings" bpmnElement="A_ReadPairFindings">
+        <dc:Bounds x="325" y="190" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Open" bpmnElement="GW_Open" isMarkerVisible="true">
+        <dc:Bounds x="510" y="225" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="490" y="183" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_NothingOpen" bpmnElement="End_NothingOpen">
+        <dc:Bounds x="517" y="350" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="560" y="335" width="95" height="71" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ReRead" bpmnElement="A_ReRead">
+        <dc:Bounds x="625" y="190" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Verdict" bpmnElement="GW_Verdict" isMarkerVisible="true">
+        <dc:Bounds x="810" y="225" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="752" y="182" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Attest" bpmnElement="A_Attest">
+        <dc:Bounds x="965" y="60" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_RaiseFinding" bpmnElement="A_RaiseFinding">
+        <dc:Bounds x="965" y="190" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Adjudication" bpmnElement="Call_Adjudication">
+        <dc:Bounds x="965" y="320" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Settled" bpmnElement="End_Settled">
+        <dc:Bounds x="1200" y="232" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1244" y="223" width="90" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_F_1" bpmnElement="F_1">
+        <di:waypoint x="268" y="250" />
+        <di:waypoint x="325" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_2" bpmnElement="F_2">
+        <di:waypoint x="445" y="250" />
+        <di:waypoint x="510" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Open" bpmnElement="F_Open">
+        <di:waypoint x="560" y="250" />
+        <di:waypoint x="625" y="250" />
+        <bpmndi:BPMNLabel><dc:Bounds x="578" y="228" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_None" bpmnElement="F_None">
+        <di:waypoint x="535" y="275" />
+        <di:waypoint x="535" y="350" />
+        <bpmndi:BPMNLabel><dc:Bounds x="542" y="295" width="25" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_3" bpmnElement="F_3">
+        <di:waypoint x="745" y="250" />
+        <di:waypoint x="810" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Holds" bpmnElement="F_Holds">
+        <di:waypoint x="835" y="225" />
+        <di:waypoint x="835" y="120" />
+        <di:waypoint x="965" y="120" />
+        <bpmndi:BPMNLabel><dc:Bounds x="845" y="96" width="105" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Mismatch" bpmnElement="F_Mismatch">
+        <di:waypoint x="860" y="250" />
+        <di:waypoint x="965" y="250" />
+        <bpmndi:BPMNLabel><dc:Bounds x="862" y="205" width="100" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Disagree" bpmnElement="F_Disagree">
+        <di:waypoint x="835" y="275" />
+        <di:waypoint x="835" y="380" />
+        <di:waypoint x="965" y="380" />
+        <bpmndi:BPMNLabel><dc:Bounds x="842" y="386" width="115" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_4" bpmnElement="F_4">
+        <di:waypoint x="1085" y="120" />
+        <di:waypoint x="1218" y="120" />
+        <di:waypoint x="1218" y="232" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_5" bpmnElement="F_5">
+        <di:waypoint x="1085" y="250" />
+        <di:waypoint x="1200" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_6" bpmnElement="F_6">
+        <di:waypoint x="1085" y="380" />
+        <di:waypoint x="1218" y="380" />
+        <di:waypoint x="1218" y="268" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

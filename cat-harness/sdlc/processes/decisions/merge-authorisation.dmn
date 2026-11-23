@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "Is THIS merge authorised?" — GW_Authorised in merge-to-main.bpmn.
+  Skill: merge-to-main §"Authorisation — who, and what counts".
+
+    authorisation  "explicit" | "waiver" | "instruction-only" | "none" | "unknown"
+                   classified by Task_ReadAuthorisation. "explicit" is the
+                   owner's own words naming this merge, against this head.
+                   "waiver" is a valid memory/waivers node, gate merge-to-main,
+                   in scope and unexpired (confirmation-waiver). A broad
+                   instruction about the work ("fix all issues until green",
+                   "ship it", "prepare-merge") is "instruction-only".
+    ciState        "green" | "none" | "advisory": the values GW_Evidence lets
+                   through. "advisory" is a NON-release merge, where CI is
+                   read and reported but is not a gate (owner, card Q-CIB-4
+                   A, 2026-11-08: "CI not gate on non-release merge to main").
+                   A release is always "green" or "none" here.
+
+  Two outcomes only: "merge" or "ask". There is no "skip": an unanswerable
+  case asks, which costs one round trip, while a wrong "merge" cannot be taken
+  back quietly. The 2026-10-09 incident was instruction-only over none.
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_MergeAuthorisation"
+             name="Merge authorisation"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_MergeAuthorisation" name="Is this merge authorised?">
+    <decisionTable id="Table_MergeAuthorisation" hitPolicy="FIRST">
+      <input id="In_Authorisation" label="what authorisation was found for this merge">
+        <inputExpression id="Expr_Authorisation" typeRef="string"><text>authorisation</text></inputExpression>
+      </input>
+      <input id="In_Ci" label="CI on the head">
+        <inputExpression id="Expr_Ci" typeRef="string"><text>ciState</text></inputExpression>
+      </input>
+      <output id="Out_Authorisation" name="outcome" typeRef="string" />
+      <rule id="Rule_Explicit">
+        <description>The owner's own words name this merge. For a head with no CI, the question they answered said so in words.</description>
+        <inputEntry id="IE_Explicit_1"><text>"explicit"</text></inputEntry>
+        <inputEntry id="IE_Explicit_2"><text>"green","none","advisory"</text></inputEntry>
+        <outputEntry id="OE_Explicit"><text>"merge"</text></outputEntry>
+      </rule>
+      <rule id="Rule_WaiverGreen">
+        <description>A valid standing waiver covers a green head, and a non-release merge whose CI is advisory.</description>
+        <inputEntry id="IE_WaiverGreen_1"><text>"waiver"</text></inputEntry>
+        <inputEntry id="IE_WaiverGreen_2"><text>"green","advisory"</text></inputEntry>
+        <outputEntry id="OE_WaiverGreen"><text>"merge"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Otherwise">
+        <description>Everything else asks: a waiver over a head nothing tested, a broad instruction about the work, nothing found, or waivers that could not be read.</description>
+        <inputEntry id="IE_Otherwise_1"><text>-</text></inputEntry>
+        <inputEntry id="IE_Otherwise_2"><text>-</text></inputEntry>
+        <outputEntry id="OE_Otherwise"><text>"ask"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

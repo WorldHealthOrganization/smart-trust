@@ -1,0 +1,136 @@
+name: Release NPM Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.1.0)'
+        required: true
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  # Regenerate at release (owner, 2026-11-06, option 3): the derived files are
+  # regenerated in the composed index at this commit and handed over as a
+  # patch, which the release job applies to its checkout before it packs, so
+  # the package is never built from stale derived files. Nothing is committed
+  # to main. An unrepaired check, or READMEs that reach no fixpoint, fail this
+  # job, and the release job (which needs it) then publishes nothing. See
+  # https://github.com/litlfred/cat-harness-tools/blob/main/.github/workflows/layer-post-merge-regen.yml
+  regen:
+    permissions:
+      contents: read
+    uses: litlfred/cat-harness-tools/.github/workflows/layer-post-merge-regen.yml@main
+    with:
+      mode: release
+
+  release:
+    needs: regen
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Fetch the regen of this commit
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: ${{ needs.regen.outputs.artifact }}
+          path: ${{ runner.temp }}/regen
+
+      - name: Apply the regen to the package's tree
+        # Into the published package only; nothing is pushed.
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/regen"
+          base="$(cat "$dir/base-sha")"
+          head="$(git rev-parse HEAD)"
+          if [ "$base" != "$head" ]; then
+            echo "::error::The regen was made at ${base:0:10}, but this release checks out ${head:0:10}: refusing to pack."
+            exit 1
+          fi
+          if [ -s "$dir/regen.patch" ]; then
+            git apply --index "$dir/regen.patch"
+            echo "Regenerated into the package ($(cat "$dir/checks.txt")):"
+            cat "$dir/changed.txt"
+          else
+            echo "Every derived file was current at ${head:0:10}."
+          fi
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          package-manager-cache: false
+          node-version: 22
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@litlfred'
+
+      - name: Determine version and tag
+        id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          VERSION="$INPUT_VERSION"
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "version<<$EOF" >> "$GITHUB_OUTPUT"
+          echo "$VERSION" >> "$GITHUB_OUTPUT"
+          echo "$EOF" >> "$GITHUB_OUTPUT"
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "tag<<$EOF" >> "$GITHUB_OUTPUT"
+          echo "v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "$EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build package tarball
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          bun pm pack
+          ls -la *.tgz
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "@litlfred/cat-harness v${{ steps.version.outputs.version }}"
+          body: |
+            ## @litlfred/cat-harness v${{ steps.version.outputs.version }}
+
+            Knowledge graph schemas, skills, tools, and harness platform foundation.
+
+            ### Install from GitHub Packages
+
+            ```bash
+            bun add @litlfred/cat-harness@${{ steps.version.outputs.version }}
+            ```
+          files: |
+            *.tgz
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+
+      - name: Publish to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm publish --registry=https://npm.pkg.github.com
+        continue-on-error: true
+
+      - name: Publish to npm registry (optional)
+        if: env.NPM_TOKEN != ''
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm publish --registry=https://registry.npmjs.org --access public
+        continue-on-error: true

@@ -1,0 +1,53 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "site-publish-after",
+    "title": "Name the workflows a site publish waits for on the same commit",
+    "description": "Print the repository's workflows that a site publish must wait for, on the same commit, before it builds: every workflow that calls a reusable workflow a declared site publisher names in `after` (for example an IG's AST refresh, which seeds the cache the site is built from), plus `site.publishAfter` from `index.config.json`. A workflow that calls the shared site publish is never named: it is the publish itself. The shared `folio-site-publish.yml` runs it and then waits for each workflow it names.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat site:publish-after"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "repo",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The repository checkout whose workflows to read. Default: the current directory.",
+          "required": false,
+          "arg": {
+            "flag": "--repo"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "workflows",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The workflow file names to wait for, space-separated on one line; empty when there is none."
+        }
+      ]
+    },
+    "satisfies": [
+      "feature-staging"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "check:workflow-tools on folio-assistant main, 2026-11-22: folio-site-publish.yml runs\ncat-harness-tools/scripts/site-publish-after.ts (tools#2472) and no Tool reached it."
+    }
+  ]
+}

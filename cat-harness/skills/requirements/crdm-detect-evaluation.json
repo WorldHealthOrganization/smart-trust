@@ -1,0 +1,55 @@
+{
+  "_comment": "Bean folio-assistant-ff09 (arc 3fva, dogfood test plan #1). The owner ruled 2026-10-01 that a plan needs a `req:` requirement first, and 2026-10-11 (option 4) that there is NO threshold: a certification against this requirement records the precision and recall it measured and certifies only that the plan was executed. So no statement here names a number, and none may be read as one — the baseline measured 2026-10-10 (27 cases, precision = recall = F1 = 0.9545) is a fact about one run, not an obligation.",
+  "id": "req:crdm-detect-evaluation",
+  "title": "crdm-detect is evaluated, and its numbers are recorded",
+  "description": "The crdm-detect skill is run over its declared evaluation corpus by a tester who is not the skill, every case is accounted for, and the precision, recall and F1 it reached are recorded against the exact data and code that produced them. No threshold applies (owner, 2026-10-11): the evidence is the measurement, and a certification says the measurement was made.",
+  "derivedFrom": [
+    "req:agent-workflow"
+  ],
+  "actors": [
+    "ci-pipeline",
+    "programme-manager",
+    "untainted-checker"
+  ],
+  "statements": [
+    {
+      "key": "runs-over-declared-corpus",
+      "label": "Runs over the declared corpus",
+      "conformance": "SHALL",
+      "requirement": "An evaluation of crdm-detect SHALL run the skill's detector over every issue of its evaluation corpus (cat-harness-tools/scripts/eval/crdm-detect-corpus.json: the whole population of 27 issues, labels owner-adjudicated where the two annotators of bean vjbl disagreed; the second rater's labels are kept in crdm-detect-second-annotator.json as provenance), and SHALL give every case a verdict or an explicit skip with a reason.",
+      "successCriteria": [
+        {
+          "key": "every-case-accounted-for",
+          "criterion": "The test report gives each case of the plan a verdict or a skip with a reason, and names no case the plan lacks.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "numbers-recorded",
+      "label": "Precision, recall and F1 are recorded, with what produced them",
+      "conformance": "SHALL",
+      "requirement": "The run SHALL record the confusion counts, precision, recall and F1, together with the hash of the data and of the code that produced them, so the numbers can be reproduced or shown stale.",
+      "successCriteria": [
+        {
+          "key": "outcome-and-hashes-present",
+          "criterion": "The test run carries the confusion counts and the three ratios, and a known data hash and process hash.",
+          "verification": "inspection"
+        }
+      ]
+    },
+    {
+      "key": "not-self-judged",
+      "label": "The skill does not judge itself",
+      "conformance": "SHALL NOT",
+      "requirement": "The system under test SHALL NOT write its own verdict: case verdicts come from comparing its output with the corpus's recorded labels, and a sample is re-executed by an untainted checker blind to the tester's verdicts.",
+      "successCriteria": [
+        {
+          "key": "checker-agrees-on-sample",
+          "criterion": "The untainted checker's re-execution of a sample agrees with the tester's verdicts, and no verdict's reviewer is the system under test.",
+          "verification": "test"
+        }
+      ]
+    }
+  ]
+}

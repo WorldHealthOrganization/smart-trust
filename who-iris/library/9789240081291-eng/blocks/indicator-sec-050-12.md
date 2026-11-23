@@ -1,0 +1,3 @@
+Sub-indicator 4-01.11
+Existence of remuneration of community health workers through salary (Yes/Partial/No/Not applicable)
+Guiding questions: Do community health workers (CHWs) receive a remuneration for their work? What is their source of remuneration? Is the remuneration provided as a salary or for performing specific activities? Follow these guiding questions, the suggested classification would be: • “Yes”: CHWs receive fixed salary • “Partial”: CHWs receive monetary incentives for performing specific activities (irregular source of income) • “No”: CHWs receive non-monetary incentives or are not paid at all • “Not applicable”: there are no CHWs in the country

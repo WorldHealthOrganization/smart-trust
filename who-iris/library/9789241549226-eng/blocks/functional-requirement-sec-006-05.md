@@ -1,0 +1,1 @@
+The health workforce registry is a central and essential component of a functional HRIS, as it contains important health worker attributes that can subsequently be linked to other relevant HRIS components.

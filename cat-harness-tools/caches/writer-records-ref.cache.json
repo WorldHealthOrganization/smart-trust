@@ -1,0 +1,33 @@
+{
+  "$schema": "cache/1.0.0",
+  "id": "writer-records-ref",
+  "title": "Published page-build writer records (refs/cat/writer-records)",
+  "instance": "cat-harness-tools",
+  "kind": "git-ref",
+  "trustClass": "b",
+  "location": "refs/cat/writer-records/<commit> (and the moving refs/cat/writer-records/main), in the repository the records are for",
+  "keyRecipe": {
+    "source": "script",
+    "implementation": "scripts/writer-records-ref.ts#refFor",
+    "expression": "refs/cat/writer-records/<the commit the records were built at>; a PR asks for its base commit, then main"
+  },
+  "derivedInputs": "the commit the records were built at; each writer's record is matched against the PR's reads path by path by writer-cone.ts",
+  "holds": "build/writer-cone as derive:publish left it: records.json and one outputs entry per recorded writer",
+  "producer": "whoever re-pins (owner 2026-11-08): `bun run cat writer-records:publish --build --main` over the composed root, recording incrementally against the published main ref; refused unless the records are of the commit named and every record's outputs entry is present",
+  "consumers": [
+    "layer-pr-checks.yml prepare-head/prepare-base on PRs (the Actions cache lpc-writer-cone is the fallback)"
+  ],
+  "savePolicy": "written by its publisher, never by a runner; pruned to the refs of the newest 20 main commits plus main",
+  "verify": "a skip restores a writer's outputs only when they hash to its record (writer-cone.ts outputsDiffer), else the writer runs; main's full build judges every record with writer-cone-verify.ts --gate, the gate publish:writer-records, red on any writer that would have been served stale",
+  "owner": "cache-first CI (cat-harness-tools#1702)",
+  "uses": [
+    "scripts/writer-records-ref.ts",
+    "scripts/writer-cone-verify.ts",
+    ".github/workflows/layer-pr-checks.yml"
+  ],
+  "notes": "A verdict cache: a skip is reported, and re-verified by main's next full build. Replaces the Actions cache as the primary store so cancelled main runs no longer lose records.",
+  "stateInputs": {
+    "reads": "unmeasured",
+    "how": "the writers' traced reads include state:mount graphs; each is checked at use"
+  }
+}

@@ -1,0 +1,84 @@
+{%- comment -%}
+  Include as: {%- include_cached nav_cache/breadcrumbs_map.html -%}
+  Depends on: site (only), so it is rendered ONCE per build and cached.
+  Results in: a lookup string, one record per link in the full navigation
+    (`components/site_nav.html all=true`):
+      |@|<href>|=|<crumb>|#|<crumb>|#|...
+    where each <crumb> is one entry of the `nav_breadcrumbs` array that
+    just-the-docs 0.12.0's `components/breadcrumbs.html` computes for the page
+    at <href>, in order. The last record, keyed `*end*`, is the stack after the
+    whole nav: what the theme computes for a page whose link is not in it.
+
+  WHY ("cache the nav"). The theme's breadcrumbs include splits the whole nav
+  up to the page's link at every "</a>" and walks each anchor before it: O(pages)
+  Liquid work on every page, O(pages^2) for the site. Here the same walk is
+  done once, over the whole nav, and each page looks its crumbs up
+  (`components/breadcrumbs.html` in this directory). The loop body is the
+  theme's VERBATIM. The stack before split k is exactly the theme's for the
+  page whose link ends split k: the theme's splits of that page's prefix are
+  the first k splits here, and the last of them differs only after the page's
+  link, where no "</ul>" can be. A nav-category resets the stack, as the
+  theme's `split: nav_category | last` does.
+
+  Keep in step with the theme's `_includes/components/breadcrumbs.html` when
+  the just-the-docs pin moves (upstream/upstream-pins.json).
+{%- endcomment -%}
+
+{%- capture site_nav -%}
+{%- include_cached components/site_nav.html all=true -%}
+{%- endcapture -%}
+
+{%- capture nav_list_simple -%}
+<ul class="nav-list">
+{%- endcapture -%}
+
+{%- capture nav_list_link_class %} class="nav-list-link">
+{%- endcapture -%}
+
+{%- capture nav_category -%}
+<div class="nav-category">
+{%- endcapture -%}
+
+{%- assign nav_link_open = '<a href="' -%}
+{%- assign nav_link_close = '" class="nav-list-link">' -%}
+
+{%- assign nav_anchor_splits = site_nav | split: "</a>" -%}
+
+{%- assign nav_breadcrumbs = "" | split: "" -%}
+
+{%- for nav_split in nav_anchor_splits -%}
+
+{%- if nav_split contains nav_category -%}
+  {%- assign nav_breadcrumbs = "" | split: "" -%}
+{%- endif -%}
+
+{%- if nav_split contains nav_link_close -%}
+  {%- assign nav_href = nav_split | split: nav_link_open | last | split: nav_link_close | first -%}
+|@|{{ nav_href }}|=|{{ nav_breadcrumbs | join: "|#|" }}
+{%- endif -%}
+
+{%- unless forloop.last -%}
+
+{%- assign nav_split_next = nav_anchor_splits[forloop.index] | strip -%}
+
+{%- assign nav_split_test =
+      nav_split_next | remove_first: nav_list_simple | prepend: nav_list_simple -%}
+{%- if nav_split_test == nav_split_next -%}
+  {%- assign nav_breadcrumb_link =
+        nav_split | split: "<a " | last | prepend: "<a " |
+        replace: nav_list_link_class, ">" | append: "</a>" -%}
+  {%- assign nav_breadcrumbs = nav_breadcrumbs | push: nav_breadcrumb_link -%}
+{%- endif -%}
+
+{%- if nav_split_next contains "</ul>" -%}
+  {%- assign nav_list_end_less = nav_split_next | remove: "</ul>" -%}
+  {%- assign nav_list_end_count =
+        nav_split_next.size | minus: nav_list_end_less.size | divided_by: 5 -%}
+  {% for nav_end_index in (1..nav_list_end_count) %}
+    {%- assign nav_breadcrumbs = nav_breadcrumbs | pop -%}
+  {%- endfor -%}
+{%- endif -%}
+
+{%- endunless -%}
+{%- endfor -%}
+|@|*end*|=|{{ nav_breadcrumbs | join: "|#|" }}|@|

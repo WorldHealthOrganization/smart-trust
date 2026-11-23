@@ -1,0 +1,65 @@
+{
+  "name": "smart-l3",
+  "version": "0.1.0",
+  "description": "The skills that produce L3, the FHIR IG: DAK pre- and post-processing around the IG Publisher, IG artefact ingestion, choosing IG dependencies, and the L3 readiness check. Split out of `authoring-who-smart-guidelines` by layer (issue #359); the stack-wide skills (the end-to-end process, creating a guideline, the stack's layering, toolchain ownership, the smart-base tools) stay there.",
+  "skills": [
+    "dak-postprocessing",
+    "dak-preprocessing",
+    "ig-artifact-ingestion",
+    "l3-dependency-choice",
+    "l3-readiness"
+  ],
+  "docker": {
+    "baseImage": "ubuntu:24.04",
+    "aptPackages": [
+      "curl",
+      "git",
+      "git-lfs",
+      "build-essential",
+      "python3",
+      "python3-pip",
+      "python3-venv",
+      "nodejs",
+      "npm",
+      "openjdk-21-jre-headless",
+      "ruby-full",
+      "graphviz",
+      "plantuml",
+      "ca-certificates",
+      "wget",
+      "unzip",
+      "jq"
+    ],
+    "pipPackages": [
+      "fhir.resources",
+      "fhirpathpy",
+      "requests",
+      "pyyaml",
+      "jsonschema",
+      "lxml"
+    ],
+    "npmPackages": [
+      "fsh-sushi",
+      "typescript",
+      "ts-node"
+    ],
+    "setupCommands": [
+      "mkdir -p /opt/ig-publisher && curl -L -o /opt/ig-publisher/publisher.jar https://github.com/HL7/fhir-ig-publisher/releases/latest/download/publisher.jar",
+      "gem install jekyll bundler",
+      "echo 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64' >> /etc/profile.d/java.sh"
+    ],
+    "exposePorts": [
+      4000
+    ],
+    "env": {
+      "JAVA_HOME": "/usr/lib/jvm/java-21-openjdk-amd64",
+      "IG_PUBLISHER_JAR": "/opt/ig-publisher/publisher.jar",
+      "PATH": "/usr/local/bin:${PATH}"
+    },
+    "labels": {
+      "org.opencontainers.image.title": "folio-assistant-smart-guidelines",
+      "org.opencontainers.image.description": "WHO SMART Guidelines authoring environment with FHIR IG Publisher, SUSHI, and validation tools",
+      "org.opencontainers.image.source": "https://github.com/litlfred/folio-assistant"
+    }
+  }
+}

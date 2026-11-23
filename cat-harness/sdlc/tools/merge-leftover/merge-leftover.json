@@ -1,0 +1,69 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "merge-leftover",
+    "title": "Merge leftover (has a PR's intent landed?)",
+    "description": "After a train merged, compare a PR's head with the base path by path and say whether what it still changes is ONLY generated files, generated README regions, or changes the base already carries (its patch applies in reverse to the base): `landed`, `not-landed` with the authored paths still different, or `could-not-determine`, which is never shown as clean. Only reports; closing the PR stays a steward action.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat merge:leftover"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "member",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "The PR number or branch. On the command line a PR may be pinned as `N:<sha>`.",
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "base",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "The base the train landed on; default `origin/main`.",
+          "required": false,
+          "arg": {
+            "flag": "--base"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "`merge-leftover/v1` on stdout. Exit 0 landed, 1 not-landed, 2 could not determine."
+        }
+      ]
+    },
+    "satisfies": [
+      "merge-conflict-patterns"
+    ],
+    "selection": {
+      "when": "After a train lands, for each member PR still open, before the steward decides whether to close it.",
+      "limits": "An authored path whose lines the base rewrote after the train reads `not-landed`: the reverse patch no longer applies, and only a person can say whether the rewrite kept the intent.",
+      "cost": "One fetch, then one `git diff` and one `git apply --check` per authored path, in a throwaway index. No working tree is touched."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "It reads the remote's pull requests after a train lands."
+      }
+    ]
+  }
+}
