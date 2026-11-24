@@ -1,0 +1,136 @@
+---
+doc_id: 10665-385346
+doc_title: "Cost-effectiveness of introducing the pneumococcal conjugate vaccine for children under 5 years in the Islamic Republic of Iran"
+section_id: page-005
+section_title: "Page 5"
+pages: 5-5
+pdf_page: 5
+source_pdf: 10665-385346.pdf
+source_sha256: fb44d54395d4c22b
+text_source: ocr
+granularity: page
+---
+Research article
+
+EMH] - Vol. 25 No. 10 - 2019
+
+Table 4 Data used for variables in the TRIVAC model to estimate programme costs of pneumococcal conjugate vaccine-13
+
+Variable
+
+Estimate
+
+Scenario
+Source/s
+
+Projected vaccine price per dose (US$)
+
+2014 20.00
+2015 18.00
+2016 16.20
+2017 14.58
+2018 13.12
+2019 1.81
+2020 10.63
+2021 9.57
+2022 8.61
+2023 7-75
+Other vaccine dose costs
+International handling (% of vaccine price) 3.0
+International delivery (% of vaccine price) 2.0
+Wastage (e.g. % of doses discarded) 5.0
+Incremental system cost of introduction per dose (US$) 1.05
+
+High Low
+
+35.00 14.24 Local representative of the manufacturer
+31.50 12.82 Derived from TRIVAC
+28.35 11.53 Derived from TRIVAC
+25.52 10.38 Derived from TRIVAC
+22.96 9.34. Derived from TRIVAC
+20.67 8.41 Derived from TRIVAC
+18.60 757 Derived from TRIVAC
+16.74. 6.81 Derived from TRIVAC
+15.07 6.13 Derived from TRIVAC
+13.56 5.52 Derived from TRIVAC
+NA NA TRIVAC assumption (15)
+NA NA TRIVAC assumption (15)
+NA NA TRIVAC assumption (15)
+NA NA Calculated
+
+NA=not applicable.
+
+Health service utilization and costs
+
+It was assumed that 95% of meningitis cases and
+non-pneumonia, non-meningitis cases are hospitalized
+based on data of the Iranian Ministry of Health and Med-
+ical Education. We asked five paediatricians to help with
+clinical assumptions; we assumed that 50% of pneumo-
+nia cases (that is, severe cases) need inpatient admission,
+and all non-severe pneumonia cases need outpatient ser-
+vices, similar to all cases of acute otitis media.
+
+Two categories of public and private vaccination
+providers were considered: clinics and all types of
+hospital. Distribution between outpatient clinics and
+hospital admissions was based on the Iranian Ministry
+of Health and Medical Education as shown in Table 5.
+To calculate the distribution between the public and
+private sector, we used data from the Ministry of Health
+and Medical Education, which indicated that 32.3% and
+67.7% of outpatient services were provided by the public
+and private sector respectively, as were 95% and 5% of
+inpatient services (National Institute of Health Research,
+Islamic Republic of Iran, 2015, personal communication).
+
+To estimate the average inpatient service cost, we
+selected a random sample of 20 patients from each of
+three groups of patients (pneumonia, meningitis, and
+non-pneumonia, non-meningitis infections) from a
+public paediatric hospital and we extracted services and
+costs based on ICD-10-CM diagnostic codes (28). Direct
+medical costs were estimated as bed costs, medications,
+diagnostic tests, nursing care, consultations and other
+costs. We considered mean inpatient costs in a paediatric
+hospital for all types of hospital in the public sector. We
+did the same in one general private hospital to estimate
+the mean cost of inpatient admission in the private sector.
+
+Government costs per inpatient admission include mean
+cost per inpatient day multiplied by the expected length
+of stay that was covered by the universal public insurance
+system. Household costs per outpatient visit included
+direct medical costs (out-of-pocket payments for visit
+and medicines). Household costs per inpatient admission
+included out-of-pocket expenditure for direct medical
+costs of treatment of these diseases. Government costs
+per outpatient visit included the cost of visit, laboratory
+tests, X-rays and treatment. Government spending for
+admission is the daily costs for each inpatient case, which
+varies according to the type of disease.
+
+For outpatient services, we estimated the pattern
+of prescribing, diagnostic tests and medications by
+interviewing 20 professors of paediatric infectious
+diseases, paediatricians and general physicians. We
+extracted costs separately for the public and private
+sector to estimate mean outpatient costs. We considered
+out-of-pocket payments as household expenditure and
+the costs covered by the universal public insurance
+system as government costs.
+
+We estimated average inpatient and outpatient
+costs for household and government based on different
+tariffs and distribution of service utilization. All costs
+were converted from Iranian rials into US$ at a currency
+exchange rate of US$ 1.00 = 35 000 Iranian rials, which was
+an average of the official and market rates for 2014 (29).
+
+Sensitivity analysis
+
+We used upper and lower estimates for different inputs
+to calculate the incremental cost-effectiveness ratio in
+alternative scenarios.
+
+690

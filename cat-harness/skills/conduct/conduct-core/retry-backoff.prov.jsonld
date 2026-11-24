@@ -1,0 +1,101 @@
+{
+  "@context": {
+    "@base": "https://litlfred.github.io/cat-harness/v0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "cat-harness": "https://litlfred.github.io/cat-harness/v0/ns/"
+  },
+  "dcterms:description": "Provenance moved out of the narrative of retry-backoff.md: who decided, when, and under which work item or proposal. The document keeps the rules and their reasons; this log is rendered in its footer.",
+  "@graph": [
+    {
+      "@id": "skills/conduct/conduct-core/retry-backoff.md",
+      "@type": "prov:Entity",
+      "prov:wasInfluencedBy": [
+        {
+          "@id": "skills/conduct/conduct-core/retry-backoff.md#provenance-1"
+        },
+        {
+          "@id": "skills/conduct/conduct-core/retry-backoff.md#provenance-2"
+        },
+        {
+          "@id": "skills/conduct/conduct-core/retry-backoff.md#provenance-3"
+        },
+        {
+          "@id": "skills/conduct/conduct-core/retry-backoff.md#provenance-4"
+        },
+        {
+          "@id": "skills/conduct/conduct-core/retry-backoff.md#provenance-5"
+        },
+        {
+          "@id": "skills/conduct/conduct-core/retry-backoff.md#provenance-6"
+        }
+      ]
+    },
+    {
+      "@id": "skills/conduct/conduct-core/retry-backoff.md#provenance-1",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "owner-decision",
+      "cat-harness:section": "A falling-off retry rate, on every error",
+      "prov:value": "Owner, 2026-09-20: **\"as rule, use logarithmic fall-off on all errors. core\nbest practice.\"**",
+      "cat-harness:refs": [
+        "2026-09-20",
+        "owner"
+      ],
+      "dcterms:date": [
+        "2026-09-20"
+      ]
+    },
+    {
+      "@id": "skills/conduct/conduct-core/retry-backoff.md#provenance-2",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "history",
+      "cat-harness:section": "From a shell script or a workflow, call `backoff-sleep.ts`",
+      "prov:value": "**\"Use `retry.ts`\" does not cover a `run:` body**, which cannot import\nTypeScript — and reading it as though it did is how this rule was broken\neverywhere it applied while its test suite stayed green."
+    },
+    {
+      "@id": "skills/conduct/conduct-core/retry-backoff.md#provenance-3",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "bean",
+      "cat-harness:section": "From a shell script or a workflow, call `backoff-sleep.ts`",
+      "prov:value": "Measured 2026-09-20, bean `06kg`: **all four** retry loops in\n`.github/workflows/feature-staging.yml` slept `$((attempt * 5))` — 5 s then\n10 s, linear and unjittered. That is the schedule §\"Jitter is not decoration\nhere\" below names as the thundering herd, on `gh-pages`, the ref it cites as\nthe contended one, written by the same concurrent sessions it says contend on\nit. Nothing noticed, because the rule had an implementation and a test **in\nTypeScript** and four call sites **in bash that no check read**. It was found\nby somebody reading a sibling's open PR, which is not a mechanism.",
+      "cat-harness:refs": [
+        "bean 06kg",
+        "2026-09-20"
+      ],
+      "dcterms:date": [
+        "2026-09-20"
+      ]
+    },
+    {
+      "@id": "skills/conduct/conduct-core/retry-backoff.md#provenance-4",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "bean",
+      "cat-harness:section": "From a shell script or a workflow, call `backoff-sleep.ts`",
+      "prov:value": "It calls `waitFor` directly, so a workflow and `withBackoff` compute the same\nnumber from the same code. Do **not** write a shell function instead: copied\ninto four `run:` bodies it is four implementations again, which is how six\ncopies of `stripLeanComments` ended up with three broken and nothing saying so\n(bean `bqrg`).",
+      "cat-harness:refs": [
+        "bean bqrg"
+      ]
+    },
+    {
+      "@id": "skills/conduct/conduct-core/retry-backoff.md#provenance-5",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "bean",
+      "cat-harness:section": "Jitter is not decoration here",
+      "prov:value": "Several agent sessions run against this repository at once — four were pushing\nto `gh-pages` inside ninety minutes on 2026-09-20 (bean `bm6d`). Sessions that\nfail together and retry on the same doubling schedule retry **together**,\nwhich is the thundering herd that keeps the far side down. Each wait is\nmultiplied by a random factor in `[0.5, 1.5)`.",
+      "cat-harness:refs": [
+        "bean bm6d",
+        "2026-09-20"
+      ],
+      "dcterms:date": [
+        "2026-09-20"
+      ]
+    },
+    {
+      "@id": "skills/conduct/conduct-core/retry-backoff.md#provenance-6",
+      "@type": "prov:Entity",
+      "cat-harness:provenanceKind": "history",
+      "cat-harness:section": "Inject the clock, or the code is untestable",
+      "prov:value": "A retry loop with real sleeps takes 1 + 2 + 4 + 8 s, and any suite with a sane\ntimeout fails on it. Measured: the first draft of `runsForHead` made\n`a thrown fetch is cannot-ask` take fifteen seconds and fail at bun's five."
+    }
+  ]
+}

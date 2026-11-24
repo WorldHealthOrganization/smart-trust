@@ -1,0 +1,66 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "subgraph-resolve",
+    "title": "Resolve a declared subgraph's content source",
+    "description": "Say where a declared subgraph gets its content — the checkout's own directory, a declared repository branch (with its keying), or a branch family (with its prefix, key and repository) — after the layer config's `subgraphSources` override by id, and which layer answered. The same `declaredSubgraph` resolver the KG export, the publishers and the mount tool use, so a shell sees the answer they act on.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat subgraph:resolve"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "id",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "A declared directory id. Repeatable; absent with `--all`.",
+          "required": false
+        },
+        {
+          "name": "all",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Every subgraph the checkout declares.",
+          "required": false,
+          "arg": {
+            "flag": "--all"
+          }
+        },
+        {
+          "name": "json",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Machine-readable output.",
+          "required": false,
+          "arg": {
+            "flag": "--json"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "source",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "One line per subgraph: its source kind and location, its declarer, and `declaredIn`. Exit 1 when no layer declares the id, 2 when the declaration contradicts itself or names an undeclared branch."
+        }
+      ]
+    },
+    "satisfies": [
+      "directory-conventions"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "_comment": "Filed at adjudication, not at completion (owner, 2026-10-30, option E on cat-harness#686). Spec: the spec-kit comment on litlfred/folio-assistant#875, Adjudicated by the owner 2026-10-29 11:33Z (card \"A. Accept all four, then build\"). Implementation: https://github.com/litlfred/cat-harness-tools/pull/837 (src/tools/skill-update.ts and its tests); definition: tools/skill-update/. Graduated to `in-force` 2026-10-30 once FR-005 was settled (owner, option A: the activity is kept on the workflow step) and built in litlfred/cat-harness-tools#887. Bean cat-tools-ycn6.",
+  "id": "req:skill-update",
+  "title": "A skill edit goes through a governed Tool, not a raw file write",
+  "description": "An agent edits an existing local skill only through the skill-update Tool. The Tool resolves the skill as skill-fetch does, gates the write (permission, parse, name, references, base hash), writes the working tree for the agent to commit, and reports every gate's verdict. Creating, renaming or deleting a skill is out of scope.",
+  "status": "in-force",
+  "proposedIn": "https://github.com/litlfred/folio-assistant/issues/875",
+  "derivedFrom": [
+    "req:agent-workflow"
+  ],
+  "actors": [
+    "authoring-agent",
+    "admin"
+  ],
+  "statements": [
+    {
+      "key": "tool-declared-and-implemented",
+      "label": "The Tool is declared in the harness and implemented in the tools layer",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "A skill-update Tool SHALL be declared in cat-harness/tools/ and implemented in cat-harness-tools/src/tools/, next to skill-fetch (FR-001).",
+      "successCriteria": [
+        {
+          "key": "SC-004",
+          "criterion": "The skill-update Tool node shows in the Tool QA report with zero missing criteria (FR-008).",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "same-resolver",
+      "label": "It edits exactly the file skill-fetch serves",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "The Tool SHALL resolve (package_name, skill) with the resolver skill-fetch uses, not a second one, and an unknown skill SHALL be reported as skill-fetch reports it (FR-002).",
+      "successCriteria": [
+        {
+          "key": "unknown-skill-named",
+          "criterion": "An unknown skill is refused and the result names the packages searched, as skill-fetch does.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "gated-write",
+      "label": "Nothing is written unless every gate is satisfied",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "The Tool SHALL NOT write unless the actor is granted skill-update by a policy, the new front matter parses and keeps the skill's name, every added reference resolves, and the file still matches the hash the caller read. A gate that cannot decide SHALL refuse (FR-003; owner answer 3).",
+      "successCriteria": [
+        {
+          "key": "SC-002",
+          "criterion": "A write citing a missing skill or file is refused every time in the test suite.",
+          "verification": "test"
+        },
+        {
+          "key": "SC-003",
+          "criterion": "A refused write leaves the file byte-identical.",
+          "verification": "test"
+        },
+        {
+          "key": "undetermined-refuses",
+          "criterion": "An added external link that cannot be checked refuses the write.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "every-call-reports",
+      "label": "Every call says what it did and why",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "Every call SHALL return the file path, each gate's verdict with its reason, and either a diff summary or the reason nothing was written. Every gate runs, so one call reports every problem (FR-004).",
+      "successCriteria": [
+        {
+          "key": "all-gates-reported",
+          "criterion": "A call that fails several gates reports each of them.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "accepted-write-recorded",
+      "label": "An accepted write leaves a PROV-O activity on its workflow step",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "An accepted write made as a named process step SHALL return a PROV-O activity whose plan is that step, and workflow_complete SHALL keep it on the step's history entry; an activity naming another step, or not a prov:Activity, SHALL refuse the call. A refused write leaves no activity: it did not happen (FR-005, reworded by the owner 2026-10-30, option A).",
+      "successCriteria": [
+        {
+          "key": "SC-001",
+          "criterion": "Every agent-authored skill change made as a process step is matched by an activity on that step's history entry.",
+          "verification": "inspection"
+        },
+        {
+          "key": "wrong-step-refused",
+          "criterion": "An activity whose plan names another step, or that is not a prov:Activity, refuses workflow_complete and records nothing.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "refuses-what-it-does-not-own",
+      "label": "Reference packages, generated files and other layers are refused",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "The Tool SHALL refuse to write a reference (external) package, a generated file (naming its generator), or a skill that lives in another repository or an untracked mounted copy (naming the owning repository) (FR-006; owner answer 4).",
+      "successCriteria": [
+        {
+          "key": "foreign-refused",
+          "criterion": "Writes to a reference package, a generated file, another repository's skill and an untracked copy are each refused.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "skill-file-only",
+      "label": "Only the skill's instruction file is written",
+      "conformance": "SHALL NOT",
+      "kind": "functional",
+      "requirement": "The Tool SHALL NOT write any knowledge-graph node other than the skill's instruction file (FR-007).",
+      "successCriteria": [
+        {
+          "key": "one-file",
+          "criterion": "An accepted write changes exactly one file, the resolved skill file.",
+          "verification": "inspection"
+        }
+      ]
+    },
+    {
+      "key": "working-tree-write",
+      "label": "A write edits the working tree, and the agent commits it",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "An accepted write SHALL change the working tree only; the agent commits it through its normal flow (FR-009; owner answer 1).",
+      "successCriteria": [
+        {
+          "key": "no-commit",
+          "criterion": "An accepted write makes no commit and opens no branch.",
+          "verification": "inspection"
+        }
+      ]
+    },
+    {
+      "key": "no-default-grant",
+      "label": "Only Roles the owner grants may write a skill",
+      "conformance": "SHALL",
+      "kind": "functional",
+      "requirement": "Writing a skill SHALL need the skill-update permission, which no default policy grants and no sibling permission stands in for; an unknown grant is not a permit, and a prohibition refuses even with a grant (FR-010; owner answer 2).",
+      "successCriteria": [
+        {
+          "key": "unknown-is-not-permit",
+          "criterion": "With no policy granting skill-update, a write is refused; content-authoring does not stand in; a prohibition wins over a grant.",
+          "verification": "test"
+        }
+      ]
+    }
+  ],
+  "tags": [
+    "skills",
+    "tools",
+    "governance"
+  ]
+}

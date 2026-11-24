@@ -1,0 +1,241 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "L3 Readiness Input",
+  "description": "The check at Gateway_L3Ready of smart-guideline-end-to-end, between stages 5 and 6: the L1 knowledge graph, the L2 assets of stage 4 with the review each has had requested, and the L3 artefacts stage 6 is about to write.",
+  "type": "object",
+  "required": [
+    "l1Kg",
+    "l2Assets",
+    "reviews"
+  ],
+  "properties": {
+    "l1Kg": {
+      "$ref": "#/definitions/l1Kg"
+    },
+    "l2Assets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/l2Artifact"
+      },
+      "description": "The artifacts of every stage-4 l2-dak-authoring pass."
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/reviewRequest"
+      },
+      "description": "One entry per stage-2 extraction and per L2 asset whose review has been requested (a Process_Review item opened and staged). An asset with no entry has not had its review requested."
+    },
+    "l3Planned": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/l3Planned"
+      },
+      "description": "The L3 artefacts stage 6 is about to write, each with the L2 asset it implements. Empty or absent means stage 6 has not planned any yet, and the check covers the L1 and L2 side only."
+    }
+  },
+  "definitions": {
+    "l1Extraction": {
+      "title": "L1 extraction",
+      "description": "One source's L1 knowledge graph. Defined by the recommendation-extraction output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "id",
+        "extractionPath",
+        "sourceVersion",
+        "coverage"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The library id of the source."
+        },
+        "libraryPath": {
+          "type": "string",
+          "description": "library/<bib>/."
+        },
+        "extractionPath": {
+          "type": "string",
+          "description": "library/<bib>/l1-extraction/."
+        },
+        "sourceVersion": {
+          "type": "string"
+        },
+        "recommendations": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Recommendation nodes extracted."
+        },
+        "remarks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "practices": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "implementation-practice nodes."
+        },
+        "scenarioCandidates": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "user-scenario candidates, one per recommendation."
+        },
+        "coverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Share of the source's recommendation sentences extracted verbatim; the gate is 1."
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Every WARNING, verbatim: no persona or process fitted, a sentence not matched, and so on."
+        },
+        "skipped": {
+          "type": "boolean",
+          "description": "True when the extraction was already there at this sourceVersion and was not redone."
+        }
+      }
+    },
+    "l1Kg": {
+      "title": "L1 knowledge graph",
+      "description": "Stage 2's output and the L1 input of stages 3 and 5: one extraction per included source. Defined by the recommendation-extraction output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "extractions"
+      ],
+      "properties": {
+        "useCase": {
+          "$ref": "#/definitions/useCase"
+        },
+        "extractions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/l1Extraction"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "l2Artifact": {
+      "title": "L2 artifact",
+      "description": "One L2 asset the authoring wrote. Defined by the l2-dak-authoring output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "path",
+        "type"
+      ],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "bpmn",
+            "dmn",
+            "spreadsheet",
+            "markdown",
+            "fsh"
+          ]
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "useCase": {
+      "title": "Use case",
+      "description": "What the guideline is for, in the requester's words. Stage 0's output and every later stage's context. Defined by the guideline-use-case output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "population",
+        "setting",
+        "jurisdiction",
+        "interventions"
+      ],
+      "properties": {
+        "population": {
+          "type": "string",
+          "description": "Who the guideline serves."
+        },
+        "setting": {
+          "type": "string",
+          "description": "Where care happens: community, primary care, hospital, and so on."
+        },
+        "jurisdiction": {
+          "type": "string",
+          "description": "WHO (a global guideline) or the country or region adapting one; an ISO 3166 code where there is one."
+        },
+        "interventions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The health interventions in scope.",
+          "minItems": 1
+        },
+        "kind": {
+          "type": "string",
+          "description": "A new guideline, or an adaptation of an existing one.",
+          "enum": [
+            "new",
+            "adaptation"
+          ]
+        },
+        "adapts": {
+          "type": "string",
+          "description": "For an adaptation: the guideline or DAK being adapted, by name or canonical."
+        },
+        "words": {
+          "type": "string",
+          "description": "The requester's own description, verbatim."
+        }
+      }
+    },
+    "reviewRequest": {
+      "title": "Review request",
+      "description": "That a review of one asset was requested: the item opened and staged. The verdict is not awaited (adjudication is QA, not a gate).",
+      "type": "object",
+      "required": [
+        "asset",
+        "item"
+      ],
+      "properties": {
+        "asset": {
+          "type": "string",
+          "description": "The path of the L2 asset, or of the l1-extraction directory."
+        },
+        "item": {
+          "type": "string",
+          "description": "Path or URL of the review item (a Process_Review instance, an issue or a PR comment)."
+        },
+        "staged": {
+          "type": "string",
+          "format": "uri",
+          "description": "The staged page the reviewer reads."
+        }
+      }
+    },
+    "l3Planned": {
+      "title": "Planned L3 artefact",
+      "description": "One L3 artefact stage 6 will write: fhir-harness l3-fhir-authoring's artifactType, and its sourceModel, which is an l2Assets path.",
+      "type": "object",
+      "required": [
+        "artifactType",
+        "sourceModel"
+      ],
+      "properties": {
+        "artifactType": {
+          "type": "string"
+        },
+        "sourceModel": {
+          "type": "string",
+          "description": "The path of the L2 asset it implements."
+        }
+      }
+    }
+  }
+}

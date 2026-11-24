@@ -1,0 +1,67 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "openapi-pages",
+    "title": "OpenAPI viewer",
+    "description": "Render every OpenAPI document a layer's `openapi` graph holds at the visualiser's route: a hub, a page per layer listing its documents, and a page per document and per operation, drawn from the document copied beside them.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat openapi:viz"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Fail if a page is stale, instead of writing.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        },
+        {
+          "name": "site",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A site being built: write the pages at their declared route under it instead of under the harness's own site directory. A repository's own site build passes it (the tools layer's `visualiser-writers.ts`), since its harness docs are a pinned mount.",
+          "required": false,
+          "arg": {
+            "flag": "--site"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "pages",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The viewer pages, under the published site directory."
+        }
+      ]
+    },
+    "satisfies": [
+      "graph-rendering"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    },
+    "renders": [
+      "openapi"
+    ]
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "A viewer generator (`viewerTool` in `../lib.ts` holds the ports every viewer shares).\nNot `openapi-ingest-*`: those copy a document in. This draws what was copied,\nat the visualiser's route, because the main site serves a layer's\n`openapi/` graph verbatim, as the document and its provenance, and renders no page of it."
+    }
+  ]
+}

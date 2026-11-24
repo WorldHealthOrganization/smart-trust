@@ -1,0 +1,183 @@
+---
+doc_id: who-pub-tps-931
+doc_title: "WHO Editorial Style Manual"
+section_id: page-097
+section_title: "Page 97"
+section_number: null
+pages: 97-97
+source_pdf: WHO_PUB_TPS_93.1.pdf
+source_sha256: ecc88eee99756755
+toc_source: undetermined
+---
+WHO Editorial Style Manual
+
+old age; old-age pension
+
+omission
+
+onchocerciasis
+
+oncogenic
+
+oncoming (traffic, etc.)
+
+one-third
+
+ophthalmic, ophthalmology (not
+ophtalmic or opthalmic, etc.)
+
+oral rehydration salts, oral rehydra-
+tion solution
+
+ordinance (legal instrument)
+
+ordnance (gunnery and, in UK,
+mapping)
+
+Organization (always cap. when
+referring to WHO, but
+Organisation in International
+Labour Organisation and
+Organisation for Economic Co-
+operation and Development)
+
+organophosphorus compounds
+(not ...phorous)
+
+organotin
+
+orient, oriented (not orientate,
+orientated)
+
+orthopaedic(s)
+
+osteoarthritis, osteoarthrosis
+
+out-of-date (adj.; but it is out of
+date)
+
+outpatient
+
+output
+
+overall (adj., adv. & n.)
+
+overemphasize
+
+overestimate
+
+overpopulated
+
+overproduction
+
+override
+
+overrule
+
+overseas (not oversea)
+
+oversee
+
+oversight (supervision & inadvert-
+ence) : .
+
+oversimplify, oversimplificatio
+
+overuse
+
+overview (prefer survey, outline,
+teview)
+
+P
+
+P values (cap. ital.)
+
+paediatric(s)
+
+Pan American Health Organization
+
+Pan American Sanitary Bureau
+
+panic, panicked, panicky
+
+parallel, paralleled, paralleling
+
+paralyse
+
+parenteral (introduced other than
+by the alimentary tract)
+
+participate in (not at or to)
+
+particulate matter
+
+pasteurize (no cap.)
+
+pathognomic
+
+payroll
+
+pendant (n.)
+
+pendent (adj.)
+
+per annum
+
+per capita
+
+per cent (but % is usual)
+
+percentage
+
+per diem, per diem allowance (no
+hyphen)
+
+perestroika
+
+perinatal
+
+periodontal
+
+periurban.
+
+per se
+
+Petri dish
+
+phagocytose (not phagocytize)
+
+pharmacogenetics
+
+pharmacognosy
+
+pharmacopoeia
+
+phenomenon (pl. phenomena)
+
+phosphorous (adj.)
+
+phosphorus (n.)
+
+physicochemical
+
+pipeline
+
+pneumococcus, pneumococcal (not
+Pneumococcus)
+
+policy-maker, policy-making
+
+polyclinic
+
+postbasic
+
+postmortem (but examine the body
+post mortem)
+
+postnatal -
+
+postpartum.
+
+post-session
+
+92

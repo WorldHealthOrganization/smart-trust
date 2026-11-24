@@ -1,0 +1,94 @@
+---
+doc_id: 10665-270347
+doc_title: "Survival, plasma HIV-1 RNA concentrations and drug resistance in HIV-1-infected Haitian adolescents and young adults on antiretrovirals"
+section_id: page-008
+section_title: "Page 8"
+pages: 8-8
+pdf_page: 8
+source_pdf: 10665-270347.pdf
+source_sha256: 0e4b2b50455784fb
+text_source: ocr
+granularity: page
+---
+Macarthur Charles et al.
+
+4
+
+42
+
+43
+
+44,
+
+45.
+
+PMID:6026165
+
+Smith MH. Tuberculosis in adolescents: characteristics, recognition,
+management. Clin Pediatr (Phila) 1967;6:9-15. PMID:5297237
+
+Rudy BJ, Lindsey JC, Flynn PM, Bosch RJ, Wilson CM, Hughes ME, et al.
+Immune reconstitution and predictors of virologic failure in adolescents
+infected through risk behaviors and initiating HAART: week 60 results from
+the PACTG 381 cohort. AIDS Res Hum Retroviruses 2006;22:213-21.
+PMID:16545007 doi:10.1089/aid.2006.22.213
+
+Murphy DA, Wilson CM, Durako SJ, Muenz LR, Belzer M. Antiretroviral
+medication adherence among the REACH HIV-infected adolescent
+
+cohort in the USA. AIDS Care 2001 ;13:27-40. PMID:11177463
+doi:10.1080/095401 20020018161
+
+Ledergerber B, Egger M, Opravil M, Telenti A, Hirschel B, Battegay M, et al
+Clinical progression and virologic failure on highly active antiretroviral therapy
+in HIV-1 patients: a prospective cohort study. Swiss HIV cohort study. Lancet
+1999;353:863-8. PMID:10093977 doi:10.1016/S0140-6736(99)01122-8
+
+Grabar S, Le Moing V, Goujard C, Leport C, Kazatchkine C, Costagliola D, et al.
+
+Clinical outcomes of patients with HIV-1 infection according to immunologic
+and virologic response after 6 months of highly active antiretroviral therapy.
+
+Bulletin of the World Health Organization I December 2008, 86 (12)
+
+46.
+
+47.
+
+48
+
+49
+
+50.
+
+Research
+Antiretroviral therapy in Haitian youth
+
+Ann Intern Med 2000;133:401-10. PMID:10975957
+
+Paterson DL, Swindells S, Mohr J, Brester M, Vergis EN, Squier C, et al.
+Adherence to protease inhibitor therapy and outcomes in patients with HIV
+infection. Ann Intern Med 2000;133:21-30. PMID:10877736
+
+Quinn TC, Wawer MJ, Sewankambo N, Serwadda D, Li C, Wabwire-Mangen F,
+et al. Viral load and heterosexual transmission of human immunodeficiency
+virus type 1. Rakai Project Study Group. WV Eng! J Med 2000;342:921-9.
+PMID:10738050 doi:10.1056/NEJM200003303421303
+
+Staples B, Bravender T. Drug compliance in adolescents: assessing
+
+and managing modifiable risk factors. Paediatr Drugs 2002;4:503-13.
+PMID:12126454
+
+DiMatteo MR. Variations in patients’ adherence to medical recommendations:
+a quantitative review of 50 years of research. Med Care 2004;42:200-9.
+PMID:15076819 doi:10.1097/01 .mlr.0000114908.90348.f9
+
+Puccio JA, Belzer M, Olson J, Martinez M, Salata C, Tucker D, et al. The
+
+use of cell phone reminder calls for assisting HIV-infected adolescents and
+young adults to adhere to highly active antiretroviral therapy: a pilot study.
+AIDS Patient Care STDS 2006;20:438-44 10.1089/apc.2006.20.438.
+PMID:16789857 doi:10.1089/apc.2006.20.438
+
+977

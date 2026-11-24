@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cat-harness-verdict-record/v1",
+  "title": "Verdict record",
+  "description": "What one runner concluded about one judged tree: the output of the `judge-tree` Tool (cat-harness-tools#399). The tree is named by a digest, not a commit, so a verdict reached on an agent container, a local machine or GitHub Actions is the same verdict wherever the same tree recurs. Written by `scripts/judge-tree.ts`; validated by `validateVerdictRecord` in `scripts/lib/judge-tree.ts`, which implements exactly this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "treeDigest", "judging", "runner", "startedAt", "finishedAt", "gates", "tests", "verdict"],
+  "properties": {
+    "$schema": { "const": "cat-harness-verdict-record/v1" },
+    "treeDigest": {
+      "description": "sha256 of the judged tree: every instance of the index lock at its locked fixity digests, the caller's own entry replaced by its PR tree (`git rev-parse HEAD^{tree}`), and the judging-scripts version. See `treeDigest` in scripts/lib/judge-tree.ts.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "judging": {
+      "description": "The judging-scripts version the digest was computed with: sha256 of `.github/scripts/layer-pr-checks/*.py` and the judge-tree scripts, unless the caller named one.",
+      "type": "string",
+      "minLength": 1
+    },
+    "tree": {
+      "description": "What the digest was built from, for a reader; never consulted to decide anything.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["caller", "callerTree", "instances"],
+      "properties": {
+        "caller": { "type": "string", "minLength": 1 },
+        "callerTree": { "type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$" },
+        "instances": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "runner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": { "enum": ["agent", "github-actions", "local"] },
+        "id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "finishedAt": { "type": "string", "format": "date-time" },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "exit", "seconds"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "exit": {
+            "description": "The gate's exit code; null exactly when it was skipped. 2 is 'could not determine', never a pass.",
+            "type": ["integer", "null"]
+          },
+          "seconds": { "type": "number", "minimum": 0 },
+          "skipped": { "description": "Why run-gates.py did not run it.", "type": "string", "minLength": 1 },
+          "baseExit": { "description": "The same gate's exit on the base side, when one was judged.", "type": ["integer", "null"] },
+          "new": { "description": "compare-gates.py counted it against this tree.", "type": "boolean" },
+          "command": { "description": "The command run, from the index root; what `--sample` re-runs.", "type": "string" }
+        }
+      }
+    },
+    "tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "failed", "new"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 },
+        "new": { "description": "Failing here and not on the base side (compare-test-failures.py).", "type": "integer", "minimum": 0 },
+        "failing": { "description": "Each failing test as compare-test-failures.py names it (suites and case joined by ' > '), so this record can stand in as a later run's base.", "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "base": {
+      "description": "Where the base side came from: a stored verdict for the base tree digest, a fresh run, or none (every failing gate then counts).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source"],
+      "properties": {
+        "source": { "enum": ["stored-verdict", "run", "none"] },
+        "treeDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "reportUrl": { "type": "string", "format": "uri" },
+    "verdict": {
+      "description": "green: no gate or test newly fails. red: one does. unknown: the comparison could not determine (a compare script exited 2 or crashed, or no gate ran).",
+      "enum": ["green", "red", "unknown"]
+    }
+  }
+}

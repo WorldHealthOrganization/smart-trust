@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_BeanLifecycle"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Agent bean lifecycle — folio-assistant
+       Issue: https://github.com/litlfred/folio-assistant/issues/203
+
+       BEANS ARE FOR AGENTS. They hold process state for work an agent
+       is doing, in a store that is committed so a sibling session sees
+       it. A human's own reminders are TODOS and are a different thing
+       with a different cycle; see the todos-vs-beans page.
+
+       OPEN → WORK → CLOSE (bean folio-assistant-m8gz, owner ruling
+       2026-10-24, option A). Until then this diagram drew the whole
+       cycle and nothing called it, while 18 other diagrams copied its
+       claim, resolve and archive steps by hand and drifted: seven
+       opened a bean they never closed, eight closed one without
+       archiving it. The two halves are now processes of their own —
+       Process_BeanOpen (bean-open.bpmn) and Process_BeanClose
+       (bean-close.bpmn) — and every process that works on a bean calls
+       both, as this one does. `check:bean-calls` refuses a claim,
+       resolve or archive op anywhere else.
+
+       A BEAN IS NEVER DELETED. `beans delete` exists in the CLI, which
+       is exactly why the prohibition has to be written where an agent
+       reads rather than left implied. Work that turns out not to be
+       wanted is SCRAPPED, with its reasons (Process_BeanClose).
+
+       TWO LAYERS, and confusing them is how a step comes to announce an
+       effect it does not have. `claim`, `note`, `resolve` and `archive`
+       are what the WORKFLOW ENGINE performs on a process instance's own
+       bean when a step completes. Creating, scrapping and editing are the
+       AGENT's own `beans` CLI calls; the engine has no op for them.
+       An earlier diagram carried `<cat-harness.processes:bean action="create"/>`, which
+       the engine never read — `op` is the attribute — so the step
+       silently did nothing for weeks.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:process id="Process_BeanLifecycle" name="Agent bean lifecycle" isExecutable="false">
+    <bpmn:documentation>The whole life of a work-plan item, drawn the way every bean-touching process now runs it: OPEN the bean (check before you create, find out whose it is, claim it or leave it alone), do the work keeping the body current, then CLOSE it in a state that says why (complete and archive, scrap with reasons and archive, or record the blocker and hand back).
+
+You are in this process the moment durable work is identified — which is before the first tool call, not after the work is done. The two halves are called processes, Process_BeanOpen and Process_BeanClose, so the rules live in one place: a process that works on a bean calls the first where the bean becomes its own and the second before each end it reaches from there.
+
+The one irreversible thing is refused outright. Unwanted work is SCRAPPED with its reasons, never deleted, because a scrapped bean stops the next agent re-entering a dead end while a deleted one leaves a sibling unable to tell abandonment from accident.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_BeanLifecycle">
+      <bpmn:lane id="Lane_Agent" name="Agent (this session)" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Owns every transition on a bean it holds. Whether the bean is its own at all is decided inside Process_BeanOpen, whose sibling lane takes someone else's bean; this lane only reads the answer at GW_Yours and stops when it is not.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_DurableWork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanOpen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Yours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NotYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Work</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanClose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Recorded</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_DurableWork" name="Durable work&#10;identified"/>
+
+    <bpmn:callActivity id="Call_BeanOpen" name="Open the bean" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Check before you create (exact-title search), create the bean when none exists, find out whose it is, and claim it — or leave it alone when a sibling holds it. Process_BeanOpen is the one place a claim is drawn.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+
+    <bpmn:exclusiveGateway id="GW_Yours" name="Bean claimed?">
+      <bpmn:documentation>Reads which end Process_BeanOpen reached. `claimed`: the bean is in progress, so work it. `not yours`: someone else holds it and nothing was written; stop here rather than resolve, scrap or edit a bean you do not own.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_NotYours" name="Not yours —&#10;left alone"/>
+
+    <bpmn:task id="Task_Work" name="Work, keeping the body current&#10;(this is 'edit')">
+      <bpmn:documentation>Editing a bean is not a separate ceremony: check off
+todo items as they happen, append measurements with the command and date that
+produced them, and record what you now know that the next agent does not. A
+bean whose body is a title is a placeholder, not a plan.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:callActivity id="Call_BeanClose" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>End the bean in a state that says why: done is completed and archived, not wanted is scrapped with its reasons and archived, blocked records what it waits on and goes back to `todo`. Process_BeanClose is the one place resolve and archive are drawn.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+
+    <bpmn:endEvent id="End_Recorded" name="State recorded"/>
+
+    <bpmn:sequenceFlow id="BF_1" sourceRef="Start_DurableWork" targetRef="Call_BeanOpen"/>
+    <bpmn:sequenceFlow id="BF_2" sourceRef="Call_BeanOpen" targetRef="GW_Yours"/>
+    <bpmn:sequenceFlow id="BF_3" name="not yours" sourceRef="GW_Yours" targetRef="End_NotYours"/>
+    <bpmn:sequenceFlow id="BF_4" name="claimed" sourceRef="GW_Yours" targetRef="Task_Work"/>
+    <bpmn:sequenceFlow id="BF_5" sourceRef="Task_Work" targetRef="Call_BeanClose"/>
+    <bpmn:sequenceFlow id="BF_6" sourceRef="Call_BeanClose" targetRef="End_Recorded"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_BeanLifecycle">
+    <bpmndi:BPMNPlane id="BPMNPlane_BeanLifecycle" bpmnElement="Process_BeanLifecycle">
+      <bpmndi:BPMNShape id="Lane_Agent_di" bpmnElement="Lane_Agent" isHorizontal="true"><dc:Bounds x="160" y="80" width="940" height="260" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Start_DurableWork_di" bpmnElement="Start_DurableWork"><dc:Bounds x="220" y="190" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanOpen_di" bpmnElement="Call_BeanOpen"><dc:Bounds x="315" y="148" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Yours_di" bpmnElement="GW_Yours" isMarkerVisible="true"><dc:Bounds x="490" y="183" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="470" y="144" width="90" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_NotYours_di" bpmnElement="End_NotYours"><dc:Bounds x="497" y="280" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="537" y="280.5" width="90" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Work_di" bpmnElement="Task_Work"><dc:Bounds x="610" y="148" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanClose_di" bpmnElement="Call_BeanClose"><dc:Bounds x="815" y="148" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Recorded_di" bpmnElement="End_Recorded"><dc:Bounds x="1010" y="190" width="36" height="36" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="BF_1_di" bpmnElement="BF_1">
+        <di:waypoint x="256" y="208" />
+        <di:waypoint x="315" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BF_2_di" bpmnElement="BF_2">
+        <di:waypoint x="435" y="208" />
+        <di:waypoint x="490" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BF_3_di" bpmnElement="BF_3"><di:waypoint x="515" y="233"/><di:waypoint x="515" y="280"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="519" y="247.5" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BF_4_di" bpmnElement="BF_4">
+        <di:waypoint x="540" y="208" />
+        <di:waypoint x="610" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BF_5_di" bpmnElement="BF_5">
+        <di:waypoint x="730" y="208" />
+        <di:waypoint x="815" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BF_6_di" bpmnElement="BF_6">
+        <di:waypoint x="935" y="208" />
+        <di:waypoint x="1010" y="208" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

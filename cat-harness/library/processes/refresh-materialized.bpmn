@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — Refresh materialized remote content
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool. The SVG under docs/assets/img/workflows/ is generated from it
+  by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  The <bootstrap.processes:skill> extension on an activity names the folio-assistant skill
+  that implements it.
+  The engine keeps the work context; no step carries work-plan markup.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_RefreshMaterialized"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="corpus" name="Corpus"/>
+  <bpmn:resource id="ingestion-agent" name="Ingestion engine"/>
+  <bpmn:resource id="user" name="User"/>
+
+  <bpmn:collaboration id="Collaboration_RefreshMaterialized">
+    <bpmn:participant id="Participant_RefreshMaterialized" name="Refresh materialized remote content" processRef="Process_RefreshMaterialized" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_RefreshMaterialized" name="Refresh materialized remote content" isExecutable="false">
+    <bpmn:documentation>Keep a materialized copy of remote content current: what changed upstream, what changed locally, and what to do when both did — an archival copy is never re-fetched and gets a fixity check instead. One general process, used everywhere.
+
+REFRESH IS NOT RE-IMPORT: it needs three answers, not one: what changed upstream, what changed locally since, and what to do when BOTH did. upstream-pins.json answers the first for one caller and nothing answers the other two anywhere.
+
+An ARCHIVAL copy is not refreshed. Re-fetching it would defeat it: the copy exists to survive the source, so replacing it with whatever the source says today discards exactly the state it was keeping. What an archive gets instead is a FIXITY CHECK — has our copy rotted — which is a different question with a different remedy.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_RefreshMaterialized_LaneSet">
+      <bpmn:lane id="Lane_0" name="Contributor (human or agent)" partitionElementRef="user">
+        <bpmn:documentation>Reached only when both upstream and local changed, which is the one case this process refuses to resolve by rule: which side wins depends on why the local edit was made, a fact only this lane has.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_Due</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Adjudicate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Outcome</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Reconcile</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_1" name="Ingestion Engine (agent, runs unattended)" partitionElementRef="ingestion-agent">
+        <bpmn:documentation>Runs whichever of the two paths Gateway_Purpose selects. On the working path it answers the two comparisons — upstream and local — whose combination Gateway_Both reads to decide whether a human must adjudicate; on the archival path it never compares to the source at all, since fixity asks only whether the copy itself rotted.</bpmn:documentation>
+        <bpmn:flowNodeRef>Gateway_Purpose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Fixity</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Upstream</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Local</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Both</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Apply</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_KeepLocal</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RecordConflict</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Fresh</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Diverged</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Due" name="A copy is due
+for re-check">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_Purpose" name="working,
+or archival?">
+      <bpmn:documentation>Is this copy kept as a working copy or as an archive? `archival` only verifies fixity and never re-fetches; `working` asks what changed upstream.</bpmn:documentation>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Fixity" name="ARCHIVAL
+verify fixity —
+never re-fetch">
+      <bpmn:documentation>Re-compute the digest and compare. An archive is NEVER re-fetched — the source is what it exists to survive, so replacing it with today's version discards the state it was keeping. A mismatch means OUR copy rotted, and the remedy is restoration from a backup, not re-download.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Upstream" name="WORKING
+what changed upstream">
+      <bpmn:documentation>Compare the recorded upstreamVersion against the source. `could not reach the source` is a THIRD answer and is never reported as `unchanged` — an unreachable source is the sourceLoss gate firing late. Reachability is asked by `bun run cat sources:liveness &lt;instance&gt;` against the node's resolvable IRI, its Handle first: live, gone, or could not determine, never live on an error.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Local" name="What changed LOCALLY
+since">
+      <bpmn:documentation>The half nothing answers today. A materialized copy that was edited in place is not a copy any more, and overwriting it silently destroys work whose existence the process never established.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Both" name="Both changed?">
+      <bpmn:documentation>Did the copy change both upstream and locally since it was fetched? `yes` goes to adjudicating the conflict; `no` re-materializes, re-asking the five gates, and records the new fixity.</bpmn:documentation>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Task_Adjudicate" calledElement="Process_Adjudication" name="Adjudicate the conflict">
+      <bpmn:documentation>A human or agentic decision, never a merge rule. Which side wins depends on why the local edit was made, and a process that picked automatically would be choosing without the one fact that decides it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote" />
+        <bootstrap.processes:skill ref="adjudication" />
+        <cat-harness.processes:adjudication codes="remote local merge defer" list="adjudication-materialized-conflict"/>
+        <cat-harness.processes:fulfilment kinds="person agent" reason="this task's own documentation is the constraint — `a human or agentic decision, never a merge rule` — and the engine refuses `system` or `external` on any step carrying cat-harness.processes:adjudication, so the restriction cannot drift." />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Outcome" name="Which side, and on what terms?">
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="The branch this process exists to take. By the entry condition both sides changed, so no rule keying on either can choose between them without the fact that decides it — why the local edit was made — which is held by this lane and nowhere in the repository." />
+      </bpmn:extensionElements>
+      <bpmn:documentation>Four answers, and they do four different things; without this gateway the process would ask which side wins and then discard the answer.
+
+`defer` is not `local` wearing a different hat: `local` decides and re-pins, so the same conflict stops being raised; `defer` deliberately does not decide and does not re-pin, so it is raised again next cycle. A process that could only decide would force a contributor with no answer today to invent one.</bpmn:documentation>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_Remote</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Local</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Merge</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Defer</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Reconcile" name="Reconcile the two by hand">
+      <bpmn:documentation>Neither side wins whole: the contributor produces content that is neither the local copy nor the remote one, and THEN it is applied. Drawn as a separate step before Task_Apply rather than folded into it, because Task_Apply re-asks the five import gates against what is being materialized — and what is being materialized here is a hand-made artefact, which is exactly the case those gates should see rather than be told about.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Merge</bpmn:incoming>
+      <bpmn:outgoing>Flow_Reconciled</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:serviceTask id="Task_Apply" name="Re-materialize and record new fixity">
+      <bpmn:documentation>The gates are re-asked, not inherited: a licence can change, and a collection can grow past the size a caller agreed to.
+
+AND THE NEW FIXITY IS RECORDED IN THE SAME CHANGE. This step rewrites bytes that a materialization record describes, so leaving the old digest behind would make a CORRECT run of this process fail check:materialized-fixity as a mismatch — the gate reading "somebody edited held content without saying so" about the one process whose job is to replace it.
+
+This is the publication exception, stated as a rule rather than as a carve-out, because a list of permitted writers goes stale when a writer is added. The exception is NOT "these actors may skip the rule"; it is "say what you did". A writer that updates the digest alongside the bytes passes, and the record then describes what is actually there. A writer that does not fails, correctly, because it has forked upstream silently.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:incoming>Flow_Remote</bpmn:incoming>
+      <bpmn:incoming>Flow_Reconciled</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_Apply">
+        <bpmn:targetRef>DSR_corpus</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_KeepLocal" name="Keep the edit, re-pin">
+      <bpmn:documentation>The local edit wins, so nothing is re-materialized — and the pin moves to the upstream revision that was compared against. Re-pinning is the half that is easy to forget and is the reason this is a step rather than an absence: without it the same upstream change is detected as new on every cycle, and a contributor is asked the same settled question for ever. The record says the copy is deliberately divergent FROM a named revision, which is a different claim from being stale against an unknown one.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Local</bpmn:incoming>
+      <bpmn:outgoing>Flow_Kept</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_KeepLocal">
+        <bpmn:targetRef>DSR_corpus</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_RecordConflict" name="Record the conflict:&#10;no decision, no re-pin">
+      <bpmn:documentation>Both copies stay and the conflict is written down with what each side says. Deliberately does not re-pin, which is the one thing separating it from Task_KeepLocal: the question is unresolved, so it must be asked again next cycle. Recording is not optional here for the reason A_RecordEntry is not optional in an adjudication — a judgement nobody wrote down is indistinguishable from a check that never ran, and a DEFERRAL nobody wrote down is indistinguishable from a refresh that silently did nothing.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="materialize-remote" />
+        <cat-harness.processes:policy relaxable="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Defer</bpmn:incoming>
+      <bpmn:outgoing>Flow_Deferred</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_Task_RecordConflict">
+        <bpmn:targetRef>DSR_corpus</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Diverged" name="Diverged on purpose,
+and the record says why">
+      <bpmn:documentation>Not a failure and not freshness. The copy differs from upstream because somebody decided it should, or decided not to decide yet, and either way the graph now says which.</bpmn:documentation>
+      <bpmn:incoming>Flow_Kept</bpmn:incoming>
+      <bpmn:incoming>Flow_Deferred</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_Fresh" name="Fresh, and the graph
+records against what">
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_Due" targetRef="Gateway_Purpose" />
+    <bpmn:sequenceFlow id="Flow_2" name="archival" sourceRef="Gateway_Purpose" targetRef="Task_Fixity" />
+    <bpmn:sequenceFlow id="Flow_3" name="working" sourceRef="Gateway_Purpose" targetRef="Task_Upstream" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_Upstream" targetRef="Task_Local" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_Local" targetRef="Gateway_Both" />
+    <bpmn:sequenceFlow id="Flow_6" name="yes" sourceRef="Gateway_Both" targetRef="Task_Adjudicate" />
+    <bpmn:sequenceFlow id="Flow_7" name="no" sourceRef="Gateway_Both" targetRef="Task_Apply" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Task_Adjudicate" targetRef="GW_Outcome" />
+    <bpmn:sequenceFlow id="Flow_Remote" name="the remote wins" sourceRef="GW_Outcome" targetRef="Task_Apply">
+      <bpmn:extensionElements><cat-harness.processes:adjudication code="remote" /></bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Local" name="the local edit wins" sourceRef="GW_Outcome" targetRef="Task_KeepLocal">
+      <bpmn:extensionElements><cat-harness.processes:adjudication code="local" /></bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Merge" name="neither whole — reconcile" sourceRef="GW_Outcome" targetRef="Task_Reconcile">
+      <bpmn:extensionElements><cat-harness.processes:adjudication code="merge" /></bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Defer" name="not decidable today" sourceRef="GW_Outcome" targetRef="Task_RecordConflict">
+      <bpmn:extensionElements><cat-harness.processes:adjudication code="defer" /></bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Reconciled" sourceRef="Task_Reconcile" targetRef="Task_Apply" />
+    <bpmn:sequenceFlow id="Flow_Kept" sourceRef="Task_KeepLocal" targetRef="EndEvent_Diverged" />
+    <bpmn:sequenceFlow id="Flow_Deferred" sourceRef="Task_RecordConflict" targetRef="EndEvent_Diverged" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_Fixity" targetRef="EndEvent_Fresh" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Task_Apply" targetRef="EndEvent_Fresh" />
+    <bpmn:dataStoreReference id="DSR_corpus" name="Corpus" dataStoreRef="corpus"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_RefreshMaterialized">
+    <bpmndi:BPMNPlane id="Plane_RefreshMaterialized" bpmnElement="Collaboration_RefreshMaterialized">
+      <bpmndi:BPMNShape id="Participant_RefreshMaterialized_di" bpmnElement="Participant_RefreshMaterialized" isHorizontal="true">
+        <dc:Bounds x="130" y="80" width="1290" height="880" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0_di" bpmnElement="Lane_0" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1260" height="340" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1_di" bpmnElement="Lane_1" isHorizontal="true">
+        <dc:Bounds x="160" y="420" width="1260" height="540" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Due_di" bpmnElement="StartEvent_Due">
+        <dc:Bounds x="236" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="205" y="240" width="100" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Adjudicate_di" bpmnElement="Task_Adjudicate">
+        <dc:Bounds x="639" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Outcome_di" bpmnElement="GW_Outcome" isMarkerVisible="true">
+        <dc:Bounds x="874" y="275" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="775" y="228" width="105" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Reconcile_di" bpmnElement="Task_Reconcile">
+        <dc:Bounds x="839" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Purpose_di" bpmnElement="Gateway_Purpose" isMarkerVisible="true">
+        <dc:Bounds x="229" y="485" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="262" y="540" width="85" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Upstream_di" bpmnElement="Task_Upstream">
+        <dc:Bounds x="364" y="450" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Local_di" bpmnElement="Task_Local">
+        <dc:Bounds x="514" y="450" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Both_di" bpmnElement="Gateway_Both" isMarkerVisible="true">
+        <dc:Bounds x="674" y="485" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="610" y="576" width="68" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_KeepLocal_di" bpmnElement="Task_KeepLocal">
+        <dc:Bounds x="754" y="450" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RecordConflict_di" bpmnElement="Task_RecordConflict">
+        <dc:Bounds x="924" y="450" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Apply_di" bpmnElement="Task_Apply">
+        <dc:Bounds x="1094" y="450" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Fresh_di" bpmnElement="EndEvent_Fresh">
+        <dc:Bounds x="1244" y="492" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1285" y="495" width="120" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Diverged_di" bpmnElement="EndEvent_Diverged">
+        <dc:Bounds x="881" y="592" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="824" y="632" width="150" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_DSR_corpus" bpmnElement="DSR_corpus">
+        <dc:Bounds x="1044" y="665" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1042" y="643" width="55" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Fixity_di" bpmnElement="Task_Fixity">
+        <dc:Bounds x="314" y="810" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="254" y="318" />
+        <di:waypoint x="254" y="485" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="279" y="510" />
+        <di:waypoint x="364" y="510" />
+        <bpmndi:BPMNLabel><dc:Bounds x="290" y="488" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="254" y="535" />
+        <di:waypoint x="254" y="870" />
+        <di:waypoint x="314" y="870" />
+        <bpmndi:BPMNLabel><dc:Bounds x="260" y="640" width="65" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="484" y="510" />
+        <di:waypoint x="514" y="510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="634" y="510" />
+        <di:waypoint x="674" y="510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="699" y="485" />
+        <di:waypoint x="699" y="360" />
+        <bpmndi:BPMNLabel><dc:Bounds x="704" y="395" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="759" y="300" />
+        <di:waypoint x="874" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Merge_di" bpmnElement="Flow_Merge">
+        <di:waypoint x="899" y="275" />
+        <di:waypoint x="899" y="215" />
+        <bpmndi:BPMNLabel><dc:Bounds x="905" y="222" width="170" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reconciled_di" bpmnElement="Flow_Reconciled">
+        <di:waypoint x="959" y="155" />
+        <di:waypoint x="1174" y="155" />
+        <di:waypoint x="1174" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Remote_di" bpmnElement="Flow_Remote">
+        <di:waypoint x="924" y="300" />
+        <di:waypoint x="1134" y="300" />
+        <di:waypoint x="1134" y="450" />
+        <bpmndi:BPMNLabel><dc:Bounds x="935" y="280" width="110" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Local_di" bpmnElement="Flow_Local">
+        <di:waypoint x="886.5" y="325" />
+        <di:waypoint x="886.5" y="395" />
+        <di:waypoint x="814" y="395" />
+        <di:waypoint x="814" y="450" />
+        <bpmndi:BPMNLabel><dc:Bounds x="765" y="325" width="115" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Defer_di" bpmnElement="Flow_Defer">
+        <di:waypoint x="911.5" y="325" />
+        <di:waypoint x="911.5" y="395" />
+        <di:waypoint x="984" y="395" />
+        <di:waypoint x="984" y="450" />
+        <bpmndi:BPMNLabel><dc:Bounds x="920" y="330" width="95" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="699" y="535" />
+        <di:waypoint x="699" y="770" />
+        <di:waypoint x="1154" y="770" />
+        <di:waypoint x="1154" y="570" />
+        <bpmndi:BPMNLabel><dc:Bounds x="704" y="640" width="25" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="1214" y="510" />
+        <di:waypoint x="1244" y="510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+        <di:waypoint x="434" y="870" />
+        <di:waypoint x="1262" y="870" />
+        <di:waypoint x="1262" y="528" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Kept_di" bpmnElement="Flow_Kept">
+        <di:waypoint x="814" y="570" />
+        <di:waypoint x="814" y="610" />
+        <di:waypoint x="881" y="610" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Deferred_di" bpmnElement="Flow_Deferred">
+        <di:waypoint x="984" y="570" />
+        <di:waypoint x="984" y="610" />
+        <di:waypoint x="917" y="610" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_RecordConflict" bpmnElement="DOA_Task_RecordConflict">
+        <di:waypoint x="1024" y="570" />
+        <di:waypoint x="1024" y="690" />
+        <di:waypoint x="1044" y="690" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_Apply" bpmnElement="DOA_Task_Apply">
+        <di:waypoint x="1114" y="570" />
+        <di:waypoint x="1114" y="690" />
+        <di:waypoint x="1094" y="690" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_Task_KeepLocal" bpmnElement="DOA_Task_KeepLocal">
+        <di:waypoint x="774" y="570" />
+        <di:waypoint x="774" y="730" />
+        <di:waypoint x="1069" y="730" />
+        <di:waypoint x="1069" y="715" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

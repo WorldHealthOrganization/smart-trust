@@ -1,0 +1,308 @@
+# Standing repin for a SITE, as ONE reusable workflow (issue #401; owner,
+# 2026-10-16: pins stay decentralized, each site keeps its own lock, with
+# STANDING CONSENT).
+#
+# A site declares, on an upstream instance in its `index.config.json`,
+#
+#   "trust": { "consent": {...}, "standing": { "follows": "main", "consentBy": "<who>", "consentAt": "YYYY-MM-DD", "require": "green" } }
+#
+# and this workflow keeps that pin on the newest (green) commit of `main`,
+# writing the rule's consent, by name, for every pin it moves
+# (`scripts/repin-standing.ts`; the rule is cat-harness's `schemas/kg/mount-trust.ts`).
+#
+# A caller (in the site, e.g. `.github/workflows/standing-repin.yml`):
+#
+#   name: Standing repin
+#   on:
+#     schedule: [{ cron: "17 */6 * * *" }]          # every six hours
+#     repository_dispatch: { types: [upstream-merged] } # an upstream's post-merge step may poke it
+#     workflow_dispatch: { inputs: { dry_run: { type: boolean, default: false } } }
+#   permissions: { contents: write, pull-requests: write }
+#   jobs:
+#     repin:
+#       uses: litlfred/cat-harness-tools/.github/workflows/standing-repin.yml@main
+#       with: { dry-run: ${{ inputs.dry_run == true }} }
+#       # secrets: { repin-token: ${{ secrets.REPIN_TOKEN }} }   # see "Why a token" below
+#
+# An upstream pokes a site with
+#   gh api repos/<site>/dispatches -f event_type=upstream-merged
+#
+# What it does:
+#   1. Check out the caller (the site) at its default branch, into `site`.
+#   2. Compose the tools at `tools-ref` beside each other in `tools/`
+#      (bootstrap-tools, cat-harness, cat-harness-tools, as one workspace), so
+#      the repin runs the CURRENT tool and schema, not whatever the site pins.
+#   3. Run `repin-standing.ts --instance site`. It resolves each followed
+#      branch through the GitHub API, moves only the pins a standing consent
+#      covers (`seedRemote`, the `mount:remote --seed` write), re-mounts so
+#      `index.lock.json` follows (`mountRemote`), and re-renders the agent
+#      surface when the lock changed. The `uses: litlfred/…@<sha>` calls
+#      move with the lock (`WORKFLOW_PINS_WRITE=1`), and a committed root
+#      `bun.lock` is refreshed for the moved mounts (cat-harness-tools#2315).
+#      A credential that may not push .github/workflows gets the lock and
+#      bun.lock without the pin edits, and the summary says so.
+#   4. When a tracked file changed, push `repin/standing-<date>` and open ONE
+#      PR, or update the one already open (any `repin/standing-*` head), so
+#      runs never stack PRs. A branch that carries a commit this workflow did
+#      not make (an agent's fix) is never overwritten: the re-pin goes to a
+#      fresh branch and PR instead, and every push is a lease on the branch
+#      as it was read. Then label it `needs-repin` for the merge
+#      manager, whatever started the run, creating the label first in a
+#      repository that has none (owner, card 2026-11-18). It NEVER merges and never asks for
+#      auto-merge; an auto-merge already on the PR (set before this rule) is
+#      turned off, since its content just changed under it. See "Who merges".
+#
+# Why a token: pushes and PRs made with the default GITHUB_TOKEN do not
+# trigger the site's own `pull_request` workflows, so required checks never
+# run on the repin PR and the merge manager has no CI to judge. Pass `repin-token` (an App or fine-grained
+# token with contents + pull-requests write) for checks to run on the repin PR;
+# without it the PR is still opened, and the step summary says so.
+#
+# Who merges (owner, 2026-11-13; cat-harness#1313, merge-manager-watcher
+# §"What this does not do yet"): ONLY the merge manager runs a merge path.
+# The owner's card the same day, "C. No auto-merge" (it replaced "MM
+# dispatches, auto-merge OK"), applies that here: this workflow opens or
+# updates its PR and labels it `needs-repin` on EVERY trigger — schedule,
+# repository_dispatch and workflow_dispatch alike — and never merges it or
+# asks GitHub to. Measured before the ruling: repin PRs with auto-merge
+# merged themselves 3–4 seconds after opening, before any CI ran
+# (three repin PRs in two upper layers, measured by the merge manager). `merge:watch --queue` lists the
+# labelled PR; the merge manager judges it and lands it with
+# `merge:guard --merge`. No other session runs a merge path for it, and no
+# session re-pins a site some other way.
+# (scripts/tests/sdlc/standing-repin-merge.test.ts runs the step's script.)
+
+name: Standing repin
+
+on:
+  workflow_call:
+    inputs:
+      tools-ref:
+        description: "The ref of cat-harness-tools, cat-harness and bootstrap-tools whose repin tool and schema run."
+        required: false
+        type: string
+        default: "main"
+      depth:
+        description: "How many commits of a followed branch to look through for a green one."
+        required: false
+        type: number
+        default: 30
+      dry-run:
+        description: "Report what would move; write, push and open nothing."
+        required: false
+        type: boolean
+        default: false
+      merge-method:
+        description: "UNUSED since 2026-11-13 (owner: no auto-merge). Kept so existing callers that pass it still validate."
+        required: false
+        type: string
+        default: "squash"
+    secrets:
+      repin-token:
+        description: "Optional token for the push and PR, so the site's PR checks run (see 'Why a token')."
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: standing-repin-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  repin:
+    name: Re-pin the upstreams this site follows
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: site
+          ref: ${{ github.event.repository.default_branch }}
+          token: ${{ secrets.repin-token || github.token }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+      - name: Compose the tools at ${{ inputs.tools-ref }}
+        env:
+          REF: ${{ inputs.tools-ref }}
+        run: |
+          set -euo pipefail
+          mkdir tools
+          for r in bootstrap bootstrap-tools cat-harness cat-harness-tools; do
+            git clone -q --depth 1 --branch "$REF" "https://github.com/litlfred/$r" "tools/$r" \
+              || git clone -q --depth 1 "https://github.com/litlfred/$r" "tools/$r"
+          done
+          cat > tools/package.json <<'JSON'
+          { "name": "standing-repin-tools", "private": true, "workspaces": ["bootstrap-tools", "cat-harness", "cat-harness-tools"] }
+          JSON
+          (cd tools && bun install)
+      - name: Re-pin
+        id: repin
+        working-directory: site
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry-run }}
+          DEPTH: ${{ inputs.depth }}
+          # The `uses: litlfred/…@<sha> # index.lock.json` calls follow the
+          # lock in the same commit (cat-harness-tools#2315). Without this the
+          # re-pin moved only the lock and the site kept calling the old
+          # shared workflows. Whether the push may carry them is decided at
+          # push time below (owner Q-PIN-6 "C").
+          WORKFLOW_PINS_WRITE: "1"
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898+github-actions[bot]@users.noreply.github.com"
+          args=(--instance . --depth "$DEPTH" --summary-file "$RUNNER_TEMP/repin.md")
+          [ "$DRY_RUN" = "true" ] && args+=(--dry-run)
+          # `|| code=$?`: Actions runs this as `bash -e`, so a bare call
+          # followed by `code=$?` ended the step on a refusal before the
+          # summary and the `code` output below were written.
+          code=0
+          bun ../tools/cat-harness-tools/scripts/repin-standing.ts "${args[@]}" || code=$?
+          cat "$RUNNER_TEMP/repin.md" >> "$GITHUB_STEP_SUMMARY" || true
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          # A refused or undetermined instance is a red run, and nothing is pushed:
+          # a half-moved lock is not a PR (principle 4).
+          exit $code
+      - name: Refresh the root bun.lock
+        # A site whose root declares the mounts as workspaces records each
+        # mounted layer's package.json in bun.lock, so a re-pin that moves a
+        # layer's dependencies leaves the lock stale and every
+        # `bun install --frozen-lockfile` after it fails ("lockfile had
+        # changes, but lockfile is frozen";
+        # cat-harness-tools#2315). Refresh it while the mounts are down.
+        if: inputs.dry-run == false && steps.repin.outputs.moved != '0'
+        working-directory: site
+        run: |
+          set -euo pipefail
+          if ! git ls-files --error-unmatch bun.lock >/dev/null 2>&1; then
+            echo "This site commits no bun.lock: nothing to refresh."
+            exit 0
+          fi
+          bun install
+          if git diff --quiet -- bun.lock; then echo "bun.lock is current."; else echo "bun.lock refreshed for the moved mounts."; fi
+      - name: Open or update the one repin PR
+        if: inputs.dry-run == false && steps.repin.outputs.moved != '0'
+        working-directory: site
+        env:
+          GH_TOKEN: ${{ secrets.repin-token || github.token }}
+          BASE: ${{ github.event.repository.default_branch }}
+          HAS_TOKEN: ${{ secrets.repin-token != '' }}
+          EVENT: ${{ github.event_name }}
+          REPIN_LABEL: needs-repin
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "The repin wrote no tracked change; no PR."
+            exit 0
+          fi
+          existing=$(gh pr list --base "$BASE" --state open --json number,headRefName \
+            --jq '[.[] | select(.headRefName | startswith("repin/standing-"))][0] // empty')
+          if [ -n "$existing" ]; then
+            branch=$(jq -r .headRefName <<<"$existing")
+            number=$(jq -r .number <<<"$existing")
+          else
+            branch="repin/standing-$(date -u +%Y-%m-%d)"
+            number=""
+          fi
+          # Never drop a commit someone else pushed to the repin branch (an
+          # agent's fix on the open re-pin PR). A re-dispatch rebuilt the
+          # branch from main and force-pushed it, and an agent's commit was
+          # lost (2026-11-23, a downstream site's re-pin). Commits this workflow
+          # made are the ones whose subject starts "Standing repin:"; any
+          # other commit on the branch, past main, is someone's work. Then the
+          # re-pin goes to a FRESH branch and PR, and the old PR is left to
+          # its author. The push below is a lease on what was read here, so a
+          # commit pushed in between is refused rather than overwritten.
+          old=""
+          if git fetch -q --depth=200 origin "+refs/heads/$BASE:refs/remotes/origin/$BASE" "+refs/heads/$branch:refs/remotes/origin/$branch" 2>/dev/null; then
+            old=$(git rev-parse "refs/remotes/origin/$branch")
+            theirs=$(git log --format='%h %s' "refs/remotes/origin/$BASE..refs/remotes/origin/$branch" | grep -v '^[0-9a-f]* Standing repin: ' || true)
+            if [ -n "$theirs" ]; then
+              was="$branch"
+              branch="repin/standing-$(date -u +%Y-%m-%d)-${GITHUB_RUN_ID:-$(date -u +%H%M%S)}"
+              number=""
+              old=""
+              echo "::warning::$was carries commits this workflow did not make; the re-pin goes to a fresh branch, $branch, and $was is left as it is"
+              { echo "\`$was\` carries commits this workflow did not make, so it was not overwritten; this re-pin is on \`$branch\`:"; sed 's/^/- /' <<<"$theirs"; echo; } >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+          lease="--force-with-lease=refs/heads/$branch:$old"
+          git checkout -q -B "$branch"
+          git add -A
+          git commit -q -F - <<EOF
+          Standing repin: $(git diff --cached --name-only | tr '\n' ' ')
+
+          $(cat "$RUNNER_TEMP/repin.md")
+          EOF
+          # A credential without the `workflows` permission (the default
+          # GITHUB_TOKEN, or an App without it: owner Q-PIN-6 "C") cannot push
+          # a commit that edits .github/workflows. Then drop the pin edits and
+          # push the rest, so the lock still moves; check:workflow-pins warns
+          # that the calls trail it until an agent session moves them.
+          if ! git push -q "$lease" origin "HEAD:refs/heads/$branch"; then
+            if git diff --quiet HEAD~1 HEAD -- .github/workflows; then exit 1; fi
+            echo "::warning::the push with the workflow pins was refused (no \`workflows\` permission?): pushing without them; the \`uses:\` calls trail index.lock.json until an agent session runs \`bun run cat workflow-pins\`"
+            # Reset the index of the whole directory to the parent: a
+            # `checkout HEAD~1 -- .github/workflows` restores the files the
+            # parent has but keeps a workflow the re-pin ADDED, so the
+            # amended commit still touched workflows and was refused again
+            # (a downstream standing repin). Then bring the working tree to
+            # the amended commit: modified files back, added ones removed.
+            git reset -q HEAD~1 -- .github/workflows
+            git commit -q --amend --no-edit
+            git checkout -q -- .github/workflows
+            git clean -qfd -- .github/workflows
+            git push -q "$lease" origin "HEAD:refs/heads/$branch"
+            echo "Workflow pins NOT moved: the credential cannot push .github/workflows. Pass a \`repin-token\` with the \`workflows\` permission." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          title="Standing repin ($(date -u +%Y-%m-%d))"
+          if [ -n "$number" ]; then
+            gh pr edit "$number" --title "$title" --body-file "$RUNNER_TEMP/repin.md"
+          else
+            # A repository that passes no repin-token AND keeps "Allow GitHub
+            # Actions to create and approve pull requests" off refuses the
+            # create. Owner, 2026-11-15, card Q-REPIN-TOK "C": that is a
+            # warning, not a red run. The branch is pushed above, so the
+            # re-pin waits there for a hand-opened PR; six repositories
+            # failed this way every six hours, one email each.
+            if ! out=$(gh pr create --base "$BASE" --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/repin.md" 2>&1); then
+              echo "$out" >&2
+              if grep -q "not permitted to create or approve pull requests" <<<"$out"; then
+                echo "::warning::$branch is pushed, but this repository lets GitHub Actions open no pull request: pass repin-token (REPIN_TOKEN), or turn on Settings → Actions → General → \"Allow GitHub Actions to create and approve pull requests\", or open the PR from $branch by hand."
+                echo "No PR opened: GitHub Actions may not create pull requests here. The re-pin is on \`$branch\`; open a PR from it by hand, or pass repin-token." >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
+              exit 1
+            fi
+            echo "$out"
+            number=$(gh pr view "$branch" --json number --jq .number)
+          fi
+          # Never merge, never auto-merge (owner, 2026-11-13, "C. No auto-merge"):
+          # queue it for the merge manager, whatever started the run ($EVENT).
+          # Create the label first when the repository has none (owner, card
+          # 2026-11-18: ten sites failed here every six hours, "could not
+          # label #N", because `gh pr edit --add-label` refuses a label the
+          # repository does not have). Idempotent: an existing label is left
+          # as it is (no --force, so its colour and description stay), and a
+          # refused create is only a warning, since the label step below
+          # still says whether the PR got its label.
+          if ! gh label list --limit 1000 --json name --jq '.[].name' 2>/dev/null | grep -qxF "$REPIN_LABEL"; then
+            gh label create "$REPIN_LABEL" --color "fbca04" \
+              --description "A standing repin PR, queued for the merge manager" >/dev/null 2>&1 \
+              || echo "::warning::could not create the \`$REPIN_LABEL\` label (it may exist already, or the token may not create labels)"
+          fi
+          gh pr edit "$number" --add-label "$REPIN_LABEL" \
+            || { echo "::error::could not label #$number \`$REPIN_LABEL\` (does the label exist here?): the merge manager would not see it"; exit 1; }
+          gh pr merge "$number" --disable-auto >/dev/null 2>&1 || true
+          echo "#$number labelled \`$REPIN_LABEL\` for the merge manager ($EVENT run); this workflow never merges it." >> "$GITHUB_STEP_SUMMARY"
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::warning::opened with GITHUB_TOKEN: the site's pull_request checks do not run on #$number, so the merge manager has no CI to judge. Pass repin-token."
+          fi

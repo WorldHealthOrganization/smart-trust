@@ -1,0 +1,68 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "content-context",
+    "title": "Content JSON-LD context",
+    "description": "Emit the published JSON-LD `@context` that both populations share — authored block siblings and ingested `library/**` nodes reference it by URL — generated from its TypeScript definition rather than hand-kept.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat jsonld:context"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Compare against the committed copy and fail if stale, instead of writing.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "context",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "`ns/content/v1.jsonld`, the document served at CONTENT_CONTEXT_URL."
+        }
+      ]
+    },
+    "satisfies": [
+      "kg-export"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    },
+    "maintains": [
+      {
+        "source": "schemas/kg/jsonld.ts",
+        "artefact": "ns/content/v1.jsonld",
+        "format": "json-ld"
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "/io/inputs/0",
+      "comment": "`--check` is the CI arm: it compares against the committed copy and\nfails rather than writing, like every other generated file here."
+    },
+    {
+      "at": "/maintains",
+      "comment": "Load-bearing and currently LOSSY, which is bean `ovkk`: the @context\ndeclares fewer terms than the graph uses, so a conforming JSON-LD\nprocessor silently drops the property occurrences it cannot expand.\nA node here does not fix that. It makes the artefact's source\naddressable, which is what a fix has to start from — and it is why this\nnode is worth having before the gap is closed rather than after."
+    },
+    {
+      "at": "/maintains/0/artefact",
+      "comment": "declared-path-literal: this Tool node IS the declaration of the artefact it maintains, at the path its published URL fixes."
+    }
+  ]
+}
