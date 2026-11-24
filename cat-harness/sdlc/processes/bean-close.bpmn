@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_BeanClose"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       CLOSE a bean — the second half of Process_BeanLifecycle, called
+       before each end a bean-touching process reaches after
+       Process_BeanOpen (bean folio-assistant-m8gz, owner ruling
+       2026-10-24, option A).
+
+       THE ONE PLACE `op="resolve"` AND `op="archive"` ARE DRAWN.
+       Before the split, 13 resolve ops sat in 11 diagrams and 3
+       archive ops in 3: eight processes closed a bean without
+       archiving it, which is how 219 completed beans piled up with
+       nothing to discharge them. Archive stays a per-activity op
+       (owner, 2026-10-20) — it is Close_Archive below, the one
+       activity both terminal outcomes share.
+
+       Placed straight before the caller's end event, so the engine's
+       `resolve` sees "only archive steps left" (`onlyArchiveLeft`) and
+       completes the bean, and `archive` runs once the caller has
+       finished. A CLOSE reached while the caller still has work ahead
+       (a phase called mid-flow) notes instead of closing, which is the
+       engine's rule and not a defect here.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:process id="Process_BeanClose" name="Close the bean" isExecutable="false">
+    <bpmn:documentation>The closing half of every bean's life: end it in a state that says why. Done work is completed and archived; unwanted work is scrapped with its reasons — never deleted — and archived; blocked work records what it waits on and goes back to `todo` for whoever can act. Called, never run on its own, straight before an end event of a process that called Process_BeanOpen.
+
+A bean is never deleted. A scrapped bean stops the next agent re-entering a dead end; a deleted one leaves a sibling unable to tell abandonment from accident.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_BeanClose">
+      <bpmn:lane id="Lane_Agent" name="Agent (this session)" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Closes only the bean its caller opened and claimed — Process_BeanOpen already sent someone else's to its sibling — and picks one of three recorded endings for it.</bpmn:documentation>
+        <bpmn:flowNodeRef>Close_Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Close_Outcome</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Close_Complete</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Close_Scrap</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Close_Archive</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Close_RecordBlocker</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Close_Archived</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Close_HandedBack</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Close_Start" name="The caller's work&#10;has stopped"/>
+
+    <bpmn:exclusiveGateway id="Close_Outcome" name="Outcome?">
+      <bpmn:documentation>The performer's judgement on the work the caller did, and one of three recorded endings. `done`: complete it only when no todo is unchecked, with a summary of what changed. `not wanted`: set it `scrapped` with a 'Reasons for Scrapping' section — never delete. `blocked`: record what it waits on with `--blocked-by`, say what would unblock it, and return it to `todo`, because an in-progress bean nobody is progressing reads as active work. The caller's end event usually says which: an end named for success is `done`, one named for a refusal or a decline is `not wanted`, one named for an undetermined answer is `blocked`.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Close_Complete" name="Complete&#10;(no unchecked todos left)">
+      <bpmn:documentation>Only once nothing is unchecked, and with a summary of
+what changed. The engine's `resolve` completes a bean only after the instance
+itself has completed, or has nothing left but archive steps — whether work is
+done is a judgement, and a bean is not closed on someone else's say-so. The
+only `resolve` op in the corpus (`check:bean-calls`).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager"/>
+        <cat-harness.processes:bean op="resolve"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Close_Scrap" name="Scrap with reasons&#10;NEVER delete">
+      <bpmn:documentation>`status: scrapped`, plus a "Reasons for Scrapping"
+section. This is what "disable" means here — the CLI has no disabled state;
+its vocabulary is draft, todo, in-progress, completed, scrapped. The agent's
+own `beans update`; the engine has no scrap op.
+
+DELETION IS NEVER THE ANSWER, even though `beans delete` exists. A scrapped
+bean records that the work was considered and rejected, and why; a deleted one
+leaves a sibling session unable to tell abandonment from accident, and leaves
+the next agent free to re-open the same dead end.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Close_Archive" name="Archive the bean&#10;(completed or scrapped)">
+      <bpmn:documentation>Move the bean, now completed or scrapped, into the archive, with a line saying which process closed it. A bean still open stays where it is with a note saying why: only a completed or scrapped bean may be archived (check:bean-archive), and only once the calling process has finished. The periodic sweep (`beans archive`) still archives anything this step leaves — it stays the floor, this op the exception (`todo-manager` § Archiving). The owner's 2026-10-20 ruling keeps archive a per-activity op; this is that activity, shared by both terminal outcomes and by every caller.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="todo-manager"/>
+        <cat-harness.processes:bean op="archive"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Close_RecordBlocker" name="Record the blocker&#10;and hand back">
+      <bpmn:documentation>Blocked is not scrapped. Set `--blocked-by`, say in the
+body what would unblock it, and return it to `todo` so it is visible to whoever
+can act. An in-progress bean nobody is progressing reads as active work. Not
+archived: the work is still wanted.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="bean-coordination"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:endEvent id="Close_Archived" name="Recorded&#10;and archived"/>
+    <bpmn:endEvent id="Close_HandedBack" name="Blocked —&#10;handed back"/>
+
+    <bpmn:sequenceFlow id="BC_1" sourceRef="Close_Start" targetRef="Close_Outcome"/>
+    <bpmn:sequenceFlow id="BC_2" name="done" sourceRef="Close_Outcome" targetRef="Close_Complete"/>
+    <bpmn:sequenceFlow id="BC_3" name="not wanted" sourceRef="Close_Outcome" targetRef="Close_Scrap"/>
+    <bpmn:sequenceFlow id="BC_4" name="blocked" sourceRef="Close_Outcome" targetRef="Close_RecordBlocker"/>
+    <bpmn:sequenceFlow id="BC_5" sourceRef="Close_Complete" targetRef="Close_Archive"/>
+    <bpmn:sequenceFlow id="BC_6" sourceRef="Close_Scrap" targetRef="Close_Archive"/>
+    <bpmn:sequenceFlow id="BC_7" sourceRef="Close_Archive" targetRef="Close_Archived"/>
+    <bpmn:sequenceFlow id="BC_8" sourceRef="Close_RecordBlocker" targetRef="Close_HandedBack"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_BeanClose">
+    <bpmndi:BPMNPlane id="BPMNPlane_BeanClose" bpmnElement="Process_BeanClose">
+      <bpmndi:BPMNShape id="Lane_Agent_di" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="160" y="30" width="790" height="490" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Close_Start_di" bpmnElement="Close_Start">
+        <dc:Bounds x="216" y="252" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="196" y="293" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Close_Outcome_di" bpmnElement="Close_Outcome" isMarkerVisible="true">
+        <dc:Bounds x="282" y="245" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="226" y="214" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Close_Complete_di" bpmnElement="Close_Complete">
+        <dc:Bounds x="422" y="50" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Close_Scrap_di" bpmnElement="Close_Scrap">
+        <dc:Bounds x="422" y="210" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Close_RecordBlocker_di" bpmnElement="Close_RecordBlocker">
+        <dc:Bounds x="422" y="370" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Close_Archive_di" bpmnElement="Close_Archive">
+        <dc:Bounds x="602" y="130" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Close_Archived_di" bpmnElement="Close_Archived">
+        <dc:Bounds x="802" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="845" y="172" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Close_HandedBack_di" bpmnElement="Close_HandedBack">
+        <dc:Bounds x="802" y="412" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="845" y="412" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BC_1_di" bpmnElement="BC_1">
+        <di:waypoint x="252" y="270" />
+        <di:waypoint x="282" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BC_2_di" bpmnElement="BC_2">
+        <di:waypoint x="307" y="245" />
+        <di:waypoint x="307" y="110" />
+        <di:waypoint x="422" y="110" />
+        <bpmndi:BPMNLabel><dc:Bounds x="312" y="170" width="40" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BC_3_di" bpmnElement="BC_3">
+        <di:waypoint x="332" y="270" />
+        <di:waypoint x="422" y="270" />
+        <bpmndi:BPMNLabel><dc:Bounds x="340" y="250" width="78" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BC_4_di" bpmnElement="BC_4">
+        <di:waypoint x="307" y="295" />
+        <di:waypoint x="307" y="430" />
+        <di:waypoint x="422" y="430" />
+        <bpmndi:BPMNLabel><dc:Bounds x="312" y="360" width="55" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BC_5_di" bpmnElement="BC_5">
+        <di:waypoint x="542" y="110" />
+        <di:waypoint x="662" y="110" />
+        <di:waypoint x="662" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BC_6_di" bpmnElement="BC_6">
+        <di:waypoint x="542" y="270" />
+        <di:waypoint x="572" y="270" />
+        <di:waypoint x="572" y="190" />
+        <di:waypoint x="602" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BC_7_di" bpmnElement="BC_7">
+        <di:waypoint x="722" y="190" />
+        <di:waypoint x="802" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BC_8_di" bpmnElement="BC_8">
+        <di:waypoint x="542" y="430" />
+        <di:waypoint x="802" y="430" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

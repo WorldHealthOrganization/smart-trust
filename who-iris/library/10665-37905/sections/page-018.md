@@ -1,0 +1,54 @@
+---
+doc_id: 10665-37905
+doc_title: "Accélération des activités de vaccination : principes de planification / déclaration conjointe OMS/FISE"
+section_id: page-018
+section_title: "Page 18"
+pages: 18-18
+pdf_page: 18
+source_pdf: 10665-37905.pdf
+source_sha256: 9ca36288eaaca93f
+text_source: ocr
+granularity: page
+---
+-18 -
+
+pour les deuxiéme et troisiéme doses,
+celles-ci pouvant être administrées en
+même temps que le vaccin antirougeoleux.
+
+L'infirmité due à la poliomyélite est
+connue et redoutée dans les communautés
+où cette maladie persiste. On enregistre
+déjà, grâce au PEV, d'importantes réduc
+tions de l'incidence de la poliomyélite
+dans le monde et on peut attendre pour
+les années à venir d'autres réductions
+sensibles à mesure que la couverture
+vaccinale s'étend.
+
+La lutte contre le tétanos néonatal n'a
+guère progressé; il demeure une “maladie
+négligée" bien que près d'un million de
+décès lui soient imputables chaque
+année. Des cas peuvent être évités à la
+fois par de bonnes conditions d'hygiène
+lors de l'accouchement et des soins
+postnatals adéquats ainsi que par la
+vaccination des mères. Chaque cas
+témoigne d'échecs multiples dans les
+soins de santé maternelle et infantile.
+Cette maladie, qui a pratiquement disparu
+des pays industrialisés, ne devrait plus
+être tolérée ailleurs dans le monde.
+
+4) Améliorer les services de vaccination dans les
+zones urbaines défavorisées
+
+On prévoit qu'en l'an 2000 la moitié de
+la population mondiale résidera dans un
+nombre limité de grandes agglomérations
+urbaines. Malgré l'abondance relative
+des services de santé et des personnels
+de santé en zone urbaine par rapport aux
+zones rurales, le taux de la couverture
+vaccinale dans les taudis qui entourent

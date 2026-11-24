@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+ xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_QaReportSigning"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="0.1.0">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="attestation-service" name="Attestation service"/>
+  <bpmn:resource id="publication-manager" name="Publication manager"/>
+  <bpmn:resource id="validation-pipeline" name="Validation pipeline"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Signing a QA report — two routes, chosen by the performer's reach.
+
+       Bean `folio-assistant-r0rq`, issue #363. From the owner, 2026-09-20:
+
+         | some of the machine actors may be air-gapped, it is a property
+         | of an actor. depending on the propeorty, different tools might
+         | not work. in this case an APIwouldnt wokr and a human actor is
+         | needed. so process for signing needs two parallel routes/
+         | processes, air gapped vs not, the first needed a human actor
+
+       The subject is a QA REPORT — owner, same day, answering what gets
+       signed. That closes the loop with `folio-assistant-zz0a`:
+       `folio-test-run/v1` made a run HASHABLE, and signing is what makes
+       the hash ATTESTABLE. Nothing else here is new evidence; the two
+       routes differ in who vouches, not in what is vouched for.
+
+       THIS DIAGRAM IS THE ONLY STATEMENT OF THE FALLBACK. A
+       `SkillCapabilityRef.fallbackRole` field declared the same fact for
+       eight hours on 2026-09-20 (bean `folio-assistant-85e8`) and was
+       removed the same day, on the owner's question — "do we need
+       fallbackRole, can it be computed, i dont like duplicate data
+       maintenace issues".
+
+       It can, from here, exactly: the fallback role is the role of a lane
+       holding a task only a person can fill, which is `Lane_Human` binding
+       `publication-manager` below. `check:fallback-roles` derives it and
+       fails a `fallback` that resolves to neither a declared capability nor
+       such a lane, so this diagram is now load-bearing for that check —
+       delete `Task_HumanSign`'s lane binding and the gate goes red.
+
+       The earlier argument here was that declaration and execution are
+       different mechanisms and drawing only one would leave the other
+       inert. The first half is true. The second does not follow: a
+       declaration recoverable from the executable artefact is a cached
+       copy, and nothing asserted the two agreed.
+
+       TWO ROUTES, NOT A RETRY. The human lane is not what happens when the
+       API call fails; it is what happens when there is no call to make. An
+       air-gapped host has no degraded mode to retry into, which is why this
+       is a gateway before the work rather than a boundary event after it.
+       ═══════════════════════════════════════════════════════════════ -->
+
+  <bpmn:collaboration id="Collaboration_QaReportSigning">
+    <bpmn:participant id="Participant_QaReportSigning" name="QA report signing — API or human, by reach" processRef="Process_QaReportSigning" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_QaReportSigning" name="QA report signing" isExecutable="false">
+    <bpmn:documentation>Attesting a QA report: build the test run, work out what the performer can actually reach, and sign — over the API where that is available, or as release authority where it is not.
+
+You are in this process when a report needs to become evidence somebody else can rely on. The reach resolution before the gateway is the point: the route is CHOSEN from what the signer can do, not assumed, and the process records which route signed it so a reader of the attestation can tell.
+
+A signature whose route is unrecorded is a signature whose weight cannot be judged later, which is why that step is drawn rather than left implicit.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- STRICT, declared rather than defaulted (bean `folio-assistant-30hn`).
+           The step agents would skip under time pressure is resolving the
+           reach — it is easier to assume the API works — and skipping it is
+           exactly how an unsigned report acquires the appearance of one. -->
+      <cat-harness.processes:policy enforcement="strict" />
+      <!-- Capture ON. An attestation's value is that a third party can ask
+           what was signed, by whom, and on what evidence. A signing process
+           whose own execution is unlogged answers none of those. -->
+      <cat-harness.processes:log capture="on" />
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_QaReportSigning">
+      <bpmn:lane id="Lane_Qa" name="Validation and QA (mechanical + agents)" partitionElementRef="validation-pipeline">
+        <bpmn:documentation>Owns everything except the act of signing: it builds the hashable run, computes the two facts — effectiveReach and whether the API is configured — that Gateway_SigningRoute's table reads rather than a hand-asserted choice, and after either route returns, records which one fired. The record is what lets a later reader know which trust assumption they are relying on without having to ask.</bpmn:documentation>
+        <!-- Bound EXPLICITLY. `roles.json` matches a lane to a role by NAME,
+             and this role already carries three aliases because three
+             diagrams each spelled the lane differently. A fourth spelling
+             binds nothing and reports as an unbound lane. -->
+        <bpmn:flowNodeRef>Start_ReportReady</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BuildRun</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ResolveReach</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_SigningRoute</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Signed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RecordAttestation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_StoreSigned</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Signed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Api" name="Attestation service (API)" partitionElementRef="attestation-service">
+        <bpmn:documentation>Reached only from the DMN table's one row where both egress and a configured endpoint are true — everything else in Gateway_SigningRoute's table routes around this lane entirely, so its presence in a trace is itself already the answer to whether egress existed. It carries exactly one task and no branch of its own, because the routing decision was already made before this lane was entered.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ApiSign</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Human" name="Human signer" partitionElementRef="publication-manager">
+        <bpmn:documentation>Deleting this lane's role binding is not a documentation nicety: `check:fallback-roles` DERIVES the fallback role from whichever lane holds a task only a person can fill, so removing it turns that check red rather than merely undocumented. The gate that sends work here fires BEFORE any API attempt, never after one fails — an air-gapped host has no degraded mode to retry into, so this lane is a routing destination, not a retry path.</bpmn:documentation>
+        <!-- The publication manager, because this lane's authority is
+             release authorization — the permission it already holds. A
+             `signer` role would have been a new name for a position that
+             exists, and role-model.md's rule is that nothing IS a signer;
+             somebody ACTS AS one for the duration of a lane. -->
+        <bpmn:flowNodeRef>Task_HumanSign</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_ReportReady" name="QA report ready to attest">
+      <bpmn:outgoing>S01</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="Task_BuildRun" name="Build the test run">
+      <bpmn:documentation>Assemble the run record the signature will cover: the data hash and the process hash, each all-or-nothing. An UNKNOWN_HASH never reproduces another unknown, so a run that could not be hashed is signable only as what it is — unverifiable. Builds a `folio-test-run/v1`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-report-signing" />
+        <bootstrap.processes:skill ref="content-test" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>S01</bpmn:incoming>
+      <bpmn:outgoing>S02</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_ResolveReach" name="Resolve the performer's reach">
+      <bpmn:documentation>Compute the two facts the gateway reads: effectiveReach(deployment, actor) from schemas/process/actor-reach.ts, and whether the signing-api capability is configured. Undeclared reach resolves to "unknown" rather than to the deployment's value — an aggregate does not determine a member. Reads `effectiveReach` and runs the signing-api probe.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-report-signing" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>S02</bpmn:incoming>
+      <bpmn:outgoing>S03</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_SigningRoute" name="Which signing route?">
+      <bpmn:documentation>Answered by the performer's resolved reach (effectiveReach plus the signing-api probe). `api` signs over the API; `human` has a release authority sign.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:decision ref="decisions/signing-route.dmn#Decision_SigningRoute" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>S03</bpmn:incoming>
+      <bpmn:outgoing>S04</bpmn:outgoing>
+      <bpmn:outgoing>S05</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_ApiSign" name="Sign over the API">
+      <bpmn:documentation>The attestation service signs the run hashes. Reached only from the one table row that has both egress and a configured endpoint.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-report-signing" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>S04</bpmn:incoming>
+      <bpmn:outgoing>S06</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:userTask id="Task_HumanSign" name="Sign as release authority">
+      <bpmn:documentation>A person attests the run hashes out of band. This is a userTask, not a serviceTask, and the distinction is enforced: `fulfilmentKindsForBpmnType` will not let a system actor fill it, which is what stops the air-gapped route quietly becoming another machine route.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-report-signing" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>S05</bpmn:incoming>
+      <bpmn:outgoing>S07</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_Signed" name="Signed">
+      <bpmn:incoming>S06</bpmn:incoming>
+      <bpmn:incoming>S07</bpmn:incoming>
+      <bpmn:outgoing>S08</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_RecordAttestation" name="Record which route signed it">
+      <bpmn:documentation>The attestation records the route, not only the signature. A reader who cannot tell an API signature from a human one cannot tell which trust assumption they are relying on.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-report-signing" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>S08</bpmn:incoming>
+      <bpmn:outgoing>S09</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_StoreSigned" name="Store the signed report&#10;on qa-reports">
+      <bpmn:documentation>The signed report, its signature and the route that produced it are written TOGETHER into the `qa-reports` entry keyed by the commit the report judged (`main/&lt;sha&gt;/` or `pr/&lt;n&gt;/&lt;sha&gt;/`), through `scripts/qa-store.ts` — never committed to main and never pushed by hand (arc `3fva`, owner ruling D1). A signature kept apart from the bytes it covers attests nothing a reader can check. A certification DECISION taken on the report is a separate node that stays on main beside `test/attestations/` (ruling D5, default (a)); it is not written here.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-reports" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>S09</bpmn:incoming>
+      <bpmn:outgoing>S10</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="End_Signed" name="Report attested&#10;and stored">
+      <bpmn:incoming>S10</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="S01" sourceRef="Start_ReportReady" targetRef="Task_BuildRun" />
+    <bpmn:sequenceFlow id="S02" sourceRef="Task_BuildRun" targetRef="Task_ResolveReach" />
+    <bpmn:sequenceFlow id="S03" sourceRef="Task_ResolveReach" targetRef="Gateway_SigningRoute" />
+    <bpmn:sequenceFlow id="S04" name="api" sourceRef="Gateway_SigningRoute" targetRef="Task_ApiSign" />
+    <bpmn:sequenceFlow id="S05" name="human" sourceRef="Gateway_SigningRoute" targetRef="Task_HumanSign" />
+    <bpmn:sequenceFlow id="S06" sourceRef="Task_ApiSign" targetRef="Gateway_Signed" />
+    <bpmn:sequenceFlow id="S07" sourceRef="Task_HumanSign" targetRef="Gateway_Signed" />
+    <bpmn:sequenceFlow id="S08" sourceRef="Gateway_Signed" targetRef="Task_RecordAttestation" />
+    <bpmn:sequenceFlow id="S09" sourceRef="Task_RecordAttestation" targetRef="Task_StoreSigned" />
+    <bpmn:sequenceFlow id="S10" sourceRef="Task_StoreSigned" targetRef="End_Signed" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_QaReportSigning">
+    <bpmndi:BPMNPlane id="Plane_QaReportSigning" bpmnElement="Collaboration_QaReportSigning">
+      <bpmndi:BPMNShape id="Shape_Participant_QaReportSigning" bpmnElement="Participant_QaReportSigning" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1300" height="518" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Qa" bpmnElement="Lane_Qa" isHorizontal="true">
+        <dc:Bounds x="190" y="224" width="1270" height="230" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Api" bpmnElement="Lane_Api" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1270" height="144" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Human" bpmnElement="Lane_Human" isHorizontal="true">
+        <dc:Bounds x="190" y="454" width="1270" height="144" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start_ReportReady" bpmnElement="Start_ReportReady">
+        
+        <dc:Bounds x="244" y="306" width="36" height="36" />
+      <bpmndi:BPMNLabel><dc:Bounds x="222" y="350" width="92" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_BuildRun" bpmnElement="Task_BuildRun">
+        <dc:Bounds x="325" y="264" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ResolveReach" bpmnElement="Task_ResolveReach">
+        <dc:Bounds x="490" y="264" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_SigningRoute" bpmnElement="Gateway_SigningRoute" isMarkerVisible="true">
+        
+        <dc:Bounds x="655" y="299" width="50" height="50" />
+      <bpmndi:BPMNLabel><dc:Bounds x="630" y="353" width="100" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ApiSign" bpmnElement="Task_ApiSign">
+        <dc:Bounds x="765" y="92" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_HumanSign" bpmnElement="Task_HumanSign">
+        <dc:Bounds x="765" y="466" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_Signed" bpmnElement="Gateway_Signed" isMarkerVisible="true">
+        
+        <dc:Bounds x="945" y="299" width="50" height="50" />
+      <bpmndi:BPMNLabel><dc:Bounds x="940" y="353" width="60" height="18" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RecordAttestation" bpmnElement="Task_RecordAttestation">
+        <dc:Bounds x="1040" y="264" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_StoreSigned" bpmnElement="Task_StoreSigned">
+        <dc:Bounds x="1205" y="264" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Signed" bpmnElement="End_Signed">
+        
+        <dc:Bounds x="1370" y="306" width="36" height="36" />
+      <bpmndi:BPMNLabel><dc:Bounds x="1340" y="350" width="96" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_S01" bpmnElement="S01">
+        <di:waypoint x="280" y="324" />
+        <di:waypoint x="325" y="324" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_S02" bpmnElement="S02">
+        <di:waypoint x="445" y="324" />
+        <di:waypoint x="490" y="324" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_S03" bpmnElement="S03">
+        <di:waypoint x="610" y="324" />
+        <di:waypoint x="655" y="324" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_S04" bpmnElement="S04">
+        <di:waypoint x="705" y="324" />
+        <di:waypoint x="735" y="324" />
+        <di:waypoint x="735" y="152" />
+        <di:waypoint x="765" y="152" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_S05" bpmnElement="S05">
+        <di:waypoint x="705" y="324" />
+        <di:waypoint x="735" y="324" />
+        <di:waypoint x="735" y="526" />
+        <di:waypoint x="765" y="526" />
+        <bpmndi:BPMNLabel><dc:Bounds x="739" y="416.5" width="90" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_S06" bpmnElement="S06">
+        <di:waypoint x="885" y="152" />
+        <di:waypoint x="915" y="152" />
+        <di:waypoint x="915" y="324" />
+        <di:waypoint x="945" y="324" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_S07" bpmnElement="S07">
+        <di:waypoint x="885" y="526" />
+        <di:waypoint x="915" y="526" />
+        <di:waypoint x="915" y="324" />
+        <di:waypoint x="945" y="324" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_S08" bpmnElement="S08">
+        <di:waypoint x="995" y="324" />
+        <di:waypoint x="1040" y="324" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_S09" bpmnElement="S09">
+        <di:waypoint x="1160" y="324" />
+        <di:waypoint x="1205" y="324" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_S10" bpmnElement="S10">
+        <di:waypoint x="1325" y="324" />
+        <di:waypoint x="1370" y="324" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
