@@ -1,0 +1,89 @@
+{
+  "_comment": "The roles who-iris's own processes bind: the lanes of the four IRIS CDN export diagrams (processes/iris-cdn-*.bpmn, who-iris#103). Each inherits the harness role it specialises, so it carries that role's skills too. Schema: cat-harness-tools/schemas/process/role-graph.ts.",
+  "name": "who-iris",
+  "roles": [
+    {
+      "id": "iris-cdn-owner",
+      "title": "IRIS CDN owner",
+      "description": "A person: decides the export's scope, budget and storage target. Nothing downstream widens what the owner approved.",
+      "actorKinds": [
+        "person"
+      ],
+      "inherits": [
+        "programme-manager"
+      ],
+      "skills": [
+        "iris-cdn-exporter"
+      ]
+    },
+    {
+      "id": "iris-cdn-exporter",
+      "title": "IRIS CDN Exporter",
+      "description": "The agent role. It plans, reviews and reports; it does not hold the signing key, and it never pushes to a WHO repository.",
+      "actorKinds": [
+        "agent"
+      ],
+      "skills": [
+        "iris-cdn-exporter",
+        "iris-dspace",
+        "iris-rest-feed"
+      ]
+    },
+    {
+      "id": "cloudflare-r2-cdn",
+      "title": "Cloudflare R2 and CDN",
+      "description": "Object storage behind the CDN. Every object is named by its SHA-256 and served with an immutable cache policy; an object already present is never written again. Also serves did.json. A mechanical role, held to the contract its skills state.",
+      "actorKinds": [
+        "system"
+      ],
+      "inherits": [
+        "publish-target"
+      ],
+      "skills": [
+        "iris-cdn-exporter"
+      ]
+    },
+    {
+      "id": "cloudflare-git",
+      "title": "Cloudflare git (Artifacts)",
+      "description": "A git repository hosted on Cloudflare Artifacts, not GitHub. Holds the release history: BagIt tag files, signatures, the cursor, checkpoints and run reports. A mechanical role: written to, deciding nothing.",
+      "actorKinds": [
+        "system"
+      ],
+      "inherits": [
+        "corpus"
+      ],
+      "skills": [
+        "iris-cdn-exporter",
+        "iris-rest-feed"
+      ]
+    },
+    {
+      "id": "release-signer",
+      "title": "Release signer",
+      "description": "Holds the P-256 private key (GitHub environment secret IRIS_CDN_SIGNING_JWK) and signs each changed item manifest and the release tag manifest. A mechanical role.",
+      "actorKinds": [
+        "system"
+      ],
+      "inherits": [
+        "attestation-service"
+      ],
+      "skills": [
+        "iris-cdn-signing"
+      ]
+    },
+    {
+      "id": "verifier",
+      "title": "IRIS CDN verifier",
+      "description": "Anyone. Resolves the key from the did:web DID document, never from the package, and checks its x5c chain up to WHO's signing key. Cannot reach it: the verdict is unknown, not verified.",
+      "actorKinds": [
+        "person",
+        "agent",
+        "system"
+      ],
+      "skills": [
+        "iris-cdn-signing"
+      ]
+    }
+  ]
+}

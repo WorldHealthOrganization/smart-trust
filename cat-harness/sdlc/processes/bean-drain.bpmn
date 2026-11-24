@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_BeanDrain"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="session-coordinator" name="Session coordinator"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       BEAN DRAIN — the delivery loop run over a queue instead of over
+       one bean (bean folio-assistant-bssi; owner choice A, 2026-10-24:
+       model the drain as BPMN once m8gz's OPEN and CLOSE exist).
+
+       Precedent: epic ml9h, the 2026-10-10 three-lane drain, which the
+       unlinked-beans report (https://github.com/litlfred/cat-harness-tools/pull/703) found with no
+       process. This is that process.
+
+       EACH BEAN GOES THROUGH THE SHARED OPEN AND CLOSE. Nothing here
+       claims, resolves or archives: Drain_Open calls Process_BeanOpen
+       and Drain_Close calls Process_BeanClose, once per bean, and
+       `check:bean-calls` holds the diagram to that. The loop is an
+       exclusive gateway, not a multi-instance marker: the engine routes
+       gateway loops and re-enters a called process each time its call
+       activity is reached again (`enterSubprocesses`), and it does not
+       read loop or multi-instance characteristics.
+
+       ONE INSTANCE, ONE BEAN. The engine binds a single bean to an
+       instance and hands it to every call. Here that is the drain's own
+       bean (its epic). CLOSE is followed by more work on every pass, so
+       its `resolve` notes on that bean rather than completing it — the
+       engine's rule, and the right one: the drain is not done when one
+       bean is. The bean each pass takes is the one the drainer names
+       when it runs OPEN, by hand, as `bean-drain` §2 says.
+
+       Node ids carry a `Drain_` prefix because the engine's
+       `findInModel` returns the first matching id, and OPEN and CLOSE
+       use `Open_` and `Close_`.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:process id="Process_BeanDrain" name="Drain the beans" isExecutable="false">
+    <bpmn:documentation>Draining open beans with several agents at once, as part of the SDLC: build one queue grouped by owner, then take a bean, open it, work it, close it, and take the next — refilling from the deepest queue when a drainer's list runs dry, until nothing drainable is left.
+
+You are in this process when you are asked to drain beans, when you spawn drainers, or when you pull from a shared queue next to other agents. Each bean still goes through the ordinary OPEN and CLOSE (Process_BeanOpen, Process_BeanClose); what the drain adds is the queue around them, and the rule that a bean another agent holds is skipped, not worked. The queue is advisory: it says who should take a bean, and only OPEN's claim says who did.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- STRICT, declared: the step this gates is the one a drain skips
+           under time pressure — checking a bean before working it (the
+           f1e1 duplicate PRs of 2026-10-24). -->
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_BeanDrain">
+      <bpmn:lane id="Lane_QueueKeeper" name="Queue keeper" partitionElementRef="session-coordinator">
+        <bpmn:documentation>Holds the queue file and nothing else: builds it from every bean copy, grouped by owner with what was left out and why, and refills a drainer whose list runs dry. It never claims — a queue entry says who should take a bean, and only the drainer's OPEN says who did. One agent can hold this lane and the drainer lane at once.</bpmn:documentation>
+        <bpmn:flowNodeRef>Drain_Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Drain_BuildQueue</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Drain_Refill</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Drain_Refilled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Drain_Drained</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Drainer" name="Drainer" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Takes beans from its own list one at a time and runs each through OPEN, the work and CLOSE before it takes the next. Its only bean writes are the ones OPEN and CLOSE make; a bean OPEN finds is someone else's is marked skip on the queue and left alone. It asks for a refill rather than picking from another owner's list.</bpmn:documentation>
+        <bpmn:flowNodeRef>Drain_Next</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Drain_More</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Drain_TakeNext</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Drain_Open</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Drain_Claimed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Drain_Skip</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Drain_Work</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Drain_Close</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Drain_Start" name="Asked to&#10;drain beans"/>
+
+    <bpmn:task id="Drain_BuildQueue" name="Build the queue,&#10;grouped by owner">
+      <bpmn:documentation>Read every bean copy, not only the one this checkout mounts; where copies disagree the newest `updated_at` wins and the disagreement is listed. Leave out goals and epics, blocked beans, closed or draft ones, owner-held or parked ones, and beans the drainers cannot reach — each with its reason, so nothing vanishes silently. Group the rest by owner in priority order, mark beans other agents hold as skip, and write one shared queue file. The `drain-queue` Tool (bean n7x7) builds this; until it is defined, the step is the skill's.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Drain_Next">
+      <bpmn:documentation>A merge, not a decision: the built queue, a closed bean and a skipped one all come back here before the drainer looks at its list again.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:exclusiveGateway id="Drain_More" name="A bean left&#10;on your list?">
+      <bpmn:documentation>Read off the drainer's own list in the queue file. `yes` takes the next bean in priority order. `list empty` asks the queue keeper for a refill — never a bean from another owner's list. Reached after the queue is built and after each bean is closed or skipped.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Drain_TakeNext" name="Take the next bean">
+      <bpmn:documentation>The highest-priority bean on this drainer's list that is not marked skip. Taking it is not claiming it: the queue is advisory, so the bean still goes through OPEN's check before any work, including reading code for it.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:callActivity id="Drain_Open" name="Open the bean" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Process_BeanOpen on the bean just taken: check it, find out whose it is, and claim it — or leave it alone when another agent holds it. OPEN's check is where the drain's claim check runs (the `bean-claim-check` Tool, bean n7x7): recent commits on every bean copy and any open PR naming the bean, before the claim. The gateway after this reads which end OPEN reached.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+
+    <bpmn:exclusiveGateway id="Drain_Claimed" name="Bean claimed?">
+      <bpmn:documentation>Reads which end Process_BeanOpen reached. `claimed`: the bean is in progress under this drainer and is worked next. `not yours`: another agent or a human holds it, nothing was written to it, and the drainer marks it skip and moves on rather than stopping the drain.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Drain_Skip" name="Mark it skip&#10;on the queue">
+      <bpmn:documentation>Record on the queue file that the bean is held elsewhere, and by whom, so no other drainer takes it next. The bean itself is not touched: closing or noting on someone else's bean is how a sibling loses work it had not finished reporting.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Drain_Work" name="Work the bean&#10;(PR at the first commit)">
+      <bpmn:documentation>Work only the bean OPEN claimed. Open the PR at the first commit with `Closes-bean: &lt;id&gt;` in its body — the open PR is the claim every other agent can see without the bean branch — and add its link to the bean on every copy. A cause found inside the bean that is separate work becomes a new bean, checked and claimed in its own right. A bean that waits on the owner is asked through `ask-the-person`, keeps its claim while the question is open, and goes to CLOSE as blocked if it will wait long.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="continual-progress"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:callActivity id="Drain_Close" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>Process_BeanClose on the bean just worked: complete and archive it on evidence, scrap it with its reasons, or record its blocker and hand it back to `todo`. On every bean copy. More of the drain follows, so on the drain's own bean the engine notes rather than resolves (see the process comment); then the drainer takes the next bean.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+
+    <bpmn:task id="Drain_Refill" name="Refill from the&#10;deepest queue">
+      <bpmn:documentation>Refresh the queue file from every bean copy — beans closed, claimed or unblocked since it was built change it — and move beans from the deepest owner's list to the drainer that ran dry. The `drain-queue` Tool (bean n7x7) rebuilds the queue; until it is defined, the step is the skill's.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="idle-backlog"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Drain_Refilled" name="Anything left&#10;to drain?">
+      <bpmn:documentation>Answered by the refreshed queue. `refilled`: the drainer's list has beans again, and it takes the next one straight away. `queue empty`: every drainable bean is closed, held by another agent, or left out with its reason, and the drain ends.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="Drain_Drained" name="Queue drained"/>
+
+    <bpmn:sequenceFlow id="BD_1" sourceRef="Drain_Start" targetRef="Drain_BuildQueue"/>
+    <bpmn:sequenceFlow id="BD_2" sourceRef="Drain_BuildQueue" targetRef="Drain_Next"/>
+    <bpmn:sequenceFlow id="BD_15" sourceRef="Drain_Next" targetRef="Drain_More"/>
+    <bpmn:sequenceFlow id="BD_3" name="yes" sourceRef="Drain_More" targetRef="Drain_TakeNext"/>
+    <bpmn:sequenceFlow id="BD_4" sourceRef="Drain_TakeNext" targetRef="Drain_Open"/>
+    <bpmn:sequenceFlow id="BD_5" sourceRef="Drain_Open" targetRef="Drain_Claimed"/>
+    <bpmn:sequenceFlow id="BD_6" name="claimed" sourceRef="Drain_Claimed" targetRef="Drain_Work"/>
+    <bpmn:sequenceFlow id="BD_7" sourceRef="Drain_Work" targetRef="Drain_Close"/>
+    <bpmn:sequenceFlow id="BD_8" sourceRef="Drain_Close" targetRef="Drain_Next"/>
+    <bpmn:sequenceFlow id="BD_9" name="not yours" sourceRef="Drain_Claimed" targetRef="Drain_Skip"/>
+    <bpmn:sequenceFlow id="BD_10" sourceRef="Drain_Skip" targetRef="Drain_Next"/>
+    <bpmn:sequenceFlow id="BD_11" name="list empty" sourceRef="Drain_More" targetRef="Drain_Refill"/>
+    <bpmn:sequenceFlow id="BD_12" sourceRef="Drain_Refill" targetRef="Drain_Refilled"/>
+    <bpmn:sequenceFlow id="BD_13" name="refilled" sourceRef="Drain_Refilled" targetRef="Drain_TakeNext"/>
+    <bpmn:sequenceFlow id="BD_14" name="queue empty" sourceRef="Drain_Refilled" targetRef="Drain_Drained"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_BeanDrain">
+    <bpmndi:BPMNPlane id="BPMNPlane_BeanDrain" bpmnElement="Process_BeanDrain">
+      <bpmndi:BPMNShape id="Lane_QueueKeeper_di" bpmnElement="Lane_QueueKeeper" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="1180" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Drainer_di" bpmnElement="Lane_Drainer" isHorizontal="true">
+        <dc:Bounds x="160" y="260" width="1180" height="380" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Drain_Start_di" bpmnElement="Drain_Start">
+        <dc:Bounds x="216" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="196" y="183" width="76" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Drain_BuildQueue_di" bpmnElement="Drain_BuildQueue">
+        <dc:Bounds x="282" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Drain_Refill_di" bpmnElement="Drain_Refill">
+        <dc:Bounds x="552" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Drain_Refilled_di" bpmnElement="Drain_Refilled" isMarkerVisible="true">
+        <dc:Bounds x="712" y="135" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="702" y="98" width="70" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Drain_Drained_di" bpmnElement="Drain_Drained">
+        <dc:Bounds x="862" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="904" y="151" width="100" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Drain_Next_di" bpmnElement="Drain_Next" isMarkerVisible="true">
+        <dc:Bounds x="322" y="355" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Drain_More_di" bpmnElement="Drain_More" isMarkerVisible="true">
+        <dc:Bounds x="422" y="355" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="410" y="410" width="80" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Drain_TakeNext_di" bpmnElement="Drain_TakeNext">
+        <dc:Bounds x="532" y="320" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Drain_Open_di" bpmnElement="Drain_Open">
+        <dc:Bounds x="712" y="320" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Drain_Claimed_di" bpmnElement="Drain_Claimed" isMarkerVisible="true">
+        <dc:Bounds x="882" y="355" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="862" y="310" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Drain_Work_di" bpmnElement="Drain_Work">
+        <dc:Bounds x="992" y="320" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Drain_Close_di" bpmnElement="Drain_Close">
+        <dc:Bounds x="1172" y="320" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Drain_Skip_di" bpmnElement="Drain_Skip">
+        <dc:Bounds x="847" y="465" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BD_1_di" bpmnElement="BD_1">
+        <di:waypoint x="252" y="160" />
+        <di:waypoint x="282" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_2_di" bpmnElement="BD_2">
+        <di:waypoint x="347" y="220" />
+        <di:waypoint x="347" y="355" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_15_di" bpmnElement="BD_15">
+        <di:waypoint x="372" y="380" />
+        <di:waypoint x="422" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_3_di" bpmnElement="BD_3">
+        <di:waypoint x="472" y="380" />
+        <di:waypoint x="532" y="380" />
+        <bpmndi:BPMNLabel><dc:Bounds x="480" y="360" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_11_di" bpmnElement="BD_11">
+        <di:waypoint x="447" y="355" />
+        <di:waypoint x="447" y="160" />
+        <di:waypoint x="552" y="160" />
+        <bpmndi:BPMNLabel><dc:Bounds x="452" y="222" width="80" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_12_di" bpmnElement="BD_12">
+        <di:waypoint x="672" y="160" />
+        <di:waypoint x="712" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_14_di" bpmnElement="BD_14">
+        <di:waypoint x="762" y="160" />
+        <di:waypoint x="862" y="160" />
+        <bpmndi:BPMNLabel><dc:Bounds x="772" y="138" width="84" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_13_di" bpmnElement="BD_13">
+        <di:waypoint x="737" y="185" />
+        <di:waypoint x="737" y="280" />
+        <di:waypoint x="592" y="280" />
+        <di:waypoint x="592" y="320" />
+        <bpmndi:BPMNLabel><dc:Bounds x="742" y="222" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_4_di" bpmnElement="BD_4">
+        <di:waypoint x="652" y="380" />
+        <di:waypoint x="712" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_5_di" bpmnElement="BD_5">
+        <di:waypoint x="832" y="380" />
+        <di:waypoint x="882" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_6_di" bpmnElement="BD_6">
+        <di:waypoint x="932" y="380" />
+        <di:waypoint x="992" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_7_di" bpmnElement="BD_7">
+        <di:waypoint x="1112" y="380" />
+        <di:waypoint x="1172" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_8_di" bpmnElement="BD_8">
+        <di:waypoint x="1232" y="440" />
+        <di:waypoint x="1232" y="620" />
+        <di:waypoint x="300" y="620" />
+        <di:waypoint x="300" y="380" />
+        <di:waypoint x="322" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_9_di" bpmnElement="BD_9">
+        <di:waypoint x="907" y="405" />
+        <di:waypoint x="907" y="465" />
+        <bpmndi:BPMNLabel><dc:Bounds x="912" y="420" width="70" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BD_10_di" bpmnElement="BD_10">
+        <di:waypoint x="847" y="525" />
+        <di:waypoint x="347" y="525" />
+        <di:waypoint x="347" y="405" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

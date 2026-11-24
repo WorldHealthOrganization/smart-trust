@@ -1,0 +1,134 @@
+{%- comment -%}
+  OVERRIDES just-the-docs 0.12.0's `_includes/components/children_nav.html`.
+  Include as: {%- include components/children_nav.html -%}
+  Depends on: page, site, nav_breadcrumbs, and the cached
+    `nav_cache/parenthood_map.html`.
+  Results in: HTML for the children-navigation component, the same as the
+    theme's.
+
+  WHAT CHANGED, AND WHY ("cache the nav"). To list a page's children the
+  theme regroups EVERY page of the site by parent, on every page that has
+  children: `site.html_pages | where_exp | group_by`. Each page touched costs
+  a `to_liquid`, which under Jekyll 3 re-evaluates every front-matter
+  `defaults` scope (~5 ms a page here), so this was O(pages) per parent page
+  and O(pages^2) for the site -- the largest single cost of the build. Here
+  the grouping comes from a map computed once per build
+  (`nav_cache/parenthood_map.html`), and only the page's own children are
+  fetched, by index, then grouped exactly as the theme groups them and handed
+  to the theme's own `components/nav/children.html`. A page in a collection,
+  or one with no title, takes the theme's path unchanged.
+
+  Everything outside the marked block is the theme's file VERBATIM. Keep in
+  step with the theme when the just-the-docs pin moves
+  (upstream/upstream-pins.json).
+{%- endcomment -%}
+
+{%- comment -%}
+  Whether a page has any children is checked efficiently by inspecting the cached
+  site_nav. If the page has no children, nav_children is set to an empty array;
+  otherwise nav_children is left unset. (The site_nav is rendered the first time
+  it is included, and that may overwrite various variables.)
+{%- endcomment -%}
+
+{%- if page.has_children == false -%}
+  {%- assign nav_children = "" | split: "" -%}
+{%- else -%}
+
+  {%- capture site_nav -%}
+  {%- include_cached components/site_nav.html all=true -%}
+  {%- endcapture -%}
+
+  {%- assign nav_children = nil -%}
+
+  {%- capture nav_list_link -%}
+  <a href="{{ page.url | relative_url }}" class="nav-list-link">
+  {%- endcapture -%}
+
+  {%- capture nav_list_simple -%}
+  <ul class="nav-list">
+  {%- endcapture -%}
+
+  {%- assign nav_child_start = site_nav
+        | split: nav_list_link | last
+        | split: "</a>" | slice: 1 | first -%}
+
+  {%- assign nav_child_test = nav_child_start 
+        | remove_first: nav_list_simple | prepend: nav_list_simple -%}
+    
+  {%- if nav_child_start != nav_child_test -%}
+    {%- assign nav_children = "" | split: "" -%}
+  {%- endif -%}
+
+{%- endif -%}
+
+{%- unless nav_children -%}
+
+  {%- comment -%}
+    The layout is assumed to include components/breadcrumbs.html before this file,
+    otherwise it needs to be included here.
+  {%- endcomment -%}
+
+  {%- assign nav_ancestors = "" | split: "" -%}
+  {%- for nav_link in nav_breadcrumbs -%}
+    {%- assign nav_title = nav_link | split: ">" | slice: 1 | first | append: ">" | remove: "</a>" -%}
+    {%- assign nav_ancestors = nav_ancestors | push: nav_title -%}
+  {%- endfor -%}
+
+  {%- comment -%} BEGIN nav cache (see the header) {%- endcomment -%}
+  {%- if page.title and page.collection == nil -%}
+
+    {%- capture nav_cache_map -%}
+    {%- include_cached nav_cache/parenthood_map.html -%}
+    {%- endcapture -%}
+
+    {%- assign nav_cache_parts = nav_cache_map | split: "|^|" -%}
+
+    {%- capture nav_cache_key -%}
+    |@|{{ page.title }}|=|
+    {%- endcapture -%}
+
+    {%- assign nav_cache_children = "" | split: "" -%}
+    {%- assign nav_cache_records = nav_cache_parts[1] | split: nav_cache_key -%}
+    {%- for nav_cache_record in nav_cache_records offset: 1 -%}
+      {%- assign nav_cache_index = nav_cache_record | split: "|@|" | first | plus: 0 -%}
+      {%- assign nav_cache_children = nav_cache_children | push: site.html_pages[nav_cache_index] -%}
+    {%- endfor -%}
+
+    {%- assign nav_parenthood = nav_cache_children | group_by: "parent" -%}
+
+    {%- assign nav_top_node_titles = nav_cache_parts[0] | split: "|#|" -%}
+
+  {%- else -%}
+
+  {%- assign nav_parenthood = site[page.collection] | default: site.html_pages
+    | where_exp: "item", "item.title != nil" | group_by: "parent" -%}
+
+  {%- assign nav_top_nodes = nav_parenthood
+      | where_exp: "item", "item.name == ''" | map: "items" | first -%}
+
+  {% assign nav_top_node_titles = nav_top_nodes | map: "title" -%}
+
+  {%- endif -%}
+  {%- comment -%} END nav cache {%- endcomment -%}
+
+  {%- include components/nav/children.html node=page ancestors=nav_ancestors all=true -%}
+
+{%- endunless -%}
+
+{%- if nav_children.size >= 1 -%}
+
+  {%- if page.child_nav_order == 'desc' or page.child_nav_order == 'reversed' -%}
+    {%- assign nav_children = nav_children | reverse -%}
+  {%- endif -%}
+
+<hr>
+{% include toc_heading_custom.html %}
+<ul>
+  {% for nav_child in nav_children %}
+  <li>
+    <a href="{{ nav_child.url | relative_url }}">{{ nav_child.title }}</a>{% if nav_child.summary %} - {{ nav_child.summary }}{% endif %}
+  </li>
+  {% endfor %}
+</ul>
+
+{%- endif -%}

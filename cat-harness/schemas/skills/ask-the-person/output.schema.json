@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://litlfred.github.io/folio-assistant/cat-harness/skills/ask-the-person/output.schema.json",
+  "title": "Ask The Person Output",
+  "description": "What the calling step gets back: proof the question went out twice, and the person's answer or the default taken. A dismissed card is not an answer.",
+  "type": "object",
+  "required": [
+    "asked",
+    "outcome",
+    "chosen",
+    "quote",
+    "defaultTaken"
+  ],
+  "properties": {
+    "asked": {
+      "type": "object",
+      "required": [
+        "chat",
+        "card"
+      ],
+      "description": "Where the two copies went. The chat copy is posted first.",
+      "properties": {
+        "chat": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Id or link of the chat message holding the full question."
+        },
+        "card": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Id of the card offered after it; null only when the host has no card tool, which the chat text then says."
+        }
+      },
+      "additionalProperties": false
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "answered",
+        "silent",
+        "dismissed"
+      ],
+      "description": "answered: the person chose. silent: no answer came. dismissed: the card was closed without a choice; the question stays open in the chat."
+    },
+    "chosen": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[A-D]$",
+      "description": "The letter chosen; null unless outcome is answered."
+    },
+    "quote": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The person's answer, verbatim, with who and when; null unless answered."
+    },
+    "defaultTaken": {
+      "type": "boolean",
+      "description": "true when the work went ahead on ifSilent. Never true for an irreversible step."
+    },
+    "rule": {
+      "type": "string",
+      "description": "When the answer settles how a kind of thing is decided: the skill it was written into, in the same turn."
+    },
+    "stagingLinks": {
+      "$ref": "#/definitions/stagingLinks",
+      "description": "When the question asks the person to look at changed pages: the staging preview, one deep link per changed page with the same page on main, shown in the chat copy. When there is no preview, say so in `missing`. Rule: cat-harness skills/authoring/content-lifecycle/feedback-deep-links.md."
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "stagingLinks": {
+      "title": "Staging links",
+      "description": "The staging preview of the work a request for feedback is about: one deep link per changed page (the page and the anchor where the change sits) with the same page on main as `before`. Mirrors StagingComparison in schemas/sdlc/staging.ts. The rule is skills/authoring/content-lifecycle/feedback-deep-links.md. Copied inline as `definitions.stagingLinks` into every skill contract that carries it; schemas/staging.test.ts fails when a copy drifts.",
+      "type": "object",
+      "required": [
+        "branch",
+        "slug",
+        "branchUrl",
+        "mainBaseUrl",
+        "stagingBaseUrl",
+        "pages"
+      ],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "Feature branch name."
+        },
+        "slug": {
+          "type": "string",
+          "description": "Branch slug used in the staging URL path."
+        },
+        "branchUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pr": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mainBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "stagingBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pages": {
+          "type": "array",
+          "description": "One entry per changed page, deep-linked; from the change's rendered-impact list, never chosen by judgement.",
+          "items": {
+            "type": "object",
+            "required": [
+              "title"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string",
+                "format": "uri",
+                "description": "Same page on main; absent for a new page."
+              },
+              "after": {
+                "type": "string",
+                "format": "uri",
+                "description": "The page on the staging preview, with the anchor where the change sits; absent for a deleted page."
+              },
+              "summary": {
+                "type": "string",
+                "description": "What to look at on this page."
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What could not be linked, said rather than hidden: no preview yet (and when it will exist), no page list computed, or a changed page the publish ref does not hold."
+        }
+      },
+      "$comment": "Copy of cat-harness schemas/staging-comparison.schema.json; cat-harness schemas/staging.test.ts fails when a copy drifts."
+    }
+  }
+}

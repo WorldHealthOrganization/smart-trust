@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  cat-harness — Copy a knowledge-graph asset into a folio
+
+  Source of truth: this file. The SVG under docs/assets/img/workflows/ is
+  generated from it by `bun run cat render:bpmn` — never hand-edit the SVG.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_CopyIntoFolio"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="author" name="Author"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="corpus" name="Corpus"/>
+  <bpmn:resource id="validation-pipeline" name="Validation pipeline"/>
+
+  <bpmn:collaboration id="Collaboration_CopyIntoFolio">
+    <bpmn:participant id="Participant_CopyIntoFolio" name="Copy a knowledge-graph asset into a folio" processRef="Process_CopyIntoFolio"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_CopyIntoFolio" name="Copy a knowledge-graph asset into a folio" isExecutable="false">
+    <bpmn:documentation>Taking an asset from an upstream knowledge graph into your own folio so you can edit it, comment on it or raise todos against it — without touching the upstream source and without losing where it came from.
+
+This is the fourth knowledge-graph affordance (`copy-into-folio` in `kg-affordances`). Like `copy-out-materialized.bpmn` for held library items, it is TWO WRITES AND A REFUSAL, gated up front by write capability:
+
+1. Check whether the session holds a write capability (`git-push`, `github-api`, or `github-connector`). When none is available, degrade cleanly to read-only inspection (`browse`) and emit the `KgAsset` declaration snippet with `source` pre-filled rather than failing mid-procedure.
+2. Read the asset and its origin (`instance`, `path`, `ref`) from the source knowledge graph without mutating the source.
+3. Copy the asset into the target folio, declare it in the folio's `assets[]`, and stamp `KgAsset.source` (`{ instance, path, ref }` — `AssetSourceSchema` in `schemas/kg/kg-node.ts`). `source` absent means authored locally (a third state), so omitting `source` on a copy is the defect this process exists to prevent.
+4. Verify the declared asset via `check:declaration-resolution` (`check:declared-assets`), then hand off to the folio author to edit, comment or raise todos on their copy.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_CopyIntoFolio">
+      <bpmn:lane id="Lane_Author" name="Folio author" partitionElementRef="author">
+        <bpmn:documentation>The person adapting an upstream knowledge-graph asset in their own folio. Chooses which asset to copy and where it belongs, receives the read-only inspection when the session has no write capability, and edits, comments on or raises todos against the copy once it is stamped and verified.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_WantCopy</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ChooseAsset</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_InspectReadOnly</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_ReadOnlyDegraded</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_WorkOnCopy</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_CopiedAndEditable</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Authoring agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Probes whether a write capability (`git-push`, `github-api`, or `github-connector`) is available before touching disk or remote refs, writes the copied bytes and the `assets[]` entry into the target folio, and stamps `KgAsset.source` (`{ instance, path, ref }`) in the same change.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ProbeWriteCapability</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_CanWrite</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CopyAndDeclareAsset</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_StampAssetSource</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Source" name="Source knowledge graph — read-only" partitionElementRef="corpus">
+        <bpmn:documentation>Holds the upstream asset. Exactly one task sits in this lane and it writes nothing: the arrow runs out of the source graph and never back.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ReadUpstreamAsset</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Validate" name="Validation pipeline" partitionElementRef="validation-pipeline">
+        <bpmn:documentation>Verifies that the target folio's newly declared `KgAsset` resolves on disk (`check:declaration-resolution` / `check:declared-assets`), carries a well-formed `KgAsset.source` (`{ instance, path, ref }`), and left the source graph untouched.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ValidateDeclaredAsset</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_WantCopy" name="Author wants to adapt&#10;a KG asset in their folio">
+      <bpmn:documentation>Triggered when a reader browsing a knowledge graph wants to take an asset into their own folio to edit it, annotate it or raise todos against it.</bpmn:documentation>
+      <bpmn:outgoing>Flow_StartToChoose</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_ChooseAsset" name="Select upstream asset&#10;and target folio">
+      <bpmn:documentation>Name the upstream layer (`&lt;owner&gt;/&lt;repo&gt;`), the asset's declared path in that layer, the commit `ref` (when pinned), and the target folio declaration that will receive the copy.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-affordances"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_StartToChoose</bpmn:incoming>
+      <bpmn:outgoing>Flow_ChooseToProbe</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:serviceTask id="Task_ProbeWriteCapability" name="Probe write capability">
+      <bpmn:documentation>Check whether the session holds at least one of the three write capabilities (`git-push`, `github-api`, or `github-connector` under `scenarios/capabilities/`). Keep available, absent and could-not-determine distinct.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-affordances"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ChooseToProbe</bpmn:incoming>
+      <bpmn:outgoing>Flow_ProbeToGW</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="GW_CanWrite" name="Write capability&#10;available?">
+      <bpmn:documentation>Decided from the capability probe over `git-push`, `github-api` and `github-connector`. When at least one write capability is available, proceed with the copy into the target folio; when none is available, degrade cleanly to read-only `browse` inspection and emit the `KgAsset` snippet with `source` pre-filled.</bpmn:documentation>
+      <bpmn:incoming>Flow_ProbeToGW</bpmn:incoming>
+      <bpmn:outgoing>Flow_CanWriteYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_CanWriteNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="Task_InspectReadOnly" name="Browse in place, emit a KgAsset snippet">
+      <bpmn:documentation>Clean degradation when no write capability (`git-push`, `github-api`, `github-connector`) is present: inspect the asset in place through the zero-write `browse` affordance and output the ready-to-paste `KgAsset` entry (with `source: { instance, path, ref }` populated) so the author can apply it where they have write access.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-affordances"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_CanWriteNo</bpmn:incoming>
+      <bpmn:outgoing>Flow_InspectToEnd</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_ReadOnlyDegraded" name="Inspected in place;&#10;snippet emitted without write">
+      <bpmn:incoming>Flow_InspectToEnd</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:serviceTask id="Task_ReadUpstreamAsset" name="Read the upstream asset (no writes)">
+      <bpmn:documentation>Read the asset bytes and its origin coordinates (`instance` as `&lt;owner&gt;/&lt;repo&gt;`, `path` within that instance, and commit `ref`) from the source knowledge graph without modifying anything in the source lane.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-affordances"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_CanWriteYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_ReadToCopy</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_CopyAndDeclareAsset" name="Copy asset into target folio&#10;and declare in assets[]">
+      <bpmn:documentation>Write the asset bytes into a declared path inside the target folio and add the `KgAsset` entry to the target folio's `&lt;name&gt;.json` `assets[]` list (`directory-conventions`). Never drop the copy into an undeclared scratch directory.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-affordances"/>
+        <bootstrap.processes:skill ref="directory-conventions"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ReadToCopy</bpmn:incoming>
+      <bpmn:outgoing>Flow_CopyToStamp</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_StampAssetSource" name="Stamp the asset's source">
+      <bpmn:documentation>Populate `source: { instance, path, ref }` (`AssetSourceSchema` in `schemas/kg/kg-node.ts`) on the new `KgAsset` entry in the same change. Because `source` absent is a third state meaning "authored locally in this instance", omitting `source` on a copied asset is forbidden.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-affordances"/>
+        <bootstrap.processes:skill ref="directory-conventions"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_CopyToStamp</bpmn:incoming>
+      <bpmn:outgoing>Flow_StampToValidate</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_ValidateDeclaredAsset" name="Validate the asset and provenance">
+      <bpmn:documentation>Run `bun run cat check:declaration-resolution` (`check:declared-assets`) to verify that the copied asset exists at its declared path, its `KgAsset.source` conforms to `AssetSourceSchema`, and the upstream source graph remains untouched.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-affordances"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_StampToValidate</bpmn:incoming>
+      <bpmn:outgoing>Flow_ValidateToWork</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:userTask id="Task_WorkOnCopy" name="Edit, comment or raise todos&#10;on the folio's copy">
+      <bpmn:documentation>The copied asset is now writable content of the target folio with recorded upstream provenance (`KgAsset.source`). The folio author may edit it in place, attach review comments, or raise todos (`todo-manager`) against it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-affordances"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ValidateToWork</bpmn:incoming>
+      <bpmn:outgoing>Flow_WorkToEnd</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_CopiedAndEditable" name="Working copy in folio&#10;with KgAsset.source stamped">
+      <bpmn:incoming>Flow_WorkToEnd</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_StartToChoose" sourceRef="Start_WantCopy" targetRef="Task_ChooseAsset"/>
+    <bpmn:sequenceFlow id="Flow_ChooseToProbe" sourceRef="Task_ChooseAsset" targetRef="Task_ProbeWriteCapability"/>
+    <bpmn:sequenceFlow id="Flow_ProbeToGW" sourceRef="Task_ProbeWriteCapability" targetRef="GW_CanWrite"/>
+    <bpmn:sequenceFlow id="Flow_CanWriteYes" name="yes — git-push, github-api or github-connector" sourceRef="GW_CanWrite" targetRef="Task_ReadUpstreamAsset"/>
+    <bpmn:sequenceFlow id="Flow_CanWriteNo" name="no — read-only session" sourceRef="GW_CanWrite" targetRef="Task_InspectReadOnly"/>
+    <bpmn:sequenceFlow id="Flow_InspectToEnd" sourceRef="Task_InspectReadOnly" targetRef="End_ReadOnlyDegraded"/>
+    <bpmn:sequenceFlow id="Flow_ReadToCopy" sourceRef="Task_ReadUpstreamAsset" targetRef="Task_CopyAndDeclareAsset"/>
+    <bpmn:sequenceFlow id="Flow_CopyToStamp" sourceRef="Task_CopyAndDeclareAsset" targetRef="Task_StampAssetSource"/>
+    <bpmn:sequenceFlow id="Flow_StampToValidate" sourceRef="Task_StampAssetSource" targetRef="Task_ValidateDeclaredAsset"/>
+    <bpmn:sequenceFlow id="Flow_ValidateToWork" sourceRef="Task_ValidateDeclaredAsset" targetRef="Task_WorkOnCopy"/>
+    <bpmn:sequenceFlow id="Flow_WorkToEnd" sourceRef="Task_WorkOnCopy" targetRef="End_CopiedAndEditable"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_CopyIntoFolio">
+    <bpmndi:BPMNPlane id="Plane_CopyIntoFolio" bpmnElement="Collaboration_CopyIntoFolio">
+      <bpmndi:BPMNShape id="Participant_CopyIntoFolio_di" bpmnElement="Participant_CopyIntoFolio" isHorizontal="true">
+        <dc:Bounds x="160" y="50" width="1400" height="770" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Source_di" bpmnElement="Lane_Source" isHorizontal="true">
+        <dc:Bounds x="190" y="50" width="1370" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Agent_di" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="290" width="1370" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Author_di" bpmnElement="Lane_Author" isHorizontal="true">
+        <dc:Bounds x="190" y="450" width="1370" height="210" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Validate_di" bpmnElement="Lane_Validate" isHorizontal="true">
+        <dc:Bounds x="190" y="660" width="1370" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_WantCopy_di" bpmnElement="Start_WantCopy">
+        <dc:Bounds x="246" y="512" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="553" width="86" height="72" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ChooseAsset_di" bpmnElement="Task_ChooseAsset">
+        <dc:Bounds x="312" y="470" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ProbeWriteCapability_di" bpmnElement="Task_ProbeWriteCapability">
+        <dc:Bounds x="312" y="310" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_CanWrite_di" bpmnElement="GW_CanWrite" isMarkerVisible="true">
+        <dc:Bounds x="472" y="345" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="527" y="352" width="110" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReadUpstreamAsset_di" bpmnElement="Task_ReadUpstreamAsset">
+        <dc:Bounds x="600" y="110" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_InspectReadOnly_di" bpmnElement="Task_InspectReadOnly">
+        <dc:Bounds x="600" y="470" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_ReadOnlyDegraded_di" bpmnElement="End_ReadOnlyDegraded">
+        <dc:Bounds x="760" y="512" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="805" y="503" width="150" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CopyAndDeclareAsset_di" bpmnElement="Task_CopyAndDeclareAsset">
+        <dc:Bounds x="820" y="310" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_StampAssetSource_di" bpmnElement="Task_StampAssetSource">
+        <dc:Bounds x="980" y="310" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ValidateDeclaredAsset_di" bpmnElement="Task_ValidateDeclaredAsset">
+        <dc:Bounds x="1140" y="680" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_WorkOnCopy_di" bpmnElement="Task_WorkOnCopy">
+        <dc:Bounds x="1300" y="470" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_CopiedAndEditable_di" bpmnElement="End_CopiedAndEditable">
+        <dc:Bounds x="1460" y="512" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1418" y="553" width="120" height="90" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_StartToChoose_di" bpmnElement="Flow_StartToChoose">
+        <di:waypoint x="282" y="530" />
+        <di:waypoint x="312" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ChooseToProbe_di" bpmnElement="Flow_ChooseToProbe">
+        <di:waypoint x="372" y="470" />
+        <di:waypoint x="372" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ProbeToGW_di" bpmnElement="Flow_ProbeToGW">
+        <di:waypoint x="432" y="370" />
+        <di:waypoint x="472" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CanWriteYes_di" bpmnElement="Flow_CanWriteYes">
+        <di:waypoint x="497" y="345" />
+        <di:waypoint x="497" y="170" />
+        <di:waypoint x="600" y="170" />
+        <bpmndi:BPMNLabel><dc:Bounds x="503" y="294" width="170" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CanWriteNo_di" bpmnElement="Flow_CanWriteNo">
+        <di:waypoint x="497" y="395" />
+        <di:waypoint x="497" y="530" />
+        <di:waypoint x="600" y="530" />
+        <bpmndi:BPMNLabel><dc:Bounds x="503" y="472" width="100" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_InspectToEnd_di" bpmnElement="Flow_InspectToEnd">
+        <di:waypoint x="720" y="530" />
+        <di:waypoint x="760" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ReadToCopy_di" bpmnElement="Flow_ReadToCopy">
+        <di:waypoint x="720" y="170" />
+        <di:waypoint x="760" y="170" />
+        <di:waypoint x="760" y="370" />
+        <di:waypoint x="820" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CopyToStamp_di" bpmnElement="Flow_CopyToStamp">
+        <di:waypoint x="940" y="370" />
+        <di:waypoint x="980" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_StampToValidate_di" bpmnElement="Flow_StampToValidate">
+        <di:waypoint x="1100" y="370" />
+        <di:waypoint x="1120" y="370" />
+        <di:waypoint x="1120" y="740" />
+        <di:waypoint x="1140" y="740" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ValidateToWork_di" bpmnElement="Flow_ValidateToWork">
+        <di:waypoint x="1260" y="740" />
+        <di:waypoint x="1280" y="740" />
+        <di:waypoint x="1280" y="530" />
+        <di:waypoint x="1300" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WorkToEnd_di" bpmnElement="Flow_WorkToEnd">
+        <di:waypoint x="1420" y="530" />
+        <di:waypoint x="1460" y="530" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,247 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "L3 Dependency Choice Output",
+  "description": "One decision row per candidate IG, rejected ones included, naming which profiles, value sets and libraries are reused, derived from or not used, and the ig-artifact-ingestion index each decision was read from.",
+  "type": "object",
+  "required": [
+    "l3Dependencies",
+    "indexes"
+  ],
+  "properties": {
+    "l3Dependencies": {
+      "$ref": "#/definitions/dependencyChoice"
+    },
+    "indexes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "packageId",
+          "path",
+          "sidecarApi"
+        ],
+        "properties": {
+          "packageId": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string",
+            "description": "The fhir-artifact-index graph ig-artifact-ingestion wrote."
+          },
+          "sidecarApi": {
+            "type": "string",
+            "enum": [
+              "present",
+              "absent",
+              "unknown"
+            ]
+          }
+        }
+      },
+      "description": "One ig-artifact-ingestion index per candidate IG."
+    },
+    "stagingLinks": {
+      "$ref": "#/definitions/stagingLinks"
+    }
+  },
+  "definitions": {
+    "dependencyChoice": {
+      "title": "Dependency choice",
+      "description": "The output of a dependency-choice stage (3 at L2, 5 at L3): one row per candidate, rejected ones included, the gaps, and the question put to the adjudicator. Defined by the l2-dependency-choice output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "level",
+        "rows"
+      ],
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "L2",
+            "L3"
+          ]
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dependencyRow"
+          }
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Candidates missing packageId, version or uri (DependsOnGap), each with what is missing."
+        },
+        "comparison": {
+          "type": "string",
+          "description": "Path of the decision-comparison table."
+        },
+        "decisionRequest": {
+          "type": "string",
+          "description": "Path or URL of the DecisionRequest (cat-harness schemas/decision-request.ts) the adjudicator answers. Under the QA rule the agent has already gone on with its recommendation."
+        }
+      }
+    },
+    "dependencyRow": {
+      "title": "Dependency decision row",
+      "description": "One candidate and the decision about it. Only decision, reason and toolchain are new; the rest is cat-harness DependsOnRecord and smart-base KG evidence. Once adjudicated, a reuse, adapt or extend row becomes an ordinary dependency: the DAK's own reference at L2, a sushi-config.yaml dependencies entry at L3. Defined by the l2-dependency-choice output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "packageId",
+        "version",
+        "uri",
+        "decision",
+        "evidence"
+      ],
+      "properties": {
+        "packageId": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "publisher": {
+          "type": "string",
+          "description": "WHO, or the adapting jurisdiction."
+        },
+        "upstream": {
+          "type": "string",
+          "description": "For a jurisdiction's adaptation: the packageId of the WHO original, recorded as its upstream."
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The KG node ids that point at the candidate: L1 nodes at L2; L1 nodes and L2 assets at L3 (smart-base KG evidence)."
+        },
+        "decision": {
+          "type": "string",
+          "description": "reuse: unchanged. adapt: fork and change. extend: depend and add. reject: not used.",
+          "enum": [
+            "reuse",
+            "adapt",
+            "extend",
+            "reject"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "description": "One sentence; required for reject (stated here rather than as if/then, which the conformance reader does not take)."
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "decision"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "A DAK component at L2 (personas, business-processes, ...); a profile, value set or library canonical at L3."
+              },
+              "decision": {
+                "type": "string",
+                "enum": [
+                  "reuse",
+                  "adapt",
+                  "extend",
+                  "not-used"
+                ]
+              },
+              "toolchain": {
+                "type": "string",
+                "description": "For a component reused, adapted or extended: how the candidate produces it, so stages 4 and 6 produce it the same way. A Tool id from bun run cat check:tools, or a script in the candidate's own repository (its source spreadsheet, converter, CQL refresh, test format), found by the search in smart-base-tools section Adapting a DAK. none only after that search came back empty, naming where it looked; the new tool is then a Tool node, never a script in the adaptation repository."
+              }
+            }
+          },
+          "description": "What is taken from the candidate, piece by piece."
+        }
+      }
+    },
+    "stagingLinks": {
+      "title": "Staging links",
+      "description": "The staging preview of the work a request for feedback is about: one deep link per changed page (the page and the anchor where the change sits) with the same page on main as `before`. Mirrors StagingComparison in schemas/staging.ts. The rule is skills/authoring/content-lifecycle/feedback-deep-links.md. Copied inline as `definitions.stagingLinks` into every skill contract that carries it; schemas/staging.test.ts fails when a copy drifts.",
+      "type": "object",
+      "required": [
+        "branch",
+        "slug",
+        "branchUrl",
+        "mainBaseUrl",
+        "stagingBaseUrl",
+        "pages"
+      ],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "Feature branch name."
+        },
+        "slug": {
+          "type": "string",
+          "description": "Branch slug used in the staging URL path."
+        },
+        "branchUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pr": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mainBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "stagingBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pages": {
+          "type": "array",
+          "description": "One entry per changed page, deep-linked; from the change's rendered-impact list, never chosen by judgement.",
+          "items": {
+            "type": "object",
+            "required": [
+              "title"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string",
+                "format": "uri",
+                "description": "Same page on main; absent for a new page."
+              },
+              "after": {
+                "type": "string",
+                "format": "uri",
+                "description": "The page on the staging preview, with the anchor where the change sits; absent for a deleted page."
+              },
+              "summary": {
+                "type": "string",
+                "description": "What to look at on this page."
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What could not be linked, said rather than hidden: no preview yet (and when it will exist), no page list computed, or a changed page the publish ref does not hold."
+        }
+      },
+      "$comment": "Copy of cat-harness schemas/staging-comparison.schema.json; cat-harness schemas/staging.test.ts fails when a copy drifts."
+    }
+  }
+}

@@ -1,0 +1,74 @@
+# The site CHROME's Jekyll configuration: the just-the-docs theme and the
+# options any site built on it needs, whoever's pages it carries.
+#
+# This is the BASE layer of a composed docs tree (`compose-docs`): the
+# `site-chrome` directory is declared before `docs` in cat-harness.json, so an
+# layer's own `docs/_config.yml` overlays it -- overlay keys win, objects
+# merge, lists REPLACE (owner's rule, 2026-09-21). Owner, 2026-10-09: "go ahead
+# with the cat-harness chrome subgraph"; proposal
+# `docs/proposals/semantic-subgraphs-2026-10-09.md`, slice 1. The composed
+# config is PARSE-equal to the single file it was cut from (ruling D1).
+#
+# The site's IDENTITY -- title, description, baseurl, url, footer, the nav
+# defaults -- is not chrome and stays with the pages, in `docs/_config.yml`.
+#
+# `exclude` is a list, and lists replace: a layer that sets its own `exclude`
+# must restate these three, as `docs/_config.yml` does.
+
+# PINNED. `remote_theme: just-the-docs/just-the-docs` with no ref downloads the
+# theme's default-branch HEAD on every build -- confirmed in the CI log:
+# "Remote Theme: Downloading https://codeload.github.com/just-the-docs/just-the-docs/zip/HEAD".
+# An upstream commit could therefore turn this repo's docs build red with no
+# commit of ours, and `site-chrome/assets/js/docs-ui.js` MOVES the theme's own search
+# markup into the action launcher -- it binds `.search`, `#search-input` and
+# `.search-label` -- so an upstream rename degrades a shipped feature silently
+# rather than loudly.
+#
+# v0.12.0 is the newest RELEASE at or below what the site is rendering today,
+# established by fingerprinting the deployed CSS on `gh-pages` rather than by
+# assuming: `assets/css/just-the-docs-dark.css` carries
+# `outline-offset:-1px;text-wrap:balance`, and `text-wrap: balance` entered
+# `_sass/navigation.scss` upstream in 2e1f449 (2026-08-01), after v0.12.0 and
+# in no release. So the live theme is upstream `main`, 61 commits past v0.12.0.
+# Restricted to the directories that reach rendered output -- `_sass`,
+# `_includes`, `_layouts`, `assets` -- v0.12.0..HEAD is exactly that one line.
+#
+# Moving this pin is NOT an edit somebody makes in passing. It is the
+# `upstream-version-adoption` process (`sdlc/processes/upstream-version-adoption.bpmn`,
+# skill `skills/process/process-core/upstream-version-adoption.md`): detect, impact
+# analysis, MVP on a staging branch, review, and a PERSON decides. Bump this
+# literal only as the output of that process.
+#
+# THIS LINE IS THE ONLY COPY OF THE VERSION. `upstream-pins.json` declares the
+# tenant -- the upstream repo, what of ours binds it, what its MVP runs -- and
+# points `bun run cat check:upstream-pins` back HERE to read the ref. A registry
+# carrying its own copy would be a second answer to "what are we running",
+# free to disagree with the build.
+remote_theme: just-the-docs/just-the-docs@v0.12.0
+
+# just-the-docs options
+search_enabled: true
+heading_anchors: true
+color_scheme: dark
+
+# Enable Mermaid diagrams in pages (workflow diagrams in the guides).
+mermaid:
+  version: "10.9.0"
+
+# just-the-docs' OPTIONAL settings, which its templates read whether or not
+# a site sets them: not reported by `_plugins/liquid-undefined-warn.rb` (bean
+# 8pyz). A site's own undefined variables still are. Measured on an IG
+# site, 2026-10-09: 216 of 399 reports were these three.
+liquid_undefined_ignore:
+  - site.compress_html
+  - site.callouts
+  - nav_breadcrumbs
+
+plugins:
+  - jekyll-remote-theme
+
+# The chrome's own files, which are not pages.
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - vendor

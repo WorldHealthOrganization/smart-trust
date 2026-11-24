@@ -1,0 +1,95 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "kg-retrieve-npm",
+    "title": "Retrieve a remote Knowledge Graph via npm package or tarball",
+    "description": "Retrieve and inspect a remote Knowledge Graph packaged as an npm package or tarball (.tgz), supporting both unhydrated source graph views (authored declarations, skills, schemas) and hydrated materialized graph views (subgraph JSON-LD, metadata indexes, dereferenced graph projections).",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat kg:retrieve:npm"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "package",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Package name, npm tarball (.tgz) path, or URL.",
+          "required": true
+        },
+        {
+          "name": "destination",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Directory to unpack or install into.",
+          "required": false,
+          "arg": {
+            "flag": "--destination"
+          }
+        },
+        {
+          "name": "view",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "Graph view to inspect/retrieve: 'unhydrated' (source graph), 'hydrated' (materialized JSON-LD/indexes), or 'both'.",
+          "required": false,
+          "arg": {
+            "flag": "--view"
+          }
+        },
+        {
+          "name": "release",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "Optional `folio-binary-release/v1` record to verify digest and size against.",
+          "required": false,
+          "arg": {
+            "flag": "--release"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "status",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Retrieval status: 'retrieved', 'verified', or 'could-not-determine'."
+        },
+        {
+          "name": "summary",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Summary of retrieved graphs, nodes, and assets."
+        }
+      ]
+    },
+    "satisfies": [
+      "npm-kg-distribution",
+      "remote-mount"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "registry.npmjs.org",
+        "none": "Retrieves packages from npm registry; local tarballs work offline via direct path."
+      },
+      {
+        "host": "npm.pkg.github.com",
+        "none": "Retrieves packages from GitHub Packages registry; local tarballs work offline via direct path."
+      }
+    ]
+  }
+}

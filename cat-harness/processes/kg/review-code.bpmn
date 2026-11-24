@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                   xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_CodeReview"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="code-reviewer" name="Code reviewer"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Code node review — a SUBPROCESS, called never inherited.
+
+       An actor already acting as a reviewer descends into this process and
+       takes on the `code-reviewer` lane for THIS CALL PATH ONLY. That is the
+       whole reason it is a separate process rather than more skills on the
+       generic reviewer: `inherits` would give every reviewer the Tool and
+       schema skills in every diagram, and a closure that broad cannot fail an
+       audit. See skills/process/process-core/role-model.md.
+
+       WHAT IS UNDER REVIEW is a graph NODE that happens to be code:
+       a Tool definition in the `tools` graph, or a schema definition node
+       under `schemas/`. A file can compile, pass its tests, and still be a
+       broken node — naming a skill that does not exist, declaring nothing
+       about what kind of node it is, or advertising a mechanism nobody wired.
+       The mechanical half is `check:tools` + `kg:audit`; this lane is the half
+       that reads what those cannot answer.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:process id="Process_CodeReview" name="Code node review" isExecutable="false">
+    <bpmn:documentation>Judging changed CODE NODES — Tool definitions and schema definition nodes — on whether they are correct NODES, not merely correct code.
+
+You are in this process when what changed is a node that happens to be TypeScript. The distinction is the whole reason it is separate from ordinary code review: a file can compile, pass its tests, and still declare the wrong thing, name a skill that does not exist, or advertise a mechanism the pipeline does not actually invoke.
+
+The gateway picks by node KIND because the questions differ. A Tool is judged on whether its mechanism is the one that runs; a schema definition node on whether it says what it is and its references resolve.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_CodeReview">
+      <bpmn:lane id="Lane_CodeReviewer" name="Code reviewer" partitionElementRef="code-reviewer">
+        <bpmn:documentation>Forks on node kind but never on verdict: Task_ReviewTool catches a skill that is satisfied but whose mechanism is reachable from nowhere, Task_ReviewSchema catches a visual fact with two homes instead of one, and both branches converge on the same Task_RecordVerdict — so whichever kind of node changed, the reader of the finding sees one recording discipline, not two.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_CodeNodes</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RunNodeAudits</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_NodeKind</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewTool</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewSchema</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RecordVerdict</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_CodeReviewed</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_CodeNodes" name="Code nodes&#10;changed"/>
+
+    <bpmn:task id="Task_RunNodeAudits" name="Run the node audits">
+      <bpmn:documentation>
+        `check:tools`, `kg:audit` and `typecheck`. Read the kg-qa sidecar rather
+        than the summary: it is written per node so an inherited defect and a
+        new one are distinguishable.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="code-node-review"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_NodeKind" name="Which node kind?">
+      <bpmn:documentation>What kind of node is under review? `Tool` goes to the Tool-node review; `schema` goes to the schema-definition review.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_ReviewTool" name="Review the Tool node">
+      <bpmn:documentation>
+        Does it name skills, and do they resolve? Is the mechanism it advertises
+        the one that actually runs? Are its IRIs minted rather than written out?
+
+        And the question a covered skill hides: is the COMMAND reachable, or only
+        the skill satisfied? A skill can be served by the neighbours of its
+        mechanism while the mechanism itself is reachable from no node, and
+        check:tools reports it as covered and is right to.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="skills-and-tools"/><bootstrap.processes:skill ref="covered-is-not-reachable"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="Task_ReviewSchema" name="Review the schema definition node">
+      <bpmn:documentation>
+        Does the node declare what KIND of node it is? Does a widened type carry
+        its mirrors? Does a removed field leave a reason behind, so the next
+        author does not re-add it in good faith?
+
+        And where the node RENDERS to something the site serves — a colour, a
+        glyph, a theme's tokens — does a Tool maintain that artefact, and does the
+        visual fact have only one home? The node decides; the stylesheet reports.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="code-node-review"/><bootstrap.processes:skill ref="site-presentation-assets"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Join"/>
+
+    <bpmn:task id="Task_RecordVerdict" name="Record the verdict on the node">
+      <bpmn:documentation>
+        Findings are advice, not commits — the same separation the generic
+        reviewer lane keeps. Record them where the next reader meets the node.
+      </bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="code-node-review"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_CodeReviewed" name="Code nodes&#10;reviewed"/>
+
+    <bpmn:sequenceFlow id="F_C1" sourceRef="Start_CodeNodes" targetRef="Task_RunNodeAudits"/>
+    <bpmn:sequenceFlow id="F_C2" sourceRef="Task_RunNodeAudits" targetRef="GW_NodeKind"/>
+    <bpmn:sequenceFlow id="F_C3" name="Tool" sourceRef="GW_NodeKind" targetRef="Task_ReviewTool"/>
+    <bpmn:sequenceFlow id="F_C4" name="schema" sourceRef="GW_NodeKind" targetRef="Task_ReviewSchema"/>
+    <bpmn:sequenceFlow id="F_C5" sourceRef="Task_ReviewTool" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow id="F_C6" sourceRef="Task_ReviewSchema" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow id="F_C7" sourceRef="GW_Join" targetRef="Task_RecordVerdict"/>
+    <bpmn:sequenceFlow id="F_C8" sourceRef="Task_RecordVerdict" targetRef="End_CodeReviewed"/>
+
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_CodeReview">
+    <bpmndi:BPMNPlane id="Plane_CodeReview" bpmnElement="Process_CodeReview">
+      <bpmndi:BPMNShape id="S_Lane_CodeReviewer" bpmnElement="Lane_CodeReviewer" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1080" height="267" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Start_CodeNodes" bpmnElement="Start_CodeNodes">
+        <dc:Bounds x="200" y="192" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="189.51" y="227.5" width="90" height="36" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_RunNodeAudits" bpmnElement="Task_RunNodeAudits">
+        <dc:Bounds x="295" y="150" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_GW_NodeKind" bpmnElement="GW_NodeKind" isMarkerVisible="true">
+        <dc:Bounds x="470" y="185" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="450" y="239" width="90" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_ReviewTool" bpmnElement="Task_ReviewTool">
+        <dc:Bounds x="595" y="92" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_ReviewSchema" bpmnElement="Task_ReviewSchema">
+        <dc:Bounds x="595" y="215" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_GW_Join" bpmnElement="GW_Join" isMarkerVisible="true">
+        <dc:Bounds x="790" y="185" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_Task_RecordVerdict" bpmnElement="Task_RecordVerdict">
+        <dc:Bounds x="915" y="150" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_End_CodeReviewed" bpmnElement="End_CodeReviewed">
+        <dc:Bounds x="1110" y="192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="E_F_C1" bpmnElement="F_C1">
+        <di:waypoint x="236" y="210" />
+        <di:waypoint x="295" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_C2" bpmnElement="F_C2">
+        <di:waypoint x="415" y="210" />
+        <di:waypoint x="470" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_C3" bpmnElement="F_C3">
+        <di:waypoint x="520" y="210" />
+        <di:waypoint x="557.5" y="210" />
+        <di:waypoint x="557.5" y="152" />
+        <di:waypoint x="595" y="152" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_C4" bpmnElement="F_C4">
+        <di:waypoint x="520" y="210" />
+        <di:waypoint x="557.5" y="210" />
+        <di:waypoint x="557.5" y="275" />
+        <di:waypoint x="595" y="275" />
+        <bpmndi:BPMNLabel><dc:Bounds x="501" y="278" width="90" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_C5" bpmnElement="F_C5">
+        <di:waypoint x="715" y="152" />
+        <di:waypoint x="752.5" y="152" />
+        <di:waypoint x="752.5" y="210" />
+        <di:waypoint x="790" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_C6" bpmnElement="F_C6">
+        <di:waypoint x="715" y="275" />
+        <di:waypoint x="752.5" y="275" />
+        <di:waypoint x="752.5" y="210" />
+        <di:waypoint x="790" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_C7" bpmnElement="F_C7">
+        <di:waypoint x="840" y="210" />
+        <di:waypoint x="915" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_F_C8" bpmnElement="F_C8">
+        <di:waypoint x="1035" y="210" />
+        <di:waypoint x="1110" y="210" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

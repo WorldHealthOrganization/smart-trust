@@ -1,0 +1,59 @@
+---
+doc_id: who-pub-tps-931
+doc_title: "WHO Editorial Style Manual"
+section_id: page-069
+section_title: "Page 69"
+section_number: null
+pages: 69-69
+source_pdf: WHO_PUB_TPS_93.1.pdf
+source_sha256: ecc88eee99756755
+toc_source: undetermined
+---
+WHO Editorial Style Manual
+
+Non-sexist language — a cumbersome solution?
+
+With care, the results of rewriting text to eliminate discriminatory
+language will be no less concise than the original — but will be unam-
+biguous and will avoid causing offence. For example:
+
+“He may see himself as the pivot of all that happens. Hallucinations,
+especially of hearing, are common and may comment on the patient
+or address him.”
+
+is no more cumbersome when modified as follows:
+“Patients may see themselves as the pivot of all that happens.
+Hallucinations, especially of hearing, are common and may com-
+ment on or address patients.”
+
+Similarly:
+“Onset of disease and the problem of recognition when the patient
+starts to observe changes in his skin (e.g. whitish spots, rashes,
+thickening of skin).
+
+Emerging deformities and the problem of uncertainty: patient starts
+to feel, and then complain about, the possible effects of the skin
+changes on his general well-being.”
+
+can be rendered equally well as follows:
+
+“Onset of disease; problems of recognition when patients start to
+observe skin changes...
+
+Emerging deformities; problems of uncertainty; patients start to feel
+and then complain about the effects of skin changes on their general
+well-being.”
+
+In reporting research of any kind that involves both men and women
+and/or children of both sexes, both males and females should be
+mentioned in the results. In statistical reports, gross figures should be
+broken down by sex unless it has previously been established that there
+is no significant difference between the sexes.
+
+Illustrations and photographs for inclusion in publications should be
+carefully chosen to ensure that the sexes are equally represented, both
+in number and in the roles they fulfil. Women, as well as men, should
+be depicted in professional roles and men, as well as women, in caring
+roles (such as looking after children).
+
+64
