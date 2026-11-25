@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — releasing a draft for public comment.
+
+  Source of truth: this file. The SVG under docs/assets/img/workflows/ is
+  generated from it by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  Public comment is a cycle that starts before any comment arrives. The release is agreed, frozen with fixed line numbers, every
+  channel is set up against it, the public is told, and only then do comments
+  come back (Process_PublicComment). The release is archived at the end.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_PublicCommentRelease"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="editor" name="Editor"/>
+  <bpmn:resource id="review-coordinator" name="Review coordinator"/>
+  <bpmn:import namespace="https://litlfred.github.io/folio-assistant/workflows" location="public-comment.bpmn" importType="http://www.omg.org/spec/BPMN/20100524/MODEL" />
+  <bpmn:collaboration id="Collaboration_PublicCommentRelease">
+    <bpmn:participant id="Participant_PublicCommentRelease" name="Release a draft for public comment" processRef="Process_PublicCommentRelease" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_PublicCommentRelease" name="Release a draft for public comment" isExecutable="false">
+    <bpmn:documentation>
+      The whole public comment cycle around the comments themselves. The
+      committee and editor agree a release date; the draft is frozen as a
+      public comment release with fixed line numbers (a PDF and a permanent
+      PC/&lt;version&gt; site); the editor sets up every channel against that
+      release, with instructions and links, and writes the announcement; the
+      public is told; comments come back and are handled one by one in
+      Process_PublicComment; and the release is archived with the review.
+      Called from Process_Publication. Skills: public-comment, document-publishing.
+    </bpmn:documentation>
+    <bpmn:laneSet id="Process_PublicCommentRelease_LaneSet">
+      <bpmn:lane id="Lane_Committee" name="Review committee and editor" partitionElementRef="review-coordinator">
+        <bpmn:documentation>Decide when the draft goes out and send it: the committee and the editor agree the release date and comment period, and announce it to the public. They own the release, not its build.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_DraftReady</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AgreeReleaseDate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Distribute</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Editor" name="Editor" partitionElementRef="editor">
+        <bpmn:documentation>Prepares everything a commenter needs before anything is sent: every channel set up and constrained to the release's fixed references, with precise instructions and links, and the announcement written.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_SetUpChannels</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_WriteAnnouncement</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CallActivity_PublicComment</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pipeline" name="Release build and archive (pipeline)" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Builds the frozen public comment release (line-numbered PDF and a permanent PC/&lt;version&gt; site that is not deleted when branches merge) and archives it with the review once comment closes.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_BuildPcRelease</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ArchiveRelease</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Closed</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_DraftReady" name="Draft ready for public comment">
+      <bpmn:documentation>The draft has passed publication QA and been circulated (Process_Publication), and the review committee decides it should go out for public comment.</bpmn:documentation>
+      <bpmn:outgoing>Flow_DraftReady_To_AgreeReleaseDate</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_AgreeReleaseDate" name="Agree the release date and comment period">
+      <bpmn:documentation>The review committee and the editor agree when the public comment release goes out and when comment closes. Skill: public-comment.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="public-comment"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_DraftReady_To_AgreeReleaseDate</bpmn:incoming>
+      <bpmn:outgoing>Flow_AgreeReleaseDate_To_BuildPcRelease</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_BuildPcRelease" name="Build the public comment release">
+      <bpmn:documentation>Freeze the draft as &quot;Draft for Public Comment Release vX&quot;: a PDF with fixed line numbers and a site copy under a permanent PC/&lt;version&gt;/ path (not branches/, never deleted on merge). Every channel cites this release's pages, lines and block ids. Line numbers run continuously through the document. Freeze from a FULL build: dispatch the preview workflow for the branch with build_type: full first, because a preview borrows main's search index and slices; pc:release freeze refuses a preview build. Run `bun run cat pc:pdf` for the line-numbered PDF and its line map, then `bun run cat pc:release freeze` for the write-once copy under PC/&lt;version&gt;/. Skill: document-publishing.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="document-publishing"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_AgreeReleaseDate_To_BuildPcRelease</bpmn:incoming>
+      <bpmn:outgoing>Flow_BuildPcRelease_To_SetUpChannels</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_SetUpChannels" name="Set up the comment channels, with instructions and links">
+      <bpmn:documentation>Before anything is sent, the editor sets up each channel the review will use: the review sheet, the GitHub issue forms, an offline Excel sheet and a Google Form, each constrained to the release's fixed references, with precise instructions, all links, and how submitters are recorded. Skills: public-comment-channels, public-comment, review-sheet-script.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="public-comment-channels"/><bootstrap.processes:skill ref="public-comment"/><bootstrap.processes:skill ref="review-sheet-script"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_BuildPcRelease_To_SetUpChannels</bpmn:incoming>
+      <bpmn:outgoing>Flow_SetUpChannels_To_WriteAnnouncement</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_WriteAnnouncement" name="Write the announcement, with links">
+      <bpmn:documentation>A short communication for the public: what is under review, the comment period, a high-level description of the process, and links to the release, every channel and the published process. Skills: public-comment-channels, public-comment.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="public-comment-channels"/><bootstrap.processes:skill ref="public-comment"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_SetUpChannels_To_WriteAnnouncement</bpmn:incoming>
+      <bpmn:outgoing>Flow_WriteAnnouncement_To_Distribute</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Distribute" name="Distribute to the public">
+      <bpmn:documentation>The committee and the editor send the announcement through their channels. Comment is open from here until the agreed close. Skill: public-comment.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="public-comment"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_WriteAnnouncement_To_Distribute</bpmn:incoming>
+      <bpmn:outgoing>Flow_Distribute_To_PublicComment</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="CallActivity_PublicComment" name="Public comment on the release" calledElement="Process_PublicComment">
+      <bpmn:documentation>Each comment that comes back through any channel is ingested and placed, triaged, grouped by theme into change sets, recommended on by the committee and decided by the editor (Process_PublicComment).</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="public-comment"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_Distribute_To_PublicComment</bpmn:incoming>
+      <bpmn:outgoing>Flow_PublicComment_To_ArchiveRelease</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:task id="Task_ArchiveRelease" name="Archive the release with the review">
+      <bpmn:documentation>When comment closes, the release (PDF, PC/&lt;version&gt; site and the channel exports) is archived with the review record, so every comment's citation can still be followed. Run `bun run cat pc:release close`, which changes only the release's release.json; the frozen copy is never rewritten. Skill: document-publishing.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="document-publishing"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_PublicComment_To_ArchiveRelease</bpmn:incoming>
+      <bpmn:outgoing>Flow_ArchiveRelease_To_Closed</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_Closed" name="Comment closed, release archived">
+      <bpmn:documentation>The public comment period is over and its release is archived. Accepted changes continue through their change sets.</bpmn:documentation>
+      <bpmn:incoming>Flow_ArchiveRelease_To_Closed</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_DraftReady_To_AgreeReleaseDate" sourceRef="StartEvent_DraftReady" targetRef="Task_AgreeReleaseDate" />
+    <bpmn:sequenceFlow id="Flow_AgreeReleaseDate_To_BuildPcRelease" sourceRef="Task_AgreeReleaseDate" targetRef="Task_BuildPcRelease" />
+    <bpmn:sequenceFlow id="Flow_BuildPcRelease_To_SetUpChannels" sourceRef="Task_BuildPcRelease" targetRef="Task_SetUpChannels" />
+    <bpmn:sequenceFlow id="Flow_SetUpChannels_To_WriteAnnouncement" sourceRef="Task_SetUpChannels" targetRef="Task_WriteAnnouncement" />
+    <bpmn:sequenceFlow id="Flow_WriteAnnouncement_To_Distribute" sourceRef="Task_WriteAnnouncement" targetRef="Task_Distribute" />
+    <bpmn:sequenceFlow id="Flow_Distribute_To_PublicComment" sourceRef="Task_Distribute" targetRef="CallActivity_PublicComment" />
+    <bpmn:sequenceFlow id="Flow_PublicComment_To_ArchiveRelease" sourceRef="CallActivity_PublicComment" targetRef="Task_ArchiveRelease" />
+    <bpmn:sequenceFlow id="Flow_ArchiveRelease_To_Closed" sourceRef="Task_ArchiveRelease" targetRef="EndEvent_Closed" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_PublicCommentRelease">
+    <bpmndi:BPMNPlane id="BPMNPlane_PublicCommentRelease" bpmnElement="Collaboration_PublicCommentRelease">
+      <bpmndi:BPMNShape id="Participant_PublicCommentRelease_di" bpmnElement="Participant_PublicCommentRelease" isHorizontal="true"><dc:Bounds x="100" y="60" width="1360" height="450" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Committee_di" bpmnElement="Lane_Committee" isHorizontal="true"><dc:Bounds x="130" y="60" width="1330" height="150" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Editor_di" bpmnElement="Lane_Editor" isHorizontal="true"><dc:Bounds x="130" y="210" width="1330" height="150" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Pipeline_di" bpmnElement="Lane_Pipeline" isHorizontal="true"><dc:Bounds x="130" y="360" width="1330" height="150" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_DraftReady_di" bpmnElement="StartEvent_DraftReady"><dc:Bounds x="195" y="92" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="170" y="135" width="85" height="60" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AgreeReleaseDate_di" bpmnElement="Task_AgreeReleaseDate"><dc:Bounds x="275" y="75" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_BuildPcRelease_di" bpmnElement="Task_BuildPcRelease"><dc:Bounds x="420" y="375" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SetUpChannels_di" bpmnElement="Task_SetUpChannels"><dc:Bounds x="565" y="225" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_WriteAnnouncement_di" bpmnElement="Task_WriteAnnouncement"><dc:Bounds x="710" y="225" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Distribute_di" bpmnElement="Task_Distribute"><dc:Bounds x="855" y="75" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_PublicComment_di" bpmnElement="CallActivity_PublicComment"><dc:Bounds x="1000" y="225" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ArchiveRelease_di" bpmnElement="Task_ArchiveRelease"><dc:Bounds x="1145" y="375" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Closed_di" bpmnElement="EndEvent_Closed"><dc:Bounds x="1300" y="417" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1342" y="405" width="105" height="60" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_DraftReady_To_AgreeReleaseDate_di" bpmnElement="Flow_DraftReady_To_AgreeReleaseDate"><di:waypoint x="231" y="120" /><di:waypoint x="275" y="120" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AgreeReleaseDate_To_BuildPcRelease_di" bpmnElement="Flow_AgreeReleaseDate_To_BuildPcRelease">
+        <di:waypoint x="395" y="135" />
+        <di:waypoint x="408" y="135" />
+        <di:waypoint x="408" y="435" />
+        <di:waypoint x="420" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_BuildPcRelease_To_SetUpChannels_di" bpmnElement="Flow_BuildPcRelease_To_SetUpChannels">
+        <di:waypoint x="540" y="435" />
+        <di:waypoint x="552" y="435" />
+        <di:waypoint x="552" y="285" />
+        <di:waypoint x="565" y="285" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SetUpChannels_To_WriteAnnouncement_di" bpmnElement="Flow_SetUpChannels_To_WriteAnnouncement">
+        <di:waypoint x="685" y="285" />
+        <di:waypoint x="710" y="285" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WriteAnnouncement_To_Distribute_di" bpmnElement="Flow_WriteAnnouncement_To_Distribute">
+        <di:waypoint x="830" y="285" />
+        <di:waypoint x="842" y="285" />
+        <di:waypoint x="842" y="135" />
+        <di:waypoint x="855" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Distribute_To_PublicComment_di" bpmnElement="Flow_Distribute_To_PublicComment">
+        <di:waypoint x="975" y="135" />
+        <di:waypoint x="988" y="135" />
+        <di:waypoint x="988" y="285" />
+        <di:waypoint x="1000" y="285" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_PublicComment_To_ArchiveRelease_di" bpmnElement="Flow_PublicComment_To_ArchiveRelease">
+        <di:waypoint x="1120" y="285" />
+        <di:waypoint x="1132" y="285" />
+        <di:waypoint x="1132" y="435" />
+        <di:waypoint x="1145" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ArchiveRelease_To_Closed_di" bpmnElement="Flow_ArchiveRelease_To_Closed">
+        <di:waypoint x="1265" y="435" />
+        <di:waypoint x="1300" y="435" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

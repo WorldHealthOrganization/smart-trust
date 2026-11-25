@@ -1,0 +1,150 @@
+{
+  "$schema": "folio-voice/v1",
+  "id": "linked-data",
+  "title": "Linked data — how a coding agent emits and reviews JSON-LD",
+  "description": "The voice for a coding agent writing or reviewing code that EMITS JSON-LD: what makes the output linked data a processor can follow, rather than JSON that merely carries an @context. Six rules, each read from a held W3C text. Owner, 2026-10-01: \"make sure that these issues are part of the one voice for jsonld\" and \"it is a voice for a coding agent, in a code authoring or review task\". Every rule was found broken or fragile in this repository before it was written down (beans jcet, 9y9j): the PROV-O QA/QC reports carried prov:agent, prov:hadRole and prov:hadPlan as plain strings in all 100 activities, and the content context's @base resolves only because jsonld.js applies @base from a remote context.",
+  "provenance": "evidence",
+  "sources": [
+    {
+      "title": "JSON-LD 1.1 — A JSON-based Serialization for Linked Data (W3C Recommendation, 16 July 2020)",
+      "libraryId": "w3c-2020-json-ld-1-1",
+      "instance": "litlfred/cat-harness",
+      "url": "https://www.w3.org/TR/json-ld11/",
+      "year": 2020
+    },
+    {
+      "title": "PROV-O: The PROV Ontology (W3C Recommendation, 30 April 2013)",
+      "libraryId": "w3c-2013-prov-o",
+      "instance": "litlfred/cat-harness",
+      "url": "https://www.w3.org/TR/prov-o/",
+      "year": 2013
+    },
+    {
+      "title": "The PROV-JSONLD Serialization (W3C Member Submission, 25 August 2024; acknowledged, not endorsed)",
+      "libraryId": "w3c-2024-prov-jsonld",
+      "instance": "litlfred/cat-harness",
+      "url": "https://www.w3.org/submissions/2024/SUBM-prov-jsonld-20240825/",
+      "year": 2024
+    }
+  ],
+  "appliesTo": [
+    "code"
+  ],
+  "activeIn": {
+    "roles": [
+      {
+        "instance": "litlfred/cat-harness",
+        "role": "authoring-agent"
+      },
+      {
+        "instance": "litlfred/cat-harness",
+        "role": "code-reviewer"
+      }
+    ],
+    "processes": [
+      "Process_CodeChangeReview",
+      "Process_CodeReview"
+    ]
+  },
+  "rules": [
+    {
+      "id": "ld-object-property-is-a-link",
+      "title": "A property whose value is a node is emitted as a link, never as a string",
+      "description": "When the vocabulary defines a property as an OBJECT property (its value is another node: prov:agent, prov:hadRole, prov:hadPlan, prov:used), the emitted JSON-LD must make the value an IRI — through a term whose definition says \"@type\": \"@id\", or as {\"@id\": …}. A bare string under an uncoerced key expands to {\"@value\": …}, a literal: valid JSON-LD, but a graph in which the activity was done by the TEXT \"owner\" and nothing joins it to the actor. Review test: expand one emitted document with a real processor and look for @value where a node was meant.",
+      "category": "structure",
+      "severity": "critical",
+      "judgementOnly": true,
+      "source": {
+        "libraryId": "w3c-2020-json-ld-1-1",
+        "instance": "litlfred/cat-harness",
+        "sectionId": "sec-053-note",
+        "quote": "Alternatively, the keyword @id or @vocab may be used as value to indicate that within the body of a JSON-LD document, a string value of a term coerced to @id or @vocab is to be interpreted as an IRI."
+      }
+    },
+    {
+      "id": "ld-know-which-properties-are-object-properties",
+      "title": "Read the ontology for which properties take nodes; do not guess from the value's shape",
+      "description": "Whether a value is a node or a literal is decided by the vocabulary, not by what the string looks like. PROV-O marks each property op (object) or dp (data); prov:agent, prov:hadRole and prov:hadPlan are all op, so a role id like \"user\" is still a node reference. Code that decides by shape (\"it has a slash, so it is an IRI\") gets every short id wrong.",
+      "category": "methodology",
+      "severity": "major",
+      "judgementOnly": true,
+      "source": {
+        "libraryId": "w3c-2013-prov-o",
+        "instance": "litlfred/cat-harness",
+        "sectionId": "sec-016-41-starting-point-terms",
+        "quote": "The superscripts op and dp denote that a property is an OWL object property or data property, respectively."
+      }
+    },
+    {
+      "id": "ld-link-is-the-node-release-address",
+      "title": "A link names the node at its dereferenceable address; when it has none, say so instead of minting one",
+      "description": "Coercing a bare id to @id is not enough: \"owner\" then resolves against whatever @base is in force, naming a node that does not exist there. Emit the node's release address — <iriBase><version>/<path in its knowledge graph>[#fragment], the rule check:node-iris enforces — resolved through the OWNING layer's declaration. When the owner declares no iriBase, keep the value as a literal and record a finding naming the layer; an invented address is worse than an honest string.",
+      "category": "structure",
+      "severity": "critical",
+      "judgementOnly": true,
+      "source": {
+        "libraryId": "w3c-2020-json-ld-1-1",
+        "instance": "litlfred/cat-harness",
+        "sectionId": "sec-023-note",
+        "quote": "IRIs are a fundamental concept of Linked Data, for nodes to be truly linked, dereferencing the identifier should result in a representation of that node."
+      }
+    },
+    {
+      "id": "ld-no-base-in-a-remote-context",
+      "title": "Do not rely on @base inside a context that documents reference by URL",
+      "description": "A context referenced by URL is an external context, and JSON-LD 1.1 ignores @base there. Measured 2026-10-01: jsonld.js applies it anyway, so this repository's relative @ids resolve today only through that processor's behaviour; a conforming processor resolves them against each document's own location. Emit absolute @ids, or put @base in the document's own (inline) context.",
+      "category": "structure",
+      "severity": "major",
+      "judgementOnly": true,
+      "source": {
+        "libraryId": "w3c-2020-json-ld-1-1",
+        "instance": "litlfred/cat-harness",
+        "sectionId": "sec-033-413-base-iri",
+        "quote": "Please note that the @base will be ignored if used in external contexts."
+      }
+    },
+    {
+      "id": "ld-no-context-fetched-at-run-time",
+      "title": "Hold every external context locally, pinned by hash; never fetch one while processing",
+      "description": "A context needed to understand a document is part of the document. Code that expands or verifies JSON-LD resolves context URLs through a documentLoader that serves a committed copy (with its sha256 recorded), and refuses anything else — the way publish:verify's localLoader does. A context that can only be had over the network makes the meaning of our data depend on somebody else's server being up and unchanged.",
+      "category": "methodology",
+      "severity": "major",
+      "judgementOnly": true,
+      "source": {
+        "libraryId": "w3c-2020-json-ld-1-1",
+        "instance": "litlfred/cat-harness",
+        "sectionId": "sec-133-11-security-considerations",
+        "quote": "To protect against this, publishers should consider caching remote contexts for future use, or use the documentLoader to maintain a local version of such contexts."
+      }
+    },
+    {
+      "id": "ld-coercion-belongs-to-the-term",
+      "title": "A compact-IRI key does not inherit another term's coercion",
+      "description": "Type coercion lives in a TERM's definition. Writing \"prov:agent\" as a key uses the prov prefix and no term definition, so it is NOT coerced even when the active context defines a term agent with \"@type\": \"@id\". Either use the defined term (agent) or define the compact IRI itself as a term. Mixing the two — PROV-JSONLD's context with prov:-prefixed keys — silently yields literals.",
+      "category": "structure",
+      "severity": "major",
+      "judgementOnly": true,
+      "source": {
+        "libraryId": "w3c-2020-json-ld-1-1",
+        "instance": "litlfred/cat-harness",
+        "sectionId": "sec-013-terms-imported-from-other-specifications",
+        "quote": "A compact IRI has the form of prefix:suffix and is used as a way of expressing an IRI without needing to define separate term definitions for each IRI contained within a common vocabulary identified by prefix."
+      }
+    },
+    {
+      "id": "ld-prov-in-prov-jsonld-shape",
+      "title": "Emit PROV in PROV-JSONLD's shape, with its terms",
+      "description": "PROV is written with the PROV-JSONLD context and its terms: an Activity node with startTime/endTime, and each qualified relation as its own typed node — an Association carrying activity, agent, role and plan — so the context's coercions and @reverse mappings apply. The context is held locally (see ld-no-context-fetched-at-run-time). PROV-JSONLD is a W3C Member Submission, acknowledged and not endorsed by W3C; it is adopted here by owner decision (2026-10-01) because W3C publishes no JSON-LD context for PROV-O.",
+      "category": "methodology",
+      "severity": "major",
+      "judgementOnly": true,
+      "source": {
+        "libraryId": "w3c-2024-prov-jsonld",
+        "instance": "litlfred/cat-harness",
+        "sectionId": "page-037",
+        "quote": "The JSON properties activity and plan map to the object properties prov:qualifiedAssociation and prov:hadPlan, respectively.",
+        "pages": "37"
+      }
+    }
+  ]
+}

@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  id="Definitions_Process_InitializeHarness"
+                  targetNamespace="https://litlfred.github.io/bootstrap/v0/workflows"
+                  exporter="bootstrap" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="bootstrapping-agent" name="Bootstrapping Agent"/>
+  <bpmn:resource id="knowledge-graph-data-store" name="Knowledge Graph Data Store"/>
+  <bpmn:collaboration id="Collaboration_Process_InitializeHarness">
+    <bpmn:participant id="Participant_Process_InitializeHarness" name="Initialize a harness" processRef="Process_InitializeHarness"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_InitializeHarness" name="Initialize a harness" isExecutable="false">
+    <bpmn:documentation>THE ONLY PROCESS IN BOOTSTRAP AN ACTOR STARTS. A Bootstrapping Agent that has read bootstrap's README.md is at its start event and has nowhere else to begin. Every other diagram here is reached from this one by a call activity and is never started: `discussion` determines which harness and where; `human-agent-discussion` is the one reusable way any diagram asks a person anything; `complete-initialization` makes sure every step the declarations name is done; `log-message` records what a step is doing.
+
+PRECONDITIONS are DECLARED below as bootstrap.processes:precondition elements rather than asserted here. Three of the four are kind="stated": nothing in this repository can observe whether an actor understands what a role is, so they evaluate to could-not-determine, never to satisfied. The fourth is checkable: README.md EXISTS. That the Bootstrapping Agent read it is not observable.
+
+NO work-plan element on any activity: a work plan is harness machinery and a Bootstrapping Agent runs before the harness that carries it. isExecutable is false because the engine that runs a diagram is harness machinery too — this is data a Bootstrapping Agent reads, not a process bootstrap can drive.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:precondition id="knows-the-vocabulary" kind="stated"
+        text="The Bootstrapping Agent understands what a task, a role, a process, an actor and a skill are."/>
+      <bootstrap.processes:precondition id="told-it-is-a-bootstrapping-agent" kind="stated"
+        text="The Bootstrapping Agent has been told that it is a Bootstrapping Agent."/>
+      <bootstrap.processes:precondition id="at-the-start" kind="stated"
+        text="The Bootstrapping Agent is at the start of this process and has not begun it elsewhere."/>
+      <bootstrap.processes:precondition id="readme-present" kind="checkable" check="file-exists" ref="README.md"
+        text="The README this process tells the Bootstrapping Agent to read exists in this checkout."/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_InitializeHarness">
+      <bpmn:lane id="Lane_BootstrappingAgent" name="Bootstrapping Agent" partitionElementRef="bootstrapping-agent">
+        <bpmn:documentation>Everything this process performs other than reading the target location. The one judgement — WHICH harness — is not made here: it is the Requestor's, obtained inside `discussion` through `human-agent-discussion`, which is why this diagram has no Requestor lane. It follows the CHOSEN harness's own instructions rather than any bootstrap holds.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_InitializeHarness</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_DetermineHarness</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_HarnessChosen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_AlreadyInitialized</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_InstructionsFound</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_LogInstallStart</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Install</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_WriteRootReadme</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_CompleteInitialization</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_LogFailure</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Installed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Failed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ReadLocation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ReadDeclaration</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_InitializeHarness" name="Asked to initialize a harness"/>
+
+    <bpmn:callActivity id="A_DetermineHarness" name="Determine which harness, and where" calledElement="Process_Discussion">
+      <bpmn:documentation>The candidates are listed and the Requestor is asked, in `discussion`, which asks through `human-agent-discussion`. IN: nothing but the context this agent was handed. OUT: zero or ONE harness, and the locations — a document conforming to `discussion.output.schema.json`. One at most: a list of two is not an answer, and the Bootstrapping Agent may not break the tie itself.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="confirm-harness"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+
+    <bpmn:exclusiveGateway id="GW_HarnessChosen" name="One harness?"/>
+
+    <bpmn:task id="A_ReadLocation" name="Read what each location already is">
+      <bpmn:documentation>Ask the location, not your memory of it: a Knowledge Graph Data Store that carries a declaration at its root is ALREADY a layer, and it says so itself. `&lt;name&gt;.json` present and parsing is the whole test, and `bootstrap-kg-navigation` says what the three answers mean — absent (not a layer yet), present, and present-but-unreadable, which is a layer asserting something broken and is not a green light either.
+
+Done before reading the chosen harness: a location held by another harness ends the process here.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bootstrap-kg-navigation"/></bpmn:extensionElements>
+      <bpmn:property id="Property_A_ReadLocation_DSR_knowledge_graph" name="__targetRef_placeholder"/>
+      <bpmn:dataInputAssociation id="DIA_A_ReadLocation">
+        <bpmn:sourceRef>DSR_knowledge_graph</bpmn:sourceRef>
+        <bpmn:targetRef>Property_A_ReadLocation_DSR_knowledge_graph</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_AlreadyInitialized" name="Already initialized?">
+      <bpmn:documentation>Three answers, not two. NOT YET: install. ALREADY, AS THE CHOSEN HARNESS: the install is not repeated — it goes straight to `complete-initialization`, which checks each step the declarations name and adds only what is missing, replacing nothing. ALREADY, AS SOMETHING ELSE (or a declaration that does not parse): logged and stopped, because re-initialising over a layer that has content, history and dependents is not recoverable by running anything again; what the Requestor does next is a new decision.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_ReadDeclaration" name="Read the harness's declaration and instructions">
+      <bpmn:documentation>Performed against the data store — a git repository, through the git CLI or a forge API. The instructions are at a PREDETERMINED spot on the harness: `&lt;name&gt;/docs/bootstrap/initialization.md`, the same for every harness, which is what lets a Bootstrapping Agent be pointed at one nobody has written yet.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bootstrap-kg-navigation"/></bpmn:extensionElements>
+      <bpmn:property id="Property_A_ReadDeclaration_DSR_knowledge_graph" name="__targetRef_placeholder"/>
+      <bpmn:dataInputAssociation id="DIA_A_ReadDeclaration">
+        <bpmn:sourceRef>DSR_knowledge_graph</bpmn:sourceRef>
+        <bpmn:targetRef>Property_A_ReadDeclaration_DSR_knowledge_graph</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_InstructionsFound" name="Instructions there?"/>
+
+    <bpmn:callActivity id="A_LogInstallStart" name="Log the start of the install" calledElement="Process_LogMessage">
+      <bpmn:documentation>REQUIRED logging, which is what drawing the call says. Logged before anything is written, so an install interrupted halfway is distinguishable from one never begun.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="log-message"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+
+    <bpmn:task id="A_Install" name="Follow them, at each location">
+      <bpmn:documentation>The instructions belong to the harness being installed, not to bootstrap — bootstrap does not know what any Harness above it requires, and does not need to.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bootstrap-kg-navigation"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_WriteRootReadme" name="Write the root README, if it is not there">
+      <bpmn:documentation>The repository now IS a layer instantiating a harness, and nothing at its root says so. It carries a LINK to the harness that was installed and the OVERALL install status across every location — WHEN ABSENT, never replacing: where a README is already there, the link and status go in a marker pair the harness's own README tool maintains.
+
+Initialization may create the README: the rule that a running process never writes an `instance-readme` governs a layer that already exists.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="root-readme"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:callActivity id="A_CompleteInitialization" name="Make sure every step is done" calledElement="Process_CompleteInitialization">
+      <bpmn:documentation>Following a harness's instructions once is not the same as every step being done. `complete-initialization` walks the steps the declarations name — FIRST the harness's JSON Schemas and JSON-LD at the IRIs they name, the primary step of initializing a Knowledge Graph harness; then declared directories, assets, the README and its sections, and the site that carries the documents — checks each, does what can be done, asks the person for what only they can do, and reports every step in its state. An agent may be dispatched to run it on its own: it needs nothing but that diagram and the declarations.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="initialization-steps"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+
+    <bpmn:callActivity id="A_LogFailure" name="Log the failure" calledElement="Process_LogMessage">
+      <bpmn:documentation>Every failure path passes through here, so "logged as failed" is a step somebody performs rather than an adjective on an end event. What differs between the ways in is the message, which is an input, not the mechanism.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="log-message"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+
+    <bpmn:endEvent id="End_Installed" name="Harness installed, every step checked">
+      <bpmn:documentation>Installed, and every step the declarations name reported in its state. A step still open is not hidden by this end: it is in the report `complete-initialization` made, with what to do.</bpmn:documentation>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Failed" name="Failed">
+      <bpmn:documentation>Three ways in, and all are logged rather than retried: no harness was chosen, a location is already a layer instantiating something else, or the instructions were not at the predetermined spot. Guessing a harness produces a repository set up as the wrong thing, which is worse than one not set up at all.</bpmn:documentation>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="SF_IH_1" sourceRef="Start_InitializeHarness" targetRef="A_DetermineHarness"/>
+    <bpmn:sequenceFlow id="SF_IH_4" sourceRef="A_DetermineHarness" targetRef="GW_HarnessChosen"/>
+    <bpmn:sequenceFlow id="SF_IH_5" name="none" sourceRef="GW_HarnessChosen" targetRef="A_LogFailure"/>
+    <bpmn:sequenceFlow id="SF_IH_6" name="one" sourceRef="GW_HarnessChosen" targetRef="A_ReadLocation"/>
+    <bpmn:sequenceFlow id="SF_IH_13" sourceRef="A_ReadLocation" targetRef="GW_AlreadyInitialized"/>
+    <bpmn:sequenceFlow id="SF_IH_14" name="already, as something else" sourceRef="GW_AlreadyInitialized" targetRef="A_LogFailure"/>
+    <bpmn:sequenceFlow id="SF_IH_17" name="already, as the chosen harness" sourceRef="GW_AlreadyInitialized" targetRef="A_CompleteInitialization"/>
+    <bpmn:sequenceFlow id="SF_IH_15" name="not yet" sourceRef="GW_AlreadyInitialized" targetRef="A_ReadDeclaration"/>
+    <bpmn:sequenceFlow id="SF_IH_7" sourceRef="A_ReadDeclaration" targetRef="GW_InstructionsFound"/>
+    <bpmn:sequenceFlow id="SF_IH_8" name="no" sourceRef="GW_InstructionsFound" targetRef="A_LogFailure"/>
+    <bpmn:sequenceFlow id="SF_IH_9" name="yes" sourceRef="GW_InstructionsFound" targetRef="A_LogInstallStart"/>
+    <bpmn:sequenceFlow id="SF_IH_10" sourceRef="A_LogInstallStart" targetRef="A_Install"/>
+    <bpmn:sequenceFlow id="SF_IH_11" sourceRef="A_Install" targetRef="A_WriteRootReadme"/>
+    <bpmn:sequenceFlow id="SF_IH_16" sourceRef="A_WriteRootReadme" targetRef="A_CompleteInitialization"/>
+    <bpmn:sequenceFlow id="SF_IH_18" sourceRef="A_CompleteInitialization" targetRef="End_Installed"/>
+    <bpmn:sequenceFlow id="SF_IH_12" sourceRef="A_LogFailure" targetRef="End_Failed"/>
+    <bpmn:dataStoreReference id="DSR_knowledge_graph" name="Knowledge graph" dataStoreRef="knowledge-graph-data-store"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_InitializeHarness">
+    <bpmndi:BPMNPlane id="Plane_Process_InitializeHarness" bpmnElement="Collaboration_Process_InitializeHarness">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_InitializeHarness" bpmnElement="Participant_Process_InitializeHarness" isHorizontal="true">
+        <dc:Bounds x="140" y="80" width="2560" height="704" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_BootstrappingAgent" bpmnElement="Lane_BootstrappingAgent" isHorizontal="true">
+        <dc:Bounds x="170" y="80" width="2530" height="704" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_InitializeHarness" bpmnElement="Start_InitializeHarness">
+        <dc:Bounds x="272" y="329" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_DetermineHarness" bpmnElement="A_DetermineHarness">
+        <dc:Bounds x="410" y="287" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_HarnessChosen" bpmnElement="GW_HarnessChosen" isMarkerVisible="true">
+        <dc:Bounds x="675" y="322" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="659" y="212.5" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ReadLocation" bpmnElement="A_ReadLocation">
+        <dc:Bounds x="870" y="457" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_AlreadyInitialized" bpmnElement="GW_AlreadyInitialized" isMarkerVisible="true">
+        <dc:Bounds x="1135" y="322" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="891" y="259" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ReadDeclaration" bpmnElement="A_ReadDeclaration">
+        <dc:Bounds x="1330" y="457" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_InstructionsFound" bpmnElement="GW_InstructionsFound" isMarkerVisible="true">
+        <dc:Bounds x="1595" y="322" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_LogInstallStart" bpmnElement="A_LogInstallStart">
+        <dc:Bounds x="1790" y="287" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Install" bpmnElement="A_Install">
+        <dc:Bounds x="1970" y="287" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_WriteRootReadme" bpmnElement="A_WriteRootReadme">
+        <dc:Bounds x="2150" y="287" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_CompleteInitialization" bpmnElement="A_CompleteInitialization">
+        <dc:Bounds x="2330" y="287" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_LogFailure" bpmnElement="A_LogFailure">
+        <dc:Bounds x="2330" y="117" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Installed" bpmnElement="End_Installed">
+        <dc:Bounds x="2552" y="329" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Failed" bpmnElement="End_Failed">
+        <dc:Bounds x="2552" y="159" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_1" bpmnElement="SF_IH_1">
+        <di:waypoint x="308" y="347" />
+        <di:waypoint x="410" y="347" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_4" bpmnElement="SF_IH_4">
+        <di:waypoint x="530" y="347" />
+        <di:waypoint x="675" y="347" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_5" bpmnElement="SF_IH_5">
+        <di:waypoint x="700" y="322" />
+        <di:waypoint x="700" y="177" />
+        <di:waypoint x="2330" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_6" bpmnElement="SF_IH_6">
+        <di:waypoint x="700" y="372" />
+        <di:waypoint x="700" y="517" />
+        <di:waypoint x="870" y="517" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_13" bpmnElement="SF_IH_13">
+        <di:waypoint x="930" y="457" />
+        <di:waypoint x="930" y="347" />
+        <di:waypoint x="1135" y="347" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_14" bpmnElement="SF_IH_14">
+        <di:waypoint x="1160" y="322" />
+        <di:waypoint x="1160" y="101" />
+        <di:waypoint x="2390" y="101" />
+        <di:waypoint x="2390" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_17" bpmnElement="SF_IH_17">
+        <di:waypoint x="1160" y="322" />
+        <di:waypoint x="1160" y="271" />
+        <di:waypoint x="2390" y="271" />
+        <di:waypoint x="2390" y="287" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_15" bpmnElement="SF_IH_15">
+        <di:waypoint x="1160" y="372" />
+        <di:waypoint x="1160" y="517" />
+        <di:waypoint x="1330" y="517" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_7" bpmnElement="SF_IH_7">
+        <di:waypoint x="1390" y="457" />
+        <di:waypoint x="1390" y="347" />
+        <di:waypoint x="1595" y="347" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_8" bpmnElement="SF_IH_8">
+        <di:waypoint x="1620" y="322" />
+        <di:waypoint x="1620" y="177" />
+        <di:waypoint x="2330" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_9" bpmnElement="SF_IH_9">
+        <di:waypoint x="1645" y="347" />
+        <di:waypoint x="1790" y="347" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_10" bpmnElement="SF_IH_10">
+        <di:waypoint x="1910" y="347" />
+        <di:waypoint x="1970" y="347" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_11" bpmnElement="SF_IH_11">
+        <di:waypoint x="2090" y="347" />
+        <di:waypoint x="2150" y="347" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_16" bpmnElement="SF_IH_16">
+        <di:waypoint x="2270" y="347" />
+        <di:waypoint x="2330" y="347" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_18" bpmnElement="SF_IH_18">
+        <di:waypoint x="2450" y="347" />
+        <di:waypoint x="2552" y="347" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_IH_12" bpmnElement="SF_IH_12">
+        <di:waypoint x="2450" y="177" />
+        <di:waypoint x="2552" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_DSR_knowledge_graph" bpmnElement="DSR_knowledge_graph"><dc:Bounds x="1135" y="662" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1039" y="627" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_DIA_A_ReadLocation" bpmnElement="DIA_A_ReadLocation">
+        <di:waypoint x="1160" y="662" />
+        <di:waypoint x="1160" y="517" />
+        <di:waypoint x="990" y="517" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DIA_A_ReadDeclaration" bpmnElement="DIA_A_ReadDeclaration">
+        <di:waypoint x="1185" y="687" />
+        <di:waypoint x="1390" y="687" />
+        <di:waypoint x="1390" y="577" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

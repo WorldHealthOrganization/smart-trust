@@ -1,0 +1,35 @@
+{
+  "$schema": "cache/1.0.0",
+  "id": "lpc-pin",
+  "title": "Layer PR checks: pin rendezvous within one run",
+  "instance": "cat-harness-tools",
+  "kind": "actions-cache",
+  "trustClass": "c",
+  "location": "layer-pr-checks-pin-",
+  "keyRecipe": {
+    "source": "per-run",
+    "expression": "layer-pr-checks-pin-${{ github.run_id }}-${{ github.run_attempt }}"
+  },
+  "derivedInputs": "none: the key is the run, so an entry is read only by the jobs of the run that wrote it",
+  "holds": "pin/at, layers-at, state.json (ls-remote of refs/heads/cat/* tips)",
+  "producer": "first prepare job to reach it (continue-on-error race)",
+  "consumers": [
+    "the other prepare jobs and compare in the same run attempt"
+  ],
+  "savePolicy": "every run",
+  "verify": "none needed: never read across runs",
+  "owner": "cache-first CI (CI speed 14)",
+  "uses": [
+    ".github/workflows/layer-pr-checks.yml:435",
+    ".github/workflows/layer-pr-checks.yml:508",
+    ".github/workflows/layer-pr-checks.yml:514",
+    ".github/workflows/layer-pr-checks.yml:1216-1220",
+    ".github/workflows/layer-pr-checks.yml:1444-1448",
+    ".github/workflows/layer-pr-checks.yml:1895"
+  ],
+  "notes": "An Actions cache used to pass data between jobs; an artifact or job output would not consume cache budget.",
+  "stateInputs": {
+    "reads": "unmeasured",
+    "how": "not yet derived from a recorded read set; the producer may read state:mount graphs"
+  }
+}

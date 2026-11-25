@@ -1,0 +1,28 @@
+# Publish this instance's QA results (its declared `qa` directory,
+# test/results/) to the cat/cat-harness/qa-reports branch of THIS repository,
+# keyed by commit: main/<sha> on a push to main, pr/<n>/<sha> on a pull
+# request. An index that mounts this instance reads them at the commit its
+# lock pins. The branch is created on the first run.
+#
+# Bean folio-assistant-7mwa; owner, 2026-11-03, "2. Each layer publishes".
+# Reusable workflow: litlfred/cat-harness-tools#1427.
+name: Publish QA results
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    uses: litlfred/cat-harness-tools/.github/workflows/layer-qa-publish.yml@2d30ca6540e2587768323620735f4cfe90b57efc # index.lock.json
+    with:
+      instance: who-iris
+      # The round-trip report is derived from the agents' rulings in
+      # test/attestations/translation-qa/ (owner, 2026-11-03), which live on
+      # the cat/who-iris/attestations state branch: mount that one graph first
+      # (--id: the full mount refuses the caller's swapped-in directory).
+      writers: |
+        bun run cat state:mount --id attestations
+        bun run who-iris/scripts/translation-roundtrip-report.ts

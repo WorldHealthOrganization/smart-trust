@@ -1,0 +1,107 @@
+{%- comment -%}
+  Include as: {%- include_cached nav_cache/activation_map.html -%}
+  Depends on: site (only), so it is rendered ONCE per build and cached.
+  Results in: a lookup string, one record per link in the main navigation:
+      |@|<href>|=|<nav_levels joined by ",">
+    where <href> is the link's href exactly as `components/site_nav.html`
+    writes it, and nav_levels is the path to that link which just-the-docs
+    0.12.0's `css/activation.scss.liquid` computes for the page at <href>
+    (already filtered to the levels >= 1).
+
+  WHY (bean "Cache the nav"). The theme's activation include derives that
+  path PER PAGE by splitting the whole nav up to the page's link and walking
+  every list item before it: O(pages) Liquid work on every page, O(pages^2)
+  for the site. Here the same walk is done once, over the whole nav, and each
+  page looks its path up (`css/activation.scss.liquid` in this directory).
+  The walk below is the theme's loop body VERBATIM; the only difference is
+  that it runs over every nav split instead of the prefix of one page's link,
+  emitting a record before each split that holds a link. The state before
+  split k is exactly the state the theme reaches for the page whose link is
+  in split k, because the theme's prefix splits are the first k splits here.
+
+  Keep in step with the theme's `_includes/css/activation.scss.liquid` when
+  the just-the-docs pin moves (upstream/upstream-pins.json).
+{%- endcomment -%}
+
+{%- capture site_nav -%}
+{%- include_cached components/site_nav.html -%}
+{%- endcapture -%}
+
+{%- capture nav_list -%}
+<ul class="nav-list
+{%- endcapture -%}
+
+{%- assign nav_list_end = "</ul>" -%}
+
+{%- capture nav_list_item -%}
+<li class="nav-list-item
+{%- endcapture -%}
+
+{%- capture nav_category_list -%}
+<ul class="nav-list nav-category-list">
+{%- endcapture -%}
+
+{%- assign nav_link_open = '<a href="' -%}
+{%- assign nav_link_close = '" class="nav-list-link">' -%}
+
+{%- assign nav_splits = site_nav | split: nav_list_item -%}
+
+{%- assign nav_levels = "" | split: "" | push: 1 -%}
+
+{%- for nav_split in nav_splits -%}
+
+  {%- unless forloop.first -%}
+    {%- if nav_split contains nav_link_close -%}
+      {%- assign nav_href = nav_split | split: nav_link_close | first | split: nav_link_open | last -%}
+      {%- assign nav_levels_ok = nav_levels | where_exp: "item", "item >= 1" | join: "," -%}
+|@|{{ nav_href }}|=|{{ nav_levels_ok }}
+    {%- endif -%}
+  {%- endunless -%}
+
+  {%- assign nav_list_less = nav_split | remove: nav_list -%}
+  {%- assign nav_list_count =
+        nav_split.size | minus: nav_list_less.size |
+        divided_by: nav_list.size -%}
+
+  {%- assign nav_list_end_less = nav_split | remove: nav_list_end -%}
+  {%- assign nav_list_end_count =
+        nav_split.size | minus: nav_list_end_less.size |
+        divided_by: nav_list_end.size -%}
+
+  {%- if nav_list_count == 0 and nav_list_end_count == 0 -%}
+
+    {%- assign nav_index = nav_levels[-1] | plus: 1 -%}
+    {%- assign nav_levels = nav_levels | pop | push: nav_index -%}
+
+  {%- elsif nav_list_count == 0 and nav_list_end_count >= 1 -%}
+
+    {%- assign nav_slice_size = nav_levels.size | minus: nav_list_end_count -%}
+    {%- assign nav_levels = nav_levels | slice: 0, nav_slice_size -%}
+    {%- assign nav_index = nav_levels[-1] | plus: 1 -%}
+    {%- assign nav_levels = nav_levels | pop | push: nav_index -%}
+
+  {%- elsif nav_list_count == 1 and nav_list_end_count == 0 -%}
+
+    {%- if nav_split contains nav_category_list -%}
+      {%- assign nav_levels = nav_levels | push: 0 -%}
+    {%- else -%}
+      {%- assign nav_levels = nav_levels | push: 1 -%}
+    {%- endif -%}
+
+  {%- elsif nav_list_count >= 1 and nav_list_end_count >= 1 -%}
+
+    {%- assign nav_index = nav_levels[0] | plus: nav_list_count -%}
+    {%- if nav_levels[-1] == 0 or forloop.first -%}
+      {%- assign nav_index = nav_index | minus: 1 -%}
+    {%- endif -%}
+    {%- assign nav_levels = nav_levels | slice: 0, 0 | push: nav_index -%}
+    {%- if nav_split contains nav_category_list -%}
+      {%- assign nav_levels = nav_levels | push: 0 -%}
+    {%- else -%}
+      {%- assign nav_levels = nav_levels | push: 1 -%}
+    {%- endif -%}
+
+  {%- endif -%}
+
+{%- endfor -%}
+|@|

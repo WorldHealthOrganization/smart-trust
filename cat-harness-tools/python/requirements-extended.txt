@@ -1,0 +1,29 @@
+# GENERATED — do not edit.
+# Source: schemas/sdlc/python-deps.ts (bean 68dt). Regenerate: bun run cat deps:python
+#
+# NOT installed in CI. Declared so the cost is visible rather than implied;
+# see each entry's reason in schemas/sdlc/python-deps.ts.
+
+# anthropic: `pdf-ocr.py --vision-digits` only: an opt-in fallback that asks a vision model to re-read the number words Tesseract is unsure of on Arabic-script pages (10665-94830-per, owner 2026-11-15). Imported inside `anthropic_ask`, so a run without the flag needs neither it nor credentials. The wheel is 2.3 MB (anthropic 2.8.0, py3-none-any, PyPI, 2026-11-15) and pulls httpx, pydantic and jiter. Extended because CI never calls a remote model; the tests drive the fallback with a fake `ask`.
+# imports: anthropic
+anthropic
+
+# camelot-py: `pdf-tables.py` only. 912 KB itself, but it pulls numpy, pandas and OpenCV — 323 MB measured 2026-09-20, more than the whole lean set. Kept out of CI for that reason alone; the script is live (two skills document it, bean `fj94` has 38 tests) and this is a cost statement, not a deprecation.
+# imports: camelot
+camelot-py
+
+# sentencepiece: `MarianTokenizer` in `translation/opus_mt_runner.py` loads the OPUS-MT `.spm` vocabularies with it, and `transformers` does not install it. Never imported by name. 1.7 MB (sentencepiece 0.2.3, cp312 manylinux wheel, PyPI, 2026-11-14). (no direct import)
+# imports: sentencepiece
+sentencepiece
+
+# torch: The tensor backend `transformers` needs to run a Marian model in `translation/opus_mt_runner.py` (`return_tensors="pt"`). Never imported by name; declared because `transformers` does not install it. The heaviest entry here: the manylinux x86_64 wheel alone is 539.2 MB (torch 2.15.0, cp312, PyPI, 2026-11-14), before any CUDA libraries it pulls. (no direct import)
+# imports: torch
+torch
+
+# transformers: `translation/opus_mt_runner.py` only: runs the Helsinki-NLP OPUS-MT Marian models (CC-BY 4.0) locally for `translate-pot.ts --engine opus-mt` and `translation-candidates.ts --engine opus-mt`, open machine translation with no freemium API quota (owner, 2026-11-14). Imported inside `main()`, so an empty request needs no model. The wheel is 13.3 MB (transformers 5.23.0, PyPI, 2026-11-14), but it needs `torch` below, and each OPUS-MT model is a further download on first use. Extended because nothing in CI translates; the TypeScript side is tested with a fake engine.
+# imports: transformers
+transformers
+
+# vosk: `meeting-recording.py transcribe` only: an offline second transcript of a recorded walkthrough, to compare with the meeting tool's own (skill `crdm-recorded-walkthrough`). Imported inside that one subcommand, so the other four run without it. The wheel is 7.2 MB (vosk 0.3.45, measured 2026-10-06), and it needs a speech model the caller supplies on top. Extended because nothing in CI transcribes, so CI should not pay for it.
+# imports: vosk
+vosk

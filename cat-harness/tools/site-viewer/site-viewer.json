@@ -1,0 +1,74 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "site-viewer",
+    "title": "Published site viewer",
+    "description": "List the published site's top-level routes and staging previews, with the pages and files under each, as read from the branch that keeps the site — saying so when the branch is empty or could not be read, never drawing zeros in its place.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat site:viz"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Fail if a page is stale, instead of writing.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        },
+        {
+          "name": "site",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "A site being built: write the pages at their declared route under it instead of under the harness's own site directory. A repository's own site build passes it (the tools layer's `visualiser-writers.ts`), since its harness docs are a pinned mount.",
+          "required": false,
+          "arg": {
+            "flag": "--site"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "pages",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The viewer pages, under the published site directory."
+        }
+      ]
+    },
+    "satisfies": [
+      "graph-rendering"
+    ],
+    "requires": {
+      "runtime": [
+        "bun",
+        "git"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "The routes are the remote branch's tree; offline, the page says it could not read the branch rather than listing nothing."
+      }
+    ],
+    "renders": [
+      "basic-cdn-site"
+    ]
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "A viewer generator (`viewerTool` in `../lib.ts` holds the ports every viewer shares).\nIt reads the site's CDN branch with git, so unlike its siblings it needs the network."
+    }
+  ]
+}

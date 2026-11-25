@@ -1,0 +1,97 @@
+{%- comment -%}
+  OVERRIDES just-the-docs 0.12.0's `_includes/vendor/anchor_headings.html`,
+  which `_layouts/default.html` calls on every page's content when
+  `heading_anchors` is on. The theme's file is kept VERBATIM, renamed, as
+  `vendor/anchor_headings_core.html`; this wrapper only decides what it sees.
+  Included as the theme does, from its `_layouts/default.html`, with html=content.
+  Takes every parameter the theme's include takes, and passes each through.
+  Overwrites: _ahs_* (Jekyll's include `assign`s are page-global).
+
+  WHAT CHANGED, AND WHY (owner's report, 2026-10-15). The theme's pass splits
+  the WHOLE content on "<h" and rewrites every <h1>..<h6> it finds into a
+  multi-line heading with an anchor link -- including text inside an inline
+  <script> or <style>, which is not markup. A generator that builds HTML in
+  JavaScript (`var h = '<h2>' + name + '</h2>'`) had its string literal broken
+  across lines, the script failed to parse ("Invalid or unexpected token") and
+  the page never loaded: /en/cat-harness/schemas/bootstrap/ and every page
+  built the same way. The class is "the anchor pass rewrites raw-text
+  elements", so it is fixed here, once, for every generator present and
+  future, rather than in each generator.
+
+  HOW. The content is cut at "<script" and, within what lies outside a
+  script, at "<style". A piece is raw text from its opening "<script"
+  ("<style") up to the first "</script>" ("</style>") after it -- where an
+  HTML parser ends it too -- and is emitted untouched. Every other piece goes
+  through the theme's pass as before. Content holding neither tag goes
+  through the theme's pass whole, exactly as the theme does it.
+
+  Limits, stated rather than hidden: tag names are matched in lower case (as
+  every generator here writes them); a heading that itself CONTAINS a
+  <script> is cut in two and loses its anchor; a "<script" inside an HTML
+  comment makes the text up to the next "</script>" raw, so headings there
+  lose their anchors. Each degrades an anchor; none breaks a script.
+
+  Each piece is EMITTED as it is cut, not appended to an accumulator
+  (`capture out` of `{{ out }}{{ piece }}` copies all that came before, on
+  every piece): the output is the same string, without the O(pieces x page)
+  copying.
+
+  Keep in step with the theme when the just-the-docs pin moves
+  (upstream/upstream-pins.json): re-copy anchor_headings_core.html from the
+  new pin.
+{%- endcomment -%}
+
+{%- if include.html contains '<script' or include.html contains '<style' -%}
+  {%- assign _ahs_scripts = include.html | split: '<script' -%}
+  {%- for _ahs_s in _ahs_scripts -%}
+    {%- comment -%} 1. this piece's script (raw) and the markup after it {%- endcomment -%}
+    {%- if forloop.first -%}
+      {%- assign _ahs_raw = '' -%}
+      {%- assign _ahs_markup = _ahs_s -%}
+    {%- elsif _ahs_s contains '</script>' -%}
+      {%- assign _ahs_body = _ahs_s | split: '</script>' | first -%}
+      {%- capture _ahs_raw -%}<script{{ _ahs_body }}</script>{%- endcapture -%}
+      {%- assign _ahs_markup = _ahs_s | remove_first: _ahs_body | remove_first: '</script>' -%}
+    {%- else -%}
+      {%- comment -%} still inside a script ("<script" in a string, say) {%- endcomment -%}
+      {%- capture _ahs_raw -%}<script{{ _ahs_s }}{%- endcapture -%}
+      {%- assign _ahs_markup = '' -%}
+    {%- endif -%}
+    {{- _ahs_raw -}}
+
+    {%- comment -%} 2. the markup, cut the same way at <style> {%- endcomment -%}
+    {%- assign _ahs_styles = _ahs_markup | split: '<style' -%}
+    {%- for _ahs_t in _ahs_styles -%}
+      {%- if forloop.first -%}
+        {%- assign _ahs_traw = '' -%}
+        {%- assign _ahs_tmarkup = _ahs_t -%}
+      {%- elsif _ahs_t contains '</style>' -%}
+        {%- assign _ahs_tbody = _ahs_t | split: '</style>' | first -%}
+        {%- capture _ahs_traw -%}<style{{ _ahs_tbody }}</style>{%- endcapture -%}
+        {%- assign _ahs_tmarkup = _ahs_t | remove_first: _ahs_tbody | remove_first: '</style>' -%}
+      {%- else -%}
+        {%- capture _ahs_traw -%}<style{{ _ahs_t }}{%- endcapture -%}
+        {%- assign _ahs_tmarkup = '' -%}
+      {%- endif -%}
+      {{- _ahs_traw -}}
+
+      {%- comment -%} 3. markup: the theme's pass, only where there is a heading to anchor {%- endcomment -%}
+      {%- comment -%}
+        The text before the first "<h" is passed by: the theme's pass reads
+        the first piece of whatever it is given as following a "<h", so a
+        piece that starts with bare text ("</script> done <h2>") would come
+        back as "<hdone". The theme is only ever handed a page's start.
+      {%- endcomment -%}
+      {%- if _ahs_tmarkup contains '<h' -%}
+        {%- assign _ahs_lead = _ahs_tmarkup | split: '<h' | first -%}
+        {%- assign _ahs_rest = _ahs_tmarkup | remove_first: _ahs_lead -%}
+        {%- capture _ahs_anchored -%}{%- include vendor/anchor_headings_core.html html=_ahs_rest beforeHeading=include.beforeHeading headerAttrs=include.headerAttrs anchorAttrs=include.anchorAttrs anchorBody=include.anchorBody anchorClass=include.anchorClass anchorTitle=include.anchorTitle h_min=include.h_min h_max=include.h_max bodyPrefix=include.bodyPrefix bodySuffix=include.bodySuffix generateId=include.generateId -%}{%- endcapture -%}
+        {{- _ahs_lead -}}{{- _ahs_anchored -}}
+      {%- else -%}
+        {{- _ahs_tmarkup -}}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endfor -%}
+{%- else -%}
+  {%- include vendor/anchor_headings_core.html html=include.html beforeHeading=include.beforeHeading headerAttrs=include.headerAttrs anchorAttrs=include.anchorAttrs anchorBody=include.anchorBody anchorClass=include.anchorClass anchorTitle=include.anchorTitle h_min=include.h_min h_max=include.h_max bodyPrefix=include.bodyPrefix bodySuffix=include.bodySuffix generateId=include.generateId -%}
+{%- endif -%}

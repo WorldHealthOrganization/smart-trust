@@ -1,0 +1,61 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "l1-complete-check",
+    "title": "L1 source completeness",
+    "description": "Is a `library/<bib-slug>/` entry complete as L1 source content? Each requirement is met, unmet, or NOT-DERIVABLE.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat check:l1-complete"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "targetPath",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "One `library/<bib-slug>/` entry. Absent, every entry the declared `library` graph holds.",
+          "required": false,
+          "arg": {
+            "positional": 0
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "Per requirement: met, unmet, or `not-derivable` — the third distinguishes a document that CANNOT yield an artefact from one that simply has not. Exit 2 means no `library` graph is declared anywhere, which the script states as \"This is NOT a pass. Treat it as unknown.\""
+        }
+      ]
+    },
+    "satisfies": [
+      "library-ingestion"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/io/inputs/0",
+      "comment": "Optional: with no argument it walks every entry in the declared\n`library` graph, which is the sweep a folio wants. Naming one entry\nis the narrow case, not the default."
+    },
+    {
+      "at": "/satisfies",
+      "comment": "`library-ingestion`, whose other two Tools INGEST. This one gates what\nthey produced, so it is not an alternative to them (its I/O differs):\n`ingest-stdlib` and `ingest-extended` are substitutable with each other,\nand a completeness check is not a third way to ingest.\n\nThe skill carries no input contract, so `check-tools` cannot verify this\nedge against one. The clean run does not mean the edge was tested."
+    },
+    {
+      "at": "",
+      "comment": "── The L1 completeness gate, reachable at last ───────────────────────\n\nBean `vo9d`, and the owner's answer: a **Tool node**, no npm script. This\nis the dispatch-points rule applied — `covered-is-not-reachable`\n§\"Reachability is PLURAL\": the question is not which caller a mechanism\nshould have but what should be able to start it, and each of those is a\ntrigger or a Tool.\n\nA Tool and NOT a script here, because the thing it reads is a FOLIO's\n`library/` tree and this repository carries no folio. A `check:l1-complete`\nscript would land in `SCRIPT_EXEMPTIONS` as `no-folio` and never run — an\nentry point added and still unexercised, which is the cost I argued against\nfor `0bzg`'s first option. A Tool node reaches downstream, where the tree\nexists.\n\nIt had NO caller at all before this: an `import.meta.main`, and its only\noccurrence outside itself was a string literal in `repo-partition.ts`'s\nclassification table.\n\n**Verified by running it, and one claim had to be walked back.** The first\ndraft of the output description below said exit 2 was what a folio-less\nrun gives. It is not: `instanceRootFor` tries the cwd's layer and then\nFALLS BACK to the script's own, and `cat-harness` declares a `library`\ngraph of its own — so invoked from `/tmp` it still finds this layer's\none entry and exits 0. The exit-2 path is real and correctly written\n(`checkAll` returns `undefined` for \"no declaration anywhere\", distinct\nfrom `[]` for \"declared and empty\"), but it cannot be reached while the\nscript lives beside a declared library. What was measured here is the\nexit-0 path over one real entry — 11 requirements, all met."
+    }
+  ]
+}

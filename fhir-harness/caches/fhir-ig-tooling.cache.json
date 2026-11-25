@@ -1,0 +1,51 @@
+{
+  "$schema": "cache/1.0.0",
+  "id": "fhir-ig-tooling",
+  "title": "FHIR IG tooling: FHIR packages, Maven repository, SUSHI, Jekyll gems and the compiled AST exporter for the AST refresh",
+  "instance": "fhir-harness",
+  "kind": "actions-cache",
+  "trustClass": "c",
+  "location": "fhir-ig-tooling-v3-<ast-export-ref>-<pins hash>-<IG hash>, in the calling IG repository's Actions cache",
+  "keyRecipe": {
+    "source": "hashFiles",
+    "files": [
+      "fhir-harness/scripts/ig-toolchain.env",
+      "sushi-config.yaml",
+      "ig.ini"
+    ],
+    "expression": "fhir-ig-tooling-v3-${{ inputs.ast-export-ref }}-${{ hashFiles('fhir-harness/scripts/ig-toolchain.env') }}-${{ hashFiles('sushi-config.yaml', 'ig.ini') }}"
+  },
+  "derivedInputs": "the toolchain pins (scripts/ig-toolchain.env: Java, Node, SUSHI, Ruby and Jekyll versions), the IG's sushi-config.yaml (its FHIR package dependencies) and ig.ini, and the AST exporter ref",
+  "holds": "~/.fhir/packages, ~/.m2/repository, ~/.npm-global (SUSHI), ~/.ig-toolchain (Jekyll gems per Ruby version; the AST exporter's classes and jars per commit, from its published bundle when its sha256 matches scripts/ast-export-bundles.tsv, else built from source)",
+  "producer": "ig-ast-refresh.yml on the default branch only: a successful rebuild that missed the key saves it (actions/cache/save)",
+  "consumers": [
+    "the same workflow's rebuild: SUSHI and the IG Publisher with the AST exporter"
+  ],
+  "materializes": [
+    "~/.fhir/packages/",
+    "~/.m2/repository/",
+    "~/.npm-global/",
+    "~/.ig-toolchain/"
+  ],
+  "stateInputs": {
+    "reads": "unmeasured",
+    "how": "not yet derived from a recorded read set; the producer may read state:mount graphs"
+  },
+  "needs": [],
+  "refresh": {
+    "mode": "whole",
+    "how": "a missed key on the default branch saves a new entry; the one restore-key keeps the pins hash, so a fallback entry has the same toolchain and only the IG's packages may differ"
+  },
+  "savePolicy": "default branch only, after a successful build that missed the key",
+  "verify": "the toolchain is part of the key, so an entry built with another Java, Node, SUSHI, Ruby or Jekyll is never restored; SUSHI is also checked by version before use (`sushi --version` against the pin, reinstalled on mismatch). FHIR packages are versioned by name. The AST exporter directory is keyed by its commit and only used once its `ok` marker is written; a downloaded bundle is used only when its sha256 matches the pin",
+  "owner": "fhir-harness (skill ig-build-pipeline)",
+  "uses": [
+    ".github/workflows/ig-ast-refresh.yml:179 the toolchain pins",
+    ".github/workflows/ig-ast-refresh.yml:188-199 restore",
+    ".github/workflows/ig-ast-refresh.yml:235 SUSHI at the pinned version",
+    ".github/workflows/ig-ast-refresh.yml:352-363 save, default branch only",
+    "scripts/ig-toolchain.env",
+    "scripts/ig-ast-build.sh:69 SUSHI at the pinned version"
+  ],
+  "notes": "fhir-harness#292 closed the gap CI speed 14's inventory found: the key used to leave out Java, Node and SUSHI, and SUSHI was installed unpinned and only when none was on PATH, so a restored entry froze whichever SUSHI first filled it and a bare-prefix restore-key carried it across key changes. The pins now live in scripts/ig-toolchain.env, are hashed into the key, and saves come from the default branch only (trust class c)."
+}

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_ArchimatePublish" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="author" name="Author"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:collaboration id="Collaboration_Process_ArchimatePublish">
+    <bpmn:participant id="Participant_Process_ArchimatePublish" name="Publish an ArchiMate model — every picture derived from it" processRef="Process_ArchimatePublish"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_ArchimatePublish" name="Publish an ArchiMate model — every picture derived from it" isExecutable="false">
+    <bpmn:documentation>An ArchiMate model is authored in Archi and committed; everything a reader sees is derived from it by three mechanical Tools, in order, in the pipeline lane: `archimate-check` (it parses and resolves), `archimate-metamodel` (the element types and relationship patterns it uses, each checked against ArchiMate's relationship table), and `archimate-pages` (a page and an IRI for every view, element and relationship, every view drawn, and the "Metamodel in use" page). No step draws a diagram by hand, and none runs Archi or a JVM (skill `archimate-models`).
+
+The metamodel is the second step's output, so it cannot disagree with the model.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_ArchimatePublish">
+      <bpmn:lane id="Lane_Author" name="Model author" partitionElementRef="author">
+        <bpmn:documentation>The person who draws the model in Archi, on their own machine. A finding from the pipeline is theirs to act on: the pipeline never edits a model.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Process_ArchimatePublish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_FixModel</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pipeline" name="CI/CD Pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Every step here is a fixed program, a registered Tool, with no judgement in it.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_Check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Metamodel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Allowed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Pages</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Process_ArchimatePublish</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Process_ArchimatePublish" name="Model committed
+from Archi"/>
+
+    <bpmn:task id="A_Check" name="Check the model
+parses and resolves">
+      <bpmn:documentation>Tool `archimate-check` (`archimate:validate`, on the layer root): every model the config names is held and parses, every box in every view draws an element the model holds, every relationship's ends are in the model.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="archimate-models"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_Metamodel" name="Derive the
+metamodel in use">
+      <bpmn:documentation>Tool `archimate-metamodel` (`archimate:metamodel --check`, on the layer root): the element types the model uses and every (source type, relationship, target type) pattern, each checked against ArchiMate's relationship table. Placeholder elements named after their own type are reported, never fatal: removing them is the author's call.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="archimate-models"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Allowed" name="Every relationship
+allowed by ArchiMate?">
+      <bpmn:documentation>Answered by the metamodel step's exit code: does every relationship follow a pattern ArchiMate's relationship table allows? `yes` publishes; `no` goes back to the author with the patterns and relationship ids it printed.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_FixModel" name="Fix the relationship
+in Archi">
+      <bpmn:documentation>The author changes the relationship's type or ends in Archi and commits the model again. The pipeline never rewrites a model.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="archimate-models"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_Pages" name="Write pages, drawings
+and the metamodel page">
+      <bpmn:documentation>Tool `archimate-pages` (`archimate:pages --out`, into the site being built): a JSON-LD node and a thin page for every view, element and relationship, every view drawn as SVG, and each model's "Metamodel in use" page with its diagram laid out from DOT by Graphviz in WebAssembly, plus the same diagram as DOT, Mermaid and JSON.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="archimate-models"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Process_ArchimatePublish" name="Model published;
+every picture derived"/>
+
+    <bpmn:sequenceFlow id="SF_Process_ArchimatePublish_1" sourceRef="Start_Process_ArchimatePublish" targetRef="A_Check"/>
+    <bpmn:sequenceFlow id="SF_Process_ArchimatePublish_2" sourceRef="A_Check" targetRef="A_Metamodel"/>
+    <bpmn:sequenceFlow id="SF_Process_ArchimatePublish_3" sourceRef="A_Metamodel" targetRef="GW_Allowed"/>
+    <bpmn:sequenceFlow id="SF_Process_ArchimatePublish_4" name="yes" sourceRef="GW_Allowed" targetRef="A_Pages"/>
+    <bpmn:sequenceFlow id="SF_Process_ArchimatePublish_5" name="no" sourceRef="GW_Allowed" targetRef="A_FixModel"/>
+    <bpmn:sequenceFlow id="SF_Process_ArchimatePublish_6" sourceRef="A_FixModel" targetRef="A_Check"/>
+    <bpmn:sequenceFlow id="SF_Process_ArchimatePublish_7" sourceRef="A_Pages" targetRef="End_Process_ArchimatePublish"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_ArchimatePublish">
+    <bpmndi:BPMNPlane id="Plane_Process_ArchimatePublish" bpmnElement="Collaboration_Process_ArchimatePublish">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_ArchimatePublish" bpmnElement="Participant_Process_ArchimatePublish" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1060" height="364" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Author_Process_ArchimatePublish" bpmnElement="Lane_Author" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1030" height="144" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Pipeline_Process_ArchimatePublish" bpmnElement="Lane_Pipeline" isHorizontal="true">
+        <dc:Bounds x="190" y="224" width="1030" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Process_ArchimatePublish" bpmnElement="Start_Process_ArchimatePublish">
+        <dc:Bounds x="240" y="132" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="280" y="92" width="135" height="36" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_FixModel" bpmnElement="A_FixModel">
+        <dc:Bounds x="705" y="92" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Check" bpmnElement="A_Check">
+        <dc:Bounds x="340" y="264" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Metamodel" bpmnElement="A_Metamodel">
+        <dc:Bounds x="540" y="264" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Allowed" bpmnElement="GW_Allowed" isMarkerVisible="true">
+        <dc:Bounds x="740" y="299" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Pages" bpmnElement="A_Pages">
+        <dc:Bounds x="880" y="264" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Process_ArchimatePublish" bpmnElement="End_Process_ArchimatePublish">
+        <dc:Bounds x="1100" y="306" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_ArchimatePublish_1" bpmnElement="SF_Process_ArchimatePublish_1">
+                <di:waypoint x="276" y="150" />
+        <di:waypoint x="380" y="150" />
+        <di:waypoint x="380" y="264" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_ArchimatePublish_2" bpmnElement="SF_Process_ArchimatePublish_2">
+        <di:waypoint x="460" y="324" />
+        <di:waypoint x="540" y="324" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_ArchimatePublish_3" bpmnElement="SF_Process_ArchimatePublish_3">
+        <di:waypoint x="660" y="324" />
+        <di:waypoint x="740" y="324" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_ArchimatePublish_4" bpmnElement="SF_Process_ArchimatePublish_4">
+        <di:waypoint x="790" y="324" />
+        <di:waypoint x="880" y="324" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_ArchimatePublish_5" bpmnElement="SF_Process_ArchimatePublish_5">
+                <di:waypoint x="765" y="299" />
+        <di:waypoint x="765" y="212" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_ArchimatePublish_6" bpmnElement="SF_Process_ArchimatePublish_6">
+        <di:waypoint x="705" y="152" />
+        <di:waypoint x="400" y="152" />
+        <di:waypoint x="400" y="264" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_ArchimatePublish_7" bpmnElement="SF_Process_ArchimatePublish_7">
+        <di:waypoint x="1000" y="324" />
+        <di:waypoint x="1100" y="324" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

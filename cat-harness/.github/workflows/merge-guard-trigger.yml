@@ -1,0 +1,32 @@
+# Written by `bun run cat workflow-pins --write`: do not edit.
+#
+# The merge guard's pull-request signal. It holds no token, checks nothing out
+# and decides nothing: it only finishes, and `.github/workflows/merge-guard.yml`,
+# which runs on `workflow_run` from the default branch, then judges the PR and
+# posts the `merge-guard` status. A PR may edit this file in its own head; the
+# worst that does is that no signal comes, and the status stays unposted.
+# Why not `pull_request_target`: the header of the shared
+# `layer-merge-guard.yml` that `merge-guard.yml` calls.
+#
+# TRIGGERS, ACTUAL: `pull_request` only, by the owner's decision of 2026-11-17
+# (no `pull_request_target`). The `workflow_run` named above is the
+# caller's trigger, not this file's.
+
+name: Merge guard trigger
+run-name: "Merge guard trigger #${{ github.event.pull_request.number }}"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, labeled, unlabeled, edited]
+
+permissions: {}
+
+jobs:
+  signal:
+    name: Ask the merge guard to judge this PR
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      - name: Signal
+        run: echo "the merge guard judges this PR when this run completes (workflow_run, from the default branch)"

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  id="Definitions_Process_Discussion"
+                  targetNamespace="https://litlfred.github.io/bootstrap/v0/workflows"
+                  exporter="bootstrap" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="bootstrapping-agent" name="Bootstrapping Agent"/>
+  <bpmn:collaboration id="Collaboration_Process_Discussion">
+    <bpmn:participant id="Participant_Process_Discussion" name="Determine the harness and repositories" processRef="Process_Discussion"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Discussion" name="Determine the harness and repositories" isExecutable="false">
+    <bpmn:documentation>A SUB-PROCESS of initialize-harness, never an entry point. Two facts have no answer in any file a Bootstrapping Agent can reach: WHICH harness this repository should become, and WHICH repositories are read from and written to. No instruction body produces them — they are judgements held by whoever asked for the harness. An agent that cannot obtain them cannot take the first step of `initialize-harness`, which is why that process's first step calls this one.
+
+WHERE THIS IS, DETERMINED FIRST. Before narrowing anything, the Bootstrapping Agent says which Process, which Roles and what context (A_DetermineWhere). These are declared below as preconditions of the listing; one that cannot be established becomes the FIRST question of the called discussion.
+
+THE ASKING IS NOT DRAWN HERE. This process narrows and records; the question itself is put through `human-agent-discussion`, the one reusable way bootstrap asks a person anything — context, options, a recommendation, one question, and what happens with no answer. What is particular to THIS question is carried in: the candidates, and that NO default is allowed. Which harness a repository becomes is not reversible by running anything again, so silence ends as unsettled, never as "bootstrap, by default".
+
+THE OUTPUT IS A DOCUMENT. The task is finished when a document conforming to `discussion.output.schema.json` exists.
+
+NO work-plan element on any activity, and isExecutable is false, for the reasons `initialize-harness` gives.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:precondition id="process-determined" kind="stated" before="A_ListHarnesses"
+        text="The Bootstrapping Agent can say it is in Initialize a harness, at Determine the harness and repositories (A_DetermineWhere) — or knows that it cannot."/>
+      <bootstrap.processes:precondition id="roles-determined" kind="stated" before="A_ListHarnesses"
+        text="The Bootstrapping Agent can say it acts as the Bootstrapping Agent, and who the Requestor is: the person who asked for the harness (A_DetermineWhere) — or knows that it cannot."/>
+      <bootstrap.processes:precondition id="context-determined" kind="stated" before="A_ListHarnesses"
+        text="The Bootstrapping Agent can say what the request said and what the checkout holds, including whether either already names a harness or a declaration (A_DetermineWhere) — or knows that it cannot."/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_Discussion">
+      <bpmn:lane id="Lane_BootstrappingAgent" name="Bootstrapping Agent" partitionElementRef="bootstrapping-agent">
+        <bpmn:documentation>Narrows the candidates before spending the one question a reader is entitled to, and closes either with a determination or with what is still open — never a guess standing in for either. The Requestor takes part inside the called discussion, which is why this diagram has no lane for them.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Discussion</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_DetermineWhere</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ListHarnesses</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ListLocations</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_AskRequestor</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G_Settled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_RecordDetermination</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_RecordUnsettled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Settled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Unsettled</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Discussion" name="Which harness, and where, is not known"/>
+
+    <bpmn:task id="A_DetermineWhere" name="Determine where you are: process, roles, context">
+      <bpmn:documentation>Before narrowing, say where this is happening, in the words you will use in the question. PROCESS: Initialize a harness, at its first step, inside Determine the harness and repositories — the only place a Bootstrapping Agent can be (FR-2). If you cannot say that (you were started some other way, or a step you believed done is not), you are out of process: do not infer your way back in. ROLES: you act as the Bootstrapping Agent because you were told so; the person you will ask is the Requestor — the one who asked for the harness, and the only one who may choose it. A request relayed by somebody else leaves the Requestor undetermined. CONTEXT: what the request said, and what the checkout holds — a declaration at its root, a harness named in the request. Whatever cannot be determined is handed to the called discussion as undetermined, and asked about first; it is never filled with a default.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="discussion"/>
+        <bootstrap.processes:skill ref="human-agent-discussion"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_ListHarnesses" name="List the harnesses this could be">
+      <bpmn:documentation>Zero or more. The candidate everybody has is bootstrap itself. Context may name others: "please set up &lt;owner&gt;/&lt;repo&gt; here" names one, and so does any Harness built on bootstrap that the Requestor mentions. This step narrows; it does not decide.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="confirm-harness"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_ListLocations" name="List the locations this could install to">
+      <bpmn:documentation>Zero or more. Is this a git repository already, or were one or more URLs to repositories supplied? Both are Knowledge Graph Data Stores; the difference is only how they are reached. A location whose root already holds a declaration, `&lt;name&gt;.json`, is not a blank slate, and says so in the question.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="confirm-harness"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:callActivity id="A_AskRequestor" name="Ask which harness, and where" calledElement="Process_HumanAgentDiscussion">
+      <bpmn:documentation>The candidates go in as the options; the recommendation may name one; the default is NONE. What A_DetermineWhere established goes in too — the process, the two roles, the context — so the called discussion checks it rather than re-deriving it; and anything it could not establish goes in as undetermined, to be asked first. The Requestor's answer comes back as answered, or the question as still open.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="confirm-harness"/>
+        <bootstrap.processes:skill ref="human-agent-discussion"/>
+      </bpmn:extensionElements>
+    </bpmn:callActivity>
+
+    <bpmn:exclusiveGateway id="G_Settled" name="One harness, and where it goes?">
+      <bpmn:documentation>At most one harness: a list of two is not an answer, and the Bootstrapping Agent may not break the tie. Judgement, not a computed decision.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_RecordDetermination" name="Record the determination">
+      <bpmn:documentation>Writes a document conforming to `discussion.output.schema.json`: the harness, the repositories as read-from / written-to pairs, `determinedBy: asked`, and who answered. This artefact is what finishes the task.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="discussion"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_RecordUnsettled" name="Record what is still open">
+      <bpmn:documentation>`outcome: unsettled` with what was asked and what is still open, so the next actor resumes rather than restarts. An agent that reaches for a default here has produced a guess, not a determination.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="discussion"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Settled" name="Harness and repositories determined"/>
+    <bpmn:endEvent id="End_Unsettled" name="Still open, and said so"/>
+
+    <bpmn:sequenceFlow id="Flow_Start_Where" sourceRef="Start_Discussion" targetRef="A_DetermineWhere"/>
+    <bpmn:sequenceFlow id="Flow_Where_Harnesses" sourceRef="A_DetermineWhere" targetRef="A_ListHarnesses"/>
+    <bpmn:sequenceFlow id="Flow_Harnesses_Locations" sourceRef="A_ListHarnesses" targetRef="A_ListLocations"/>
+    <bpmn:sequenceFlow id="Flow_Locations_Ask" sourceRef="A_ListLocations" targetRef="A_AskRequestor"/>
+    <bpmn:sequenceFlow id="Flow_Ask_Gate" sourceRef="A_AskRequestor" targetRef="G_Settled"/>
+    <bpmn:sequenceFlow id="Flow_Settled_Yes" name="yes" sourceRef="G_Settled" targetRef="A_RecordDetermination"/>
+    <bpmn:sequenceFlow id="Flow_Settled_No" name="no, or still open" sourceRef="G_Settled" targetRef="A_RecordUnsettled"/>
+    <bpmn:sequenceFlow id="Flow_Record_End" sourceRef="A_RecordDetermination" targetRef="End_Settled"/>
+    <bpmn:sequenceFlow id="Flow_Unsettled_End" sourceRef="A_RecordUnsettled" targetRef="End_Unsettled"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_Discussion">
+    <bpmndi:BPMNPlane id="Plane_Process_Discussion" bpmnElement="Collaboration_Process_Discussion">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_Discussion" bpmnElement="Participant_Process_Discussion" isHorizontal="true">
+        <dc:Bounds x="140" y="80" width="1600" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_BootstrappingAgent" bpmnElement="Lane_BootstrappingAgent" isHorizontal="true">
+        <dc:Bounds x="170" y="80" width="1570" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Discussion" bpmnElement="Start_Discussion">
+        <dc:Bounds x="232" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ListHarnesses" bpmnElement="A_ListHarnesses">
+        <dc:Bounds x="570" y="170" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ListLocations" bpmnElement="A_ListLocations">
+        <dc:Bounds x="760" y="170" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_AskRequestor" bpmnElement="A_AskRequestor">
+        <dc:Bounds x="950" y="170" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_G_Settled" bpmnElement="G_Settled" isMarkerVisible="true">
+        <dc:Bounds x="1175" y="205" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="1070" y="140" width="110" height="40"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_RecordDetermination" bpmnElement="A_RecordDetermination">
+        <dc:Bounds x="1330" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_RecordUnsettled" bpmnElement="A_RecordUnsettled">
+        <dc:Bounds x="1330" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Settled" bpmnElement="End_Settled">
+        <dc:Bounds x="1562" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Unsettled" bpmnElement="End_Unsettled">
+        <dc:Bounds x="1562" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_DetermineWhere" bpmnElement="A_DetermineWhere">
+        <dc:Bounds x="335" y="170" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_Start_Where" bpmnElement="Flow_Start_Where">
+        <di:waypoint x="268" y="230" />
+        <di:waypoint x="335" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Where_Harnesses" bpmnElement="Flow_Where_Harnesses">
+        <di:waypoint x="455" y="230" />
+        <di:waypoint x="570" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Harnesses_Locations" bpmnElement="Flow_Harnesses_Locations">
+        <di:waypoint x="690" y="230" />
+        <di:waypoint x="760" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Locations_Ask" bpmnElement="Flow_Locations_Ask">
+        <di:waypoint x="880" y="230" />
+        <di:waypoint x="950" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Ask_Gate" bpmnElement="Flow_Ask_Gate">
+        <di:waypoint x="1070" y="230" />
+        <di:waypoint x="1175" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Settled_Yes" bpmnElement="Flow_Settled_Yes">
+        <di:waypoint x="1225" y="230" />
+        <di:waypoint x="1277.5" y="230" />
+        <di:waypoint x="1277.5" y="160" />
+        <di:waypoint x="1330" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Settled_No" bpmnElement="Flow_Settled_No">
+        <di:waypoint x="1225" y="230" />
+        <di:waypoint x="1277.5" y="230" />
+        <di:waypoint x="1277.5" y="300" />
+        <di:waypoint x="1330" y="300" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1183.5" y="264.5" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Record_End" bpmnElement="Flow_Record_End">
+        <di:waypoint x="1450" y="160" />
+        <di:waypoint x="1562" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Unsettled_End" bpmnElement="Flow_Unsettled_End">
+        <di:waypoint x="1450" y="300" />
+        <di:waypoint x="1562" y="300" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

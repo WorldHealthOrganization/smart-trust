@@ -1,0 +1,3 @@
+Sub-indicator 4-01.1
+Existence of national/subnational policies/laws regulating working hours and conditions (Yes/Partial/No)
+Guiding questions: Has the government and its competent authorities regulated • the maximum number of working days allowed per week? • the premium for night work, for work on a weekly rest day, for overtime work (as a percentage of hourly pay)? • whether non-pregnant and non-nursing women can work the same night hours as men? • whether there are restrictions on night work, overtime or holiday work? • the average paid annual leave for workers with 1, 5 and 10 years of tenure? • whether regulations, laws or policies differ according to employment status?
