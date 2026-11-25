@@ -1,0 +1,820 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SMART Guideline End to End Output",
+  "description": "Every stage's artefact, in order, and where each stage's adjudication stands. The guideline is done only when every adjudication is recorded.",
+  "type": "object",
+  "required": [
+    "useCase",
+    "l1Sources",
+    "l1Kg",
+    "l2Dependencies",
+    "l2Assets",
+    "l3Dependencies",
+    "ig",
+    "applicationBrief",
+    "wireframes",
+    "application",
+    "adjudications"
+  ],
+  "properties": {
+    "useCase": {
+      "$ref": "#/definitions/useCase",
+      "description": "Stage 0."
+    },
+    "l1Sources": {
+      "$ref": "#/definitions/l1SourceList",
+      "description": "Stage 1."
+    },
+    "l1Kg": {
+      "$ref": "#/definitions/l1Kg",
+      "description": "Stage 2."
+    },
+    "l2Dependencies": {
+      "$ref": "#/definitions/dependencyChoice",
+      "description": "Stage 3."
+    },
+    "l2Assets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/l2Artifact"
+      },
+      "description": "Stage 4."
+    },
+    "l3Dependencies": {
+      "$ref": "#/definitions/dependencyChoice",
+      "description": "Stage 5."
+    },
+    "ig": {
+      "$ref": "#/definitions/igBuild",
+      "description": "Stage 6."
+    },
+    "applicationBrief": {
+      "$ref": "#/definitions/applicationBrief",
+      "description": "Stage 7."
+    },
+    "wireframes": {
+      "$ref": "#/definitions/wireframeChoice",
+      "description": "Stage 8a."
+    },
+    "application": {
+      "$ref": "#/definitions/application",
+      "description": "Stage 8b."
+    },
+    "adjudications": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/adjudication"
+      },
+      "description": "One per stage that produced something, 1 to 8b."
+    },
+    "stagingLinks": {
+      "$ref": "#/definitions/stagingLinks"
+    }
+  },
+  "definitions": {
+    "adjudication": {
+      "title": "Stage adjudication",
+      "description": "Where a stage's review stands. The record itself is a cat-harness QaReview (qa-review/v1); this only points at it. Defined by the smart-guideline-end-to-end output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "stage",
+        "outcome"
+      ],
+      "properties": {
+        "stage": {
+          "type": "string",
+          "enum": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8a",
+            "8b"
+          ]
+        },
+        "review": {
+          "type": "string",
+          "description": "Path of the QaReview."
+        },
+        "role": {
+          "type": "string",
+          "description": "The adjudicator's role id."
+        },
+        "outcome": {
+          "type": "string",
+          "description": "pending until a person records the verdict; the agent never records one.",
+          "enum": [
+            "pending",
+            "approve",
+            "request-changes",
+            "reject"
+          ]
+        }
+      }
+    },
+    "application": {
+      "title": "Application",
+      "description": "The built consuming application and its tests. Defined by the l4-application-build output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "path",
+        "run",
+        "tests"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Repository-relative directory of the application, or its repository URL."
+        },
+        "run": {
+          "type": "string",
+          "description": "How to start it."
+        },
+        "url": {
+          "type": "string",
+          "description": "Where it runs on the staging preview.",
+          "format": "uri"
+        },
+        "against": {
+          "type": "string",
+          "description": "The IG it was built against: igRoot, or packageId#version. A clean build, not necessarily a publication."
+        },
+        "tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "kind",
+              "status"
+            ],
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "description": "conformance: against the IG's examples and test cases. scenario: an L2 user scenario walked through.",
+                "enum": [
+                  "conformance",
+                  "scenario"
+                ]
+              },
+              "subject": {
+                "type": "string",
+                "description": "The IG example, test case or L2 user scenario id it checks."
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail",
+                  "not-run"
+                ]
+              }
+            }
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "applicationBrief": {
+      "title": "Application brief",
+      "description": "What the consuming application is, in the requester's words where they gave any. Defined by the l4-application-brief output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "topic",
+        "kind",
+        "users",
+        "devices",
+        "l2Processes"
+      ],
+      "properties": {
+        "topic": {
+          "type": "string",
+          "description": "Kebab-case name of the application, used as the wireframe topic.",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "kind": {
+          "type": "string",
+          "description": "The option chosen: a point-of-care app, a reporting or indicator dashboard, a decision-support service an EMR calls, or something else.",
+          "enum": [
+            "point-of-care",
+            "dashboard",
+            "decision-support",
+            "other"
+          ]
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The L2 persona ids who use it.",
+          "minItems": 1
+        },
+        "devices": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "web",
+              "mobile",
+              "tablet",
+              "emr-embedded",
+              "service"
+            ]
+          },
+          "minItems": 1
+        },
+        "l2Processes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The L2 business-process ids it covers.",
+          "minItems": 1
+        },
+        "l3Resources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Canonicals of the L3 resources it reads or writes."
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "FHIR operations it calls: $apply, $evaluate-measure, CDS Hooks services."
+        },
+        "connectivity": {
+          "type": "string",
+          "description": "Online, intermittent or offline-first."
+        },
+        "systems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The systems it talks to: an EMR, a registry, a reporting server."
+        },
+        "words": {
+          "type": "string",
+          "description": "The requester's own description, verbatim."
+        }
+      }
+    },
+    "dependencyChoice": {
+      "title": "Dependency choice",
+      "description": "The output of a dependency-choice stage (3 at L2, 5 at L3): one row per candidate, rejected ones included, the gaps, and the question put to the adjudicator. Defined by the l2-dependency-choice output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "level",
+        "rows"
+      ],
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "L2",
+            "L3"
+          ]
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dependencyRow"
+          }
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Candidates missing packageId, version or uri (DependsOnGap), each with what is missing."
+        },
+        "comparison": {
+          "type": "string",
+          "description": "Path of the decision-comparison table."
+        },
+        "decisionRequest": {
+          "type": "string",
+          "description": "Path or URL of the DecisionRequest (cat-harness schemas/decision-request.ts) the adjudicator answers. Under the QA rule the agent has already gone on with its recommendation."
+        }
+      }
+    },
+    "dependencyRow": {
+      "title": "Dependency decision row",
+      "description": "One candidate and the decision about it. Only decision, reason and toolchain are new; the rest is cat-harness DependsOnRecord and smart-base KG evidence. Once adjudicated, a reuse, adapt or extend row becomes an ordinary dependency: the DAK's own reference at L2, a sushi-config.yaml dependencies entry at L3. Defined by the l2-dependency-choice output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "packageId",
+        "version",
+        "uri",
+        "decision",
+        "evidence"
+      ],
+      "properties": {
+        "packageId": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "publisher": {
+          "type": "string",
+          "description": "WHO, or the adapting jurisdiction."
+        },
+        "upstream": {
+          "type": "string",
+          "description": "For a jurisdiction's adaptation: the packageId of the WHO original, recorded as its upstream."
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The KG node ids that point at the candidate: L1 nodes at L2; L1 nodes and L2 assets at L3 (smart-base KG evidence)."
+        },
+        "decision": {
+          "type": "string",
+          "description": "reuse: unchanged. adapt: fork and change. extend: depend and add. reject: not used.",
+          "enum": [
+            "reuse",
+            "adapt",
+            "extend",
+            "reject"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "description": "One sentence; required for reject (stated here rather than as if/then, which the conformance reader does not take)."
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "decision"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "A DAK component at L2 (personas, business-processes, ...); a profile, value set or library canonical at L3."
+              },
+              "decision": {
+                "type": "string",
+                "enum": [
+                  "reuse",
+                  "adapt",
+                  "extend",
+                  "not-used"
+                ]
+              },
+              "toolchain": {
+                "type": "string",
+                "description": "For a component reused, adapted or extended: how the candidate produces it, so stages 4 and 6 produce it the same way. A Tool id from bun run cat check:tools, or a script in the candidate's own repository (its source spreadsheet, converter, CQL refresh, test format), found by the search in smart-base-tools section Adapting a DAK. none only after that search came back empty, naming where it looked; the new tool is then a Tool node, never a script in the adaptation repository."
+              }
+            }
+          },
+          "description": "What is taken from the candidate, piece by piece."
+        }
+      }
+    },
+    "igBuild": {
+      "title": "IG build",
+      "description": "Stage 6's result as later stages read it: where the IG is and what it generated. The fields are fhir-harness l3-fhir-authoring's output (sushiResult, generatedResources), plus where the IG root is. Defined by the l4-application-brief input contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "igRoot",
+        "generatedResources"
+      ],
+      "properties": {
+        "igRoot": {
+          "type": "string",
+          "description": "IG repository root directory."
+        },
+        "packageId": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "sushiResult": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "success",
+                "warnings",
+                "errors"
+              ]
+            },
+            "resourceCount": {
+              "type": "integer"
+            },
+            "errorCount": {
+              "type": "integer"
+            },
+            "warningCount": {
+              "type": "integer"
+            }
+          }
+        },
+        "generatedResources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "resourceType": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "l1Extraction": {
+      "title": "L1 extraction",
+      "description": "One source's L1 knowledge graph. Defined by the recommendation-extraction output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "id",
+        "extractionPath",
+        "sourceVersion",
+        "coverage"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The library id of the source."
+        },
+        "libraryPath": {
+          "type": "string",
+          "description": "library/<bib>/."
+        },
+        "extractionPath": {
+          "type": "string",
+          "description": "library/<bib>/l1-extraction/."
+        },
+        "sourceVersion": {
+          "type": "string"
+        },
+        "recommendations": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Recommendation nodes extracted."
+        },
+        "remarks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "practices": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "implementation-practice nodes."
+        },
+        "scenarioCandidates": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "user-scenario candidates, one per recommendation."
+        },
+        "coverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Share of the source's recommendation sentences extracted verbatim; the gate is 1."
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Every WARNING, verbatim: no persona or process fitted, a sentence not matched, and so on."
+        },
+        "skipped": {
+          "type": "boolean",
+          "description": "True when the extraction was already there at this sourceVersion and was not redone."
+        }
+      }
+    },
+    "l1Kg": {
+      "title": "L1 knowledge graph",
+      "description": "Stage 2's output and the L1 input of stages 3 and 5: one extraction per included source. Defined by the recommendation-extraction output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "extractions"
+      ],
+      "properties": {
+        "useCase": {
+          "$ref": "#/definitions/useCase"
+        },
+        "extractions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/l1Extraction"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "l1Source": {
+      "title": "L1 source",
+      "description": "One candidate L1 guideline, with whether it is used and how far it has been taken. Defined by the dak-l1-library output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "origin",
+        "status",
+        "included",
+        "reason"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The library id (the bib key), or a provisional id for a source not yet in the library."
+        },
+        "title": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string",
+          "description": "Where it is published: a WHO IRIS handle, a DOI, a URL.",
+          "format": "uri"
+        },
+        "origin": {
+          "type": "string",
+          "description": "Where it was found.",
+          "enum": [
+            "dak-component-1",
+            "who-iris",
+            "jurisdiction",
+            "other"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "description": "in-library: library/<bib>/ exists; in-kg: library/<bib>/l1-extraction/ exists at this sourceVersion; not-yet: neither.",
+          "enum": [
+            "not-yet",
+            "in-library",
+            "in-kg"
+          ]
+        },
+        "libraryPath": {
+          "type": "string",
+          "description": "library/<bib>/, when it is there."
+        },
+        "sourceVersion": {
+          "type": "string",
+          "description": "The version or date of the source the library holds."
+        },
+        "included": {
+          "type": "boolean",
+          "description": "Whether the source bears on the use case."
+        },
+        "reason": {
+          "type": "string",
+          "description": "One sentence: why it was included or left out."
+        }
+      }
+    },
+    "l1SourceList": {
+      "title": "L1 source list",
+      "description": "Stage 1's output and stage 2's input: the candidate L1 sources for a use case. Defined by the dak-l1-library output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "sources"
+      ],
+      "properties": {
+        "useCase": {
+          "$ref": "#/definitions/useCase"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/l1Source"
+          }
+        }
+      }
+    },
+    "l2Artifact": {
+      "title": "L2 artifact",
+      "description": "One L2 asset the authoring wrote. Defined by the l2-dak-authoring output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "path",
+        "type"
+      ],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "bpmn",
+            "dmn",
+            "spreadsheet",
+            "markdown",
+            "fsh"
+          ]
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "useCase": {
+      "title": "Use case",
+      "description": "What the guideline is for, in the requester's words. Stage 0's output and every later stage's context. Defined by the guideline-use-case output contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "population",
+        "setting",
+        "jurisdiction",
+        "interventions"
+      ],
+      "properties": {
+        "population": {
+          "type": "string",
+          "description": "Who the guideline serves."
+        },
+        "setting": {
+          "type": "string",
+          "description": "Where care happens: community, primary care, hospital, and so on."
+        },
+        "jurisdiction": {
+          "type": "string",
+          "description": "WHO (a global guideline) or the country or region adapting one; an ISO 3166 code where there is one."
+        },
+        "interventions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The health interventions in scope.",
+          "minItems": 1
+        },
+        "kind": {
+          "type": "string",
+          "description": "A new guideline, or an adaptation of an existing one.",
+          "enum": [
+            "new",
+            "adaptation"
+          ]
+        },
+        "adapts": {
+          "type": "string",
+          "description": "For an adaptation: the guideline or DAK being adapted, by name or canonical."
+        },
+        "words": {
+          "type": "string",
+          "description": "The requester's own description, verbatim."
+        }
+      }
+    },
+    "wireframeChoice": {
+      "title": "Wireframe choice",
+      "description": "What stage 8b reads from cat-harness wireframe-design-review's output: where the drawings are and which candidate was chosen. The fields are that contract's. Defined by the l4-application-build input contract and copied inline wherever it is passed on; the stage chain check compares the copies.",
+      "type": "object",
+      "required": [
+        "topic",
+        "assetDir",
+        "candidates"
+      ],
+      "properties": {
+        "topic": {
+          "type": "string"
+        },
+        "assetDir": {
+          "type": "string"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "source",
+              "outcome"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "outcome": {
+                "type": "string",
+                "enum": [
+                  "chosen",
+                  "rejected",
+                  "pending",
+                  "as-is"
+                ]
+              }
+            }
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "stagingLinks": {
+      "title": "Staging links",
+      "description": "The staging preview of the work a request for feedback is about: one deep link per changed page (the page and the anchor where the change sits) with the same page on main as `before`. Mirrors StagingComparison in schemas/staging.ts. The rule is skills/authoring/content-lifecycle/feedback-deep-links.md. Copied inline as `definitions.stagingLinks` into every skill contract that carries it; schemas/staging.test.ts fails when a copy drifts.",
+      "type": "object",
+      "required": [
+        "branch",
+        "slug",
+        "branchUrl",
+        "mainBaseUrl",
+        "stagingBaseUrl",
+        "pages"
+      ],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "Feature branch name."
+        },
+        "slug": {
+          "type": "string",
+          "description": "Branch slug used in the staging URL path."
+        },
+        "branchUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pr": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mainBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "stagingBaseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "pages": {
+          "type": "array",
+          "description": "One entry per changed page, deep-linked; from the change's rendered-impact list, never chosen by judgement.",
+          "items": {
+            "type": "object",
+            "required": [
+              "title"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string",
+                "format": "uri",
+                "description": "Same page on main; absent for a new page."
+              },
+              "after": {
+                "type": "string",
+                "format": "uri",
+                "description": "The page on the staging preview, with the anchor where the change sits; absent for a deleted page."
+              },
+              "summary": {
+                "type": "string",
+                "description": "What to look at on this page."
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What could not be linked, said rather than hidden: no preview yet (and when it will exist), no page list computed, or a changed page the publish ref does not hold."
+        }
+      },
+      "$comment": "Copy of cat-harness schemas/staging-comparison.schema.json; cat-harness schemas/staging.test.ts fails when a copy drifts."
+    }
+  }
+}

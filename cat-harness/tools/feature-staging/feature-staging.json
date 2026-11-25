@@ -1,0 +1,91 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "feature-staging",
+    "title": "Stage a branch's preview",
+    "description": "Publish a branch's built site to `branches/<slug>/` on the publish branch, so a reviewer compares a rendered before and after rather than a description of one. Stamps the commit SHA, and removes the preview when its pull request closes.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat site:workflow stage"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "branch",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "The branch to stage; blank stages the current one. On a pull request the workflow fires by itself and needs none of these.",
+          "required": false,
+          "arg": {
+            "flag": "--branch"
+          }
+        },
+        {
+          "name": "cleanup_slug",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "DELETION: the `branches/<slug>` to remove, instead of staging anything. For an orphan preview the health sweep reports: its pull request is already closed, so the close event cannot remove it.",
+          "required": false,
+          "arg": {
+            "flag": "--cleanup-slug"
+          }
+        },
+        {
+          "name": "cleanup_confirm",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "The slug again, exactly. Anything else refuses, so a confirmation cannot carry over to a DIFFERENT preview, which a boolean would allow.",
+          "required": false,
+          "arg": {
+            "flag": "--cleanup-confirm"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "preview",
+          "schema": {
+            "$type": "Url"
+          },
+          "description": "Where the preview is served.",
+          "render": {
+            "as": "url",
+            "reason": "a reviewer opens the preview; the scheme is checked before it reaches an href"
+          }
+        }
+      ]
+    },
+    "satisfies": [
+      "feature-staging"
+    ],
+    "selection": {
+      "when": "On a pull request touching the docs, schemas, content or skills it fires on its own — reach for the dispatch arm only to stage a branch that has no open pull request, or to remove a preview the close event could not reach.",
+      "limits": "The removal arm is guarded THREE ways: `workflow_dispatch` is available only to an actor with write access; `cleanup_confirm` must repeat the slug exactly; and the removal is preflighted at removal time against the same liveness signals the health sweep uses: `deletion-requires-confirmation` applied to the tool most able to break it. This node does not claim that skill, because implementing the discipline once is not the same as stating it.",
+      "cost": "A full site build plus a push to the publish branch. Concurrency is keyed on the branch or the cleanup slug, NOT the shared ref, so two cleanups of different previews do not cancel each other."
+    },
+    "requires": {
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "It is a GitHub Actions workflow; to look at a branch's pages locally, use `bun run cat preview:site`."
+      }
+    ]
+  },
+  "$comment": [
+    {
+      "at": "/io/inputs/1",
+      "comment": "The two below are a DELETION trigger, and the node says so where a\ncaller reads it rather than only in the workflow's comments."
+    },
+    {
+      "at": "",
+      "comment": "── The preview host: one branches/<slug> per open pull request ─────────\n\nTier A of `tools:coverage` on the strength of a `serviceTask` naming the\nskill, and the workflow IS the whole of what `feature-staging.md` claims —\n\"branch creation, staging deployment, commit SHA stamping, and cleanup\".\nSo `satisfies` is one skill and nothing is stretched to fit.\n\nA node over a workflow rather than a script, on the `pages-publish`\nprecedent: the mechanism genuinely is the workflow. It holds the gh-pages\ncheckout, the retry and the concurrency group, and a second pusher racing\nthose is how a deploy gets lost."
+    }
+  ]
+}

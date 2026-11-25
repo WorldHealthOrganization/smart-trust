@@ -1,0 +1,336 @@
+# Publish a layer's OWN QA results to its OWN qa-reports branch, as ONE
+# reusable workflow (bean folio-assistant-7mwa; owner, 2026-11-03, "2. Each
+# layer publishes").
+#
+# Every layer declares its `qa` directory as
+#   { "path": "test/results/", "storage": { "branch": "cat/cat-harness/qa-reports", "keyedBy": "commit" } }
+# — computed, never committed, kept on that branch of the layer's OWN
+# repository, keyed by the layer's commit. Until this workflow nothing wrote
+# that branch in any layer repository: the declarations date from the
+# monorepo, where "the same repository" was folio-assistant, and no step of
+# layer initialisation or of the separation cutover gave a layer a publisher.
+# When the content layers stopped committing
+# `test/results/`, their kg-audit sidecars existed nowhere a reader looked
+# (folio-assistant re-pin train 20261103-0041, `kg:validate over nested
+# instances`).
+#
+# A caller is a few lines:
+#
+#   on:
+#     push: { branches: [main] }
+#     pull_request: {}
+#     workflow_dispatch: {}
+#   permissions: { contents: write }
+#   jobs:
+#     publish:
+#       uses: litlfred/cat-harness-tools/.github/workflows/layer-qa-publish.yml@main
+#
+# What it does, in the layout `layer-publish-context.yml` uses:
+#   1. Check out the index (`index-repository`, else the `QA_INDEX_REPOSITORY`
+#      variable, else `<owner>/folio-assistant`) at `index-ref` (main) and
+#      mount every instance from its lock.
+#   2. Put THE CALLER, at the pushed commit and without its `.git`, in place
+#      of its locked mount, so its results are computed over what it pushed.
+#   3. Run the knowledge-graph audit for that ONE instance
+#      (`kg-audit.ts --instance ./<instance>`), which writes its sidecars into
+#      the instance's own declared `qa` home (`kgQaHomeFor` "own").
+#   4. Run the QA writers the instance DECLARES (`qa.writers` in its
+#      `<instance>.json`, each with the QA axis it answers for — rendering,
+#      Lean, compute, …; schemas/sdlc/qa-axis.ts), then any `writers` input,
+#      into the same home. The integrated QA page (scripts/qa-page.ts) draws
+#      one section per axis from the published entry's listing.
+#   4b. Report node-view coverage against the layer's published site
+#      (`node-views:report --instance ./<instance> --base <site>`), into
+#      `<home>/node-views/`, so the layer's QA page shows it (owner,
+#      2026-11-13, card A). A QA report, never a gate: it cannot fail this job.
+#   5. Publish that home with `qa:publish` to the CALLER's repository
+#      (`QA_STORE_REMOTE`), under `main/<sha>` for a push to main and
+#      `pr/<n>/<head sha>` for a pull request — the keys a reader asks for at
+#      the commit an index pins (`scripts/layer-qa.ts`, `readQaTreeAtCommit`).
+#      The branch is created on the first write. A fork's pull request has a
+#      read-only token and is skipped with a notice, never published.
+#
+# The audit's own verdict is NOT this job's verdict: a layer's gates judge it
+# (`layer-pr-checks.yml`). This job is red only when it could not compute or
+# could not publish, so a missing record is never mistaken for a clean one.
+
+name: Layer QA publish
+
+on:
+  workflow_call:
+    inputs:
+      instance:
+        description: "The instance's directory in the folio-assistant index (its mount path); empty means the calling repository's name."
+        required: false
+        type: string
+        default: ""
+      path-in-repo:
+        description: "Where the instance sits in the calling repository; '.' for the repository root."
+        required: false
+        type: string
+        default: "."
+      index-repository:
+        description: "`owner/name` of the index the caller is mounted in (its `index.lock.json` pins every layer). Empty: the caller's repository or organisation variable `QA_INDEX_REPOSITORY`, then `<caller's owner>/folio-assistant` with a notice. An input, so the workflow names no owner of its own."
+        required: false
+        type: string
+        default: ""
+      index-ref:
+        description: "The index ref to check out."
+        required: false
+        type: string
+        default: "main"
+      writers:
+        description: "Extra QA writers, one command per line, run from the index checkout after the writers the instance DECLARES (`qa.writers` in `<instance>.json`, schemas/sdlc/qa-axis.ts), which are the preferred home. Each must write under the instance's qa home (exported as QA_HOME); a failing writer fails the job, so a partial record is never published."
+        required: false
+        type: string
+        default: ""
+      site-base:
+        description: "The layer's published site, probed by the node-view coverage report. Empty: the variable `QA_SITE_BASE`, then the instance's declared `canonicalUrl`, then GitHub Pages for the calling repository (https://<owner>.github.io/<repo>/)."
+        required: false
+        type: string
+        default: ""
+      node-views:
+        description: "Report node-view coverage (a QA report, never a gate) into the published results."
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+# One publish per commit at a time; a newer push does not cancel a running
+# one, since a cancelled publish leaves that commit with no record.
+concurrency:
+  group: layer-qa-publish-${{ github.repository }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+env:
+  INSTANCE: ${{ inputs.instance != '' && inputs.instance || github.event.repository.name }}
+
+jobs:
+  publish:
+    name: Publish this layer's QA results
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    steps:
+      - name: Decide the store key
+        id: key
+        env:
+          EVENT: ${{ github.event_name }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "pull_request" ]; then
+            if [ "$HEAD_REPO" != "$REPO" ]; then
+              echo "::notice::a fork's pull request has a read-only token: nothing is published for $HEAD_REPO"
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "ref=pr/$PR/$HEAD_SHA" >> "$GITHUB_OUTPUT"
+            echo "sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          elif [ "$REF" = "refs/heads/main" ]; then
+            echo "ref=main/$SHA" >> "$GITHUB_OUTPUT"
+            echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::$REF is neither main nor a pull request: nothing is published"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+      - name: Decide the index repository
+        if: steps.key.outputs.skip != 'true'
+        id: index
+        env:
+          GIVEN: ${{ inputs.index-repository }}
+          VAR: ${{ vars.QA_INDEX_REPOSITORY }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          repo="${GIVEN:-$VAR}"
+          if [ -z "$repo" ]; then
+            repo="$OWNER/folio-assistant"
+            echo "::notice::no index-repository input and no QA_INDEX_REPOSITORY variable: using $repo"
+          fi
+          [[ "$repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || { echo "::error::index repository '$repo' is not owner/name"; exit 2; }
+          echo "repository=$repo" >> "$GITHUB_OUTPUT"
+      - name: Check out the index
+        if: steps.key.outputs.skip != 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: ${{ steps.index.outputs.repository }}
+          ref: ${{ inputs.index-ref }}
+          path: fa
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        if: steps.key.outputs.skip != 'true'
+        with:
+          bun-version: 1.4.4
+      - name: Mount every instance from the index's lock
+        if: steps.key.outputs.skip != 'true'
+        run: bash fa/.github/mount-from-lock.sh --root fa
+      - name: Check out the caller
+        if: steps.key.outputs.skip != 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ steps.key.outputs.sha }}
+          path: src
+      - name: Put the caller in place of its locked mount
+        if: steps.key.outputs.skip != 'true'
+        env:
+          SUBDIR: ${{ inputs.path-in-repo }}
+        run: |
+          set -euo pipefail
+          rm -rf "fa/$INSTANCE"
+          if [ "$SUBDIR" = "." ]; then mv src "fa/$INSTANCE"; else mv "src/$SUBDIR" "fa/$INSTANCE"; fi
+          rm -rf "fa/$INSTANCE/.git"
+          test -f "fa/$INSTANCE/$INSTANCE.json" || { echo "::error::fa/$INSTANCE/$INSTANCE.json is missing: is path-in-repo right?"; exit 2; }
+      - name: Install
+        if: steps.key.outputs.skip != 'true'
+        working-directory: fa
+        run: bun install
+      - name: Find this instance's declared QA home
+        if: steps.key.outputs.skip != 'true'
+        id: home
+        working-directory: fa
+        run: |
+          set -euo pipefail
+          # "own": the instance declares a `qa` directory, and its results are
+          # its repository's to publish. "hosted" or "convention": it declares
+          # none, so the index's QA job writes them under cat-harness's home;
+          # that is a skip with a notice, not a failure, so a freshly
+          # initialised instance's caller is quiet until it declares one.
+          read -r by home < <(bun -e '
+            const { kgQaHomeFor } = await import("./cat-harness-tools/schemas/kg/cat-harness.ts");
+            const { relative, resolve } = await import("node:path");
+            const h = kgQaHomeFor(resolve(process.argv[1]), resolve("cat-harness"));
+            console.log(`${h.by} ${relative(process.cwd(), h.root)}`);
+          ' "$INSTANCE")
+          if [ "$by" != "own" ]; then
+            echo "::notice::$INSTANCE declares no qa directory of its own ($by: $home), so its results are the index's to publish. Declare one (path test/results/, storage on cat/cat-harness/qa-reports keyed by commit) for this repository to publish them."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "home=$home" >> "$GITHUB_OUTPUT"
+          echo "QA home: $home"
+      - name: Run the knowledge-graph audit for this instance
+        if: steps.key.outputs.skip != 'true' && steps.home.outputs.skip != 'true'
+        working-directory: fa
+        run: |
+          set -uo pipefail
+          # The audit's findings are the gates' to judge, not this job's: a
+          # non-zero exit with sidecars written is a computed result to publish.
+          bun run cat-harness-tools/scripts/kg-audit.ts --instance "./$INSTANCE" | tail -25
+          home="${{ steps.home.outputs.home }}"
+          # The instance stands where its mount was, and the lock still lists
+          # it as mounted, so kg-audit writes its sidecars to the layer output
+          # root (`build/layers/<instance>/…`, bean `cat-tools-sm8r` item 4)
+          # rather than into the instance. `qa:publish` already overlays that
+          # root onto the home, so count both. The bare home stays as the
+          # fallback for an index whose cat-harness-tools predates the move.
+          twin="$home"
+          if [ -f cat-harness-tools/scripts/lib/layer-output.ts ]; then
+            twin="$(bun -e '
+              const m = await import("./cat-harness-tools/scripts/lib/layer-output.ts");
+              const { relative, resolve } = await import("node:path");
+              const abs = resolve(process.argv[1]);
+              const out = typeof m.writePathOf === "function" ? m.writePathOf(abs, process.cwd()) : abs;
+              console.log(relative(process.cwd(), out));
+            ' "$home")" || twin="$home"
+          fi
+          n=0
+          for d in "$home" "$twin"; do
+            [ -d "$d" ] || continue
+            m="$(find "$d" -name '*.kg-qa.json' | wc -l)"
+            echo "kg-audit sidecars under $d: $m"
+            n=$((n + m))
+            [ "$twin" != "$home" ] || break
+          done
+          echo "kg-audit sidecars written: $n"
+          [ "$n" -gt 0 ] || { echo "::error::kg-audit wrote no sidecar under $home or $twin: nothing to publish"; exit 1; }
+      - name: Run the instance's own QA writers
+        if: steps.key.outputs.skip != 'true' && steps.home.outputs.skip != 'true'
+        working-directory: fa
+        env:
+          WRITERS: ${{ inputs.writers }}
+          QA_HOME: ${{ steps.home.outputs.home }}
+        run: |
+          set -euo pipefail
+          # Derived results a layer computes itself, one per QA axis it answers
+          # for (rendering, Lean, compute, …). DECLARED in its own
+          # `<instance>.json` (`qa.writers`, schemas/sdlc/qa-axis.ts), so the
+          # integrated QA page knows each writer's axis; the `writers` input
+          # still runs after them. In order, each to exit 0.
+          export QA_HOME INSTANCE
+          declared="$(bun -e '
+            const { readFileSync } = await import("node:fs");
+            const inst = process.argv[1];
+            let d = {};
+            try { d = JSON.parse(readFileSync(`${inst}/${inst}.json`, "utf8")); } catch {}
+            for (const w of (d.qa && d.qa.writers) || []) console.log(String(w.run).replace(/\n/g, " "));
+          ' "$INSTANCE")"
+          n=0
+          while IFS= read -r cmd; do
+            [ -n "${cmd// }" ] || continue
+            echo "::group::$cmd"
+            bash -c "$cmd"
+            echo "::endgroup::"
+            n=$((n + 1))
+          done <<< "$declared"$'\n'"$WRITERS"
+          echo "QA writers run: $n"
+      - name: Report node-view coverage (a QA report, not a gate)
+        if: steps.key.outputs.skip != 'true' && steps.home.outputs.skip != 'true' && inputs.node-views
+        continue-on-error: true
+        working-directory: fa
+        env:
+          GIVEN: ${{ inputs.site-base != '' && inputs.site-base || vars.QA_SITE_BASE }}
+          PAGES: ${{ format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
+        run: |
+          set -uo pipefail
+          # The input, then the variable, then the instance's own declared
+          # canonicalUrl, then the forge's pages address.
+          BASE="$GIVEN"
+          if [ -z "$BASE" ]; then
+            BASE="$(bun -e '
+              const { readFileSync } = await import("node:fs");
+              const inst = process.argv[1];
+              try { const d = JSON.parse(readFileSync(`${inst}/${inst}.json`, "utf8")); if (d.canonicalUrl) console.log(d.canonicalUrl); } catch {}
+            ' "$INSTANCE")"
+          fi
+          BASE="${BASE:-$PAGES}"
+          # Per folder and kind: which of this layer's nodes have an IRI, a
+          # .jsonld, a page and a row on the published site. It writes
+          # <home>/node-views/<instance>.node-views.qa.json and always exits
+          # 0; `continue-on-error` keeps a crash from costing the publish.
+          if [ ! -f cat-harness-tools/scripts/node-view-coverage.ts ]; then
+            echo "::notice::the pinned cat-harness-tools has no node-view-coverage.ts yet: no node-view report"
+            exit 0
+          fi
+          bun run cat-harness-tools/scripts/node-view-coverage.ts --instance "./$INSTANCE" --base "$BASE" 2>&1 | tail -n 40
+      - name: Publish to this repository's qa-reports branch
+        if: steps.key.outputs.skip != 'true' && steps.home.outputs.skip != 'true'
+        working-directory: fa
+        env:
+          QA_STORE_REMOTE: https://github.com/${{ github.repository }}.git
+          REF: ${{ steps.key.outputs.ref }}
+          HOME_DIR: ${{ steps.home.outputs.home }}
+        run: |
+          set -euo pipefail
+          # The checkout's credential is host-wide (http.https://github.com/.extraheader)
+          # and carries the CALLER's token, which may write the caller's repository.
+          bun run cat qa:publish --ref "$REF" --root "$HOME_DIR"
+      - name: Summary
+        if: always() && steps.key.outputs.skip != 'true' && steps.home.outputs.skip != 'true'
+        run: |
+          {
+            echo "### QA results: $INSTANCE"
+            echo
+            echo "Published as \`${{ steps.key.outputs.ref }}\` on \`cat/cat-harness/qa-reports\` of \`${{ github.repository }}\` (from \`${{ steps.home.outputs.home }}\`)."
+            echo "An index reads it at the commit its lock pins (\`scripts/layer-qa.ts\`)."
+          } >> "$GITHUB_STEP_SUMMARY"

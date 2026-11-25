@@ -1,0 +1,289 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smart.who.int/kg/shapes/recommendation-graph.schema.json",
+  "title": "SMART Guidelines knowledge graph document",
+  "type": "object",
+  "properties": {
+    "@context": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uri"
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        {
+          "type": "array",
+          "items": {}
+        }
+      ],
+      "description": "The context published beside this schema, by URL or inline. A graph carrying its own ad-hoc context is not interoperable with the rest of the WHO linked-data estate, which is the point of having one."
+    },
+    "id": {
+      "type": "string",
+      "description": "IRI of this graph document. One document is one DAK at one version."
+    },
+    "type": {
+      "type": "string",
+      "const": "Entity",
+      "description": "prov:Entity. The document is a provenance-tracked thing, matching how smart-base stamps its generated JSON-LD vocabularies."
+    },
+    "ontologyVersion": {
+      "type": "string",
+      "description": "schemaVersion of the ontology/l1.json this graph was built against. A graph outliving its ontology is why this is recorded rather than assumed."
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+    },
+    "wasDerivedFrom": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "repository": {
+            "type": "string"
+          },
+          "commit": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string",
+            "description": "What the hash covers, where that is not obvious. A directory hashed as a unit needs this; a single file does not."
+          }
+        },
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "additionalProperties": false
+      },
+      "description": "The DAK sources this graph was extracted from, each pinned by hash. Same doctrine as the audit sidecar: edit a source and everything derived from it goes stale on its own rather than quietly disagreeing."
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "IRI, unique within the document."
+          },
+          "type": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "description": "An ontology class id -- \"recommendation\", \"terminology-code\". Membership is checked at tier 2 against ontology/l1.json; this only rules out ids that could never be one."
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable name. Required so a retrieved node reads without resolving it."
+          },
+          "definedBy": {
+            "type": "string",
+            "format": "uri",
+            "description": "Canonical URL of the smart-base logical model giving this node's instance shape, where the class has one. Ten of the nineteen concepts have none; those carry an id, a label and their edges, and nothing about their contents can be validated."
+          },
+          "properties": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\[x\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[x\\])?)*$"
+            },
+            "additionalProperties": {},
+            "description": "Instance fields. The permitted keys per class are declared on the class in ontology/l1.json and checked at tier 2; nothing is asserted about them here."
+          },
+          "derivation": {
+            "type": "string",
+            "enum": [
+              "derived",
+              "inferred",
+              "decided"
+            ],
+            "description": "Identical to traceability-link.schema.json, deliberately. derived: mechanically produced, no choice involved. inferred: a rule that could reasonably have gone another way. decided: the source is silent and someone chose. Every node and edge in a graph is one of the three, and the third is the one a reviewer needs to find."
+          },
+          "note": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string",
+                "description": "file:line, a spreadsheet sheet and cell, or a BPMN element id."
+              },
+              "quote": {
+                "type": "string",
+                "description": "Verbatim text from the source."
+              },
+              "artifact": {
+                "type": "string",
+                "description": "The generated artifact affected, where one exists."
+              },
+              "by": {
+                "type": "string",
+                "description": "Who made the judgement. Required by tier 2 when derivation is decided: a person's choice between candidates is only reviewable if it says whose it was."
+              },
+              "at": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "When the judgement was made. Required by tier 2 when derivation is decided."
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false,
+            "description": "Where this came from in the DAK. Required on anything not mechanically derived, for the same reason a failing check must quote its source: an assertion with nothing to point at is the confident wrong answer the package exists to prevent."
+          },
+          "flagRef": {
+            "type": "string",
+            "description": "Id of a flag raised while extracting this node. The flag itself lives in the extracting skill's validation report, not in the graph: a graph records what it found and what it had to decide, and routing an open question to its owner is the authoring pipeline's job."
+          },
+          "skill": {
+            "type": "string",
+            "description": "Skill id that produced this node."
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "label",
+          "derivation"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "Statement"
+          },
+          "predicate": {
+            "type": "string",
+            "pattern": "^[a-z][A-Za-z0-9]*$",
+            "description": "A predicate name. Membership is checked at tier 2 against ontology/l1.json; this only rules out strings that could never be one. Deliberately not an enum: the predicate set belongs to the ontology and changes with it, so a list here would be a second copy that drifts."
+          },
+          "source": {
+            "type": "string",
+            "description": "IRI of a node. Usually in this document; a graph split across layers may reference a node a sibling document defines, and tier 2 resolves those across the set of documents it is given."
+          },
+          "target": {
+            "type": "string",
+            "description": "IRI of a node. Usually in this document; a graph split across layers may reference a node a sibling document defines, and tier 2 resolves those across the set of documents it is given."
+          },
+          "qualifier": {
+            "type": "string",
+            "description": "A label on the relationship. Where the ontology enumerates the permitted values, tier 2 checks them. Where the predicate declares `openQualifier` the label is free text authored in the source artefact — a BPMN sequence flow's branch name, for instance — and no vocabulary constrains it."
+          },
+          "derivation": {
+            "type": "string",
+            "enum": [
+              "derived",
+              "inferred",
+              "decided"
+            ],
+            "description": "Identical to traceability-link.schema.json, deliberately. derived: mechanically produced, no choice involved. inferred: a rule that could reasonably have gone another way. decided: the source is silent and someone chose. Every node and edge in a graph is one of the three, and the third is the one a reviewer needs to find."
+          },
+          "note": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string",
+                "description": "file:line, a spreadsheet sheet and cell, or a BPMN element id."
+              },
+              "quote": {
+                "type": "string",
+                "description": "Verbatim text from the source."
+              },
+              "artifact": {
+                "type": "string",
+                "description": "The generated artifact affected, where one exists."
+              },
+              "by": {
+                "type": "string",
+                "description": "Who made the judgement. Required by tier 2 when derivation is decided: a person's choice between candidates is only reviewable if it says whose it was."
+              },
+              "at": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "When the judgement was made. Required by tier 2 when derivation is decided."
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false,
+            "description": "Where this came from in the DAK. Required on anything not mechanically derived, for the same reason a failing check must quote its source: an assertion with nothing to point at is the confident wrong answer the package exists to prevent."
+          },
+          "flagRef": {
+            "type": "string"
+          },
+          "skill": {
+            "type": "string"
+          },
+          "properties": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\[x\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[x\\])?)*$"
+            },
+            "additionalProperties": {},
+            "description": "Fields of the statement itself, as opposed to of either endpoint. A cross-format join carries `resolutionStatus` (unresolved | resolved | ambiguous) and `matchedOn` here: that a BPMN pool name was matched against an ActorDefinition title is a property of the match, not of the pool or of the persona. Tier 2 checks `resolutionStatus` — its value, and that a join claiming `resolved` neither points at a placeholder nor lacks evidence. Other keys are unconstrained."
+          }
+        },
+        "required": [
+          "type",
+          "predicate",
+          "source",
+          "target",
+          "derivation"
+        ],
+        "additionalProperties": false,
+        "description": "One reified statement. Reified rather than written as a plain node property because an edge here carries a qualifier, a derivation and its evidence, and a plain property has nowhere to put them."
+      }
+    },
+    "dak": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\[x\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[x\\])?)*$"
+      },
+      "additionalProperties": {},
+      "description": "The DAK envelope itself — the fields of the smart-base DAK logical model. Kept out of nodes because it is the subject of the whole document rather than one thing in it."
+    }
+  },
+  "required": [
+    "@context",
+    "id",
+    "type",
+    "ontologyVersion",
+    "generatedAt",
+    "nodes",
+    "edges"
+  ],
+  "additionalProperties": false,
+  "description": "One L1 graph: publications, recommendations and the citations that point at them, as typed nodes and reified edges. This schema checks form only -- tier 1. It cannot check that a node's type is a class the ontology declares, nor that an edge is a triple the ontology licenses, because both live in ontology/l1/l1.json rather than in this file; that is tier 2, and tools/validate.mjs is the reference implementation. A document passing this schema and failing that check is a well-formed graph of things the model does not say."
+}

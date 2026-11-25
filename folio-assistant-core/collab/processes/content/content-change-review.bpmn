@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+ xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_ContentChangeReview"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="0.1.0">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="author" name="Author"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="reviewer" name="Reviewer / SME"/>
+
+  <bpmn:collaboration id="Collaboration_ContentChangeReview">
+    <bpmn:participant id="Participant_ContentChangeReview" name="Content Change and Review Workflow" processRef="Process_ContentChangeReview" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_ContentChangeReview" name="Content Change and Review" isExecutable="false">
+    <bpmn:documentation>Getting a change to a folio's CONTENT from a request into a published rendering: the author says what they want, an agent works out its scope and makes it, a review committee accepts or refuses it, and the pipeline deploys.
+
+You are in this process when what is changing is a folio — a chapter, a block, a piece of deterministic logic — rather than the platform that renders it. `code-change-review` is the same shape for the platform: a content change is accepted by a REVIEW COMMITTEE on editorial grounds, a platform change by a code reviewer on engineering ones.
+
+Two things this is not. It is not the feedback workflow: `todo-review` triages what readers said about content that already exists. And the rendering the author reviews is a STAGED one, because a person cannot assess a rendered artefact from a description of it.
+
+The diagram shows the phases and the hand-offs between them; each phase is its own process. Making the change is content-change-review-make, staging it is content-change-review-stage, the committee's review is content-change-review-committee, and merging and deploying is content-change-review-publish. This follows bpmn-authoring's rule of one phase per call activity.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_ContentChangeReview">
+      <bpmn:lane id="Lane_Author" name="Content Author" partitionElementRef="author">
+        <bpmn:documentation>Judges the staged rendering against what was asked for and either sends it back for another iteration or submits it onward. Unlike editing-hci-validation's equivalent lane, acceptance itself is not this lane's call — that is the committee's, inside Call_CommitteeReview.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Author</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DescribeChange</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewStaging</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_AuthorSatisfied</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RequestRevision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SubmitForReview</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Folio-Assistant Agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Opens and closes the bean, runs the make-the-change phase, and is the single re-entry point for both the author's and the committee's feedback: Task_Iterate has two incoming edges rather than the diagram forking a second revision path.</bpmn:documentation>
+        <bpmn:flowNodeRef>Call_BeanOpen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_BeanYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_BeanNotYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_MakeChange</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Iterate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanClose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Agent</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pipeline" name="CI/CD Pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Stages every push, the first and each revision, and after a merge publishes it.</bpmn:documentation>
+        <bpmn:flowNodeRef>Call_StageChange</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Publish</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Reviewer" name="Review Committee" partitionElementRef="reviewer">
+        <bpmn:documentation>Runs the committee's review as one phase, content-change-review-committee, and hands back either an approval or a request for changes. Slicing and coverage are the review coordinator's lane inside that phase.</bpmn:documentation>
+        <bpmn:flowNodeRef>Call_CommitteeReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_CommitteeApproved</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Author" name="Author requests content change">
+      <bpmn:outgoing>f1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_DescribeChange" name="Describe the desired change">
+      <bpmn:documentation>
+        Author describes the content change in natural language.
+        Example: "Update the immunization schedule to add a booster at 18 months."
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="The author states, in their own words, the change they want. There is no procedure that produces somebody's intent for them." />
+      </bpmn:extensionElements>
+      <bpmn:incoming>f1</bpmn:incoming>
+      <bpmn:outgoing>f2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_BeanOpen" name="Open the bean" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Process_BeanOpen: check before you create, find out whose the bean is, and claim it — or leave it alone when it is someone else's. The one place a claim is drawn; the gateway after this reads which end it reached.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+      <bpmn:incoming>f2</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_2</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_BeanYours" name="Bean claimed?">
+      <bpmn:documentation>Reads which end Process_BeanOpen reached. `claimed`: the bean is in progress and this process works it. `not yours`: a sibling session or a human holds it, nothing was written to it, and this process stops here rather than work a bean it does not own (bean-coordination).</bpmn:documentation>
+      <bpmn:incoming>SF_Bean_2</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_3</bpmn:outgoing>
+      <bpmn:outgoing>SF_Bean_1</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_BeanNotYours" name="Not yours —&#10;left alone">
+      <bpmn:documentation>Someone else holds the bean; this run stops without touching it.</bpmn:documentation>
+      <bpmn:incoming>SF_Bean_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Call_MakeChange" name="Make the change" calledElement="Process_ContentChangeReviewMake">
+      <bpmn:documentation>content-change-review-make.bpmn: scope the change, branch, edit content and logic, assess and absorb the downstream impact, and push.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-author"/></bpmn:extensionElements>
+      <bpmn:incoming>SF_Bean_1</bpmn:incoming>
+      <bpmn:outgoing>a7</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_StageChange" name="Stage the change" calledElement="Process_ContentChangeReviewStage">
+      <bpmn:documentation>content-change-review-stage.bpmn: build and deploy the branch to its staging preview, link it on the pull request, and watch the branch's CI. Runs once per push.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="feature-staging"/></bpmn:extensionElements>
+      <bpmn:incoming>a7</bpmn:incoming>
+      <bpmn:incoming>flow_iterate_to_pipeline</bpmn:incoming>
+      <bpmn:outgoing>p4b</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:task id="Task_ReviewStaging" name="Review staged rendering">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="staging-review"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>
+        Author reviews the rendered feature branch at
+        &lt;pages-url&gt;/branches/&lt;branch-slug&gt;/ and compares
+        against the main site. The staging banner shows the commit SHA.
+        The agent's before/after preview (skill before-after-preview) sits
+        beside the URLs, with its counts and status line.
+      </bpmn:documentation>
+      <bpmn:incoming>p4b</bpmn:incoming>
+      <bpmn:outgoing>f3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_AuthorSatisfied" name="Satisfied with changes?">
+      <bpmn:documentation>The author's own call after looking at the staged rendering. `No` requests further revisions; `Yes` submits the change to the review committee.</bpmn:documentation>
+      <bpmn:incoming>f3</bpmn:incoming>
+      <bpmn:outgoing>f4</bpmn:outgoing>
+      <bpmn:outgoing>f6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_RequestRevision" name="Request further revisions">
+      <bpmn:documentation>
+        Author provides feedback on what needs adjustment.
+        Agent iterates on the feature branch.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="staging-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>f4</bpmn:incoming>
+      <bpmn:outgoing>f5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Iterate" name="Iterate on author feedback">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="content-author"/>
+        <bootstrap.processes:skill ref="before-after-preview"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>
+        Agent receives revision requests from the author and applies changes.
+        Each push triggers a new staging deployment with updated SHA stamp.
+        A revision push does not pass through Task_CommitPush, so for a
+        rendered change the agent refreshes the before/after preview here
+        (skill before-after-preview), and the next review round never reads
+        a stale one.
+      </bpmn:documentation>
+      <bpmn:incoming>f5</bpmn:incoming>
+      <bpmn:incoming>r5</bpmn:incoming>
+      <bpmn:outgoing>flow_iterate_to_pipeline</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_SubmitForReview" name="Submit to review committee">
+      <bpmn:documentation>
+        Author submits the PR for formal review by the guidance review committee.
+        The branches/ URL is the review surface.
+      </bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="staging-review" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>f6</bpmn:incoming>
+      <bpmn:outgoing>flow_submit_to_reviewer</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_CommitteeReview" name="Review the change" calledElement="Process_ContentChangeReviewCommittee">
+      <bpmn:documentation>content-change-review-committee.bpmn: compare staged against main, slice the change and review each slice, settle withdrawals and disputes, gate on coverage, review the impact, and either approve or request changes. The one judgement inside it is Call_Adjudication, whose `stands` / `withdrawn` this call accepts; public-comment, which calls this whole process, reaches it through here.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-review"/><cat-harness.processes:adjudication accepts="stands withdrawn"/></bpmn:extensionElements>
+      <bpmn:incoming>flow_submit_to_reviewer</bpmn:incoming>
+      <bpmn:outgoing>r3</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_CommitteeApproved" name="Approved?">
+      <bpmn:documentation>Reads which end content-change-review-committee reached. `approved`: Task_Approve recorded the committee's approval, and the change goes on to merge. `changes requested`: Task_RequestChanges said what must change, and the agent iterates.</bpmn:documentation>
+      <bpmn:incoming>r3</bpmn:incoming>
+      <bpmn:outgoing>r5</bpmn:outgoing>
+      <bpmn:outgoing>r6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_Publish" name="Merge and publish" calledElement="Process_ContentChangeReviewPublish">
+      <bpmn:documentation>content-change-review-publish.bpmn: merge on the owner's explicit confirmation, then remove the staging preview, rebuild main and watch it. An unmerged change keeps its preview.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="prepare-merge"/></bpmn:extensionElements>
+      <bpmn:incoming>r6</bpmn:incoming>
+      <bpmn:outgoing>p7b</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_BeanClose" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>Process_BeanClose: end the bean in a state that says why — complete and archive it, scrap it with its reasons and archive it, or record the blocker and hand it back. The one place resolve and archive are drawn; placed straight before the end so the engine's resolve sees nothing left but the archive step.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+      <bpmn:incoming>p7b</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_4</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_Agent" name="Change closed">
+      <bpmn:incoming>SF_Bean_4</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="f1" sourceRef="Start_Author" targetRef="Task_DescribeChange" />
+    <bpmn:sequenceFlow id="f2" sourceRef="Task_DescribeChange" targetRef="Call_BeanOpen" />
+    <bpmn:sequenceFlow id="SF_Bean_2" sourceRef="Call_BeanOpen" targetRef="GW_BeanYours" />
+    <bpmn:sequenceFlow id="SF_Bean_3" name="not yours" sourceRef="GW_BeanYours" targetRef="End_BeanNotYours" />
+    <bpmn:sequenceFlow id="SF_Bean_1" name="claimed" sourceRef="GW_BeanYours" targetRef="Call_MakeChange" />
+    <bpmn:sequenceFlow id="a7" sourceRef="Call_MakeChange" targetRef="Call_StageChange" />
+    <bpmn:sequenceFlow id="p4b" sourceRef="Call_StageChange" targetRef="Task_ReviewStaging" />
+    <bpmn:sequenceFlow id="f3" sourceRef="Task_ReviewStaging" targetRef="GW_AuthorSatisfied" />
+    <bpmn:sequenceFlow id="f4" name="No" sourceRef="GW_AuthorSatisfied" targetRef="Task_RequestRevision" />
+    <bpmn:sequenceFlow id="f5" sourceRef="Task_RequestRevision" targetRef="Task_Iterate" />
+    <bpmn:sequenceFlow id="flow_iterate_to_pipeline" sourceRef="Task_Iterate" targetRef="Call_StageChange" />
+    <bpmn:sequenceFlow id="f6" name="Yes" sourceRef="GW_AuthorSatisfied" targetRef="Task_SubmitForReview" />
+    <bpmn:sequenceFlow id="flow_submit_to_reviewer" sourceRef="Task_SubmitForReview" targetRef="Call_CommitteeReview" />
+    <bpmn:sequenceFlow id="r3" sourceRef="Call_CommitteeReview" targetRef="GW_CommitteeApproved" />
+    <bpmn:sequenceFlow id="r5" name="changes requested" sourceRef="GW_CommitteeApproved" targetRef="Task_Iterate" />
+    <bpmn:sequenceFlow id="r6" name="approved" sourceRef="GW_CommitteeApproved" targetRef="Call_Publish" />
+    <bpmn:sequenceFlow id="p7b" sourceRef="Call_Publish" targetRef="Call_BeanClose" />
+    <bpmn:sequenceFlow id="SF_Bean_4" sourceRef="Call_BeanClose" targetRef="End_Agent" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ContentChangeReview">
+    <bpmndi:BPMNPlane id="BPMNPlane_ContentChangeReview" bpmnElement="Collaboration_ContentChangeReview">
+      <bpmndi:BPMNShape id="Participant_ContentChangeReview_di" bpmnElement="Participant_ContentChangeReview" isHorizontal="true">
+        <dc:Bounds x="100" y="80" width="1380" height="860" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Author_di" bpmnElement="Lane_Author" isHorizontal="true">
+        <dc:Bounds x="130" y="80" width="1350" height="295" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Agent_di" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="130" y="375" width="1350" height="225" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Pipeline_di" bpmnElement="Lane_Pipeline" isHorizontal="true">
+        <dc:Bounds x="130" y="600" width="1350" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Reviewer_di" bpmnElement="Lane_Reviewer" isHorizontal="true">
+        <dc:Bounds x="130" y="750" width="1350" height="190" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_Author_di" bpmnElement="Start_Author">
+        <dc:Bounds x="195" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="170" y="210" width="90" height="54" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DescribeChange_di" bpmnElement="Task_DescribeChange">
+        <dc:Bounds x="275" y="120" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanOpen_di" bpmnElement="Call_BeanOpen">
+        <dc:Bounds x="275" y="405" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_BeanYours_di" bpmnElement="GW_BeanYours">
+        <dc:Bounds x="435" y="440" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="410" y="415" width="100" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_BeanNotYours_di" bpmnElement="End_BeanNotYours">
+        <dc:Bounds x="442" y="542" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="484" y="540" width="100" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_MakeChange_di" bpmnElement="Call_MakeChange">
+        <dc:Bounds x="550" y="405" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_StageChange_di" bpmnElement="Call_StageChange">
+        <dc:Bounds x="550" y="615" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReviewStaging_di" bpmnElement="Task_ReviewStaging">
+        <dc:Bounds x="710" y="120" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_AuthorSatisfied_di" bpmnElement="GW_AuthorSatisfied">
+        <dc:Bounds x="875" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="850" y="90" width="100" height="60" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RequestRevision_di" bpmnElement="Task_RequestRevision">
+        <dc:Bounds x="840" y="250" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Iterate_di" bpmnElement="Task_Iterate">
+        <dc:Bounds x="840" y="405" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SubmitForReview_di" bpmnElement="Task_SubmitForReview">
+        <dc:Bounds x="985" y="120" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_CommitteeReview_di" bpmnElement="Call_CommitteeReview">
+        <dc:Bounds x="985" y="765" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_CommitteeApproved_di" bpmnElement="GW_CommitteeApproved">
+        <dc:Bounds x="1150" y="800" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1125" y="775" width="100" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_Publish_di" bpmnElement="Call_Publish">
+        <dc:Bounds x="1250" y="615" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanClose_di" bpmnElement="Call_BeanClose">
+        <dc:Bounds x="1250" y="405" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Agent_di" bpmnElement="End_Agent">
+        <dc:Bounds x="1412" y="447" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1385" y="490" width="85" height="24" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="f1_di" bpmnElement="f1">
+        <di:waypoint x="231" y="180" />
+        <di:waypoint x="275" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f2_di" bpmnElement="f2">
+        <di:waypoint x="335" y="240" />
+        <di:waypoint x="335" y="405" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_2_di" bpmnElement="SF_Bean_2">
+        <di:waypoint x="395" y="465" />
+        <di:waypoint x="435" y="465" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_3_di" bpmnElement="SF_Bean_3">
+        <di:waypoint x="460" y="490" />
+        <di:waypoint x="460" y="542" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="466" y="495" width="80" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_1_di" bpmnElement="SF_Bean_1">
+        <di:waypoint x="485" y="465" />
+        <di:waypoint x="550" y="465" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="492" y="443" width="55" height="18" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a7_di" bpmnElement="a7">
+        <di:waypoint x="610" y="525" />
+        <di:waypoint x="610" y="615" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p4b_di" bpmnElement="p4b">
+        <di:waypoint x="670" y="675" />
+        <di:waypoint x="690" y="675" />
+        <di:waypoint x="690" y="180" />
+        <di:waypoint x="710" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f3_di" bpmnElement="f3">
+        <di:waypoint x="830" y="180" />
+        <di:waypoint x="875" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f4_di" bpmnElement="f4">
+        <di:waypoint x="900" y="205" />
+        <di:waypoint x="900" y="250" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="906" y="218" width="30" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f5_di" bpmnElement="f5">
+        <di:waypoint x="900" y="370" />
+        <di:waypoint x="900" y="405" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_iterate_to_pipeline_di" bpmnElement="flow_iterate_to_pipeline">
+        <di:waypoint x="900" y="525" />
+        <di:waypoint x="900" y="745" />
+        <di:waypoint x="610" y="745" />
+        <di:waypoint x="610" y="735" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f6_di" bpmnElement="f6">
+        <di:waypoint x="925" y="180" />
+        <di:waypoint x="985" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="940" y="158" width="30" height="18" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_submit_to_reviewer_di" bpmnElement="flow_submit_to_reviewer">
+        <di:waypoint x="1045" y="240" />
+        <di:waypoint x="1045" y="765" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="r3_di" bpmnElement="r3">
+        <di:waypoint x="1105" y="825" />
+        <di:waypoint x="1150" y="825" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="r5_di" bpmnElement="r5">
+        <di:waypoint x="1175" y="850" />
+        <di:waypoint x="1175" y="895" />
+        <di:waypoint x="975" y="895" />
+        <di:waypoint x="975" y="465" />
+        <di:waypoint x="960" y="465" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1181" y="855" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="r6_di" bpmnElement="r6">
+        <di:waypoint x="1200" y="825" />
+        <di:waypoint x="1310" y="825" />
+        <di:waypoint x="1310" y="735" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1220" y="803" width="65" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p7b_di" bpmnElement="p7b">
+        <di:waypoint x="1310" y="615" />
+        <di:waypoint x="1310" y="525" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_4_di" bpmnElement="SF_Bean_4">
+        <di:waypoint x="1370" y="465" />
+        <di:waypoint x="1412" y="465" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

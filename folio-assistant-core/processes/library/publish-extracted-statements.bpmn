@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — Publish extracted statements with source links.
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool. The SVG beside it is generated from it by
+  `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  The <bootstrap.processes:skill> extension on an activity names the folio-assistant skill
+  that implements it.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_PublishExtractedStatements"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="ingestion-agent" name="Ingestion engine"/>
+  <bpmn:collaboration id="Collaboration_PublishExtractedStatements">
+    <bpmn:participant id="Participant_PublishExtractedStatements" name="Publish extracted statements with source links" processRef="Process_PublishExtractedStatements" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_PublishExtractedStatements" name="Publish extracted statements with source links" isExecutable="false">
+    <bpmn:documentation>Makes every statement extracted from a library source readable, with a link back to where it came from, in the folio's working artifact AND in the shared extraction viewer, and keeps the pages current.
+
+ONE SUB-PROCESS, CALLED FROM EVERY PROCESS THAT ADDS SOURCE DOCUMENTS TO A FOLIO'S WORKING ARTIFACT. Ingestion calls it when an entry is promoted; an authoring process calls it when it brings a further source into its artifact. Nothing here depends on the content type: a document, a paper, an implementation guide and a guideline all run the same four steps. What differs is how the artifact's pages look, and that is the content type's adapter's business, read off its content profile, never named here.
+
+WHAT A STATEMENT IS, for this process: a sentence or row captured verbatim from a library entry, whatever kind the extraction gave it (a recommendation, a requirement, a candidate still awaiting a person's ruling). It is published as captured, with its status; this process neither promotes nor edits it.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_PublishExtractedStatements_LaneSet">
+      <bpmn:lane id="Lane_0" name="Ingestion Engine (agent, runs unattended)" partitionElementRef="ingestion-agent">
+        <bpmn:documentation>Every step is mechanical: the statements, their sections and the pages are all read off files, and the check either passes or names what is stale. Nothing here needs a judgement, so nothing leaves this lane.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_Statements</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Collect</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Any</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RenderArtifact</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RenderViewer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CheckCurrent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Published</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Nothing</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Statements" name="Sources added to
+the artifact">
+      <bpmn:outgoing>Flow_p1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_Collect" name="Collect each statement
+with its source section">
+      <bpmn:documentation>For every statement extracted from the library entries the artifact draws on, read three things off files: the statement verbatim, the library entry it came from, and the section of that entry, as a library reference (layer, library id, section id). The section's label is read from the entry's structure: its title and its locator in the source's own unit (a slide, a page, a cell range, a line range). For example "Catch up schedule, slide 7".
+
+A statement whose section cannot be resolved is NOT published without a link: it is reported, because a statement nobody can trace is the failure this process exists to prevent.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="publish-extracted-statements" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_p1</bpmn:incoming>
+      <bpmn:outgoing>Flow_p2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Any" name="Any statements?">
+      <bpmn:documentation>A referenced source, a dataset or a source with no normative content yields none. That is a determined zero, recorded as such, not a skipped step.</bpmn:documentation>
+      <bpmn:incoming>Flow_p2</bpmn:incoming>
+      <bpmn:outgoing>Flow_p_yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_p_none</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_RenderArtifact" name="Render them in the
+artifact's own pages">
+      <bpmn:documentation>The statements are written into pages of the folio's working artifact, so a reader of the artifact finds them without leaving it. HOW the pages look is the content type's: its adapter renders them in its own format (pages of a document, a section of a paper, pages of an implementation guide), as its content profile declares. Each statement carries two links: to the library entry's page, and to the section, labelled as collected.
+
+The pages are GENERATED: a person edits the extraction or the source, never the page.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="publish-extracted-statements" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_p_yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_p3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_RenderViewer" name="Publish them in
+the shared viewer">
+      <bpmn:documentation>The same statements, with the same two links, are published in the shared extraction viewer, reachable from the site's sources menu. The viewer is the cross-artifact view: every source and every statement extracted from it, whichever artifact uses them.
+
+Both places read ONE collected list, so they cannot disagree about what was extracted or where it came from.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="publish-extracted-statements" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_p3</bpmn:incoming>
+      <bpmn:outgoing>Flow_p4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_CheckCurrent" name="Check pages are
+current, links resolve">
+      <bpmn:documentation>The generator's check mode regenerates in memory and fails on any difference from the committed pages, and on any source link that does not resolve. It runs in CI, so a change to an extraction or a library entry that was not republished fails the build rather than leaving a page that says something the extraction no longer does.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="publish-extracted-statements" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_p4</bpmn:incoming>
+      <bpmn:outgoing>Flow_p5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Published" name="Statements published
+with source links">
+      <bpmn:incoming>Flow_p5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_Nothing" name="Nothing to publish">
+      <bpmn:incoming>Flow_p_none</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_p1" sourceRef="StartEvent_Statements" targetRef="Task_Collect" />
+    <bpmn:sequenceFlow id="Flow_p2" sourceRef="Task_Collect" targetRef="Gateway_Any" />
+    <bpmn:sequenceFlow id="Flow_p_yes" name="yes" sourceRef="Gateway_Any" targetRef="Task_RenderArtifact" />
+    <bpmn:sequenceFlow id="Flow_p_none" name="none" sourceRef="Gateway_Any" targetRef="EndEvent_Nothing" />
+    <bpmn:sequenceFlow id="Flow_p3" sourceRef="Task_RenderArtifact" targetRef="Task_RenderViewer" />
+    <bpmn:sequenceFlow id="Flow_p4" sourceRef="Task_RenderViewer" targetRef="Task_CheckCurrent" />
+    <bpmn:sequenceFlow id="Flow_p5" sourceRef="Task_CheckCurrent" targetRef="EndEvent_Published" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_PublishExtractedStatements">
+    <bpmndi:BPMNPlane id="Plane_PublishExtractedStatements" bpmnElement="Collaboration_PublishExtractedStatements">
+      <bpmndi:BPMNShape id="Participant_PublishExtractedStatements_di" bpmnElement="Participant_PublishExtractedStatements" isHorizontal="true"><dc:Bounds x="160" y="80" width="1180" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0_di" bpmnElement="Lane_0" isHorizontal="true"><dc:Bounds x="190" y="80" width="1150" height="320" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Statements_di" bpmnElement="StartEvent_Statements"><dc:Bounds x="232" y="152" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="228" y="195" width="90" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Collect_di" bpmnElement="Task_Collect"><dc:Bounds x="320" y="110" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Any_di" bpmnElement="Gateway_Any" isMarkerVisible="true"><dc:Bounds x="490" y="145" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="470" y="122" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RenderArtifact_di" bpmnElement="Task_RenderArtifact"><dc:Bounds x="600" y="110" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RenderViewer_di" bpmnElement="Task_RenderViewer"><dc:Bounds x="780" y="110" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CheckCurrent_di" bpmnElement="Task_CheckCurrent"><dc:Bounds x="960" y="110" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Published_di" bpmnElement="EndEvent_Published"><dc:Bounds x="1150" y="152" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1113" y="195" width="110" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Nothing_di" bpmnElement="EndEvent_Nothing"><dc:Bounds x="497" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="540" y="311" width="110" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_p1_di" bpmnElement="Flow_p1"><di:waypoint x="268" y="170" /><di:waypoint x="320" y="170" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_p2_di" bpmnElement="Flow_p2"><di:waypoint x="440" y="170" /><di:waypoint x="490" y="170" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_p_yes_di" bpmnElement="Flow_p_yes"><di:waypoint x="540" y="170" /><di:waypoint x="600" y="170" />
+        <bpmndi:BPMNLabel><dc:Bounds x="555" y="150" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_p_none_di" bpmnElement="Flow_p_none"><di:waypoint x="515" y="195" /><di:waypoint x="515" y="302" />
+        <bpmndi:BPMNLabel><dc:Bounds x="522" y="240" width="40" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_p3_di" bpmnElement="Flow_p3"><di:waypoint x="720" y="170" /><di:waypoint x="780" y="170" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_p4_di" bpmnElement="Flow_p4"><di:waypoint x="900" y="170" /><di:waypoint x="960" y="170" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_p5_di" bpmnElement="Flow_p5"><di:waypoint x="1080" y="170" /><di:waypoint x="1150" y="170" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

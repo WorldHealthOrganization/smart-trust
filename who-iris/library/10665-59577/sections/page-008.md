@@ -1,0 +1,84 @@
+---
+doc_id: 10665-59577
+doc_title: "Guidelines for the prevention and control of infection with LAV/HTLV III"
+section_id: page-008
+section_title: "Page 8"
+pages: 8-8
+pdf_page: 8
+source_pdf: 10665-59577.pdf
+source_sha256: 0b4242e6c7a53872
+text_source: ocr
+granularity: page
+---
+WHO/CDS/AIDS/86,1
+page 6
+
+- absence of all known underlying causes of cellular immunodeficiency
+Cother than LAV/HTLV-III infection) and absence of a11 other causes of
+
+reduced resistance reported to be associated with at least one of those
+opportunistic diseases.
+
+Despite having the above, patients are excluded as AIDS cases if they have
+negative result(s) on testing for serum antibody to LAV/HTLV-IIT, do not have
+a positive culture for LAV/HTLV-I11, and have both a normal or high number of
+T-helper (OKT4 or LEU3) lymphocytes and a normal or high ratio of T-helper to
+T-suppressors (OKT8 or LEU2) lymphocytes. In the absence of test results,
+
+patients satisfying all other criteria in this definition are included as
+cases.
+
+This general case definition may be made more explicit by specifying:
+
+- the particular diseases conéidered at least moderately indicative of
+cellular immunodeficiency, which are used as indicators of AIDS; and
+
+~ the known causes of cellular immunodeficiency, or other causes of
+reduced resistance reported to be associared with particular diseases,
+which would disqualify 4 patient as an AIDS cage,
+
+1.6.2 Provisional WHO clinical case definition for AIDS
+
+A clinical case definition is needed in countries where diagnostic
+resources are limited. A provisional clinical case definition was developed
+at a WHO Workship on AIDS held in Bangui, Central African Republic, 22-24
+October 1985. This definition was reviewed and slightly adapted at the Second
+Meeting of the WHO Collaborating Centres on AIDS as follows:
+
+Adults
+
+AIDS in an adult is defined by the existence of at least two of the major
+associated with at least one minor sign, in the absence of known causes of
+immunosuppression such as cancer or severe malnutrition or other recognized
+etiologies.
+
+Major signs
+
+- weight loss; 104 of body weight;
+
+- chronic diarrhoea > 1 month;
+
+~ prolonged fever > 1 month (intermittent or constant).
+
+Minor signs
+
+~ persistent cough for > 1 month;
+
+- generalized pruritic dermatitis;
+
+- recurrent herpes zoster;
+
+- oro-pharyngeal candidiasis;
+
+- chronic progressive and disseminated herpes simplex infection;
+bal generalized lymphadenopathy.
+
+The presence of generalized Kaposi's sarcoma or cryptococcal meningitis
+are sufficient by themselves for the diagnosis of AIDS,
+
+Children
+
+Paediatric AIDS is suspected in an infant or child presenting with at
+least two of the following major signs associated with at least two of the
+following minor signs in the absence of known cases of immunosuppression such
+as cancer or severe malnutrition or other recognized etiologies,

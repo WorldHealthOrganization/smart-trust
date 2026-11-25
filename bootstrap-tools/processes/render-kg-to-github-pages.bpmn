@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  id="Definitions_Process_RenderKgToGitHubPages"
+                  targetNamespace="https://litlfred.github.io/bootstrap-tools/v0/workflows"
+                  exporter="bootstrap-tools" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="github-pages" name="GitHub Pages"/>
+  <bpmn:resource id="site-publisher" name="Site Publisher"/>
+  <bpmn:collaboration id="Collaboration_Process_RenderKgToGitHubPages">
+    <bpmn:participant id="Participant_Process_RenderKgToGitHubPages" name="Render a Knowledge Graph to GitHub Pages" processRef="Process_RenderKgToGitHubPages"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_RenderKgToGitHubPages" name="Render a Knowledge Graph to GitHub Pages" isExecutable="false">
+    <bpmn:documentation>Render a Knowledge Graph — the whole of it, or a list of its Subgraphs — to GitHub Pages at a publication root URL, and report the push: a STATUS (pushed, not pushed, could not determine) and one MESSAGE carrying the deployed commit and the QA result.
+
+branches/ AND RELEASE ARE THE SAME PROCESS. A preview is this with a root under the release root; a release is this with the release root. What differs between them — who may start it, what must be reviewed first, what else lives on the same host — belongs to whatever calls this, never in here.
+
+EVERY STEP IS ONE OF THESE TOOLS: site.ts stages, site.ts --check and readme-book.ts --check check the staging, publish-site.ts deploys, pages-status.ts checks what is served and writes the message. The skill render-kg-to-github-pages has each command.
+
+THREE STATES, NOT TWO. A check that could not look (a 403 from a proxy, no network) is could-not-determine, and never reported as pushed.
+
+isExecutable is false and no activity carries a work-plan element: this diagram is in bootstrap's diagram vocabulary, which has none.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_Process_RenderKgToGitHubPages">
+      <bpmn:lane id="Lane_SitePublisher" name="Site Publisher" partitionElementRef="site-publisher">
+        <bpmn:documentation>An agent running these tools, or a Pages workflow running the same commands. It never reports a push it did not check.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Render</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ResolveInputs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Stage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_CheckStaged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Staged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_CheckServed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Report</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Pushed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Pushed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_NotPushed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_GitHubPages" name="GitHub Pages" partitionElementRef="github-pages">
+        <bpmn:documentation>The host, a mechanical Actor whose contract is skill github-pages. It decides nothing: it receives the deployment and serves it at the publication root URL.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_Provision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Deploy</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Render" name="A Knowledge Graph, a publication root URL, GitHub Pages as the target"/>
+
+    <bpmn:task id="A_ResolveInputs" name="Resolve the Subgraphs and the root URL">
+      <bpmn:documentation>Read the instance's declaration. Every Subgraph id asked for must be one it declares; none asked for means the whole graph. The root URL is the one given, else the declaration's iriBase, else https://&lt;owner&gt;.github.io/&lt;repo&gt;/. An unknown id is refused, never rendered as a smaller site.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="render-kg-to-github-pages"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_Provision" name="Make sure gh-pages exists and Pages serves it">
+      <bpmn:documentation>Provisioning the target, owned by this process rather than by the publication step that calls it. Pages cannot serve a branch that does not exist, so in order: (1) an orphan gh-pages branch exists — git ls-remote --heads origin gh-pages; if absent, push a placeholder (index.html + .nojekyll); (2) Pages is on, Source = the gh-pages branch at / — gh api -X POST repos/&lt;o&gt;/&lt;r&gt;/pages -f source[branch]=gh-pages -f source[path]=/ when gh is signed in, otherwise the exact manual step (Settings → Pages → Deploy from a branch → gh-pages, / (root)). Each half is done, not done, or could not be determined; never assumed.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="render-kg-to-github-pages"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_Stage" name="Stage the rendering">
+      <bpmn:documentation>site.ts --root &lt;instance&gt; --out &lt;dir&gt; [--subgraph &lt;id&gt;]…: every JSON Schema and JSON-LD document at the IRI it names, the files as they sit, the README page as README.md (served as README.html), and index.html as a redirect to it — the default landing page, which an index.html or index.md at the instance root replaces. Generated pages carry the generated-by notice at their top, and a footer that links their generator and source, never an edit page.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="render-kg-to-github-pages"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_CheckStaged" name="Check what was staged">
+      <bpmn:documentation>site.ts --check and readme-book.ts --check: every document at its address, no address taken by another file, every link on the page landing. This is the QA of what would be pushed.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="render-kg-to-github-pages"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Staged" name="Staged tree passes?"/>
+
+    <bpmn:task id="A_Deploy" name="Deploy the rendering">
+      <bpmn:documentation>publish-site.ts commits the staged tree onto gh-pages as a full replace (run by the instance's Pages workflow on a push to main, or by an agent with its own git credentials); GitHub Pages then builds it from the branch. Rebuild and retry on a rejected push; never rebase the branch. The report names the gh-pages commit SHA.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="render-kg-to-github-pages"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_CheckServed" name="Check what is served">
+      <bpmn:documentation>Ask the root URL and every document address. 2xx or 3xx answers; 404 is not there; 403, 407, 5xx or no answer is about the way here and could not be determined.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="render-kg-to-github-pages"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_Report" name="Report the push: status and message">
+      <bpmn:documentation>pages-status.ts: pushed, not-pushed or could-not-determine, and one line — the commit, the root URL, and the QA of both the staging and what is served. On the path from a failed staging it says not-pushed and names the problem. Required on every path: a caller that gets no status cannot tell a push from nothing.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="render-kg-to-github-pages"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Pushed" name="Status is pushed?"/>
+
+    <bpmn:endEvent id="End_Pushed" name="Pushed, and the message says what is live"/>
+    <bpmn:endEvent id="End_NotPushed" name="Not pushed, or could not tell, and the message says why">
+      <bpmn:documentation>Not a failure of the process: it ran, and its answer is that the rendering is not (or not demonstrably) live. The caller decides what that means for it.</bpmn:documentation>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="SF_RG_1" sourceRef="Start_Render" targetRef="A_ResolveInputs"/>
+    <bpmn:sequenceFlow id="SF_RG_2" sourceRef="A_ResolveInputs" targetRef="A_Provision"/>
+    <bpmn:sequenceFlow id="SF_RG_2b" sourceRef="A_Provision" targetRef="A_Stage"/>
+    <bpmn:sequenceFlow id="SF_RG_3" sourceRef="A_Stage" targetRef="A_CheckStaged"/>
+    <bpmn:sequenceFlow id="SF_RG_4" sourceRef="A_CheckStaged" targetRef="GW_Staged"/>
+    <bpmn:sequenceFlow id="SF_RG_5" name="yes" sourceRef="GW_Staged" targetRef="A_Deploy"/>
+    <bpmn:sequenceFlow id="SF_RG_6" name="no" sourceRef="GW_Staged" targetRef="A_Report"/>
+    <bpmn:sequenceFlow id="SF_RG_7" sourceRef="A_Deploy" targetRef="A_CheckServed"/>
+    <bpmn:sequenceFlow id="SF_RG_8" sourceRef="A_CheckServed" targetRef="A_Report"/>
+    <bpmn:sequenceFlow id="SF_RG_9" sourceRef="A_Report" targetRef="GW_Pushed"/>
+    <bpmn:sequenceFlow id="SF_RG_10" name="yes" sourceRef="GW_Pushed" targetRef="End_Pushed"/>
+    <bpmn:sequenceFlow id="SF_RG_11" name="no" sourceRef="GW_Pushed" targetRef="End_NotPushed"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_RenderKgToGitHubPages">
+    <bpmndi:BPMNPlane id="Plane_Process_RenderKgToGitHubPages" bpmnElement="Collaboration_Process_RenderKgToGitHubPages">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_RenderKgToGitHubPages" bpmnElement="Participant_Process_RenderKgToGitHubPages" isHorizontal="true">
+        <dc:Bounds x="140" y="80" width="1780" height="520"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_SitePublisher" bpmnElement="Lane_SitePublisher" isHorizontal="true">
+        <dc:Bounds x="170" y="80" width="1750" height="320"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_GitHubPages" bpmnElement="Lane_GitHubPages" isHorizontal="true">
+        <dc:Bounds x="170" y="400" width="1750" height="200"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Render" bpmnElement="Start_Render">
+        <dc:Bounds x="232" y="222" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ResolveInputs" bpmnElement="A_ResolveInputs">
+        <dc:Bounds x="320" y="200" width="150" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Provision" bpmnElement="A_Provision">
+        <dc:Bounds x="320" y="460" width="150" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Stage" bpmnElement="A_Stage">
+        <dc:Bounds x="520" y="200" width="150" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_CheckStaged" bpmnElement="A_CheckStaged">
+        <dc:Bounds x="720" y="200" width="150" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Staged" bpmnElement="GW_Staged" isMarkerVisible="true">
+        <dc:Bounds x="920" y="215" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Deploy" bpmnElement="A_Deploy">
+        <dc:Bounds x="1010" y="460" width="150" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_CheckServed" bpmnElement="A_CheckServed">
+        <dc:Bounds x="1200" y="200" width="150" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Report" bpmnElement="A_Report">
+        <dc:Bounds x="1400" y="200" width="150" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Pushed" bpmnElement="GW_Pushed" isMarkerVisible="true">
+        <dc:Bounds x="1600" y="215" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Pushed" bpmnElement="End_Pushed">
+        <dc:Bounds x="1760" y="152" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_NotPushed" bpmnElement="End_NotPushed">
+        <dc:Bounds x="1760" y="312" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_RG_1" bpmnElement="SF_RG_1">
+        <di:waypoint x="268" y="240"/>
+        <di:waypoint x="320" y="240"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_RG_2" bpmnElement="SF_RG_2">
+        <di:waypoint x="395" y="280"/>
+        <di:waypoint x="395" y="460"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_RG_2b" bpmnElement="SF_RG_2b">
+        <di:waypoint x="470" y="500"/>
+        <di:waypoint x="595" y="500"/>
+        <di:waypoint x="595" y="280"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_RG_3" bpmnElement="SF_RG_3">
+        <di:waypoint x="670" y="240"/>
+        <di:waypoint x="720" y="240"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_RG_4" bpmnElement="SF_RG_4">
+        <di:waypoint x="870" y="240"/>
+        <di:waypoint x="920" y="240"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_RG_5" bpmnElement="SF_RG_5">
+        <di:waypoint x="945" y="265"/>
+        <di:waypoint x="945" y="500"/>
+        <di:waypoint x="1010" y="500"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_RG_6" bpmnElement="SF_RG_6">
+        <di:waypoint x="945" y="215"/>
+        <di:waypoint x="945" y="130"/>
+        <di:waypoint x="1475" y="130"/>
+        <di:waypoint x="1475" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_RG_7" bpmnElement="SF_RG_7">
+        <di:waypoint x="1160" y="500"/>
+        <di:waypoint x="1275" y="500"/>
+        <di:waypoint x="1275" y="280"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_RG_8" bpmnElement="SF_RG_8">
+        <di:waypoint x="1350" y="240"/>
+        <di:waypoint x="1400" y="240"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_RG_9" bpmnElement="SF_RG_9">
+        <di:waypoint x="1550" y="240"/>
+        <di:waypoint x="1600" y="240"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_RG_10" bpmnElement="SF_RG_10">
+        <di:waypoint x="1625" y="215"/>
+        <di:waypoint x="1625" y="170"/>
+        <di:waypoint x="1760" y="170"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_RG_11" bpmnElement="SF_RG_11">
+        <di:waypoint x="1625" y="265"/>
+        <di:waypoint x="1625" y="330"/>
+        <di:waypoint x="1760" y="330"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

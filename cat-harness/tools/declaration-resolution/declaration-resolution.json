@@ -1,0 +1,65 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "declaration-resolution",
+    "title": "Every path a declaration names resolves — directories, assets, visualisers, needs",
+    "description": "Read every layer declaration in the checkout and resolve what it names: `directories` (and those declared from within) through `check:declared-dirs`, `assets` through `check:declared-assets`, `visualisers[].renderedBy` through `check:visualiser-routes`, `needs` through the instance-graph resolver, and `visualisers[].coversKinds` against the graph typologies registered IN THIS CHECKOUT — its own and those a mounted layer contributes, read from the checkout under inspection rather than from where the harness module sits. A declaration that does not parse is a finding. One verdict per layer and field, naming the gate that decided it. Exit 0 every reference resolves, 1 one does not, 2 could not determine; a certain finding is reported before anything undetermined.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat check:declaration-resolution"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "root",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The checkout to check; the script re-runs itself there, so kinds are read from it. Default: the working directory.",
+          "required": false,
+          "arg": {
+            "flag": "--root"
+          }
+        },
+        {
+          "name": "json",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Print the report as JSON.",
+          "required": false,
+          "arg": {
+            "flag": "--json"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "findings",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "Unresolved references per layer and field, and what could not be determined; entries examined per field."
+        }
+      ]
+    },
+    "satisfies": [
+      "kg-separation",
+      "kg-affordances"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "",
+      "comment": "Owner, 2026-10-12 (task 7): \"every path a declaration names resolves\".\nComposes the four gates that each resolve one field, adds the one\nreference none resolved (`visualisers[].coversKinds`). kg-separation lesson 6."
+    }
+  ]
+}
