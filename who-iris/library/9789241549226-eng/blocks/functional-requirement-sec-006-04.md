@@ -1,0 +1,1 @@
+A health workforce registry allows aggregation of health workforce data in several combinations and assists both national and sub-national ministries of health in producing essential indicator-based reports, as needed.

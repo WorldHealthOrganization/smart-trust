@@ -1,0 +1,164 @@
+{
+  "$schema": "folio-voice/v1",
+  "id": "agent-skill-authoring-openai",
+  "title": "Agent skill authoring — OpenAI override",
+  "appliesTo": ["skill"],
+  "description": "What OpenAI's 'Skills in OpenAI API' cookbook notebook adds to the shared base voice agent-skill-authoring: front matter as the router, explicit use/don't-use routing with negative examples, scripts that behave like tiny CLIs, verification in SKILL.md, what may leave over the network, version pinning, and the platform's upload limits. MODEL-SPECIFIC by the owner's ruling (bean rkqp): a vendor's advice is evidence about that vendor's platform. Provenance ASSERTION: a publisher describing its own product. Read from the full notebook (ingested through the notebook rung, MIT-licensed), not the one-page PDF capture skills-in-openai-api, which is almost all code. Rules the base already carries — description states function and trigger, one default, state dependencies — are inherited through extends, not repeated. Conformance is an agentic review, never a schema gate.",
+  "provenance": "assertion",
+  "extends": {
+    "voiceId": "agent-skill-authoring"
+  },
+  "sources": [
+    {
+      "title": "Skills in OpenAI API — OpenAI Cookbook notebook (fetched 2026-09-30, MIT)",
+      "libraryId": "skills-in-openai-api-notebook",
+      "year": 2026
+    }
+  ],
+  "rules": [
+    {
+      "id": "oa-frontmatter-is-the-router",
+      "title": "name and description live in the SKILL.md front matter, because that is what OpenAI routes on",
+      "description": "OpenAI reads each skill's name and description from its front matter and puts them in the prompt context, so a skill is found and chosen by those two fields alone. A description written only in the body is invisible to routing. The base voice says WHAT a description must state; this is where OpenAI requires it to be.",
+      "category": "structure",
+      "severity": "critical",
+      "source": {
+        "libraryId": "skills-in-openai-api-notebook",
+        "sectionId": "s007-skill-md-frontmatter",
+        "quote": "OpenAI models expect names and descriptions to come from frontmatter (important for discovery and routing)."
+      }
+    },
+    {
+      "id": "oa-routing-use-when-dont-use-when",
+      "title": "The body states when to use the skill AND when not to, with a few edge cases",
+      "description": "Explicit routing guidance in SKILL.md: a 'Use when…' list, a 'Don't use when…' list, and the edge cases between them. The negative half is the point: it is what stops a skill being invoked where it does not apply.",
+      "category": "structure",
+      "severity": "major",
+      "source": {
+        "libraryId": "skills-in-openai-api-notebook",
+        "sectionId": "s011-operational-best-practices",
+        "quote": "Add explicit routing guidance: “Use when…” vs. “Don’t use when…”, and a few key edge cases, all in `SKILL.md`."
+      }
+    },
+    {
+      "id": "oa-negative-examples",
+      "title": "Give negative examples beside the positive ones",
+      "description": "Show cases where the skill should NOT be triggered, alongside the cases where it should. OpenAI states this improves routing accuracy.",
+      "category": "structure",
+      "severity": "major",
+      "source": {
+        "libraryId": "skills-in-openai-api-notebook",
+        "sectionId": "s011-operational-best-practices",
+        "quote": "Include negative examples (when the skill should *not* be triggered) alongside positive examples to improve routing accuracy."
+      }
+    },
+    {
+      "id": "oa-fix-routing-in-words-first",
+      "title": "When routing misfires, revise the name, description and examples before the code",
+      "description": "An inconsistently invoked skill is a discovery problem first: iterate on the three things routing reads before changing what the skill does.",
+      "category": "methodology",
+      "severity": "minor",
+      "source": {
+        "libraryId": "skills-in-openai-api-notebook",
+        "sectionId": "s011-operational-best-practices",
+        "quote": "If routing feels inconsistent, iterate on name, description, and examples before changing code."
+      }
+    },
+    {
+      "id": "oa-scripts-as-tiny-clis",
+      "title": "A skill's script behaves like a small command-line tool",
+      "description": "It runs from the command line, prints deterministic stdout, fails loudly with a usage message or an error, and writes any outputs to known file paths. The model reads the output to decide what happened, so an ambiguous or silent script is a skill that cannot be verified.",
+      "category": "methodology",
+      "severity": "major",
+      "source": {
+        "libraryId": "skills-in-openai-api-notebook",
+        "sectionId": "s011-operational-best-practices",
+        "quote": "Prints deterministic stdout"
+      }
+    },
+    {
+      "id": "oa-worked-examples-inside",
+      "title": "Put concrete templates and worked examples inside the skill: inputs, commands, expected outputs",
+      "description": "The model reads these only when it invokes the skill, while the front matter stays in every prompt, so the detail belongs in the skill's files rather than in its description.",
+      "category": "structure",
+      "severity": "minor",
+      "source": {
+        "libraryId": "skills-in-openai-api-notebook",
+        "sectionId": "s011-operational-best-practices",
+        "quote": "Add concrete templates and worked examples inside the skill (inputs → commands → expected outputs)"
+      }
+    },
+    {
+      "id": "oa-verification-in-skill-md",
+      "title": "SKILL.md states explicit verification steps and output checks",
+      "description": "Where execution is multi-step or brittle, the skill itself says how to check that each step worked, rather than trusting that it did.",
+      "category": "methodology",
+      "severity": "major",
+      "source": {
+        "libraryId": "skills-in-openai-api-notebook",
+        "sectionId": "s011-operational-best-practices",
+        "quote": "add explicit verification steps and output checks in `SKILL.md`."
+      }
+    },
+    {
+      "id": "oa-no-procedure-in-system-prompt",
+      "title": "Do not restate the skill's procedure in the system prompt",
+      "description": "A system prompt that repeats the whole procedure makes people bypass the skill and move logic into tool schemas, losing reuse, versioning and conditional invocation. The procedure lives in SKILL.md only.",
+      "category": "structure",
+      "severity": "major",
+      "source": {
+        "libraryId": "skills-in-openai-api-notebook",
+        "sectionId": "s011-operational-best-practices",
+        "quote": "If the system prompt repeats the entire procedure, people will:"
+      }
+    },
+    {
+      "id": "oa-network-states-what-may-leave",
+      "title": "A skill that needs network access says what data may leave, beside a strict allowlist",
+      "description": "OpenAI calls skills plus open network access high-risk. When network access is unavoidable, the skill's instructions name what data is allowed to leave, and tool output is treated as untrusted.",
+      "category": "methodology",
+      "severity": "critical",
+      "source": {
+        "libraryId": "skills-in-openai-api-notebook",
+        "sectionId": "s011-operational-best-practices",
+        "quote": "If network access is required, pair allowlists with explicit “what data is allowed to leave” guidance."
+      }
+    },
+    {
+      "id": "oa-pin-versions",
+      "title": "Pin the skill version, and the model with it, in production",
+      "description": "OpenAI keeps default_version and latest_version pointers. Production runs a named version, not whatever is latest, and pins the model beside it for reproducible behaviour.",
+      "category": "methodology",
+      "severity": "minor",
+      "source": {
+        "libraryId": "skills-in-openai-api-notebook",
+        "sectionId": "s011-operational-best-practices",
+        "quote": "Consider pinning the model and skill version together for reproducible behavior across deployments."
+      }
+    },
+    {
+      "id": "oa-platform-limits",
+      "title": "One manifest, at most 500 files, a 50 MB zip, 25 MB per uncompressed file",
+      "description": "OpenAI's upload limits: exactly one SKILL.md (matched case-insensitively), at most 500 files per version, a zip of at most 50 MB, and no uncompressed file over 25 MB. A bundle outside them does not upload, which is why this is a vendor rule.",
+      "category": "formatting",
+      "severity": "critical",
+      "source": {
+        "libraryId": "skills-in-openai-api-notebook",
+        "sectionId": "s011-operational-best-practices",
+        "quote": "Exactly one manifest file allowed (`skill.md`/`SKILL.md`)"
+      }
+    },
+    {
+      "id": "oa-skill-for-stable-procedures",
+      "title": "A skill is for a procedure that has stabilised; one-offs and live data are not skills",
+      "description": "OpenAI's line: a one-off task belongs inline, live external data or side effects belong to a tool, and a procedure that changes daily is not ready to be a skill.",
+      "category": "methodology",
+      "severity": "minor",
+      "source": {
+        "libraryId": "skills-in-openai-api-notebook",
+        "sectionId": "s003-when-to-use-skills",
+        "quote": "The procedure changes every day (skills shine when the workflow stabilizes)."
+      }
+    }
+  ]
+}

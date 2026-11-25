@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_HarnessRendering" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:resource id="board-renderer" name="Board renderer"/>
+  <bpmn:resource id="reviewer" name="Reviewer"/>
+  <bpmn:collaboration id="Collaboration_Process_HarnessRendering">
+    <bpmn:participant id="Participant_Process_HarnessRendering" name="A harness's default rendering" processRef="Process_HarnessRendering"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_HarnessRendering" name="A harness's default rendering" isExecutable="false">
+    <bpmn:documentation>Renders a harness layer as its default interface: its left-hand nav and docs on its own theme's art, and a board of its todos and beans from which a reader reads, reviews and, when a write tool is available, proposes changes into the publication review.
+
+The theme art goes behind every docs page.
+
+Read-only is the floor. Whether the reader may write is a question about the tools the session has (git-push, github-api, github-connector) and the reader's permissions, so the gateway reads capabilities and never assumes one write path. A change a reader proposes enters the content change review in folio-assistant-core (`content-change-review.bpmn`); this process enables that review and does not replace it.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_HarnessRendering">
+      <bpmn:lane id="Lane_Pipeline" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Runs at site build. It composes what each layer declares and decides nothing about content.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Process_HarnessRendering</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Tiles</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Ground</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Publish</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_NodeViews</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Board" name="Board renderer" partitionElementRef="board-renderer">
+        <bpmn:documentation>Runs where the reader is, once per page. It draws and performs what the reader decided; every choice sits in the reviewer's lane.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_Board</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Reviewer" name="Reviewer" partitionElementRef="reviewer">
+        <bpmn:documentation>The person reading the harness. Reading needs nothing; writing needs a write tool and the permission to use it.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_Read</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Write</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Propose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Todo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Proposed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Noted</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Process_HarnessRendering" name="Site build starts"/>
+
+    <bpmn:task id="A_Tiles" name="Compose each harness's nav and tile">
+      <bpmn:documentation>One themed section per layer in dependency order, from its declaration: its docs, its declared subgraphs (a graph with no viewer is shown inert and labelled), and its theme. Written to `_data/harness.json` by `sync-docs-harness.ts`.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="harness-tiles"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_Ground" name="Resolve each harness's page ground">
+      <bpmn:documentation>The theme art for that harness's pages, all three crops or none, and the URL scopes that make a page that harness's (`pageGround`). The site owner's ground is the fallback for a page no scope claims.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="harness-tiles"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:task id="A_Publish" name="Publish docs on their theme's art">
+      <bpmn:documentation>`head_custom.html` sets the ground behind every page of the harness, under two scrims of the page's own colour, so text and links keep the plain page's contrast.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="liquid-templates"/></bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:serviceTask id="A_NodeViews" name="Report node-view coverage">
+      <bpmn:documentation>The Tool `node-view-coverage` (`bun run cat node-views:report -- --site &lt;built site&gt;`) counts, per layer, folder and kind, which nodes have an IRI, a `.jsonld`, a page and a row on their folder page, and which folder links are dead or point at the raw repository. A QA report, not a gate: it always exits 0 and feeds no gateway, and its results go to `test/results/node-views/` and on to the `qa-reports` branch. A graph with no viewer is still shown inert and labelled by the tile step; this says how many of its nodes are owed a page.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="kg-viewer"/></bpmn:extensionElements>
+    </bpmn:serviceTask>
+
+    <bpmn:task id="A_Board" name="Draw the board of todos and beans">
+      <bpmn:documentation>The todo board mounts inside the landing board, so harness cards and todo stickies share one surface. Each card carries an edit link only when the build composed one.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="board-windows"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:userTask id="A_Read" name="Read a page or a card">
+      <bpmn:documentation>The floor of the interface: everything a harness publishes can be read with no account and no tool.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-review"/></bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="GW_Write" name="Write tool available?">
+      <bpmn:documentation>Does this session have a write tool (a checkout with git-push, the forge API, or a host connector) and the permission to use it? A capability is what the environment provides; a permission is what the actor may do. Both are needed.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="A_Propose" name="Propose the change">
+      <bpmn:documentation>Through whichever write tool the session has. The change is a proposal: it goes into the content change review, which decides whether it is published.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="kg-affordances"/></bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="A_Todo" name="Leave it as feedback">
+      <bpmn:documentation>With no write tool the reader's point is not lost: it is recorded as feedback for someone who can write.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-feedback"/></bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_Proposed" name="Change in the content review"/>
+    <bpmn:endEvent id="End_Noted" name="Feedback recorded"/>
+
+    <bpmn:sequenceFlow id="SF_HR_1" sourceRef="Start_Process_HarnessRendering" targetRef="A_Tiles"/>
+    <bpmn:sequenceFlow id="SF_HR_2" sourceRef="A_Tiles" targetRef="A_Ground"/>
+    <bpmn:sequenceFlow id="SF_HR_3" sourceRef="A_Ground" targetRef="A_Publish"/>
+    <bpmn:sequenceFlow id="SF_HR_4" sourceRef="A_Publish" targetRef="A_NodeViews"/>
+    <bpmn:sequenceFlow id="SF_HR_4b" sourceRef="A_NodeViews" targetRef="A_Board"/>
+    <bpmn:sequenceFlow id="SF_HR_5" sourceRef="A_Board" targetRef="A_Read"/>
+    <bpmn:sequenceFlow id="SF_HR_6" sourceRef="A_Read" targetRef="GW_Write"/>
+    <bpmn:sequenceFlow id="SF_HR_7" name="yes" sourceRef="GW_Write" targetRef="A_Propose"/>
+    <bpmn:sequenceFlow id="SF_HR_8" name="no" sourceRef="GW_Write" targetRef="A_Todo"/>
+    <bpmn:sequenceFlow id="SF_HR_9" sourceRef="A_Propose" targetRef="End_Proposed"/>
+    <bpmn:sequenceFlow id="SF_HR_10" sourceRef="A_Todo" targetRef="End_Noted"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_Process_HarnessRendering">
+    <bpmndi:BPMNPlane id="Plane_Process_HarnessRendering" bpmnElement="Collaboration_Process_HarnessRendering">
+      <bpmndi:BPMNShape id="Shape_Participant_HR" bpmnElement="Participant_Process_HarnessRendering" isHorizontal="true">
+        <dc:Bounds x="100" y="60" width="1240" height="610" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Pipeline_HR" bpmnElement="Lane_Pipeline" isHorizontal="true">
+        <dc:Bounds x="130" y="60" width="1210" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Board_HR" bpmnElement="Lane_Board" isHorizontal="true">
+        <dc:Bounds x="130" y="220" width="1210" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Reviewer_HR" bpmnElement="Lane_Reviewer" isHorizontal="true">
+        <dc:Bounds x="130" y="380" width="1210" height="290" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_HR" bpmnElement="Start_Process_HarnessRendering">
+        <dc:Bounds x="180" y="122" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="150" y="165" width="96" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Tiles" bpmnElement="A_Tiles">
+        <dc:Bounds x="270" y="80" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Ground" bpmnElement="A_Ground">
+        <dc:Bounds x="440" y="80" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Publish" bpmnElement="A_Publish">
+        <dc:Bounds x="610" y="80" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_NodeViews" bpmnElement="A_NodeViews">
+        <dc:Bounds x="780" y="80" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Board" bpmnElement="A_Board">
+        <dc:Bounds x="610" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Read" bpmnElement="A_Read">
+        <dc:Bounds x="610" y="430" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Write" bpmnElement="GW_Write" isMarkerVisible="true">
+        <dc:Bounds x="790" y="465" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="725" y="400" width="110" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Propose" bpmnElement="A_Propose">
+        <dc:Bounds x="910" y="395" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Todo" bpmnElement="A_Todo">
+        <dc:Bounds x="910" y="535" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Proposed" bpmnElement="End_Proposed">
+        <dc:Bounds x="1100" y="437" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1150" y="435" width="140" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Noted" bpmnElement="End_Noted">
+        <dc:Bounds x="1100" y="577" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1150" y="575" width="140" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_HR_1" bpmnElement="SF_HR_1">
+        <di:waypoint x="216" y="140" />
+        <di:waypoint x="270" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HR_2" bpmnElement="SF_HR_2">
+        <di:waypoint x="390" y="140" />
+        <di:waypoint x="440" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HR_3" bpmnElement="SF_HR_3">
+        <di:waypoint x="560" y="140" />
+        <di:waypoint x="610" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HR_4" bpmnElement="SF_HR_4">
+        <di:waypoint x="730" y="140" />
+        <di:waypoint x="780" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HR_4b" bpmnElement="SF_HR_4b">
+        <di:waypoint x="840" y="200" />
+        <di:waypoint x="840" y="300" />
+        <di:waypoint x="730" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HR_5" bpmnElement="SF_HR_5">
+        <di:waypoint x="670" y="360" />
+        <di:waypoint x="670" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HR_6" bpmnElement="SF_HR_6">
+        <di:waypoint x="730" y="490" />
+        <di:waypoint x="790" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HR_7" bpmnElement="SF_HR_7">
+        <di:waypoint x="815" y="465" />
+        <di:waypoint x="815" y="455" />
+        <di:waypoint x="910" y="455" />
+        <bpmndi:BPMNLabel><dc:Bounds x="835" y="430" width="40" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HR_8" bpmnElement="SF_HR_8">
+        <di:waypoint x="815" y="515" />
+        <di:waypoint x="815" y="595" />
+        <di:waypoint x="910" y="595" />
+        <bpmndi:BPMNLabel><dc:Bounds x="835" y="570" width="40" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HR_9" bpmnElement="SF_HR_9">
+        <di:waypoint x="1030" y="455" />
+        <di:waypoint x="1100" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HR_10" bpmnElement="SF_HR_10">
+        <di:waypoint x="1030" y="595" />
+        <di:waypoint x="1100" y="595" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

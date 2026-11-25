@@ -1,0 +1,39 @@
+---
+doc_id: 10665-75211-por
+doc_title: "Pacote de Ferramentas da Estratégia Nacional de eSaúde"
+section_id: sec-002-agradecimentos
+section_title: "Agradecimentos"
+section_number: null
+pages: 5-6
+source_pdf: 10665-75211-por.pdf
+source_sha256: 793ea6ff30f18157
+toc_source: outline
+---
+A Organização Mundial da Saúde e a União Internacional das Telecomunicações agradecem 
+reconhecidamente aos colaboradores, revisores e consultores cujos apoio, experiência e dedicação 
+tornaram possível esta primeira edição do Pacote de Ferramentas da Estratégia Nacional de 
+eSaúde.
+Comissão diretiva
+Najeeb Al-Shorbaji, Joan Dzenowagis (OMS); Hani Eskandar, Mario Maniewicz (UIT).
+Conselheiros técnicos superiores
+Joan Dzenowagis (OMS); Hani Eskandar (UIT).
+Consultores
+Adam Powick, Mark Watson, Benjamin McCartney, Gilda Chilcott (Deloitte Touche Tomatsu, 
+Austrália). 
+Agradecimentos especiais
+Thomson Prentice, editor; Marilyn Langfeld, designer gráfica; Valentina Pistritto (UIT), apoio 
+inicial ao projeto.
+Revisores da primeira edição
+União Internacional das Telecomunicações
+Jose Maria Diaz Batanero (Sede); Ahmed Elhefnawy (ARB). 
+Organização Mundial da Saúde
+Marcelo d’Agostino, Myrna Marti, David Novillo Ortiz, Ana Lucia Ruggiero (AMRO/PAHO); 
+Hani Farouk (EMRO); Misha Kay, Ramesh Krishnamurthy, Diana Zandi (Sede); Jyotsna Chikersal 
+(SEARO); Mark Landry (WPRO).
+Peritos independentes
+Zakiuddin Ahmed, Omar Alkurdi, Baljit Bedi, Peter Drury, Stephen Settimi, Petra Wilson.
+Colaboradores nacionais e internacionais
+Hoda Baraka (Ministério das Comunicações e Tecnologias da Informação, Egito); Francisca-
+Rosario Garcia-Lizana (Comissão Europeia); Dominic Kobinah, Dan Osei, Frank Nyonator, 
+Anthony Ofosu (Serviço de Saúde do Gana, Gana); Luisa Gonzalez-Retiz, Adrian Pacheco-Lopez, 
+Miriam Silva-Flores (Ministério da Saúde, México); Margaret D’Adamo, John Novak (USAID).

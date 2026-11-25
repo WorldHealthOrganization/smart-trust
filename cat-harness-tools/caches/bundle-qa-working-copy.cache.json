@@ -1,0 +1,54 @@
+{
+  "$schema": "cache/1.0.0",
+  "instance": "cat-harness-tools",
+  "kind": "artifact-reuse",
+  "trustClass": "a-provenance",
+  "keyRecipe": {
+    "source": "script",
+    "implementation": ".github/scripts/bundle-cache.sh digest",
+    "expression": "sha256(recipe 3, bundle name, HEAD^{tree}, ImageOS + RUNNER_ARCH, exact bun/git/node/python3/java versions, every state ref tip + qa-reports head, extras)"
+  },
+  "derivedInputs": "the tree of the commit (the writers declare {tracked}), the exact tool versions the writers call, and the tips of the state branches they read",
+  "savePolicy": "each run that built the bundle uploads it plus a `bundle-<name>-<digest>` record artifact last; artifacts are run-scoped, so the trust is in the reader's source rule",
+  "verify": "bundle-cache.sh fetch: (1) source run's head is this head, a parent of this commit, or a commit with this tree; (2) the tar matches manifest.txt; (3) the bundle names no foreign run id, commit or <n>/merge (until 69lr/#1509 removes the stamps)",
+  "owner": "CI speed 10 (session_01VQDpPd7y4nwxjHFm66CMKF); ported onto cached-step by CI speed 14 after #2965",
+  "stateInputs": {
+    "reads": "keyed",
+    "refs": [
+      "cat/cat-harness/beans",
+      "cat/<instance>/health, for each mounted instance whose health graph is kept on a branch (cat-harness-tools, cat-harness and those of the layers above)",
+      "cat/cat-harness/fsh-guts",
+      "cat/cat-harness/issue-marks",
+      "cat/cat-harness-tools/marks",
+      "cat/cat-harness/merge-reviews",
+      "cat/cat-harness/subscribed-harnesses",
+      "cat/cat-harness/todos",
+      "cat/cat-harness/qa-reports"
+    ],
+    "how": "every ref state:mount laid down (its own markers under <git-dir>/branch-mounts/*.json) plus the qa-reports head: each ref's tip is a `digest input: state …` line (bundle-cache.sh RECIPE=3); an unreadable marker or head is no digest, so the job builds. Measured 2026-11-05 ~14:40Z in a folio-assistant cloud checkout by CI speed 10: 12 refs, three of them `cat/<instance>/health` (written here as one entry, since naming a layer above this one is the wrong direction); a runner's set is what its run log prints. Narrowing to the refs a writer actually reads waits on the writer-cone read sets."
+  },
+  "needs": [
+    "layers-ref"
+  ],
+  "notes": "folio-assistant #2965/#2966. Not byte-reproducible yet: same commit eaa6558, runs 42025861803 and 42030336059, QA manifests 17f6fa0a… vs 7ba8341b… (determinism audit's first row).",
+  "id": "bundle-qa-working-copy",
+  "title": "Generated set: the QA working copy",
+  "location": "artifact qa-working-copy + record bundle-qa-working-copy-<digest>",
+  "holds": "qa-working-copy.tar and manifest.txt: the test/results the QA writers produce over the tree",
+  "producer": "code-quality-gates.yml job qa-working-copy (bun run cat qa:working-copy)",
+  "consumers": [
+    "the gate jobs that read test/results",
+    "Feature Staging's stage (qa-copy-reuse.sh, to move onto cached-step)"
+  ],
+  "materializes": [
+    "test/results/"
+  ],
+  "refresh": {
+    "mode": "whole",
+    "how": "rebuilt by qa:working-copy; incremental per writer once the writer cone records read sets"
+  },
+  "uses": [
+    ".github/scripts/bundle-cache.sh digest|fetch|record",
+    ".github/workflows/code-quality-gates.yml qa-working-copy job"
+  ]
+}

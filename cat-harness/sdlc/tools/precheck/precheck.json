@@ -1,0 +1,59 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "precheck",
+    "title": "Precheck a push",
+    "description": "Run, before a push leaves the machine, only the fast checks whose inputs the push changed: `lock:coherence:check` (agreement and freshness) and `mount:remote:check` for a change to `index.lock.json` or `index.config.json`, `check:workflow-pins` for a change under `.github/workflows/`, and the typecheck for a `.ts` change. Nothing runs when the push changed none of them, and the full tier never runs. It is git's `pre-push` hook (`scripts/git-hooks/pre-push`), installed by the session-start primer; the same command runs it by hand (as the hook it is `--git-hook <remote>`, with the pushed refs on stdin).",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat precheck"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "dry-run",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Print the checks this push owes and why, running none.",
+          "required": false,
+          "arg": {
+            "flag": "--dry-run"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "One line per check run (✓, ✗ or ?), then the red checks' output. Exit 0: every check passed, none was owed, or none could be judged here (no bun, `cat` runner or `node_modules`; a dirty tree; a check that exited 2 or ran past `CAT_PRECHECK_TIMEOUT`, 90 s), each said in one line. Exit 1: a check is red, and the push is refused."
+        }
+      ]
+    },
+    "satisfies": [
+      "platform-gates",
+      "continual-progress"
+    ],
+    "selection": {
+      "when": "Every push: the hook runs it. By hand before pushing a lock, workflow or TypeScript change, to see in seconds what CI would fail on, since every red CI run emails the owner (owner, card 2026-11-18).",
+      "limits": "Only the checks the push's own changes can break; it is a floor, not `gates`. It judges the working tree, so it judges nothing when the pushed commit is not HEAD or tracked files differ from it. `git push --no-verify` skips it; `CAT_PRECHECK=0` turns it off.",
+      "cost": "15–60 s when a check is owed; nothing otherwise."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "Without github.com, `lock:coherence:check` cannot read the pinned layers' mains for freshness and exits 2, which the precheck reports as not determined and lets the push through; the workflow-pins check and the typecheck still run."
+      }
+    ]
+  }
+}

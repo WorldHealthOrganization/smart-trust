@@ -1,0 +1,56 @@
+---
+doc_id: 10665-37905
+doc_title: "Accélération des activités de vaccination : principes de planification / déclaration conjointe OMS/FISE"
+section_id: page-017
+section_title: "Page 17"
+pages: 17-17
+pdf_page: 17
+source_pdf: 10665-37905.pdf
+source_sha256: 9ca36288eaaca93f
+text_source: ocr
+granularity: page
+---
+-17 -
+
+2) Réduire les taux d'abandon entre la première
+et la dernière vaccinations
+
+Renforcer le rôle joué par les commu-
+nautés dans les programmes de vacci-
+nation, y compris la participation des
+secteurs privé et bénévole.
+
+Dispenser les services de vaccination à
+des moments et en des lieux plus commodes
+et accroître l'utilisation de dispen-
+saires mobiles organisés à intervalles
+réguliers.
+
+Mieux informer les parents sur la néces-
+sité de se présenter de nouveau en préci-
+sant plus clairement à quel moment et où
+
+ils doivent se présenter.
+
+Mieux identifier les enfants justiciables
+de vaccination et rechercher activement
+ceux qui manquent.
+
+3) Accorder un rang de priorité plus élevé à la
+lutte contre la rougeole, la poliomyélite et
+
+le tétanos néonatal
+
+La rougeole est, parmi les maladies
+cibles du PEV, celle qui entraîne la plus
+grand nombre de décès. Dans certaines
+zones, cependant, la couverture par le
+vaccin antirougeoleux est inférieure à
+celle du DTC et du vaccin antipolio-
+myélitique. En mettant davantage
+l'accent sur la vaccination des enfants
+contre la rougeole, non seulement on
+augmentera le taux de couverture anti-
+rougeoleuse mais on aidera aussi à
+accroître la couverture par le DTC et le
+vaccin antipoliomyélitique, notamment

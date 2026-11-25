@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+ xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_ActorRoleAdministration"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="0.1.0">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="administrator" name="Administrator"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Administering the role graph — who exists, what they may act as,
+       and what they may do.
+
+       WHY THIS IS NOT COVERED BY `code-change-review.bpmn`, although
+       every step here ends as a reviewed edit to a JSON file: `admin`
+       holds two permissions no other actor has, `role-management` and
+       `admin-settings`.
+
+       What the generic diagram cannot supply is not the mechanics — it
+       is that exercising `role-management` EDITS THE SUBSTRATE every
+       other diagram's lanes bind to. So this process CALLS
+       `code-change-review` for the branch, the gates and the review, and
+       adds the three things that are specific to changing the graph:
+       a judgement about what kind of participant this is, an audit that
+       runs AFTER rather than before, and a retirement that is not a
+       deletion. `administrator` is a role because administration IS a
+       swimlane; a role invented only to make a diagram drawable is the
+       closure-widening failure `role-model.md` records.
+       ═══════════════════════════════════════════════════════════════ -->
+
+  <bpmn:collaboration id="Collaboration_ActorRoleAdministration">
+    <bpmn:participant id="Participant_ActorRoleAdministration" name="Actor and role administration" processRef="Process_ActorRoleAdministration" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_ActorRoleAdministration" name="Actor and role administration" isExecutable="false">
+    <bpmn:documentation>Changing who can do what: adding an actor, opening or closing a role to one, granting or revoking a permission — and auditing the graph afterwards, because the declaration and the graph are two things that can disagree.
+
+You are in this process when the substrate every other diagram's lanes bind to is what is changing. That is why it is drawn rather than left as a filesystem edit: a role added without an audit is a lane binding that resolves today and may not tomorrow, and nothing else in the corpus would notice.
+
+Retirement, never deletion. An actor id is referenced from commits, sidecars and other declarations, so removing one makes an old record unreadable while retiring one leaves it legible and says the actor has stopped.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- STRICT, and declared. The step under
+           time pressure is the audit: the edit looks done when the file
+           parses, and what it broke is a join three diagrams away. -->
+      <cat-harness.processes:policy enforcement="strict" />
+      <!-- Capture ON. A permission grant is a STANDING decision — it keeps
+           applying long after the session that made it — so who changed the
+           closure, and when, is exactly the audit question. -->
+      <cat-harness.processes:log capture="on" />
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_ActorRoleAdministration">
+      <bpmn:lane id="Lane_Administrator" name="Administrator" partitionElementRef="administrator">
+        <bpmn:documentation>All four administration verbs — add, assign, grant, retire — converge at Gateway_Changed onto the same CallActivity_CodeChangeReview, so no kind of substrate edit gets a lighter review path than another; and Gateway_AuditClean's 'no' branch (A13) loops back to this lane rather than ending the process, because whether a `major` finding holds the change is this lane's policy call, not something Task_RunKgAudit decides for it.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_AdminRequest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_WhichChange_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_WhichChange</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AddActor</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AssignRoles</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_GrantOrRevoke</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RetireActor</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Changed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CallActivity_CodeChangeReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_AuditClean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Administered</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Audit" name="Graph audit (system)" partitionElementRef="build-pipeline">
+        <bpmn:documentation>Runs only after CallActivity_CodeChangeReview has already completed its own review, because the breakage this lane exists to catch — a join across role, lane, actor and skill — is invisible to a code reviewer reading the diff in isolation; ordinary code review clears the edit, and only this lane's whole-graph pass can tell whether it silently broke something three diagrams away.</bpmn:documentation>
+        <!-- Bound explicitly. This lane runs a fixed program and decides
+             nothing — `kg:audit` reports, and whether a `major` finding
+             holds the change is the administrator's call one lane up. -->
+        <bpmn:flowNodeRef>Task_RunKgAudit</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_AdminRequest" name="A change to who can do what">
+      <bpmn:outgoing>A01</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:exclusiveGateway id="Gateway_WhichChange_Join">
+      <bpmn:documentation>Brings the paths together before the decision after it, so that decision only splits.</bpmn:documentation>
+      <bpmn:incoming>A01</bpmn:incoming>
+      <bpmn:incoming>A13</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gateway_WhichChange_Join</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_WhichChange" name="Which administration change?">
+      <bpmn:documentation>Read from the request. Deliberately NOT DMN-backed: the four branches are not computable from a fact anyone reports — they are what was asked for, and a table that pretended otherwise would return an answer that is not the request.</bpmn:documentation>
+      <bpmn:incoming>Flow_Gateway_WhichChange_Join</bpmn:incoming>
+      <bpmn:outgoing>A02</bpmn:outgoing>
+      <bpmn:outgoing>A03</bpmn:outgoing>
+      <bpmn:outgoing>A04</bpmn:outgoing>
+      <bpmn:outgoing>A05</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="Task_AddActor" name="Add an actor, and declare its kind">
+      <bpmn:documentation>Human, agentic or mechanical. A userTask because the agentic/mechanical line is JUDGEMENT — role-model.md says so — and reading it wrong disqualifies the actor from every judgement task it exists to perform, silently.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="role-model" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>A02</bpmn:incoming>
+      <bpmn:outgoing>A06</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task_AssignRoles" name="Open or close a role to an actor">
+      <bpmn:documentation>The join every other diagram depends on. An empty `roles` is a DETERMINED empty — it says the actor takes on none — and is not the same as an absent one, which asserts nothing.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="role-model" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>A03</bpmn:incoming>
+      <bpmn:outgoing>A07</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task_GrantOrRevoke" name="Grant or revoke a permission">
+      <bpmn:documentation>A permission travels with the PARTICIPANT and cross-cuts every lane, so unlike a role it cannot be scoped by the diagram it is used in. Granting one is a standing decision, which is why this lane is person-only and why the log capture on this process is on.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="role-model" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>A04</bpmn:incoming>
+      <bpmn:outgoing>A08</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task_RetireActor" name="Retire an actor — never delete one">
+      <bpmn:documentation>An actor id is referenced from roles, diagrams, beans and commits, so removing the file leaves every one of those unable to tell retirement from accident. Same rule, and the same reason, as a scrapped bean.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="deletion-requires-confirmation" />
+        <bootstrap.processes:skill ref="role-model" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>A05</bpmn:incoming>
+      <bpmn:outgoing>A09</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_Changed" name="Declaration edited">
+      <bpmn:incoming>A06</bpmn:incoming>
+      <bpmn:incoming>A07</bpmn:incoming>
+      <bpmn:incoming>A08</bpmn:incoming>
+      <bpmn:incoming>A09</bpmn:incoming>
+      <bpmn:outgoing>A10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="CallActivity_CodeChangeReview" name="Branch, gates, PR and review">
+      <bpmn:documentation>Called rather than restated. The mechanics of getting an edit reviewed and merged are not specific to the role graph, and a second description of them is a second thing free to disagree with the first. Where `cat-harness.sdlc` is switched on, this step is the opt-in process `code-change-review` (`Process_CodeChangeReview`, sdlc/processes/code-change-review.bpmn); it is not called from here, because a layer without that sub-graph does not have it (owner card Q-OPTIN-CALLS A, 2026-11-12).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="continual-progress" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>A10</bpmn:incoming>
+      <bpmn:outgoing>A11</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:serviceTask id="Task_RunKgAudit" name="Audit the graph">
+      <bpmn:documentation>AFTER the change, not before. Every criterion here is a join — role to lane, actor to role, activity to skill — so what an administrative edit breaks is not in the file it edited. The sidecars under `test/results/kg-qa/` are committed for the reason a printed verdict is not: without them, "unbound since it was drawn" and "broken by this change" are indistinguishable. Runs `kg:audit`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="role-model" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>A11</bpmn:incoming>
+      <bpmn:outgoing>A12</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_AuditClean" name="Audit clean?">
+      <bpmn:documentation>The administrator's call, not the pipeline's: `kg:audit:check` fails on `critical` and `kg:audit:strict` adds `major`, so what holds a change is a policy choice about this layer rather than arithmetic the audit performs.</bpmn:documentation>
+      <bpmn:incoming>A12</bpmn:incoming>
+      <bpmn:outgoing>A13</bpmn:outgoing>
+      <bpmn:outgoing>A14</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_Administered" name="Graph changed and audited">
+      <bpmn:incoming>A14</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="A01" sourceRef="Start_AdminRequest" targetRef="Gateway_WhichChange_Join" />
+    <bpmn:sequenceFlow id="A02" name="add actor" sourceRef="Gateway_WhichChange" targetRef="Task_AddActor" />
+    <bpmn:sequenceFlow id="A03" name="assign roles" sourceRef="Gateway_WhichChange" targetRef="Task_AssignRoles" />
+    <bpmn:sequenceFlow id="A04" name="permission" sourceRef="Gateway_WhichChange" targetRef="Task_GrantOrRevoke" />
+    <bpmn:sequenceFlow id="A05" name="retire" sourceRef="Gateway_WhichChange" targetRef="Task_RetireActor" />
+    <bpmn:sequenceFlow id="A06" sourceRef="Task_AddActor" targetRef="Gateway_Changed" />
+    <bpmn:sequenceFlow id="A07" sourceRef="Task_AssignRoles" targetRef="Gateway_Changed" />
+    <bpmn:sequenceFlow id="A08" sourceRef="Task_GrantOrRevoke" targetRef="Gateway_Changed" />
+    <bpmn:sequenceFlow id="A09" sourceRef="Task_RetireActor" targetRef="Gateway_Changed" />
+    <bpmn:sequenceFlow id="A10" sourceRef="Gateway_Changed" targetRef="CallActivity_CodeChangeReview" />
+    <bpmn:sequenceFlow id="A11" sourceRef="CallActivity_CodeChangeReview" targetRef="Task_RunKgAudit" />
+    <bpmn:sequenceFlow id="A12" sourceRef="Task_RunKgAudit" targetRef="Gateway_AuditClean" />
+    <bpmn:sequenceFlow id="A13" name="no" sourceRef="Gateway_AuditClean" targetRef="Gateway_WhichChange_Join" />
+    <bpmn:sequenceFlow id="Flow_Gateway_WhichChange_Join" sourceRef="Gateway_WhichChange_Join" targetRef="Gateway_WhichChange"/>
+    <bpmn:sequenceFlow id="A14" name="yes" sourceRef="Gateway_AuditClean" targetRef="End_Administered" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_ActorRoleAdministration">
+    <bpmndi:BPMNPlane id="Plane_ActorRoleAdministration" bpmnElement="Collaboration_ActorRoleAdministration">
+      <bpmndi:BPMNShape id="Shape_Participant_ActorRoleAdministration" bpmnElement="Participant_ActorRoleAdministration" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="1320" height="770" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Administrator" bpmnElement="Lane_Administrator" isHorizontal="true">
+        <dc:Bounds x="190" y="60" width="1290" height="620" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Audit" bpmnElement="Lane_Audit" isHorizontal="true">
+        <dc:Bounds x="190" y="680" width="1290" height="150" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start_AdminRequest" bpmnElement="Start_AdminRequest">
+        <dc:Bounds x="250" y="352" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="220" y="395" width="112" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_WhichChange_Join" bpmnElement="Gateway_WhichChange_Join" isMarkerVisible="true">
+        <dc:Bounds x="355" y="345" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_Gateway_WhichChange_Join" bpmnElement="Flow_Gateway_WhichChange_Join">
+        <di:waypoint x="405" y="370"/>
+        <di:waypoint x="445" y="370"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_Gateway_WhichChange" bpmnElement="Gateway_WhichChange" isMarkerVisible="true">
+        <dc:Bounds x="445" y="345" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="315" y="405" width="130" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AddActor" bpmnElement="Task_AddActor">
+        <dc:Bounds x="600" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AssignRoles" bpmnElement="Task_AssignRoles">
+        <dc:Bounds x="600" y="245" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_GrantOrRevoke" bpmnElement="Task_GrantOrRevoke">
+        <dc:Bounds x="600" y="385" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RetireActor" bpmnElement="Task_RetireActor">
+        <dc:Bounds x="600" y="525" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_Changed" bpmnElement="Gateway_Changed" isMarkerVisible="true">
+        <dc:Bounds x="790" y="345" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="830" y="310" width="110" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_CallActivity_CodeChangeReview" bpmnElement="CallActivity_CodeChangeReview">
+        <dc:Bounds x="940" y="310" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RunKgAudit" bpmnElement="Task_RunKgAudit">
+        <dc:Bounds x="940" y="695" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_AuditClean" bpmnElement="Gateway_AuditClean" isMarkerVisible="true">
+        <dc:Bounds x="1195" y="345" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1175" y="405" width="90" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Administered" bpmnElement="End_Administered">
+        <dc:Bounds x="1382" y="352" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1342" y="396" width="116" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_A01" bpmnElement="A01">
+        <di:waypoint x="286" y="370" />
+        <di:waypoint x="355" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A02" bpmnElement="A02">
+        <di:waypoint x="470" y="345" />
+        <di:waypoint x="470" y="165" />
+        <di:waypoint x="600" y="165" />
+        <bpmndi:BPMNLabel><dc:Bounds x="485" y="140" width="90" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A03" bpmnElement="A03">
+        <di:waypoint x="495" y="370" />
+        <di:waypoint x="540" y="370" />
+        <di:waypoint x="540" y="305" />
+        <di:waypoint x="600" y="305" />
+        <bpmndi:BPMNLabel><dc:Bounds x="498" y="280" width="95" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A04" bpmnElement="A04">
+        <di:waypoint x="495" y="370" />
+        <di:waypoint x="540" y="370" />
+        <di:waypoint x="540" y="445" />
+        <di:waypoint x="600" y="445" />
+        <bpmndi:BPMNLabel><dc:Bounds x="498" y="452" width="95" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A05" bpmnElement="A05">
+        <di:waypoint x="470" y="395" />
+        <di:waypoint x="470" y="585" />
+        <di:waypoint x="600" y="585" />
+        <bpmndi:BPMNLabel><dc:Bounds x="485" y="560" width="70" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A06" bpmnElement="A06">
+        <di:waypoint x="720" y="165" />
+        <di:waypoint x="815" y="165" />
+        <di:waypoint x="815" y="345" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A07" bpmnElement="A07">
+        <di:waypoint x="720" y="305" />
+        <di:waypoint x="755" y="305" />
+        <di:waypoint x="755" y="370" />
+        <di:waypoint x="790" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A08" bpmnElement="A08">
+        <di:waypoint x="720" y="445" />
+        <di:waypoint x="755" y="445" />
+        <di:waypoint x="755" y="370" />
+        <di:waypoint x="790" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A09" bpmnElement="A09">
+        <di:waypoint x="720" y="585" />
+        <di:waypoint x="815" y="585" />
+        <di:waypoint x="815" y="395" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A10" bpmnElement="A10">
+        <di:waypoint x="840" y="370" />
+        <di:waypoint x="940" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A11" bpmnElement="A11">
+        <di:waypoint x="1000" y="430" />
+        <di:waypoint x="1000" y="695" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A12" bpmnElement="A12">
+        <di:waypoint x="1060" y="755" />
+        <di:waypoint x="1127.5" y="755" />
+        <di:waypoint x="1127.5" y="370" />
+        <di:waypoint x="1195" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A13" bpmnElement="A13">
+        <bpmndi:BPMNLabel><dc:Bounds x="1228" y="200" width="30" height="20" /></bpmndi:BPMNLabel>
+        <di:waypoint x="1220" y="345" />
+        <di:waypoint x="1220" y="80" />
+        <di:waypoint x="380" y="80" />
+        <di:waypoint x="380" y="345" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_A14" bpmnElement="A14">
+        <bpmndi:BPMNLabel><dc:Bounds x="1290" y="345" width="35" height="20" /></bpmndi:BPMNLabel>
+        <di:waypoint x="1245" y="370" />
+        <di:waypoint x="1382" y="370" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

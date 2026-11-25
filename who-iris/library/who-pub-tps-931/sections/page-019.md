@@ -1,0 +1,59 @@
+---
+doc_id: who-pub-tps-931
+doc_title: "WHO Editorial Style Manual"
+section_id: page-019
+section_title: "Page 19"
+section_number: null
+pages: 19-19
+source_pdf: WHO_PUB_TPS_93.1.pdf
+source_sha256: ecc88eee99756755
+toc_source: undetermined
+---
+WHO Editorial Style Manual
+
+In the above examples a solidus (oblique stroke) would convey the
+same meaning, e.g. oil/water interface.
+
+The en rule signifies “to” in the following:
+
+12-24 September
+pp. 5-55
+London-Brighton race.
+
+However, if the word “from” is used, e.g. from 1850 to 1895, then the
+en rule is inappropriate and “to” must be used.
+
+For typographical reasons, a spaced en rule is sometimes used — as in
+this manual — to perform the functions of an em rule.
+
+Em rule
+The role of the em rule or dash in parentheses has been mentioned
+already, but it also has a number of other important uses:
+
+1. To introduce an explanation or amplification of what immedi-
+ately precedes it.
+
+. To gather up the subject of a long or complicated sentence.
+
+. To introduce a paradoxical or humorous ending to a sentence.
+
+. To indicate the omission of a word or part of a word.
+
+. To introduce items in a list (see section 10) or lines of dialogue,
+or to list phrases.
+
+WB Why
+
+Brackets
+
+The word “brackets” usually signifies square brackets; round brackets
+are “parentheses”, and curly brackets, sometimes used to group items
+in a table, are “braces” (see section 13 for their use in mathematical
+formulae).
+
+Square brackets are used to indicate words interpolated in quotations;
+their contents do not affect the punctuation of the quotation. Simi-
+larly, square brackets may be used to enclose an explanation within the
+text by someone other than the author.
+
+14

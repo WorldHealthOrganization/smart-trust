@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_GeneratedFileDrift" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="build-pipeline" name="Build pipeline"/>
+  <bpmn:collaboration id="Collaboration_Process_GeneratedFileDrift">
+    <bpmn:participant id="Participant_Process_GeneratedFileDrift" name="Check a generated file still matches its source" processRef="Process_GeneratedFileDrift"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_GeneratedFileDrift" name="Check a generated file still matches its source" isExecutable="false">
+    <bpmn:documentation>Check that a committed generated file still matches the source it is generated from. A GENERATED FILE THAT IS COMMITTED CAN GO STALE, AND A STALE ONE IS CONSULTED. The job reruns the generator in `--check` mode, which regenerates in memory and diffs against the committed file; any difference fails the job.
+
+Every drift check draws this same shape, so it is drawn once here (shared block G3 of the BPMN guidance review, owner Q-BR-2 C). Callers: jsonld-drift-check in cat-harness (the .jsonld siblings of the .ts manifests) and atomic-mass-drift-check in folio-assistant-sci (AtomicMass.lean from its data table). Each caller's call step says which generator runs; the caller's workflow keeps its own `# bpmn-node:` marker, so check:workflow-coverage still sees every job.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_GeneratedFileDrift">
+      <bpmn:lane id="Lane_Ci" name="Build pipeline" partitionElementRef="build-pipeline">
+        <bpmn:documentation>The only lane: one mechanical step whose diff the gateway reads directly. There is no reviewer to hand off to; the check either matches or it does not.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Change</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Drift</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Clean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Drift</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Change" name="File to check">
+      <bpmn:documentation>A caller's job has started: on a pull request, a push to main, or a dispatch.</bpmn:documentation>
+      <bpmn:outgoing>Flow_GD_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_Check" name="Regenerate from the source and diff">
+      <bpmn:documentation>Run the caller's generator with --check: regenerate the file from its source in memory and diff it against the committed copy. Several independent generators run in one job are still one step, because they have no order between them.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="A mechanical actor runs this — GitHub Actions executes a command in a runner. There is no instruction body an agent could be handed, and a skill here would describe somebody else&apos;s behaviour."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_GD_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_GD_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Drift" name="Did anything change?">
+      <bpmn:documentation>Answered by the diff Task_Check takes. No difference ends clean; any difference ends the job red, because the committed file is stale against its source.</bpmn:documentation>
+      <bpmn:incoming>Flow_GD_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_GD_3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_GD_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Clean" name="In sync">
+      <bpmn:incoming>Flow_GD_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Drift" name="Stale: job red">
+      <bpmn:incoming>Flow_GD_4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_GD_1" sourceRef="Start_Change" targetRef="Task_Check"/>
+    <bpmn:sequenceFlow id="Flow_GD_2" sourceRef="Task_Check" targetRef="GW_Drift"/>
+    <bpmn:sequenceFlow id="Flow_GD_3" sourceRef="GW_Drift" targetRef="End_Clean" name="no"/>
+    <bpmn:sequenceFlow id="Flow_GD_4" sourceRef="GW_Drift" targetRef="End_Drift" name="yes"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_GeneratedFileDrift">
+    <bpmndi:BPMNPlane id="Plane_Process_GeneratedFileDrift" bpmnElement="Collaboration_Process_GeneratedFileDrift">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_GeneratedFileDrift" bpmnElement="Participant_Process_GeneratedFileDrift" isHorizontal="true">
+        <dc:Bounds x="60" y="60" width="608" height="360"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Ci" bpmnElement="Lane_Ci" isHorizontal="true">
+        <dc:Bounds x="90" y="60" width="578" height="360"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Change" bpmnElement="Start_Change">
+        <dc:Bounds x="150" y="182" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="108" y="222" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Check" bpmnElement="Task_Check">
+        <dc:Bounds x="250" y="140" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Drift" bpmnElement="GW_Drift" isMarkerVisible="true">
+        <dc:Bounds x="430" y="175" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="395" y="120" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Clean" bpmnElement="End_Clean">
+        <dc:Bounds x="572" y="182" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="530" y="222" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Drift" bpmnElement="End_Drift">
+        <dc:Bounds x="437" y="332" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="470" y="330" width="120" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_GD_1" bpmnElement="Flow_GD_1">
+        <di:waypoint x="186" y="200"/>
+        <di:waypoint x="250" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_GD_2" bpmnElement="Flow_GD_2">
+        <di:waypoint x="370" y="200"/>
+        <di:waypoint x="430" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_GD_3" bpmnElement="Flow_GD_3">
+        <di:waypoint x="480" y="200"/>
+        <di:waypoint x="572" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_GD_4" bpmnElement="Flow_GD_4">
+        <di:waypoint x="455" y="225"/>
+        <di:waypoint x="455" y="332"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

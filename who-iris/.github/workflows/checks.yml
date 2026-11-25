@@ -1,0 +1,73 @@
+# who-iris's own checks, run here because this repository is where its content
+# changes. Until bean kpci they ran in folio-assistant's code-quality-gates job
+# against a mount of who-iris; that is gone (owner ruling 2026-10-11: "who-iris
+# CI").
+#
+# The scripts live in the instances index.lock.json mounts, folio-assistant-core
+# first among them. So the first step lays those mounts down. The replayer is
+# scripts/mount-from-lock.ts at the cat-harness-tools commit the lock pins. It
+# imports only node:*, so fetching that one file is enough, and it verifies each
+# mount's tree digest against the lock.
+name: who-iris checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Catalogue, pages, covers, DC renderings, tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Mount the instances index.lock.json pins
+        run: |
+          set -euo pipefail
+          read -r repo sha < <(bun -e '
+            const l = JSON.parse(require("node:fs").readFileSync("index.lock.json", "utf-8"));
+            const i = (l.instances ?? []).find((x) => x.instance === "cat-harness-tools");
+            if (!i) { console.error("index.lock.json pins no cat-harness-tools instance"); process.exit(2); }
+            console.log(i.repository, i.sha);
+          ')
+          work="$(mktemp -d)"
+          git -C "$work" init -q
+          git -C "$work" fetch -q --depth 1 --filter=blob:none "https://github.com/${repo}.git" "$sha"
+          git -C "$work" checkout -q FETCH_HEAD -- scripts/mount-from-lock.ts
+          bun "$work/scripts/mount-from-lock.ts" --root .
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Catalogue validates
+        run: bun run check:catalogue
+      - name: Generated pages are current
+        run: bun run iris:pages:check
+      - name: Covers match the catalogue
+        run: bun run iris:covers:check
+      - name: Dublin Core renderings are current
+        run: bun run dc:render:check
+      - name: Mount the attestations state branch
+        # test/attestations/ is kept on cat/who-iris/attestations, never on
+        # main (who-iris.json `source`; check:state-on-main), and the round-trip
+        # report and its tests read it.
+        run: |
+          set -euo pipefail
+          git fetch -q --depth 1 origin cat/who-iris/attestations
+          git archive FETCH_HEAD test/attestations | tar -x
+          test -n "$(ls test/attestations/translation-qa)"
+      - name: Tests
+        run: bun test ./scripts/tests/   # anchored: a bare "scripts/tests" also matches every mount's tests

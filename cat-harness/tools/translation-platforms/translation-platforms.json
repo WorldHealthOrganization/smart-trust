@@ -1,0 +1,119 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "translation-platforms",
+    "title": "Exchange catalogues with a translation platform",
+    "description": "For Weblate, Crowdin and Transifex: `export` writes the layout file a platform reads from the layer's declared `translation-sources` directory; `import` turns the `.po` changes a platform pushed onto the checked-out branch into CANDIDATES, never adjudications. Nothing here talks to a platform or the network. Exit 0 done, 1 `--check` found drift, 3 import found nothing to rewrite, 2 could not determine.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat translation:platforms"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "action",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "`export` or `import`.",
+          "required": true,
+          "arg": {
+            "positional": 0
+          }
+        },
+        {
+          "name": "platform",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "`weblate`, `crowdin` or `transifex`.",
+          "required": true,
+          "arg": {
+            "flag": "--platform"
+          }
+        },
+        {
+          "name": "root",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The layer root. Default: the current directory.",
+          "required": false,
+          "arg": {
+            "flag": "--root"
+          }
+        },
+        {
+          "name": "base",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "import: the git ref the platform's changes are compared against.",
+          "required": false,
+          "arg": {
+            "flag": "--base"
+          }
+        },
+        {
+          "name": "write",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "export: write the platform's file rather than print it.",
+          "required": false,
+          "arg": {
+            "flag": "--write"
+          }
+        },
+        {
+          "name": "check",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "export: fail when the committed file differs from what would be written.",
+          "required": false,
+          "arg": {
+            "flag": "--check"
+          }
+        },
+        {
+          "name": "dry_run",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "import: plan and report, write nothing.",
+          "required": false,
+          "arg": {
+            "flag": "--dry-run"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "summary",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "The file written or the candidates recorded."
+        }
+      ]
+    },
+    "satisfies": [
+      "translation-candidate-source",
+      "translation-manager"
+    ],
+    "selection": {
+      "when": "When a layer offers its catalogues to a translation platform, and when the platform's import workflow brings its changes back as candidates.",
+      "limits": "Reads and writes files only; the platform's own push and pull happen outside it.",
+      "cost": "One read of the layer's catalogues. No network."
+    },
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  }
+}
