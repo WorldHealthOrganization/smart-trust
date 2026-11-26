@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_TestPlanExecution"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="0.1.0">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="attestation-service" name="Attestation service"/>
+  <bpmn:resource id="certifier" name="Certifier"/>
+  <bpmn:resource id="test-requester" name="Test requester"/>
+  <bpmn:resource id="tester" name="Tester"/>
+  <bpmn:resource id="untainted-checker" name="Untainted checker"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Test-plan execution — a system under test, a plan, a certification.
+
+       Bean `folio-assistant-3o5b`, arc `3fva`, proposal
+       `docs/proposals/qa-reports-branch-and-test-process-2026-10-01.md` §3.2.
+       Owner, 2026-10-01: "tie QA into a strawperson test process (an agent
+       or machine is tested against a test plan of many tests with their
+       test data)".
+
+       FIVE LANES, AND THE POINT OF HAVING FIVE. The system under test may
+       ASK; it never tests, checks or certifies. The tester runs the plan;
+       a second, untainted party re-executes a sample without seeing the
+       tester's verdicts; the certifier decides on the rollup by a table it
+       applies rather than a preference it holds; and the signature is
+       `qa-report-signing.bpmn`, called unchanged.
+
+       THREE ENDINGS, NOT TWO. `undetermined` is a real end: the evidence
+       does not decide, so nothing is signed and nothing is refused. Folding
+       it into either neighbour is the could-not-determine-rendered-as-an-
+       answer defect this repository keeps re-finding.
+
+       Skill: sdlc/skills/sdlc-core/test-plan-execution.md
+       Decision: decisions/test-certification.dmn
+       ═══════════════════════════════════════════════════════════════ -->
+
+  <bpmn:collaboration id="Collab_TestPlanExecution">
+    <bpmn:participant id="Participant_TestPlanExecution" name="Test-plan execution — request, run, check, certify, sign" processRef="Process_TestPlanExecution" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_TestPlanExecution" name="Test-plan execution" isExecutable="true">
+    <bpmn:documentation>Executing a `test-plan/v1` against a system under test and taking the result to a certification decision: requested by (or for) the system, run by a tester, re-executed in sample by an untainted checker, decided by a certifier through the plan's exit-criteria table, and signed through `qa-report-signing.bpmn`.
+
+You are in this process when somebody wants a system — a skill, an agent, a tool, a machine, an IG or a process — certified against a named plan. Executing a plan with no certification in view is still this process; it ends at `undetermined` or `refused` without anything being signed.
+
+The run, the report and the certification are three records, and they point backwards: the run at the plan, the report at the run, the certification at the report. The certification is a judgement and lives under the declared `attestations` graph, on main; the report is derived and lives on the `qa-reports` branch.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- STRICT. The step an agent under time pressure skips is the
+           untainted re-execution — the tester's run looks complete without
+           it — and skipping it is how one party's word becomes a
+           certificate. -->
+      <cat-harness.processes:policy enforcement="strict" />
+      <!-- Capture ON: a certification's value is that a third party can ask
+           who ran, who checked and who decided. -->
+      <cat-harness.processes:log capture="on" />
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_TestPlanExecution">
+      <bpmn:lane id="Lane_Requester" name="Requester / system under test" partitionElementRef="test-requester">
+        <bpmn:documentation>The system under test, or whoever speaks for it, asking for certification against plan P at a named version. Its only task is the request, and that is the design rather than an omission: the system under test never writes a verdict about itself, so after this lane it is the SUBJECT of the process and never a performer in it.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanOpen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_BeanYours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_BeanNotYours</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Tester" name="Tester" partitionElementRef="tester">
+        <bpmn:documentation>Runs the plan against the system: resolves it, binds its fixed or generated test data, executes every case or skips it with a reason, and writes the `folio-test-run/v1` and the `test-report/v1`. Untainted from the system under test — never the same actor — and it does not certify: what it writes is what the certifier decides on.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_ResolvePlan</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_BindData</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Execute</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_WriteRun</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Checker" name="Untainted checker" partitionElementRef="untainted-checker">
+        <bpmn:documentation>A second party re-executing a sample of the cases from the plan and the data alone, never from the tester's verdicts. It rules on nothing: whether it agrees is a fact the certification table reads. One party doing both halves is not this check — it would compare a run with its own paraphrase of itself.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_ReExecuteSample</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Certifier" name="Certifier" partitionElementRef="certifier">
+        <bpmn:documentation>The accountable party for the decision, a specialisation of the stakeholder. The gateway is computed from the plan's exit-criteria table; what the certifier adds, and what makes it a judgement, is recording the decision under their name. Never the tester and never the system under test.</bpmn:documentation>
+        <bpmn:flowNodeRef>GW_ExitCriteria</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_RecordCertification</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_RecordRefusal</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_RecordUndetermined</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Refused</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Undetermined</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Attestation" name="Attestation service" partitionElementRef="attestation-service">
+        <bpmn:documentation>Signs the certification and files it. Reached only from `certified`: a refusal and an undetermined result are recorded by the certifier and signed by nobody. The signature itself is `qa-report-signing.bpmn`, called unchanged, whose own gateway chooses the API or a human release authority by the signer's reach.</bpmn:documentation>
+        <bpmn:flowNodeRef>Call_Sign</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_FileCertification</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Certified</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_BeanClose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_BeanClosedHow</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Request" name="Certification wanted against plan P">
+      <bpmn:outgoing>F01</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="A_Request" name="Request certification of the system against plan P">
+      <bpmn:documentation>Name the plan by id AND version, and the system under test by actor id. The actor must carry the `systemUnderTest` facet: an actor that has not said it can be tested is not run against a plan by default. The bean this instance tracks is claimed here.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="test-plan-execution" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:outgoing>F02</bpmn:outgoing>
+      <bpmn:incoming>SF_Bean_1</bpmn:incoming>
+    </bpmn:task>
+
+    <bpmn:task id="A_ResolvePlan" name="Resolve the plan">
+      <bpmn:documentation>The plan parses, names at least one `req:` requirement, its `exitCriteria` resolves to a decision in a `.dmn` that exists, and its `scope.kind` is the system's facet kind. A plan that does not resolve is not run — `test-plan-resolves` audits the same join afterwards. Reads a `test-plan/v1`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="test-plan-execution" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F02</bpmn:incoming>
+      <bpmn:outgoing>F03</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_BindData" name="Bind the test data">
+      <bpmn:documentation>Per bean `vm6m`: a fixed set is a committed path and counts as evidence only once reviewed; a generated set is template + params + seed and is never materialised. Both feed the run's data hash, and nothing that feeds the process hash may feed it too.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="test-plan-execution" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F03</bpmn:incoming>
+      <bpmn:outgoing>F04</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_Execute" name="Execute every case, or skip it with a reason">
+      <bpmn:documentation>Every case in dependency order. A case is executed or explicitly `skipped` with its reason; a case that simply has no verdict is a finding, because it cannot be told from a case nobody ran.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="test-plan-execution" />
+        <bootstrap.processes:skill ref="test-engineer" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F04</bpmn:incoming>
+      <bpmn:outgoing>F05</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_WriteRun" name="Write the test run and the test report">
+      <bpmn:documentation>The run records `plan {id, version}` and `sut {actor, version, reach}` with its data and process hashes; the report rolls up per plan, never across plans, and goes to the `qa-reports` branch at `tests/plan/sut/run/`. No verdict in it may name the system under test as its reviewer. Writes a `folio-test-run/v1` and a `test-report/v1`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="test-plan-execution" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F05</bpmn:incoming>
+      <bpmn:outgoing>F06</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_ReExecuteSample" name="Re-execute a sample, blind to the tester's verdicts">
+      <bpmn:documentation>Given the plan, the bound data and a sample of case ids — not the report. Says `agree`, `disagree` or `unknown`; `unknown` (could not run) is said as plainly as a disagreement, because the table reads both the same way and an unknown read as agreement certifies on one party's word.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="untainted-verification" />
+        <bootstrap.processes:skill ref="test-plan-execution" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F06</bpmn:incoming>
+      <bpmn:outgoing>F07</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_ExitCriteria" name="Exit criteria met?">
+      <bpmn:documentation>Computed from six facts read off the records — report status, data hash known, unexecuted cases, the checker's agreement, failed and passed cases — by the table the plan's `exitCriteria` names (resolved dynamically; if unresolvable, routes to undetermined and never silently falls back to default). Supplying the branch by hand is refused.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:decision ref="decisions/test-certification.dmn#Decision_TestCertification" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F07</bpmn:incoming>
+      <bpmn:outgoing>F_Certified</bpmn:outgoing>
+      <bpmn:outgoing>F_Refused</bpmn:outgoing>
+      <bpmn:outgoing>F_Undetermined</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="A_RecordCertification" name="Record the certification decision">
+      <bpmn:documentation>The judgement: the certifier records, under their own name, that the system meets plan P at this version on this run. It is written under the declared `attestations` graph beside the other judgements, never on the `qa-reports` branch with derived results. A user task, so no agent or pipeline can fill it.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="test-plan-execution" />
+        <cat-harness.processes:bean op="note" />
+        <cat-harness.processes:policy relaxable="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_Certified</bpmn:incoming>
+      <bpmn:outgoing>F08</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="A_RecordRefusal" name="Record the refusal, with the failing cases">
+      <bpmn:documentation>A complete, trusted run in which a case failed. The refusal names the failing cases and is the end of this request; nothing is signed. The bean resolves here because the process has finished — what to do about the failure is a new piece of work.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="test-plan-execution" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_Refused</bpmn:incoming>
+      <bpmn:outgoing>F09</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:task id="A_RecordUndetermined" name="Record why it could not be decided">
+      <bpmn:documentation>The third state: which fact kept the table from deciding — a run not finished, an unknown data hash, an unexecuted case, a checker that disagreed or could not run, or nothing passed. A note and not a resolution, because the request is still open: it needs a re-run or an adjudication, not a verdict.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="test-plan-execution" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_Undetermined</bpmn:incoming>
+      <bpmn:outgoing>F10</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:callActivity id="Call_Sign" name="Sign the certification" calledElement="Process_QaReportSigning">
+      <bpmn:documentation>`qa-report-signing.bpmn`, unchanged: it builds the signable run record, resolves the signer's reach, and routes the signature to the API or to a human release authority.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="qa-report-signing" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F08</bpmn:incoming>
+      <bpmn:outgoing>F11</bpmn:outgoing>
+    </bpmn:callActivity>
+
+    <bpmn:serviceTask id="A_FileCertification" name="File the signed certification">
+      <bpmn:documentation>The signed certification goes under the declared `attestations` graph on main (owner ruling D2 (a), D5 default), pointing at the report it certifies. The bean resolves here, once the process has actually finished. Files it as `qa-attestations/v1`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="test-plan-execution" />
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>F11</bpmn:incoming>
+      <bpmn:outgoing>F12</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="End_Certified" name="Certified and signed">
+      <bpmn:incoming>SF_Bean_4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Refused" name="Refused">
+      <bpmn:incoming>SF_Bean_5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Undetermined" name="Undetermined — nothing signed">
+      <bpmn:incoming>SF_Bean_6</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:callActivity id="Call_BeanOpen" name="Open the bean" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Process_BeanOpen: check before you create, find out whose the bean is, and claim it — or leave it alone when it is someone else's. The one place a claim is drawn (bean m8gz, owner 2026-10-24); the gateway after this reads which end it reached.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+      <bpmn:incoming>F01</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_2</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_BeanYours" name="Bean claimed?">
+      <bpmn:documentation>Reads which end Process_BeanOpen reached. `claimed`: the bean is in progress and this process works it. `not yours`: a sibling session or a human holds it, nothing was written to it, and this process stops here rather than work a bean it does not own (bean-coordination).</bpmn:documentation>
+      <bpmn:outgoing>SF_Bean_1</bpmn:outgoing>
+      <bpmn:incoming>SF_Bean_2</bpmn:incoming>
+      <bpmn:outgoing>SF_Bean_3</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_BeanNotYours" name="Not yours —&#10;left alone">
+      <bpmn:documentation>Someone else holds the bean; this run stops without touching it.</bpmn:documentation>
+      <bpmn:incoming>SF_Bean_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Call_BeanClose" name="Close the bean" calledElement="Process_BeanClose">
+      <bpmn:documentation>Process_BeanClose: end the bean in a state that says why — complete and archive it, scrap it with its reasons and archive it, or record the blocker and hand it back. The one place resolve and archive are drawn (bean m8gz, owner 2026-10-24); placed straight before the end so the engine's resolve sees nothing left but the archive step.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_BeanClosedHow" name="How did it end?">
+      <bpmn:documentation>Which outcome the bean was closed with, so each ends at its own named end event. The bean is closed once, on every path (bpmn-authoring: open and close the bean at the top, once).</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="F01" sourceRef="Start_Request" targetRef="Call_BeanOpen" />
+    <bpmn:sequenceFlow id="F02" sourceRef="A_Request" targetRef="A_ResolvePlan" />
+    <bpmn:sequenceFlow id="F03" sourceRef="A_ResolvePlan" targetRef="A_BindData" />
+    <bpmn:sequenceFlow id="F04" sourceRef="A_BindData" targetRef="A_Execute" />
+    <bpmn:sequenceFlow id="F05" sourceRef="A_Execute" targetRef="A_WriteRun" />
+    <bpmn:sequenceFlow id="F06" sourceRef="A_WriteRun" targetRef="A_ReExecuteSample" />
+    <bpmn:sequenceFlow id="F07" sourceRef="A_ReExecuteSample" targetRef="GW_ExitCriteria" />
+    <bpmn:sequenceFlow id="F_Certified" name="certified" sourceRef="GW_ExitCriteria" targetRef="A_RecordCertification" />
+    <bpmn:sequenceFlow id="F_Refused" name="refused" sourceRef="GW_ExitCriteria" targetRef="A_RecordRefusal" />
+    <bpmn:sequenceFlow id="F_Undetermined" name="undetermined" sourceRef="GW_ExitCriteria" targetRef="A_RecordUndetermined" />
+    <bpmn:sequenceFlow id="F08" sourceRef="A_RecordCertification" targetRef="Call_Sign" />
+    <bpmn:sequenceFlow id="F09" sourceRef="A_RecordRefusal" targetRef="Call_BeanClose" />
+    <bpmn:sequenceFlow id="F10" sourceRef="A_RecordUndetermined" targetRef="Call_BeanClose" />
+    <bpmn:sequenceFlow id="F11" sourceRef="Call_Sign" targetRef="A_FileCertification" />
+    <bpmn:sequenceFlow id="F12" sourceRef="A_FileCertification" targetRef="Call_BeanClose" />
+    <bpmn:sequenceFlow id="SF_Bean_1" name="claimed" sourceRef="GW_BeanYours" targetRef="A_Request"/>
+    <bpmn:sequenceFlow id="SF_Bean_2" sourceRef="Call_BeanOpen" targetRef="GW_BeanYours"/>
+    <bpmn:sequenceFlow id="SF_Bean_3" name="not yours" sourceRef="GW_BeanYours" targetRef="End_BeanNotYours"/>
+    <bpmn:sequenceFlow id="Flow_GW_BeanClosedHow" sourceRef="Call_BeanClose" targetRef="GW_BeanClosedHow"/>
+    <bpmn:sequenceFlow name="certified" id="SF_Bean_4" sourceRef="GW_BeanClosedHow" targetRef="End_Certified"/>
+    <bpmn:sequenceFlow name="refused" id="SF_Bean_5" sourceRef="GW_BeanClosedHow" targetRef="End_Refused"/>
+    <bpmn:sequenceFlow name="undetermined" id="SF_Bean_6" sourceRef="GW_BeanClosedHow" targetRef="End_Undetermined"/>
+  </bpmn:process>
+
+  <!-- Layout only. Nothing below changes what the process does. -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_TestPlanExecution">
+    <bpmndi:BPMNPlane id="BPMNPlane_TestPlanExecution" bpmnElement="Collab_TestPlanExecution">
+      <bpmndi:BPMNShape id="Shape_Participant_TestPlanExecution" bpmnElement="Participant_TestPlanExecution" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1380" height="895" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Requester" bpmnElement="Lane_Requester" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1350" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Tester" bpmnElement="Lane_Tester" isHorizontal="true">
+        <dc:Bounds x="190" y="230" width="1350" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Checker" bpmnElement="Lane_Checker" isHorizontal="true">
+        <dc:Bounds x="190" y="370" width="1350" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Certifier" bpmnElement="Lane_Certifier" isHorizontal="true">
+        <dc:Bounds x="190" y="510" width="1350" height="275" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Attestation" bpmnElement="Lane_Attestation" isHorizontal="true">
+        <dc:Bounds x="190" y="785" width="1350" height="190" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Request" bpmnElement="Start_Request">
+        <dc:Bounds x="236" y="107" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="148" width="105" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanOpen_di" bpmnElement="Call_BeanOpen">
+        <dc:Bounds x="332" y="85" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_BeanYours_di" bpmnElement="GW_BeanYours" isMarkerVisible="true">
+        <dc:Bounds x="482" y="100" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="535" y="82" width="105" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_BeanNotYours_di" bpmnElement="End_BeanNotYours">
+        <dc:Bounds x="489" y="175" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="530" y="175" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Request" bpmnElement="A_Request">
+        <dc:Bounds x="642" y="85" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ResolvePlan" bpmnElement="A_ResolvePlan">
+        <dc:Bounds x="250" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_BindData" bpmnElement="A_BindData">
+        <dc:Bounds x="400" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Execute" bpmnElement="A_Execute">
+        <dc:Bounds x="550" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_WriteRun" bpmnElement="A_WriteRun">
+        <dc:Bounds x="700" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ReExecuteSample" bpmnElement="A_ReExecuteSample">
+        <dc:Bounds x="700" y="380" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_ExitCriteria" bpmnElement="GW_ExitCriteria" isMarkerVisible="true">
+        <dc:Bounds x="735" y="555" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="668" y="512" width="62" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_RecordRefusal" bpmnElement="A_RecordRefusal">
+        <dc:Bounds x="545" y="520" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_RecordCertification" bpmnElement="A_RecordCertification">
+        <dc:Bounds x="860" y="520" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_RecordUndetermined" bpmnElement="A_RecordUndetermined">
+        <dc:Bounds x="700" y="655" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Sign" bpmnElement="Call_Sign">
+        <dc:Bounds x="860" y="795" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_FileCertification" bpmnElement="A_FileCertification">
+        <dc:Bounds x="1010" y="795" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Call_BeanClose_di" bpmnElement="Call_BeanClose">
+        <dc:Bounds x="1160" y="795" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_BeanClosedHow" bpmnElement="GW_BeanClosedHow" isMarkerVisible="true">
+        <dc:Bounds x="1310" y="830" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1343" y="865" width="100" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Refused" bpmnElement="End_Refused">
+        <dc:Bounds x="1317" y="697" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1238" y="706" width="75" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Undetermined" bpmnElement="End_Undetermined">
+        <dc:Bounds x="1480" y="697" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1380" y="690" width="95" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Certified" bpmnElement="End_Certified">
+        <dc:Bounds x="1317" y="932" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1358" y="941" width="160" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_F01" bpmnElement="F01">
+        <di:waypoint x="272" y="125" />
+        <di:waypoint x="332" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_2_di" bpmnElement="SF_Bean_2">
+        <di:waypoint x="452" y="125" />
+        <di:waypoint x="482" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_1_di" bpmnElement="SF_Bean_1">
+        <di:waypoint x="532" y="125" />
+        <di:waypoint x="642" y="125" />
+        <bpmndi:BPMNLabel><dc:Bounds x="540" y="130" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_3_di" bpmnElement="SF_Bean_3">
+        <di:waypoint x="507" y="150" />
+        <di:waypoint x="507" y="175" />
+        <bpmndi:BPMNLabel><dc:Bounds x="512" y="152" width="70" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F02" bpmnElement="F02">
+        <di:waypoint x="702" y="205" />
+        <di:waypoint x="702" y="222" />
+        <di:waypoint x="310" y="222" />
+        <di:waypoint x="310" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F03" bpmnElement="F03">
+        <di:waypoint x="370" y="300" />
+        <di:waypoint x="400" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F04" bpmnElement="F04">
+        <di:waypoint x="520" y="300" />
+        <di:waypoint x="550" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F05" bpmnElement="F05">
+        <di:waypoint x="670" y="300" />
+        <di:waypoint x="700" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F06" bpmnElement="F06">
+        <di:waypoint x="760" y="360" />
+        <di:waypoint x="760" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F07" bpmnElement="F07">
+        <di:waypoint x="760" y="500" />
+        <di:waypoint x="760" y="555" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Refused" bpmnElement="F_Refused">
+        <di:waypoint x="735" y="580" />
+        <di:waypoint x="665" y="580" />
+        <bpmndi:BPMNLabel><dc:Bounds x="670" y="585" width="55" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Certified" bpmnElement="F_Certified">
+        <di:waypoint x="785" y="580" />
+        <di:waypoint x="860" y="580" />
+        <bpmndi:BPMNLabel><dc:Bounds x="788" y="560" width="70" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Undetermined" bpmnElement="F_Undetermined">
+        <di:waypoint x="760" y="605" />
+        <di:waypoint x="760" y="655" />
+        <bpmndi:BPMNLabel><dc:Bounds x="765" y="612" width="95" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F08" bpmnElement="F08">
+        <di:waypoint x="920" y="640" />
+        <di:waypoint x="920" y="795" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F11" bpmnElement="F11">
+        <di:waypoint x="980" y="855" />
+        <di:waypoint x="1010" y="855" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F12" bpmnElement="F12">
+        <di:waypoint x="1130" y="855" />
+        <di:waypoint x="1160" y="855" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F10" bpmnElement="F10">
+        <di:waypoint x="760" y="775" />
+        <di:waypoint x="760" y="935" />
+        <di:waypoint x="1200" y="935" />
+        <di:waypoint x="1200" y="915" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F09" bpmnElement="F09">
+        <di:waypoint x="605" y="640" />
+        <di:waypoint x="605" y="955" />
+        <di:waypoint x="1240" y="955" />
+        <di:waypoint x="1240" y="915" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_GW_BeanClosedHow" bpmnElement="Flow_GW_BeanClosedHow">
+        <di:waypoint x="1280" y="855" />
+        <di:waypoint x="1310" y="855" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_5_di" bpmnElement="SF_Bean_5">
+        <di:waypoint x="1335" y="830" />
+        <di:waypoint x="1335" y="733" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1278" y="760" width="52" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_6_di" bpmnElement="SF_Bean_6">
+        <di:waypoint x="1360" y="855" />
+        <di:waypoint x="1498" y="855" />
+        <di:waypoint x="1498" y="733" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1368" y="834" width="100" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF_Bean_4_di" bpmnElement="SF_Bean_4">
+        <di:waypoint x="1335" y="880" />
+        <di:waypoint x="1335" y="932" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1340" y="905" width="65" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

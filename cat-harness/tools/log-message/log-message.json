@@ -1,0 +1,107 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "log-message",
+    "title": "Log a message to the discussion",
+    "description": "Write a log line where the human actor will read it: the discussion you are already in. Takes the five required fields and the optional body, and renders them as one entry.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "manual": true
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "timestamp",
+          "schema": {
+            "$type": "Timestamp"
+          },
+          "description": "When it happened, as an ISO-8601 UTC instant.",
+          "required": true
+        },
+        {
+          "name": "actor",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "WHO acted. Never the Logger: it receives and records, so it cannot know.",
+          "required": true
+        },
+        {
+          "name": "process",
+          "schema": {
+            "$type": "ProcessId"
+          },
+          "description": "The process the actor was inside, e.g. initialize-harness.",
+          "required": true
+        },
+        {
+          "name": "task",
+          "schema": {
+            "$type": "NodeId"
+          },
+          "description": "The step within it, e.g. A_Install.",
+          "required": true
+        },
+        {
+          "name": "message",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "What happened, in the one line somebody scanning will read.",
+          "required": true
+        },
+        {
+          "name": "body",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "The detail — a diff, an error, what was not where it should have been.",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "entry",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "The entry as posted.",
+          "render": {
+            "as": "markdown",
+            "reason": "a log entry is prose with formatting; rendered with raw HTML off"
+          }
+        }
+      ]
+    },
+    "satisfies": [
+      "log-message"
+    ],
+    "requires": {
+      "network": false
+    }
+  },
+  "$comment": [
+    {
+      "at": "/install",
+      "comment": "The destination is a conversation. There is nothing to install and\nthere could not be — that is the property that makes it the arm an\nBootstrapping Agent can always reach."
+    },
+    {
+      "at": "/invoke",
+      "comment": "`manual`, and honestly so. The agent composes the entry and sends it;\nno command runs. Modelling it as an absent `shell` would have made it\nindistinguishable from an unfinished record — the distinction\n`beans-manual` established."
+    },
+    {
+      "at": "/io/inputs",
+      "comment": "No `arg` on any input: a manual Tool has no command line, so the\ninputs are the contract rather than argv. That is also why `actor`\nand `message` may be `Text` and `body` may be `Markdown` here —\ninjection-safety constrains command-line WORDS, and there are none."
+    },
+    {
+      "at": "/io/outputs",
+      "comment": "The entry as rendered, so a caller can quote what it actually wrote\nrather than reconstructing it from the six fields."
+    },
+    {
+      "at": "",
+      "comment": "── Logging ────────────────────────────────────────────────────────\n\nDeclared HERE although the skill and the sub-process it serves live in\n`bootstrap/`, and that is a limitation rather than a decision. Tool\ncollection is import-bound — `tools/index.ts` merges what it imports —\nso a Tool node contributed by a nested layer is not reachable from\nthe barrel yet. Bean `gn4l`. When it is, this node moves to\n`bootstrap/tools/` unchanged, and nothing that references it by id\nnotices."
+    }
+  ]
+}

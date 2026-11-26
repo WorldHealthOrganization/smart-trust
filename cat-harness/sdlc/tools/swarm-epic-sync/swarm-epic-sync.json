@@ -1,0 +1,151 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "swarm-epic-sync",
+    "title": "Sync a swarm work item's cold-start handover runbook",
+    "description": "Idempotently create, claim, or refresh any parent Swarm Work Item (`epic` or `milestone`, parameterized by `--epic-id` or `--swarm-slug`, for example a repository `stability` merge swarm, a proof-closure swarm, a graph-detangling swarm, or a literature-audit swarm) with a live Cold-Start Handover Runbook synthesized from `git worktree list`, forge pull-request queues, host process/memory/swap headroom, and `beans` child queues, then push the updated handover note and state to the shared `beans` branch (`cat/cat-harness/beans`).",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "python3 -m swarm_epic_sync"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "epic-id",
+          "schema": {
+            "$type": "BeanId"
+          },
+          "description": "Existing parent Swarm Work Item identifier in `beans`; when omitted, resolved or idempotently created from `--swarm-slug`.",
+          "required": false,
+          "arg": {
+            "flag": "--epic-id"
+          }
+        },
+        {
+          "name": "swarm-slug",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "Goal-specific slug identifying the swarm when `--epic-id` is omitted (for example `stability`, `proof-closure`, `kg-detangle`, or `literature-audit`).",
+          "required": false,
+          "arg": {
+            "flag": "--swarm-slug"
+          }
+        },
+        {
+          "name": "repo",
+          "schema": {
+            "$type": "RepoFullName"
+          },
+          "description": "Forge `<owner>/<repo>` queried over REST for open and recently merged pull requests; defaults to the checkout's `origin` remote.",
+          "required": false,
+          "arg": {
+            "flag": "--repo"
+          }
+        },
+        {
+          "name": "base",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "Default branch ref fetched and recorded in the handover header; default `main`.",
+          "required": false,
+          "arg": {
+            "flag": "--base"
+          }
+        },
+        {
+          "name": "state-branch",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "Shared work-plan state branch receiving the pushed handover update; default `cat/cat-harness/beans`.",
+          "required": false,
+          "arg": {
+            "flag": "--state-branch"
+          }
+        },
+        {
+          "name": "push",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Push the updated work-item handover snapshot to `--state-branch` immediately after writing.",
+          "required": false,
+          "arg": {
+            "flag": "--push"
+          }
+        },
+        {
+          "name": "dry-run",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "Render the Cold-Start Handover Runbook Markdown to stdout without mutating `beans` or pushing.",
+          "required": false,
+          "arg": {
+            "flag": "--dry-run"
+          }
+        },
+        {
+          "name": "notes",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "Optional standing owner directives, acceptance criteria (`EC-1..EC-k`), safety fences, and takeover notes supplied on stdin.",
+          "required": false,
+          "arg": {
+            "stdin": true
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "epic",
+          "schema": {
+            "$type": "BeanId"
+          },
+          "description": "The parent Swarm Work Item created or refreshed."
+        },
+        {
+          "name": "snapshot",
+          "schema": {
+            "$type": "Markdown"
+          },
+          "description": "The synthesized Cold-Start Handover Runbook Markdown (exit criteria, child queues, live worktree/branch/HEAD/PID table, PR wave queues, standing fences, and under-60-second takeover commands).",
+          "render": {
+            "as": "markdown",
+            "reason": "the cold-start handover runbook is structured Markdown tables and fenced takeover commands rendered on the parent work item"
+          }
+        }
+      ]
+    },
+    "satisfies": [
+      "swarm-monitor",
+      "handover-report",
+      "prepare-for-handover"
+    ],
+    "selection": {
+      "when": "On every routine Swarm Monitor or Merge Steward check-in tick, at swarm startup or cold takeover, and at milestone transitions when keeping a parent Swarm Work Item's Cold-Start Handover Runbook current in the shared `beans` store.",
+      "limits": "Requires Python 3 standard library plus local `git` (and `beans` or `beans-manual` for store writes, `gh` REST for forge PR wave tables). When offline, omit `--push` to refresh the local snapshot first.",
+      "cost": "Under 2 seconds locally: one `git worktree list`, one `ps`/`top` sample, one `beans list --json`, and one optional forge REST `/pulls` read plus state-branch push."
+    },
+    "requires": {
+      "runtime": [
+        "python3"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "Run without `--push` (or with `--dry-run`) to synthesize and write the local worktree, process, and `beans` handover snapshot offline, then push to `--state-branch` once forge reachability returns."
+      }
+    ],
+    "subprocesses": [
+      "swarm-dispatch-and-monitor-sweep"
+    ]
+  }
+}

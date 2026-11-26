@@ -1,0 +1,345 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://litlfred.github.io/folio-assistant/cat-harness/skills/hand-back-to-discussion/input.schema.json",
+  "title": "Hand Back To Discussion Input",
+  "description": "One hand-back from a sibling agent (spawned, or working beside the discussion) to the discussion agent: the agent that is talking with the person right now. It carries a card, a question, context, a result or a blocker, complete enough that the discussion agent can put it in front of the person without opening the sibling's thread. A question or decision carries the ask-the-person input unchanged, so the card the person sees is composed once, by the agent that did the analysis.",
+  "type": "object",
+  "required": [
+    "from",
+    "to",
+    "kind",
+    "summary",
+    "channels",
+    "answerRoute",
+    "blocking"
+  ],
+  "properties": {
+    "from": {
+      "type": "object",
+      "description": "The sibling that hands back.",
+      "required": [
+        "title",
+        "link"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The sibling's thread or task title, as the person would recognise it."
+        },
+        "link": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A link to the sibling's thread, session or PR, so the person can open it for more. Never the only place the content is."
+        },
+        "process": {
+          "type": "string",
+          "description": "The process and step the sibling is in (process-state), or \"none\"."
+        }
+      },
+      "additionalProperties": false
+    },
+    "to": {
+      "$ref": "#/definitions/discussion"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "decision",
+        "question",
+        "context",
+        "result",
+        "blocker"
+      ],
+      "description": "decision and question need the person's answer and carry `ask`. context, result and blocker inform; a blocker that needs the person to act is a decision, not a blocker."
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300,
+      "description": "One sentence that stands alone: what the person needs to know or choose."
+    },
+    "ask": {
+      "$ref": "#/definitions/askThePersonInput",
+      "description": "The composed question, exactly as ask-the-person takes it. Required for decision and question."
+    },
+    "context": {
+      "type": "string",
+      "description": "For context, result and blocker: what happened, what it touches and what happens next, every id glossed."
+    },
+    "links": {
+      "type": "array",
+      "description": "PRs, issues, staging pages and files the hand-back is about, each with a title.",
+      "items": {
+        "type": "object",
+        "required": [
+          "title",
+          "url"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "channels": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Every place the hand-back is shown. The discussion is always one of them; a review sheet or an issue is an extra copy, never the only one.",
+      "items": {
+        "$ref": "#/definitions/channel"
+      },
+      "contains": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "discussion"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      }
+    },
+    "answerRoute": {
+      "type": "object",
+      "description": "How the answer reaches the sibling again. An answer typed at the discussion does not reach the sibling by itself.",
+      "required": [
+        "how",
+        "target"
+      ],
+      "properties": {
+        "how": {
+          "type": "string",
+          "enum": [
+            "thread-message",
+            "send-message",
+            "return-value",
+            "issue-comment",
+            "sheet"
+          ],
+          "description": "thread-message: the host's message-to-thread tool, with the person's message attached by id. send-message: a sibling session's inbox. return-value: the sibling is a subagent and the answer goes into its next prompt. issue-comment and sheet: the sibling reads it there."
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The thread id, session id, issue or sheet row the answer goes to."
+        }
+      },
+      "additionalProperties": false
+    },
+    "blocking": {
+      "type": "boolean",
+      "description": "true when the sibling has stopped and waits on the answer; false when it keeps working on the recommended option."
+    },
+    "supersedes": {
+      "type": "string",
+      "description": "The id of an earlier hand-back this one replaces; the discussion agent withdraws that card."
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "discussion": {
+      "title": "Discussion link",
+      "description": "Who is talking with the person, and how to reach them. A spawning agent puts this in every brief it writes during a live discussion (process-state §\"A coordinator that briefs a thread\").",
+      "type": "object",
+      "required": [
+        "agent",
+        "how"
+      ],
+      "properties": {
+        "agent": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The discussion agent, for example \"project coordinator\" or the parent session's id."
+        },
+        "how": {
+          "type": "string",
+          "enum": [
+            "coordinator-message",
+            "thread-message",
+            "send-message",
+            "return-value"
+          ],
+          "description": "coordinator-message: the host's message-to-coordinator tool (Claude projects). thread-message: message another thread. send-message: a sibling session's inbox. return-value: the sibling is a subagent; the hand-back is its final report."
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Standing rules the discussion applies to cards, such as \"relay every card to project chat with lettered options\"."
+        }
+      },
+      "additionalProperties": false
+    },
+    "channel": {
+      "title": "Channel",
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "discussion",
+            "own-thread",
+            "project-chat",
+            "review-sheet",
+            "github-issue",
+            "github-pr"
+          ]
+        },
+        "spreadsheetId": {
+          "type": "string",
+          "description": "review-sheet: the sheet."
+        },
+        "tab": {
+          "type": "string",
+          "description": "review-sheet: the tab, by name."
+        },
+        "row": {
+          "type": "string",
+          "description": "review-sheet: the row's key (a change set id or a comment number), never a row index."
+        },
+        "column": {
+          "type": "string",
+          "description": "review-sheet: the column, by header, e.g. \"Change Set Feedback (agent)\" or \"Feedback (agent)\"."
+        },
+        "repo": {
+          "type": "string",
+          "description": "github-issue / github-pr: owner/name."
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "askThePersonInput": {
+      "title": "Ask The Person Input",
+      "description": "One question for a person, complete enough to answer without opening anything. The same fields as DecisionRequestSchema in schemas/process/decision-request.ts, plus a letter per option so the chat text and the card use the same handles. Every field is required: a question with no comparison, no recommendation or no default does not validate.",
+      "type": "object",
+      "required": [
+        "decides",
+        "context",
+        "glossary",
+        "options",
+        "recommends",
+        "because",
+        "ifSilent",
+        "question",
+        "othersPending",
+        "reversible"
+      ],
+      "properties": {
+        "decides": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What is being decided, stated as what will DIFFER depending on the answer. Not the name of the decision."
+        },
+        "context": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Why it is being asked now and what happens next: the PRs, beans and pages it touches, each named in words. Links are for more, never where terms are defined."
+        },
+        "glossary": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Every id, path and coined name used above, glossed. {} means nothing needs a gloss."
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "required": [
+              "letter",
+              "label",
+              "does",
+              "pro",
+              "con",
+              "downstream",
+              "reversibility"
+            ],
+            "properties": {
+              "letter": {
+                "type": "string",
+                "pattern": "^[A-D]$",
+                "description": "The handle shown in BOTH the chat text and the card."
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Short noun phrase the person taps."
+              },
+              "does": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pro": {
+                "type": "string",
+                "minLength": 1
+              },
+              "con": {
+                "type": "string",
+                "minLength": 1,
+                "description": "What it costs to do."
+              },
+              "downstream": {
+                "type": "string",
+                "minLength": 1,
+                "description": "What it changes for everything else, afterwards."
+              },
+              "reversibility": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "recommends": {
+          "type": "string",
+          "pattern": "^[A-D]$",
+          "description": "The letter of the recommended option; it is shown first and marked."
+        },
+        "because": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ifSilent": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What will be done if no answer comes. Then it is done."
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The question itself, last."
+        },
+        "othersPending": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many other decisions wait; given as a count, never as a list of option names."
+        },
+        "reversible": {
+          "type": "boolean",
+          "description": "false when acting on the answer cannot be undone. Then the default is never taken on silence: the step waits."
+        }
+      },
+      "additionalProperties": false,
+      "$comment": "Copy of cat-harness schemas/skills/ask-the-person/input.schema.json; inlined so this contract reads standalone."
+    }
+  }
+}

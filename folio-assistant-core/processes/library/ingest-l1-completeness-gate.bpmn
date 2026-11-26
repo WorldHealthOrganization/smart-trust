@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — Ingestion subprocess — the L1 completeness gate.
+
+  Source of truth: this file. Open it in bpmn.io, Camunda Modeler, or any other
+  BPMN 2.0 tool. The SVG under docs/assets/img/workflows/ is generated from it
+  by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  The <bootstrap.processes:skill> extension on an activity names the folio-assistant skill
+  that implements it; <cat-harness.processes:bean> marks a step that reads or writes the shared
+  work plan in beans/.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_L1Gate"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="ingestion-agent" name="Ingestion engine"/>
+  <bpmn:resource id="reviewer" name="Reviewer / SME"/>
+  <bpmn:collaboration id="Collaboration_L1Gate">
+    <bpmn:participant id="Participant_L1Gate" name="Ingestion subprocess — the L1 completeness gate" processRef="Process_L1Gate" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_L1Gate" name="Ingestion subprocess — the L1 completeness gate" isExecutable="false">
+    <bpmn:documentation>Decide whether the derived content is complete enough to promote to the L1 graph, and who says so.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_L1Gate_LaneSet">
+      <bpmn:lane id="Lane_0" name="Ingestion Engine (agent, runs unattended)" partitionElementRef="ingestion-agent">
+        <bpmn:documentation>Runs both QA checks unattended and hands off exactly where the role's persona says it must: Gateway_Drift's 'drift' branch leaves this lane the moment a passage needs a judgement about which of two readings is right, rather than guessing; Task_Verdict, which records the outcome either way, stays in this lane, which owns the completeness verdict as a whole.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_KgBuilt</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CheckDerived</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RoundTrip</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Drift</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Verdict</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Verdict</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_1" name="Reviewer (SME or editor)" partitionElementRef="reviewer">
+        <bpmn:documentation>The only human involvement in this subprocess: a flagged passage where round-trip translation produced two different readings, and somebody has to say which is right.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_FlagDrift</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_DriftOutcome</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_KgBuilt" name="L1 graph built">
+      <bpmn:outgoing>Flow_g1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_CheckDerived" name="Is every derived
+artefact present?">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>L1 source to L1 KG is NOT complete while a required derived artefact is missing. This is the gate that makes the derivation steps obligatory rather than aspirational.</bpmn:documentation>
+      <bpmn:incoming>Flow_g1</bpmn:incoming>
+      <bpmn:outgoing>Flow_g2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_RoundTrip" name="Round-trip translation QA">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="translation-manager"/>
+        <bootstrap.processes:skill ref="untainted-verification"/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>Back-translate each localized narrative into its source language and compare the meaning, to catch semantic drift and bad terminology that a forward-only check cannot see. Agentic. Two parties are kept apart under untainted-verification: a back-translator that sees ONLY the target-language text, and an adjudicator that sees the original and the back-translation and rules. The verdict is recorded per block, under criterion `translation-semantic-roundtrip` in the block's `&lt;block&gt;.&lt;locale&gt;.translation-qa.json` sidecar, by the `translation-roundtrip-record` Tool (translation-manager §5). A terminology miss is a different criterion, `translation-terms-preserved` (acronyms, numbers, URLs that must survive), so Gateway_Drift can tell the two apart. Never close this step by reversing the PO's msgid→msgstr map: that returns the source exactly and scores 1.0 always. An empty `translation-semantic-roundtrip` entry list means "not yet run", which is never a pass.</bpmn:documentation>
+      <bpmn:incoming>Flow_g2</bpmn:incoming>
+      <bpmn:outgoing>Flow_g3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Drift" name="Drift or bad
+terminology?">
+      <bpmn:documentation>Answered by the round-trip translation QA: did it flag semantic drift or a terminology miss? `drift` sends the passage to a person to adjudicate, since which reading is right is a human call; `clean` records the verdict directly.</bpmn:documentation>
+      <bpmn:incoming>Flow_g3</bpmn:incoming>
+      <bpmn:outgoing>Flow_g4</bpmn:outgoing>
+      <bpmn:outgoing>Flow_g6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Task_FlagDrift" calledElement="Process_Adjudication" name="Adjudicate the
+flagged passage">
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake"/>
+        <bootstrap.processes:skill ref="adjudication"/>
+        <cat-harness.processes:adjudication codes="real spurious source-wrong" list="adjudication-translation-drift"/>
+        <cat-harness.processes:fulfilment kinds="person agent" reason="this step's own documentation is the constraint — `a machine can detect that two readings differ; which one is right is a human call` — and Gateway_Drift's `drift` branch exists precisely to leave the unattended lane here."/>
+      </bpmn:extensionElements>
+
+      <bpmn:documentation>A machine can detect that two readings differ. Which one is right is a human call.</bpmn:documentation>
+      <bpmn:incoming>Flow_g4</bpmn:incoming>
+      <bpmn:outgoing>Flow_g5</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_DriftOutcome" name="Which reading was right?">
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="By the entry condition the back-translation and the source disagree, so any rule keying on either is picking a side by construction. Which reading is right depends on what the passage means, which is the fact neither reading carries."/>
+      </bpmn:extensionElements>
+      <bpmn:documentation>All three converge on Task_Verdict, and that is deliberate rather than the codes being decoration: this lane adjudicates ONE passage while Lane_0 still owns the completeness verdict as a whole, so the outcome of a passage is a REASON recorded against that verdict, never a different next step. The same shape criterion-adjudication uses, where three outcomes converge on one write because what makes an outcome legitimate is that its reason was recorded.
+
+What differs is what gets written and what it obliges. `real` is drift to fix in the translation. `spurious` is a false positive, and recording it is what stops the same passage being re-flagged every run. `source-wrong` points at the SOURCE rather than the translation — the one answer that sends work out of this process entirely, because no amount of re-translating a wrong source produces a right target.</bpmn:documentation>
+      <bpmn:incoming>Flow_g5</bpmn:incoming>
+      <bpmn:outgoing>Flow_DriftReal</bpmn:outgoing>
+      <bpmn:outgoing>Flow_DriftSpurious</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SourceWrong</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Verdict" name="Record the L1
+completeness verdict">
+      <bpmn:documentation>Record the completeness verdict in three states — met, unmet, or not yet derivable — as bun run cat check:l1-complete reports it. Not-yet-derivable is never a pass. An unmet verdict opens a bean and returns to derivation; only a met one lets the entry into library/.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="document-intake"/>
+        <cat-harness.processes:bean op="note" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_g5</bpmn:incoming>
+      <bpmn:incoming>Flow_g6</bpmn:incoming>
+      <bpmn:outgoing>Flow_g7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Verdict" name="Verdict recorded">
+      <bpmn:incoming>Flow_g7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_g1" sourceRef="StartEvent_KgBuilt" targetRef="Task_CheckDerived" />
+    <bpmn:sequenceFlow id="Flow_g2" sourceRef="Task_CheckDerived" targetRef="Task_RoundTrip" />
+    <bpmn:sequenceFlow id="Flow_g3" sourceRef="Task_RoundTrip" targetRef="Gateway_Drift" />
+    <bpmn:sequenceFlow id="Flow_g4" name="drift" sourceRef="Gateway_Drift" targetRef="Task_FlagDrift" />
+    <bpmn:sequenceFlow id="Flow_g5" sourceRef="Task_FlagDrift" targetRef="GW_DriftOutcome" />
+    <bpmn:sequenceFlow id="Flow_DriftReal" name="the drift is real" sourceRef="GW_DriftOutcome" targetRef="Task_Verdict">
+      <bpmn:extensionElements><cat-harness.processes:adjudication code="real"/></bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_DriftSpurious" name="false positive" sourceRef="GW_DriftOutcome" targetRef="Task_Verdict">
+      <bpmn:extensionElements><cat-harness.processes:adjudication code="spurious"/></bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_SourceWrong" name="the SOURCE is wrong" sourceRef="GW_DriftOutcome" targetRef="Task_Verdict">
+      <bpmn:extensionElements><cat-harness.processes:adjudication code="source-wrong"/></bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_g6" name="clean" sourceRef="Gateway_Drift" targetRef="Task_Verdict" />
+    <bpmn:sequenceFlow id="Flow_g7" sourceRef="Task_Verdict" targetRef="EndEvent_Verdict" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_L1Gate">
+    <bpmndi:BPMNPlane id="Plane_L1Gate" bpmnElement="Collaboration_L1Gate">
+      <bpmndi:BPMNShape id="Participant_L1Gate_di" bpmnElement="Participant_L1Gate" isHorizontal="true"><dc:Bounds x="160" y="80" width="1360" height="400" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0_di" bpmnElement="Lane_0" isHorizontal="true"><dc:Bounds x="190" y="80" width="1330" height="190" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1_di" bpmnElement="Lane_1" isHorizontal="true"><dc:Bounds x="190" y="270" width="1330" height="210" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_KgBuilt_di" bpmnElement="StartEvent_KgBuilt"><dc:Bounds x="250" y="152" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="225" y="195" width="86" height="24" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CheckDerived_di" bpmnElement="Task_CheckDerived"><dc:Bounds x="340" y="110" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RoundTrip_di" bpmnElement="Task_RoundTrip"><dc:Bounds x="505" y="110" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Drift_di" bpmnElement="Gateway_Drift" isMarkerVisible="true"><dc:Bounds x="675" y="145" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="650" y="100" width="100" height="36" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FlagDrift_di" bpmnElement="Task_FlagDrift"><dc:Bounds x="770" y="300" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_DriftOutcome_di" bpmnElement="GW_DriftOutcome" isMarkerVisible="true"><dc:Bounds x="945" y="335" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="985" y="280" width="110" height="36" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Verdict_di" bpmnElement="Task_Verdict"><dc:Bounds x="1150" y="110" width="120" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Verdict_di" bpmnElement="EndEvent_Verdict"><dc:Bounds x="1340" y="152" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1310" y="195" width="96" height="24" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_g1_di" bpmnElement="Flow_g1">
+        <di:waypoint x="286" y="170" />
+        <di:waypoint x="340" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_g2_di" bpmnElement="Flow_g2">
+        <di:waypoint x="460" y="170" />
+        <di:waypoint x="505" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_g3_di" bpmnElement="Flow_g3">
+        <di:waypoint x="625" y="170" />
+        <di:waypoint x="675" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_g4_di" bpmnElement="Flow_g4">
+        <di:waypoint x="700" y="195" />
+        <di:waypoint x="700" y="360" />
+        <di:waypoint x="770" y="360" />
+        <bpmndi:BPMNLabel><dc:Bounds x="706" y="290" width="50" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_g5_di" bpmnElement="Flow_g5">
+        <di:waypoint x="890" y="360" />
+        <di:waypoint x="945" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DriftReal_di" bpmnElement="Flow_DriftReal">
+        <di:waypoint x="970" y="335" />
+        <di:waypoint x="970" y="210" />
+        <di:waypoint x="1150" y="210" />
+        <bpmndi:BPMNLabel><dc:Bounds x="980" y="188" width="110" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DriftSpurious_di" bpmnElement="Flow_DriftSpurious">
+        <di:waypoint x="995" y="360" />
+        <di:waypoint x="1185" y="360" />
+        <di:waypoint x="1185" y="230" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1030" y="338" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SourceWrong_di" bpmnElement="Flow_SourceWrong">
+        <di:waypoint x="970" y="385" />
+        <di:waypoint x="970" y="450" />
+        <di:waypoint x="1235" y="450" />
+        <di:waypoint x="1235" y="230" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1030" y="410" width="140" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_g6_di" bpmnElement="Flow_g6">
+        <di:waypoint x="725" y="170" />
+        <di:waypoint x="1150" y="170" />
+        <bpmndi:BPMNLabel><dc:Bounds x="880" y="148" width="50" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_g7_di" bpmnElement="Flow_g7">
+        <di:waypoint x="1270" y="170" />
+        <di:waypoint x="1340" y="170" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

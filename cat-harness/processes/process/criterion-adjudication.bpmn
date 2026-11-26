@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_CriterionAdjudication"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="adjudicator" name="Adjudicator"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Criterion adjudication — the QA-criterion SPECIALISATION
+       Bean: folio-assistant-bvuk · issue #1073
+
+       WHY THIS FILE EXISTS, stated so nobody merges it back.
+
+       `adjudication.bpmn` used to hold both halves: the judgement, and
+       the three things done about it. Six diagrams called it, and only
+       two — `review-narrative` and `voice-review` — asked a question
+       those three answer. `refresh-materialized` asks which side wins a
+       local-vs-remote conflict; `ingest-l1-completeness-gate` asks
+       whether a drift is real. Neither has a criterion to scope or a
+       dispensation to grant, and a callActivity runs the whole
+       subprocess, so both ran the outcome half regardless.
+
+       The first proposed fix was to hand each caller its own codes. It
+       does not work: the codes selected three different TASKS, so
+       `local-wins` would have pointed at A_ScopeCriterion. The branches
+       had to move, not the enum.
+
+       So the split is AT THE JUDGEMENT. Everything that must not vary
+       stays in Process_Adjudication — the entry condition, the untainted
+       dispatch, the person-or-agent restriction. Everything that depends
+       on WHAT WAS ASKED lives with the asker, and this is the asker for
+       the QA-criterion question.
+
+       Skill: skills/process/process-core/adjudication.md
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:collaboration id="Collab_CriterionAdjudication">
+    <bpmn:participant id="Participant_CriterionAdjudication" name="Criterion adjudication" processRef="Process_CriterionAdjudication"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_CriterionAdjudication" name="Criterion adjudication" isExecutable="true">
+    <bpmn:documentation>Two reviewer entries for ONE QA criterion disagree: ask the adjudication, then do the one of three things that a criterion disagreement admits.
+
+You are in this process when the disagreement is about a criterion — a script failing what a reviewer passed, an agent and a person reading the same block differently. If what disagrees is not a criterion, this is the wrong process and `adjudication.bpmn` is the one to call directly, with your own outcomes.
+
+The three outcomes are legitimate in the same way, and it is not which one is chosen: the finding stands, the criterion does not apply here and should be scoped, or it applies and this is a stated exception. All three converge on A_RecordEntry, because what makes an outcome sound is that its reason was recorded.
+
+ADVISORY at the process level, for the reason the adjudication itself is: a judgement cannot be gated, since the whole reason it was entered is that the mechanism ran out of facts. What is NOT relaxable is A_RecordEntry. A judgement nobody wrote down is indistinguishable from a checker that was never run, so the judgement is free and the record is not.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_CriterionAdjudication">
+      <bpmn:lane id="Lane_CriterionAdjudicator" name="Adjudicator" partitionElementRef="adjudicator">
+        <bpmn:documentation>One lane, because every step here is the adjudicator's: asking the question, choosing among the answers, and writing the entry. The feedback provider's lane is in `adjudication.bpmn`, where stating a finding happens — a provider has no entitlement to settle what it reported, and drawing it here would suggest otherwise.
+
+The role admits person and agent. `refresh-materialized` already gives the reason in its own words — "a human or agentic decision, never a merge rule" — and the steps are plain tasks rather than user tasks so the diagram does not assert a person where an agent is legitimate.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_CriterionDisagreement</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Adjudicate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Outcome</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ScopeCriterion</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Dispensation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_RecordEntry</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Settled</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_CriterionDisagreement" name="Entries for one criterion disagree">
+      <bpmn:documentation>The sidecar, not a complaint. `block-qa/v1` allows several entries per criterion and declares three reviewer kinds, so "they disagree" is read off the record rather than asserted by whoever is unhappy.</bpmn:documentation>
+      <bpmn:outgoing>F_C1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:callActivity id="Call_Adjudicate" name="Adjudicate the criterion disagreement" calledElement="Process_Adjudication">
+      <bpmn:documentation>The shared judgement — entry condition, untainted dispatch, person-or-agent restriction — asked with THIS question's permitted answers. `cat-harness.processes:adjudication codes` sits here rather than on `A_Adjudicate` inside it because the answers depend on what was asked, and the gateway below is what acts on them: the engine refuses a mismatch between the two.
+
+`Process_Adjudication` may also leave at `End_NotAdjudicable` — one entry and no other side is a review or a gate, not a disagreement — in which case nothing below runs and there is nothing to record.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="adjudication"/>
+        <cat-harness.processes:adjudication codes="stands scope dispensation" list="adjudication-criterion"/>
+        <cat-harness.processes:fulfilment kinds="person agent" reason="the same restriction the called process states on A_Adjudicate, restated here because this is where the enum is declared and a step naming permitted answers without saying who may choose among them has restricted nobody. It cannot drift wrong: the engine refuses `system` or `external` on any step carrying `cat-harness.processes:adjudication`, so the only failure available is absence, and absence is refused too."/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_C1</bpmn:incoming>
+      <bpmn:outgoing>F_C2</bpmn:outgoing>
+    </bpmn:callActivity>
+
+    <bpmn:exclusiveGateway id="GW_Outcome" name="Which of the three?">
+      <bpmn:extensionElements>
+        <cat-harness.processes:judgement reason="This is THE judgement — the branch the whole process exists to take, and the one thing nothing here can compute. A table deciding it would decide the case that, by the entry condition, no mechanism could: the checker and the reviewer both read the artefact and reached different answers, so a rule keying on either would be picking a side by construction rather than by reason."/>
+      </bpmn:extensionElements>
+      <bpmn:documentation>The three are legitimate in the same way: what makes an outcome sound is not which one it is but that its reason was recorded. All three converge on A_RecordEntry for exactly that reason.</bpmn:documentation>
+      <bpmn:incoming>F_C2</bpmn:incoming>
+      <bpmn:outgoing>F_Stands</bpmn:outgoing>
+      <bpmn:outgoing>F_Scope</bpmn:outgoing>
+      <bpmn:outgoing>F_Exception</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_ScopeCriterion" name="Scope the criterion so it stops applying here">
+      <bpmn:documentation>One edit to the criterion rather than ten overrules on the blocks it should never have covered. This branch is the one an adjudicator under time pressure converts into a dispensation, and the conversion is a defect: a dispensation lapses when the source moves, so a mis-scoped criterion granted its way past comes back every time anybody touches the block.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="adjudication"/></bpmn:extensionElements>
+      <bpmn:incoming>F_Scope</bpmn:incoming>
+      <bpmn:outgoing>F_C5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_Dispensation" name="Grant a dispensation, with its reason">
+      <bpmn:documentation>The rule applies and this subject is a stated exception. A `kind: "human"` entry with `result: "pass"` overrides the script's `fail` for that criterion, and ONLY while its `field_hash` matches the current source — so the dispensation is scoped to the version it was granted against, lapses when the block changes, and never becomes precedent. There is nothing to overturn later; the source moving overturns it.
+
+A dispensation with no `notes` is not a dispensation. It is an override somebody applied to get to green, and nobody can review it afterwards — which is why this step is not relaxable.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="adjudication"/>
+        <cat-harness.processes:policy relaxable="false"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_Exception</bpmn:incoming>
+      <bpmn:outgoing>F_C6</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_RecordEntry" name="Write the entry that LEADS — keeping the checker's beneath it">
+      <bpmn:documentation>Not relaxable, and the one step here that is not. A judgement nobody wrote down is indistinguishable from a checker that was never run, so the judgement is free and the record is not.
+
+Do not resolve the disagreement away: both entries stay, the adjudication on top under the sweep's most-recent-matching-hash rule. A disagreement between a checker and a reviewer is information, and somebody re-running the check next month needs to find that a checker read it differently rather than a clean pass. `/api/relevance/adjudicate` reached the same rule independently — `human_adjudicated` written alongside, never over, the agent's `assessed_by`.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="adjudication"/>
+        <cat-harness.processes:policy relaxable="false"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_Stands</bpmn:incoming>
+      <bpmn:incoming>F_C5</bpmn:incoming>
+      <bpmn:incoming>F_C6</bpmn:incoming>
+      <bpmn:outgoing>F_C7</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Settled" name="Settled, with the reason on the record">
+      <bpmn:documentation>Settled for this version of the source. The sidecar now holds both readings and the reason one of them leads.</bpmn:documentation>
+      <bpmn:incoming>F_C7</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="F_C1" sourceRef="Start_CriterionDisagreement" targetRef="Call_Adjudicate"/>
+    <bpmn:sequenceFlow id="F_C2" sourceRef="Call_Adjudicate" targetRef="GW_Outcome"/>
+    <bpmn:sequenceFlow id="F_Stands" name="the finding stands" sourceRef="GW_Outcome" targetRef="A_RecordEntry">
+      <bpmn:extensionElements><cat-harness.processes:adjudication code="stands"/></bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="F_Scope" name="the criterion does not apply here" sourceRef="GW_Outcome" targetRef="A_ScopeCriterion">
+      <bpmn:extensionElements><cat-harness.processes:adjudication code="scope"/></bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="F_Exception" name="it applies; this is an exception" sourceRef="GW_Outcome" targetRef="A_Dispensation">
+      <bpmn:extensionElements><cat-harness.processes:adjudication code="dispensation"/></bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="F_C5" sourceRef="A_ScopeCriterion" targetRef="A_RecordEntry"/>
+    <bpmn:sequenceFlow id="F_C6" sourceRef="A_Dispensation" targetRef="A_RecordEntry"/>
+    <bpmn:sequenceFlow id="F_C7" sourceRef="A_RecordEntry" targetRef="End_Settled"/>
+  </bpmn:process>
+
+  <!-- Layout only. Nothing below changes what the process does. -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_CriterionAdjudication">
+    <bpmndi:BPMNPlane id="BPMNPlane_CriterionAdjudication" bpmnElement="Collab_CriterionAdjudication">
+      <bpmndi:BPMNShape id="Shape_Participant_CriterionAdjudication" bpmnElement="Participant_CriterionAdjudication" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="1180" height="420" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_CriterionAdjudicator" bpmnElement="Lane_CriterionAdjudicator" isHorizontal="true">
+        <dc:Bounds x="190" y="60" width="1150" height="420" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start_CriterionDisagreement" bpmnElement="Start_CriterionDisagreement">
+        <dc:Bounds x="230" y="132" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="221.59" y="167.5" width="90" height="72" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Adjudicate" bpmnElement="Call_Adjudicate">
+        <dc:Bounds x="345" y="90" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Outcome" bpmnElement="GW_Outcome" isMarkerVisible="true">
+        <dc:Bounds x="550" y="125" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="530" y="86" width="90" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ScopeCriterion" bpmnElement="A_ScopeCriterion">
+        <dc:Bounds x="665" y="210" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Dispensation" bpmnElement="A_Dispensation">
+        <dc:Bounds x="665" y="330" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_RecordEntry" bpmnElement="A_RecordEntry">
+        <dc:Bounds x="900" y="90" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Settled" bpmnElement="End_Settled">
+        <dc:Bounds x="1110" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_F_C1" bpmnElement="F_C1">
+        <di:waypoint x="266" y="150" />
+        <di:waypoint x="345" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_C2" bpmnElement="F_C2">
+        <di:waypoint x="465" y="150" />
+        <di:waypoint x="550" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Stands" bpmnElement="F_Stands">
+        <di:waypoint x="600" y="150" />
+        <di:waypoint x="900" y="150" />
+        <bpmndi:BPMNLabel><dc:Bounds x="705" y="94" width="90" height="53" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Scope" bpmnElement="F_Scope">
+        <di:waypoint x="600" y="150" />
+        <di:waypoint x="632.5" y="150" />
+        <di:waypoint x="632.5" y="270" />
+        <di:waypoint x="665" y="270" />
+        <bpmndi:BPMNLabel><dc:Bounds x="538.5" y="174" width="90" height="72" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Exception" bpmnElement="F_Exception">
+        <di:waypoint x="600" y="150" />
+        <di:waypoint x="632.5" y="150" />
+        <di:waypoint x="632.5" y="390" />
+        <di:waypoint x="665" y="390" />
+        <bpmndi:BPMNLabel><dc:Bounds x="538.5" y="294" width="90" height="72" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_C5" bpmnElement="F_C5">
+        <di:waypoint x="785" y="270" />
+        <di:waypoint x="842.5" y="270" />
+        <di:waypoint x="842.5" y="150" />
+        <di:waypoint x="900" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_C6" bpmnElement="F_C6">
+        <di:waypoint x="785" y="390" />
+        <di:waypoint x="842.5" y="390" />
+        <di:waypoint x="842.5" y="150" />
+        <di:waypoint x="900" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_C7" bpmnElement="F_C7">
+        <di:waypoint x="1020" y="150" />
+        <di:waypoint x="1110" y="150" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

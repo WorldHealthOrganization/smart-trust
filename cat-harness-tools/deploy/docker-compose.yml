@@ -1,0 +1,128 @@
+# Folio Folio Deployment — Paper Assistant + Auth behind Caddy
+#
+# Serves the paper assistant (MCP + viewer + content API) behind dual OAuth.
+# No secrets in the repo — only deploy/.env (gitignored) holds credentials.
+#
+# Architecture:
+#   Internet → Caddy (:443, auto TLS) → auth-gateway (:4180) → folio-assistant (:8080)
+#
+# Auth roles:
+#   Google OAuth → viewer (read + feedback)
+#   GitHub OAuth → collaborator (edit + branches) or owner (commit to main)
+#   Bearer token → /mcp access, checked by the auth-gateway (bypasses OAuth)
+#
+# FOLIO_GATEWAY_SECRET (32+ chars, in .env) is shared by auth-gateway and
+# folio-assistant: folio-assistant refuses /mcp, and ignores X-User-* headers,
+# on any request that does not carry it.
+#
+# Usage:
+#   ./deploy/generate-config.sh --folio   # create .env + Caddyfile
+#   cd deploy && docker compose -f docker-compose.folio.yml up -d
+
+services:
+  # ── Caddy: automatic HTTPS + reverse proxy ───────────────────────
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - auth-gateway
+      - folio-assistant
+
+  # ── Paper Assistant (MCP + viewer + content API) ────────────────
+  folio-assistant:
+    image: ${FOLIO_IMAGE:-ghcr.io/org/folio-assistant/folio-assistant}:latest
+    container_name: folio-assistant
+    restart: unless-stopped
+    environment:
+      - FOLIO_API_TOKEN=${FOLIO_API_TOKEN}
+      - FOLIO_GATEWAY_SECRET=${FOLIO_GATEWAY_SECRET:?set FOLIO_GATEWAY_SECRET in deploy/.env}
+      - MCP_PORT=${MCP_INTERNAL_PORT:-8080}
+      # Listen on the container network so the gateway can reach it (the
+      # default is 127.0.0.1). Only `expose`d, never published.
+      - FOLIO_BIND_HOST=0.0.0.0
+    expose:
+      - "${MCP_INTERNAL_PORT:-8080}"
+    # Shared scratch workspace for exchanging computation inputs/outputs with
+    # opt-in compute services (e.g. sage). Mounted at /shared (NOT /workspace,
+    # which is the app's own dir in the image).
+    volumes:
+      - sage_workspace:/shared
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${MCP_INTERNAL_PORT:-8080}/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── SageMath (algebra / number theory compute) — lazy, opt-in ────
+  # NOT started by a plain `docker compose up`. The ~2 GB sagemath/sagemath
+  # image is pulled only when the `sage` profile is first activated, e.g.:
+  #
+  #   docker compose --profile sage up -d sage          # persistent service
+  #
+  # or spawn the Sage MCP server (stdio) on demand, sharing the workspace:
+  #
+  #   docker compose --profile sage run --rm -i sage \
+  #     python3 /repo/folio-assistant/src/sage-mcp-server.py --stdio
+  #
+  # Inside this container `sage` is native, so the MCP server uses it directly
+  # (no nested Docker). Files written under /shared are visible to
+  # folio-assistant; the repo is mounted read-only at /repo.
+  sage:
+    image: ${SAGE_DOCKER_IMAGE:-sagemath/sagemath:latest}
+    container_name: sage
+    profiles: ["sage"]
+    restart: unless-stopped
+    working_dir: /shared
+    command: ["sleep", "infinity"]
+    volumes:
+      - sage_workspace:/shared
+      - ../:/repo:ro
+
+  # ── Auth Gateway (dual OAuth + role-based sessions) ──────────────
+  auth-gateway:
+    image: oven/bun:1-alpine
+    container_name: auth-gateway
+    restart: unless-stopped
+    working_dir: /app
+    command: ["bun", "run", "server.ts"]
+    expose:
+      - "4180"
+    environment:
+      - AUTH_GATEWAY_PORT=4180
+      - FOLIO_DOMAIN=${FOLIO_DOMAIN}
+      - COOKIE_SECRET=${COOKIE_SECRET}
+      - FOLIO_API_TOKEN=${FOLIO_API_TOKEN}
+      - FOLIO_UPSTREAM=http://folio-assistant:${MCP_INTERNAL_PORT:-8080}
+      - FOLIO_GATEWAY_SECRET=${FOLIO_GATEWAY_SECRET:?set FOLIO_GATEWAY_SECRET in deploy/.env}
+      - VIEWER_ROOT=/var/www/viewer
+      - OWNER_USERNAME=${OWNER_USERNAME:-OWNER}
+      - SESSION_MAX_AGE=${SESSION_MAX_AGE:-86400}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GH_CLIENT_ID=${GH_CLIENT_ID}
+      - GH_CLIENT_SECRET=${GH_CLIENT_SECRET}
+      - GOOGLE_VIEWERS_FILE=/etc/auth-gateway/google-viewers.txt
+      - GITHUB_COLLABS_FILE=/etc/auth-gateway/github-collaborators.txt
+    volumes:
+      - ./auth-gateway:/app:ro
+      - ./viewer:/var/www/viewer:ro
+      - ./google-viewers.txt:/etc/auth-gateway/google-viewers.txt:ro
+      - ./github-collaborators.txt:/etc/auth-gateway/github-collaborators.txt:ro
+    depends_on:
+      folio-assistant:
+        condition: service_started
+
+volumes:
+  caddy_data:
+  caddy_config:
+  # Shared scratch workspace between folio-assistant and opt-in compute
+  # services (sage). Empty until the `sage` profile is used.
+  sage_workspace:

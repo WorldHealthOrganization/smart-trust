@@ -1,0 +1,41 @@
+{%- comment -%}
+  Include as: {%- include_cached nav_cache/parenthood_map.html -%}
+  Depends on: site (only), so it is rendered ONCE per build and cached.
+  Results in: a lookup string in two parts, split at "|^|":
+    1. the titles of the top-level pages (the theme's `nav_top_node_titles`),
+       joined by "|#|";
+    2. one record per titled page in `site.html_pages`, in that order:
+         |@|<parent>|=|<index of the page in site.html_pages>
+       so the records keyed by a title are, in order, the items of the group
+       the theme's `site.html_pages | where_exp: "item", "item.title != nil"
+       | group_by: "parent"` makes for that title.
+
+  WHY ("cache the nav"). just-the-docs 0.12.0's `components/children_nav.html`
+  rebuilds that grouping of EVERY page on every page that has children. Each
+  page it touches costs a `to_liquid`, which under Jekyll 3 re-evaluates every
+  front-matter `defaults` scope; measured at ~5 ms a page on this site, so
+  O(pages) per parent page and O(pages^2) for the site. Here the grouping is
+  done once; `components/children_nav.html` in this directory fetches only the
+  page's own children, by index.
+{%- endcomment -%}
+
+{%- assign nav_cache_titles = site.html_pages | map: "title" -%}
+{%- assign nav_cache_parents = site.html_pages | map: "parent" -%}
+
+{%- assign nav_cache_sep = "" -%}
+{%- for nav_cache_title in nav_cache_titles -%}
+  {%- if nav_cache_title != nil -%}
+    {%- assign nav_cache_parent = nav_cache_parents[forloop.index0] | append: "" -%}
+    {%- if nav_cache_parent == "" -%}
+{{ nav_cache_sep }}{{ nav_cache_title }}
+      {%- assign nav_cache_sep = "|#|" -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endfor -%}
+|^|
+{%- for nav_cache_title in nav_cache_titles -%}
+  {%- if nav_cache_title != nil -%}
+|@|{{ nav_cache_parents[forloop.index0] }}|=|{{ forloop.index0 }}
+  {%- endif -%}
+{%- endfor -%}
+|@|

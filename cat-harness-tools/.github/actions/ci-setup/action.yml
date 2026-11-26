@@ -1,0 +1,132 @@
+name: "CI setup from the prepared image"
+description: |
+  Everything a job needs before its own work, in one step: Bun, the remote
+  mounts index.lock.json pins, node_modules, and — when asked — Playwright's
+  Chromium. Bean folio-assistant-ay33.
+
+  ONE copy, in cat-harness-tools, for every harnessed repository (moved from
+  folio-assistant's .github/actions/ci-setup and .github/ci-image, #2961).
+  Callers write
+    uses: litlfred/cat-harness-tools/.github/actions/ci-setup@<sha>
+  and build their image with the sibling `ci-image` action. The scripts this
+  action runs are in this directory, next to it.
+
+  FAST PATH: the prepared image ghcr.io/<owner>/<repo>-ci:<key> (key: key.sh
+  here). Its layers are streamed straight onto the runner (fetch.sh), each
+  checked against its manifest digest as it arrives, and then the mount check
+  (mount.sh --check) re-hashes every mounted layer against the committed lock.
+  No mount, no install, no cache save.
+
+  FALLBACK: when there is no image for the key (a re-pin, a lockfile change, a
+  first run), or the registry refuses, or anything in the restore fails, the
+  steps every job ran before this action: mount-from-lock (served from
+  refs/cat/layers/<key>), `bun install --frozen-lockfile`, `playwright install`.
+  A missing image costs time, never a result.
+
+  It does NOT run `state:mount`: the state branches move with every write, so
+  no image can hold them, and each job mounts them itself.
+
+  Must run after actions/checkout of the calling repository, from its root.
+  Steps run under `bash`, not the job's gate-shell default: gate-shell.sh
+  lives in cat-harness-tools, which this action is what puts on disk.
+inputs:
+  chromium:
+    description: |
+      'none' (default), 'browser' (Playwright's Chromium only), or 'with-deps'
+      (Chromium and the system libraries it needs, as
+      `playwright install --with-deps chromium`).
+    default: none
+  image:
+    description: |
+      The image to restore, without its tag. Default: ghcr.io/<owner>/<repo>-ci
+      for the calling repository, so any harness repo that builds its own with
+      the `ci-image` action uses this action unchanged.
+    default: ""
+  registry-token:
+    description: |
+      Optional token with packages:read, for when the image is not public.
+      Anonymous first; the token only if anonymous is refused.
+    default: ""
+outputs:
+  source:
+    description: "'image' when restored from the prepared image, 'fallback' otherwise."
+    value: ${{ steps.result.outputs.source }}
+  key:
+    description: The image key for this checkout.
+    value: ${{ steps.key.outputs.key }}
+runs:
+  using: composite
+  steps:
+    - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      with:
+        bun-version: 1.4.4
+
+    - name: Image key
+      id: key
+      shell: bash
+      run: echo "key=$(bash "$GITHUB_ACTION_PATH/key.sh" .)" >> "$GITHUB_OUTPUT"
+
+    - name: Restore the prepared image
+      id: image
+      shell: bash
+      env:
+        KEY: ${{ steps.key.outputs.key }}
+        CHROMIUM: ${{ inputs.chromium }}
+        REGISTRY_TOKEN: ${{ inputs.registry-token }}
+        IMAGE: ${{ inputs.image }}
+      run: |
+        t0=$(date +%s)
+        image="${IMAGE:-ghcr.io/${GITHUB_REPOSITORY,,}-ci}"
+        roles="ws"; [ "$CHROMIUM" = none ] || roles="ws pw"
+        pw="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/.cache/ms-playwright}"
+        status=0
+        REGISTRY_TOKEN="" bash "$GITHUB_ACTION_PATH/fetch.sh" "$image" "$KEY" "$GITHUB_WORKSPACE" "$pw" "$roles" || status=$?
+        if [ "$status" -eq 3 ] && [ -n "$REGISTRY_TOKEN" ]; then
+          status=0
+          bash "$GITHUB_ACTION_PATH/fetch.sh" "$image" "$KEY" "$GITHUB_WORKSPACE" "$pw" "$roles" || status=$?
+        fi
+        if [ "$status" -eq 0 ] && bash "$GITHUB_ACTION_PATH/mount.sh" --check; then
+          echo "hit=true" >> "$GITHUB_OUTPUT"
+          echo "| ci-setup | ${image}:${KEY:0:12} | **hit** | restored and verified in $(( $(date +%s) - t0 )) s |" >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+        fi
+        case "$status" in
+          0) why="restored, but the mount check refused it" ;;
+          3) why="no image for this key, or the registry refused the pull" ;;
+          *) why="restore failed (exit $status)" ;;
+        esac
+        echo "| ci-setup | ${image}:${KEY:0:12} | miss | ${why}; mounting and installing |" >> "$GITHUB_STEP_SUMMARY"
+        # Clear anything half-written, so the fallback mounts onto a clean tree.
+        for d in $(jq -r '.instances[].instance' index.lock.json) node_modules; do rm -rf "${GITHUB_WORKSPACE:?}/$d"; done
+        echo "hit=false" >> "$GITHUB_OUTPUT"
+        echo "::notice title=CI image::${why} (${image}:${KEY:0:12}); mounting and installing instead"
+
+    # ── Fallback: the steps every job ran before (bean cis1, nn8e) ──────────
+    - name: Mount the layers from the lock
+      if: steps.image.outputs.hit != 'true'
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/mount.sh"
+    - name: Install dependencies
+      if: steps.image.outputs.hit != 'true'
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/install.sh"
+
+    # Browsers come from the image on a hit; the system libraries never do.
+    - name: Playwright Chromium
+      if: inputs.chromium == 'browser' && steps.image.outputs.hit != 'true'
+      shell: bash
+      run: npx --yes playwright install chromium
+    - name: Playwright Chromium and its system libraries
+      if: inputs.chromium == 'with-deps'
+      shell: bash
+      # Browser always; apt only when a system library is missing. The shared
+      # installer sits in this same checkout of cat-harness-tools.
+      run: bash "$GITHUB_ACTION_PATH/../../scripts/playwright-chromium/install.sh" npx --yes playwright
+
+    - name: Result
+      id: result
+      shell: bash
+      env:
+        HIT: ${{ steps.image.outputs.hit }}
+      run: |
+        if [ "$HIT" = true ]; then echo "source=image" >> "$GITHUB_OUTPUT"; else echo "source=fallback" >> "$GITHUB_OUTPUT"; fi

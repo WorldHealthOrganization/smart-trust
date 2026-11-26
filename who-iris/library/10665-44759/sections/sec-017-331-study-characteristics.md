@@ -1,0 +1,22 @@
+---
+doc_id: 10665-44759
+doc_title: "Use of tuberculosis interferon-gamma release assays (IGRAs) in low- and middle-income countries"
+section_id: sec-017-331-study-characteristics
+section_title: "Study characteristics"
+section_number: 3.3.1
+pages: 21-21
+source_pdf: 10665-44759.pdf
+source_sha256: a9334cedbf720a2d
+toc_source: inferred
+---
+Study characteristics 
+The initial search yielded 791 citations. After full-text review of 129 papers evaluating IGRAs in 
+immunocompromised individuals, 29 were determined to meet eligibility criteria, covering 37 
+unique evaluations (hereafter referred to as studies). Of these, 22 studies were conducted in low- 
+and middle-income countries.  
+ 
+There was a high degree of variation in study design and study populations. 15/22 (68%) of studies 
+included only ambulatory HIV-positive individuals. IGRAs were performed in persons with or 
+suspected of having active TB in 12 studies, 6 studies evaluated asymptomatic HIV-positive persons 
+for LTBI, and 4 studies considered both asymptomatic as well as symptomatic individuals with HIV 
+co-infection.

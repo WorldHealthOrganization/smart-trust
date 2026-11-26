@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  cat-harness's shared steps: BPMN 2.0 global tasks, each one step that two or
+  more of this layer's processes perform with the same Skill, in a lane naming
+  the same Role, for the same purpose.
+
+  This file holds NO process: a step is defined here once and each process
+  calls it with a callActivity whose calledElement is the global task's bare
+  id. The calling lane names the
+  Role; the global task names the Skill. A global task may take inputs, which
+  each call gives a value, and is shared within this layer only. Every
+  layer names its file plainly processes/global-tasks.bpmn: a diagram's identity
+  is its layer plus its path, and its IRIs carry the layer.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_GlobalTasks" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+
+  <!-- The stores this layer's processes read and write. A store is not a
+       lane: a process draws a
+       dataStoreReference whose dataStoreRef is one of these ids, and the
+       tasks that read or write it say so with data associations. Each id is
+       the store's Role id in scenarios/roles.json, where its store block says
+       what it holds and how it is reached, and its skills are its contract. -->
+  <bpmn:dataStore id="work-plan" name="Work plan (beans)"/>
+  <bpmn:dataStore id="corpus" name="Corpus"/>
+  <bpmn:dataStore id="log" name="Activity log"/>
+  <bpmn:dataStore id="session-record" name="Session record"/>
+
+  <!-- The tracking issue a watch keeps: ci-health-watch, pr-checks-present,
+       repository-health-watch. Each call names its own label. -->
+  <bpmn:globalTask id="GT_EnsureTrackingLabel" name="Ensure the tracking&#10;label exists">
+    <bpmn:documentation>Create the tracking label (the `label` input) with --force so it exists before either issue path runs — the close path filters on it too, and on a repository that has never had a finding it would not exist yet. Skipped on an unknown verdict.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:skill ref="ci-health"/>
+    </bpmn:extensionElements>
+    <bpmn:ioSpecification id="GT_EnsureTrackingLabel_IO">
+      <bpmn:dataInput id="GT_EnsureTrackingLabel_label" name="label"/>
+      <bpmn:inputSet id="GT_EnsureTrackingLabel_In"><bpmn:dataInputRefs>GT_EnsureTrackingLabel_label</bpmn:dataInputRefs></bpmn:inputSet>
+      <bpmn:outputSet id="GT_EnsureTrackingLabel_Out"/>
+    </bpmn:ioSpecification>
+  </bpmn:globalTask>
+  <bpmn:globalTask id="GT_TrackIssue" name="Open or EDIT the one&#10;tracking issue">
+    <bpmn:documentation>Findings: EDIT the one open issue carrying the tracking label (the `label` input) if there is one, otherwise create it, with the report as the body. One issue edited in place, never a new issue or a comment per run, so the tracking issue never becomes a feed.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:skill ref="ci-health"/>
+    </bpmn:extensionElements>
+    <bpmn:ioSpecification id="GT_TrackIssue_IO">
+      <bpmn:dataInput id="GT_TrackIssue_label" name="label"/>
+      <bpmn:inputSet id="GT_TrackIssue_In"><bpmn:dataInputRefs>GT_TrackIssue_label</bpmn:dataInputRefs></bpmn:inputSet>
+      <bpmn:outputSet id="GT_TrackIssue_Out"/>
+    </bpmn:ioSpecification>
+  </bpmn:globalTask>
+  <bpmn:globalTask id="GT_CloseTrackingIssue" name="Close the&#10;tracking issue">
+    <bpmn:documentation>Clean: close the open issue carrying the tracking label (the `label` input), if any, saying why the verdict is clean. Runs only on a clean verdict — on unknown the issue is left untouched and the job fails instead, because could-not-check is never rendered as clean.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:skill ref="ci-health"/>
+    </bpmn:extensionElements>
+    <bpmn:ioSpecification id="GT_CloseTrackingIssue_IO">
+      <bpmn:dataInput id="GT_CloseTrackingIssue_label" name="label"/>
+      <bpmn:inputSet id="GT_CloseTrackingIssue_In"><bpmn:dataInputRefs>GT_CloseTrackingIssue_label</bpmn:dataInputRefs></bpmn:inputSet>
+      <bpmn:outputSet id="GT_CloseTrackingIssue_Out"/>
+    </bpmn:ioSpecification>
+  </bpmn:globalTask>
+
+  <!-- crdm-signoff and crdm-close. -->
+  <bpmn:globalScriptTask id="GT_RecordSignoff" name="Record the sign-off as a&#10;requirement-signoff attestation">
+    <bpmn:documentation>THE RECORD, and not relaxable, because a judgement nobody wrote down is indistinguishable from one never made (`adjudication`, A_RecordEntry). Append one `requirement-signoff` record to `test/attestations/requirement-signoff/&lt;set slug&gt;.attestations.json` — who (kind, id, actor), at, scope (the set or one member), the outcome from the requirement-set code list, the stage it moves the set to, the reason, and the permalink to the issue comment where it was decided — and set the set's `stage` to match.
+
+GW_SignoffRecorded after this reads the record back, so this step cannot be skipped by completing it: a sign-off that left no attestation loops here again.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:skill ref="adjudication"/>
+      <cat-harness.processes:policy relaxable="false"/>
+    </bpmn:extensionElements>
+  </bpmn:globalScriptTask>
+
+  <!-- kg-separation and sub-kg-lifecycle. -->
+  <bpmn:globalTask id="GT_Brief" name="Brief the work">
+    <bpmn:documentation>What the work is and why, what is already measured with its provenance, how it will be done, and what would falsify the approach. The work item is already taken up when the process starts, so a sibling session sees the work before the brief is written.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:skill ref="opening-brief"/>
+    </bpmn:extensionElements>
+  </bpmn:globalTask>
+  <bpmn:globalTask id="GT_Drain" name="Drain: land, close or&#10;re-target the open PRs">
+    <bpmn:documentation>Work the PRs `seed:ready` named until the source settles: land or close the heavy movers and the next layer's PRs, bring the layer's open PRs to five or fewer, and finish any move in flight. Fix a red rehearsal or a discovery miss where it is. Nothing is seeded from here; it goes back to the gateway, which re-asks.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:skill ref="kg-separation"/>
+    </bpmn:extensionElements>
+  </bpmn:globalTask>
+
+  <!-- graph-detanglement and kg-separation. -->
+  <bpmn:globalTask id="GT_ReportWhatMoves" name="Report what would move&#10;— sizes, and what breaks">
+    <bpmn:documentation>The agent reports and waits: what would move, how large, what in the parent breaks, and the rollback. `deletion-requires-confirmation` is not a courtesy to waive: an agent never removes or relocates a durable artefact on its own initiative.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:skill ref="deletion-requires-confirmation"/>
+    </bpmn:extensionElements>
+  </bpmn:globalTask>
+  <!-- feature-staging and staging-render-log. -->
+  <bpmn:globalScriptTask id="GT_LogRetained" name="Append `retained`&#10;with the reason">
+    <bpmn:documentation>Records that a removal was considered and refused, or that a preview still stands because a signal fired; without the entry that leaves no trace, and nobody can tell why a preview is still up. A reason is REQUIRED — the tool refuses without one.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:skill ref="render-logging"/>
+    </bpmn:extensionElements>
+  </bpmn:globalScriptTask>
+
+  <!-- translation-workflow and human-translation-workflow. -->
+  <bpmn:globalTask id="GT_ExtractPot" name="Extract translatable strings (POT)">
+    <bpmn:documentation>Scan the source content and write the translatable strings to .pot files at the configured granularity: segment prose by paragraph, shield what must not be translated (math, code, labels, Lean companions) as placeholders, normalise whitespace, and extract metadata such as titles, alt text and captions. Tool: the translation_extract MCP tool.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:skill ref="translation-manager"/>
+    </bpmn:extensionElements>
+  </bpmn:globalTask>
+  <bpmn:globalTask id="GT_InjectPo" name="Inject the PO into translated Markdown">
+    <bpmn:documentation>Read the .po file and the source .md, substitute msgstr for msgid, unshield the placeholders, and write the translated .md to translations/&lt;locale&gt;/. Check structure (paragraph count, heading levels) and completeness (no empty msgstr), and lint (doubled punctuation, orphaned placeholders). Tool: the translation_inject MCP tool.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:skill ref="translation-manager"/>
+    </bpmn:extensionElements>
+  </bpmn:globalTask>
+  <bpmn:globalTask id="GT_RoundTripQa" name="Round-trip translation QA">
+    <bpmn:documentation>Back-translate the target-language .md into the source language and compare the meaning with the original. It catches semantic drift and terminology misses that a forward-only fluency check cannot see, and tells the two apart. Tool: the translation_validate MCP tool.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:skill ref="translation-manager"/>
+    </bpmn:extensionElements>
+  </bpmn:globalTask>
+  <bpmn:globalTask id="GT_WriteTranslationStatus" name="Write status.json">
+    <bpmn:documentation>Record the translation's standing in translations/&lt;locale&gt;/status.json. The `official` input says which: `false` records it as unofficial ({ official: false, generatedBy, generatedAt }), usable but shown with a warning badge; `true` records the human sign-off with the SHA-256 of the source .md, so a later change to the source marks it stale.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bootstrap.processes:skill ref="translation-manager"/>
+    </bpmn:extensionElements>
+    <bpmn:ioSpecification id="GT_WriteTranslationStatus_IO">
+      <bpmn:dataInput id="GT_WriteTranslationStatus_official" name="official"/>
+      <bpmn:inputSet id="GT_WriteTranslationStatus_In"><bpmn:dataInputRefs>GT_WriteTranslationStatus_official</bpmn:dataInputRefs></bpmn:inputSet>
+      <bpmn:outputSet id="GT_WriteTranslationStatus_Out"/>
+    </bpmn:ioSpecification>
+  </bpmn:globalTask>
+</bpmn:definitions>
+

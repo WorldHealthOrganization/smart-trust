@@ -1,0 +1,62 @@
+---
+doc_id: 10665-58534
+doc_title: "Counselling for HIV/AIDS : a key to caring, for policy-makers, planners and implementors of counselling activities"
+section_id: page-029
+section_title: "Page 29"
+pages: 29-29
+pdf_page: 29
+source_pdf: 10665-58534.pdf
+source_sha256: 79af009d1163712c
+text_source: ocr
+granularity: page
+---
+WHO/GPA/TCO/ACS/95.15
+
+Box 3. Country counselling services, Zambia
+
+In order to respond to the great numbers of individuals needing HIV/AIDS
+counselling, the National AIDS Programme of Zambia has supported the
+countrywide development of counselling services using existing health and social
+workers in the following ways:
+
+- a national “focal point” for HIV/AIDS counselling, whose role is to
+coordinate all HIV/AIDS counselling activities, including the policy
+development process, has been designated;
+
+- a countrywide programme of training in HIV/AIDS counselling for
+clinical officers and nurses has been implemented and plans are being
+developed to set up counselling services as an integral service in all
+district hospitals;
+
+- advanced training in HIV/AIDS counselling has been provided for
+carefully selected staff from each Province who can receive referrals
+from other counsellors and conduct training in HIV/AIDS
+counselling;
+
+- a walk-in counselling and testing centre, staffed by full-time
+HIV/AIDS counsellors and providing anonymous testing and
+counselling, has recently been opened in Lusaka, the capital city;
+
+- mobile tearns of trained HIV/AIDS counsellors take their services to
+workplace settings where counselling services are available as an
+adjunct to educational programmes about HIV/AIDS,
+
+- members of home-based care teams who visit AIDS patients in their
+homes (as part of a national policy to make home-based care services
+available and thereby reduce the number of hospital inpatients) have
+been trained as counsellors;
+
+- “group counselling” has been introduced at carefully selected phases
+of the HIV/AIDS counselling process in order to provide some of the
+educational elements of the HIV/AIDS counselling process at lower
+cost;
+
+- peer education interventions that are closely linked with HIV/AIDS
+counselling services and that make increasing use of the contributions
+of HIV-positive individuals have been introduced,
+
+- counselling services with staff members who are trained in
+HIV/AIDS counselling to supplement their training in generic
+counselling skills have been established in the university and in other
+
+institutions of higher education.

@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_CRDM_Deliver" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="business-analyst" name="Business analyst"/>
+  <bpmn:resource id="stakeholder" name="Stakeholder"/>
+  <bpmn:collaboration id="Collaboration_Process_CRDM_Deliver">
+    <bpmn:participant id="Participant_Process_CRDM_Deliver" name="CRDM Phase 6 — implement, MVP, acceptance" processRef="Process_CRDM_Deliver"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_CRDM_Deliver" name="CRDM Phase 6 — implement, MVP, acceptance" isExecutable="false">
+    <bpmn:documentation>One phase and not three, because the loops say so: an increment the BA rejects, an MVP that is not ready, and stakeholder findings all route back into implementation. A subprocess has one exit and cannot be re-entered once finished, so splitting this region would have changed what the diagram says.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_CRDM_Deliver">
+      <bpmn:lane id="Lane_BA" name="BA / Feature Requestor" partitionElementRef="business-analyst">
+        <bpmn:documentation>Every signal that can send the loop back to A_Implement is filtered through this lane first: BA_ReviewIncrement judges behaviour rather than code, GW_MVPReady decides whether accumulated increments are worth showing stakeholders at all, and BA_TranslateFeedback is the only step that turns S_TestMVP's raw findings into direction the agent can act on. Nothing stakeholder-facing reaches Lane_Agent without passing through here.</bpmn:documentation>
+        <bpmn:flowNodeRef>BA_ReviewIncrement</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_IncrementOK</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_MVPReady</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>BA_ShareMVP</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>BA_TranslateFeedback</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Process_CRDM_Deliver</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Every loop-back in this phase — a rejected increment, an MVP not ready, stakeholder feedback — lands on A_Implement rather than on Call_OptionsAnalysis, so this lane always reworks an approach already chosen and never re-selects one. Deciding that the APPROACH itself is wrong is not this lane's call: that belongs to the calling step in crdm-requirements.bpmn, one level up.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Process_CRDM_Deliver</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_OptionsAnalysis</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Implement</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_CodeAudit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_DeployStaging</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Summary</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Stakeholders" name="Stakeholders" partitionElementRef="stakeholder">
+        <bpmn:documentation>Tests in the stakeholder's own workflow and data rather than against the acceptance criteria BA_ReviewIncrement already checked — a second, independent pass rather than a repeat of the first. GW_StakeholderOK's `findings` branch does not hand the agent anything directly; it hands raw results to BA_TranslateFeedback, which is this lane's boundary: it reports what works and what does not, and translating that into direction is somebody else's lane.</bpmn:documentation>
+        <bpmn:flowNodeRef>S_TestMVP</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_StakeholderOK</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Process_CRDM_Deliver" name="Phase begins"/>
+    <bpmn:callActivity id="Call_OptionsAnalysis" name="Options analysis&#10;how to implement" calledElement="Process_OptionsAnalysis">
+      <bpmn:documentation>On the single edge from `Start_Process_CRDM_Deliver` into `A_Implement`, so the approach is chosen before any code exists. By Phase 6 the needs, requirements and data model are signed off, which is exactly the evidence an options analysis needs and the reason it belongs here rather than earlier: at `Call_Needs` there is nothing to weigh, and after `A_Implement` the choice has been made in code.
+
+The three loop-backs into `A_Implement` — `_5` (increment rejected), `_7` (MVP not ready), `_13` (feedback translated) — deliberately BYPASS this call. Routing them through it would run the subprocess on every iteration of the inner loop, which is the ceremony this design refuses: a gate invoked on every pass stops being read. An iteration reworks an approach already chosen; if the APPROACH is what is wrong, that is not a loop iteration and it belongs to the calling step in `crdm-requirements.bpmn`.
+
+Contrast `upstream-version-adoption`, where the loop DOES re-enter the analysis. There the loop-back returns to `A_Impact`, which re-gathers the evidence, so the second pass weighs genuinely different inputs. Here the loop returns to implementation with the evidence unchanged.
+
+`A_Implement` carries a `note` on the bean (its claim is the OPEN that `Process_CRDM` calls first); this step carries no bean op, because `Process_OptionsAnalysis` ends with its own `decision-audit` note on the bean the caller claimed.</bpmn:documentation>
+    </bpmn:callActivity>
+    <bpmn:task id="A_Implement" name="Phase 6: Implement
+(feature branch + PR)">
+      <bpmn:documentation>Inner loop: agent claims a bean, implements on
+feature branch, opens PR, posts summary to the issue.
+
+When the requirement changes a rendered surface, implement against the
+wireframe candidate the requester or BA chose in Phases 3–4
+(Process_WireframeDesignReview, called from Process_CRDM_Requirements), not
+against a fresh design; and the delivery summary links the chosen candidate
+beside the after-screenshot, so the reviewer can see the build matches what was
+approved.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="continual-progress"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:callActivity id="A_CodeAudit" name="Audit the code nodes&#10;the increment adds" calledElement="Process_Review">
+      <bpmn:documentation>Descend into the review task for what this increment
+CHANGED IN THE GRAPH — Tool definitions in `tools/` and schema definition nodes
+under `schemas/`. It runs before the summary, and therefore before an MVP can
+be shared: a Tool or schema node shipped in an MVP is the version stakeholders
+start building expectations on, and a node that names a skill nobody wrote is
+cheaper to catch here than after sign-off.
+
+Called, not inherited: the agent keeps its implementing role and takes on the
+`code-reviewer` lane inside Process_CodeReview for that call path only.</bpmn:documentation>
+    </bpmn:callActivity>
+    <bpmn:task id="A_DeployStaging" name="Deploy the MVP&#10;to staging">
+      <bpmn:documentation>An MVP is shared AS A branches/ DEPLOY, not as a
+description of one. `feature-staging.yml` publishes the branch under
+`branches/&lt;branch-slug&gt;/` on gh-pages and comments the URL on the PR, so the
+stakeholder who tests it is looking at the built artefact rather than at a
+screenshot — the same argument the merge discipline makes about rendered work: holding a rendered change back for assessment makes assessment harder, not safer.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="feature-staging"/><cat-harness.processes:no-call reason="Pushing the branch is the step; feature-staging.yml then runs on the pull_request event, not because this diagram called it. A call activity would claim the engine drives CI."/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Summary" name="Post summary
+to issue">
+      <bpmn:documentation>What was accomplished, what remains, and the staging links: one deep link per
+changed page on the preview, with the same page on main (feedback-deep-links).</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="staging-review"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="BA_ReviewIncrement" name="Review increment
+(test behaviour)">
+      <bpmn:documentation>Inner loop: the BA tests each delivered increment
+against the acceptance criteria. They do not review code — they test behaviour.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-requirements-workflow"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_IncrementOK" name="Meets criteria?">
+      <bpmn:documentation>The BA's result from testing the increment's behaviour. `no` returns to implementation; `yes` asks whether the MVP is ready for stakeholders.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="GW_MVPReady" name="MVP ready
+for stakeholders?">
+      <bpmn:documentation>Asked after an increment passes: is the whole MVP ready for stakeholders? `not yet` implements the next increment; `yes` deploys the MVP to staging.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="BA_ShareMVP" name="Share MVP with
+stakeholders">
+      <bpmn:documentation>Outer loop: the BA presents the accumulated increments
+to stakeholders as a testable MVP. Staging URL, demo, or walkthrough.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-requirements-workflow"/><bootstrap.processes:skill ref="staging-review"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="S_TestMVP" name="Test MVP
+in own context">
+      <bpmn:documentation>Stakeholders test the delivered feature in their own
+workflow, with their own data. They report what works and what does not.</bpmn:documentation>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_StakeholderOK" name="Accepted?">
+      <bpmn:documentation>The stakeholder's result from testing the MVP in their own context. `findings` go to the BA to translate into direction for the agent; `accepted` goes on to the post-MVP theme and UI review.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="BA_TranslateFeedback" name="Translate feedback
+into agent direction">
+      <bpmn:documentation>The BA translates stakeholder findings into
+actionable direction: new beans or bean updates for the agent.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-requirements-workflow"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Process_CRDM_Deliver" name="Phase complete">
+      <bpmn:documentation>THERE IS NO THEME REVIEW HERE, and that is a rule rather than an omission: theme review happens at INGESTION ONLY, called from `ingest-theme.bpmn`, where the graphical assets arrive and are determined, not here, where they have already been built into what shipped.</bpmn:documentation>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_1" sourceRef="Start_Process_CRDM_Deliver" targetRef="Call_OptionsAnalysis"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_1b" sourceRef="Call_OptionsAnalysis" targetRef="A_Implement"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_2" sourceRef="A_Implement" targetRef="A_CodeAudit"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_2b" sourceRef="A_CodeAudit" targetRef="A_Summary"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_3" sourceRef="A_Summary" targetRef="BA_ReviewIncrement"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_4" sourceRef="BA_ReviewIncrement" targetRef="GW_IncrementOK"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_5" name="no" sourceRef="GW_IncrementOK" targetRef="A_Implement"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_6" name="yes" sourceRef="GW_IncrementOK" targetRef="GW_MVPReady"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_7" name="not yet" sourceRef="GW_MVPReady" targetRef="A_Implement"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_8" name="yes" sourceRef="GW_MVPReady" targetRef="A_DeployStaging"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_8b" sourceRef="A_DeployStaging" targetRef="BA_ShareMVP"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_9" sourceRef="BA_ShareMVP" targetRef="S_TestMVP"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_10" sourceRef="S_TestMVP" targetRef="GW_StakeholderOK"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_11" name="findings" sourceRef="GW_StakeholderOK" targetRef="BA_TranslateFeedback"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_12" sourceRef="BA_TranslateFeedback" targetRef="A_Implement"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_Deliver_13" name="accepted" sourceRef="GW_StakeholderOK" targetRef="End_Process_CRDM_Deliver"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_CRDM_Deliver">
+    <bpmndi:BPMNPlane id="Plane_Process_CRDM_Deliver" bpmnElement="Collaboration_Process_CRDM_Deliver">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_CRDM_Deliver" bpmnElement="Participant_Process_CRDM_Deliver" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1380" height="650" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_BA_Process_CRDM_Deliver" bpmnElement="Lane_BA" isHorizontal="true">
+        <dc:Bounds x="190" y="250" width="1350" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent_Process_CRDM_Deliver" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1350" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Stakeholders_Process_CRDM_Deliver" bpmnElement="Lane_Stakeholders" isHorizontal="true">
+        <dc:Bounds x="190" y="420" width="1350" height="310" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Process_CRDM_Deliver" bpmnElement="Start_Process_CRDM_Deliver">
+        <dc:Bounds x="230" y="147" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="208" y="190" width="80" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_OptionsAnalysis" bpmnElement="Call_OptionsAnalysis">
+        <dc:Bounds x="295" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Implement" bpmnElement="A_Implement">
+        <dc:Bounds x="440" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_CodeAudit" bpmnElement="A_CodeAudit">
+        <dc:Bounds x="585" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Summary" bpmnElement="A_Summary">
+        <dc:Bounds x="730" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_BA_ReviewIncrement" bpmnElement="BA_ReviewIncrement">
+        <dc:Bounds x="730" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_IncrementOK" bpmnElement="GW_IncrementOK" isMarkerVisible="true">
+        <dc:Bounds x="880" y="310" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="860" y="271" width="90" height="35" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_MVPReady" bpmnElement="GW_MVPReady" isMarkerVisible="true">
+        <dc:Bounds x="995" y="310" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1050" y="265" width="95" height="40" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_DeployStaging" bpmnElement="A_DeployStaging">
+        <dc:Bounds x="960" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_BA_ShareMVP" bpmnElement="BA_ShareMVP">
+        <dc:Bounds x="1155" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_S_TestMVP" bpmnElement="S_TestMVP">
+        <dc:Bounds x="1155" y="455" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_StakeholderOK" bpmnElement="GW_StakeholderOK" isMarkerVisible="true">
+        <dc:Bounds x="1310" y="490" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1295" y="546" width="80" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_BA_TranslateFeedback" bpmnElement="BA_TranslateFeedback">
+        <dc:Bounds x="1390" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Process_CRDM_Deliver" bpmnElement="End_Process_CRDM_Deliver">
+        <dc:Bounds x="1317" y="317" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1295" y="275" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_1" bpmnElement="SF_Process_CRDM_Deliver_1">
+        <di:waypoint x="266" y="165" />
+        <di:waypoint x="295" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_1b" bpmnElement="SF_Process_CRDM_Deliver_1b">
+        <di:waypoint x="415" y="165" />
+        <di:waypoint x="440" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_2" bpmnElement="SF_Process_CRDM_Deliver_2">
+        <di:waypoint x="560" y="165" />
+        <di:waypoint x="585" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_2b" bpmnElement="SF_Process_CRDM_Deliver_2b">
+        <di:waypoint x="705" y="165" />
+        <di:waypoint x="730" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_3" bpmnElement="SF_Process_CRDM_Deliver_3">
+        <di:waypoint x="790" y="225" />
+        <di:waypoint x="790" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_4" bpmnElement="SF_Process_CRDM_Deliver_4">
+        <di:waypoint x="850" y="335" />
+        <di:waypoint x="880" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_5" bpmnElement="SF_Process_CRDM_Deliver_5">
+        <di:waypoint x="905" y="360" />
+        <di:waypoint x="905" y="610" />
+        <di:waypoint x="530" y="610" />
+        <di:waypoint x="530" y="225" />
+        <bpmndi:BPMNLabel><dc:Bounds x="911" y="380" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_6" bpmnElement="SF_Process_CRDM_Deliver_6">
+        <di:waypoint x="930" y="335" />
+        <di:waypoint x="995" y="335" />
+        <bpmndi:BPMNLabel><dc:Bounds x="950" y="313" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_7" bpmnElement="SF_Process_CRDM_Deliver_7">
+        <di:waypoint x="1020" y="360" />
+        <di:waypoint x="1020" y="650" />
+        <di:waypoint x="500" y="650" />
+        <di:waypoint x="500" y="225" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1026" y="430" width="55" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_8" bpmnElement="SF_Process_CRDM_Deliver_8">
+        <di:waypoint x="1020" y="310" />
+        <di:waypoint x="1020" y="225" />
+        <bpmndi:BPMNLabel><dc:Bounds x="985" y="260" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_8b" bpmnElement="SF_Process_CRDM_Deliver_8b">
+        <di:waypoint x="1080" y="165" />
+        <di:waypoint x="1215" y="165" />
+        <di:waypoint x="1215" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_9" bpmnElement="SF_Process_CRDM_Deliver_9">
+        <di:waypoint x="1215" y="395" />
+        <di:waypoint x="1215" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_10" bpmnElement="SF_Process_CRDM_Deliver_10">
+        <di:waypoint x="1275" y="515" />
+        <di:waypoint x="1310" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_11" bpmnElement="SF_Process_CRDM_Deliver_11">
+        <di:waypoint x="1360" y="515" />
+        <di:waypoint x="1450" y="515" />
+        <di:waypoint x="1450" y="395" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1456" y="450" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_12" bpmnElement="SF_Process_CRDM_Deliver_12">
+        <di:waypoint x="1510" y="335" />
+        <di:waypoint x="1525" y="335" />
+        <di:waypoint x="1525" y="690" />
+        <di:waypoint x="470" y="690" />
+        <di:waypoint x="470" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_Deliver_13" bpmnElement="SF_Process_CRDM_Deliver_13">
+        <di:waypoint x="1335" y="490" />
+        <di:waypoint x="1335" y="353" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1340" y="435" width="60" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

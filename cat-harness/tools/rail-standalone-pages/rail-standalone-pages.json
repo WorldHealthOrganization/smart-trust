@@ -1,0 +1,71 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "rail-standalone-pages",
+    "title": "Give every page Jekyll did not lay out the folio-assistant navbar",
+    "description": "A LAST pass over the finished site: inject the shared navbar (`lib/navbar.ts`, the same component the site sidebar draws) into every page that carries none — standalone viewers, generated layer pages, and each IG site built by `stage-ig-sites`. A page under an `igSite` layer's route is railed as THAT layer's page (its name, mark and graphs); a page may declare its own section (`data-fa-visualiser-nav`) and its label (`fa-visualiser-label`). Mount routes are left to the mount pass, and a page that declines (`folio-navbar: none`) is left bare.",
+    "install": {
+      "none": true
+    },
+    "invoke": {
+      "shell": "bun run cat rail:standalone-pages"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "site",
+          "schema": {
+            "$type": "RepoPath"
+          },
+          "description": "The finished site directory.",
+          "required": true
+        },
+        {
+          "name": "built",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "The layer whose site this is (`cat-harness`).",
+          "required": true
+        },
+        {
+          "name": "foreign-site",
+          "schema": {
+            "$type": "Flag"
+          },
+          "description": "The site is a folio's, not the platform's: platform links point at the platform's published site.",
+          "required": false,
+          "arg": {
+            "flag": "--foreign-site"
+          }
+        },
+        {
+          "name": "instance",
+          "schema": {
+            "$type": "Slug"
+          },
+          "description": "With `--foreign-site`: the layer whose own site this is. Its name, mark and graphs head the navbar, and Harnesses lists it (linking to this site's root) and the harnesses it is built on.",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "railed",
+          "schema": {
+            "$type": "Count"
+          },
+          "description": "Pages given the navbar, beside those already navigated, redirect stubs, pages that declined, and pages with no <body> — each counted, none silently."
+        }
+      ]
+    },
+    "satisfies": [
+      "harness-tiles"
+    ],
+    "requires": {
+      "runtime": [
+        "bun"
+      ],
+      "network": false
+    }
+  }
+}

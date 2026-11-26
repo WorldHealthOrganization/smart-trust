@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_SwarmMonitorSweep"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="swarm-monitor" name="Swarm monitor"/>
+  <bpmn:resource id="work-plan" name="Work plan (beans)"/>
+  <bpmn:collaboration id="Collaboration_Process_SwarmMonitorSweep">
+    <bpmn:participant id="Participant_Process_SwarmMonitorSweep" name="Swarm monitor sweep and handover sync" processRef="Process_SwarmMonitorSweep"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_SwarmMonitorSweep" name="Swarm monitor sweep and handover sync" isExecutable="false">
+    <bpmn:documentation>Executes one stall-safe Swarm Monitor check-in sweep inside Process_SwarmDispatchAndMonitor: extracts live worker progress, measures repository queues and host CPU, disk, and compressed or swapped memory, intervenes on leaks or stalls, assigns right-scoped non-heavy idle-backlog work to workers waiting on single-core compute without checking out mid-build, refreshes and pushes the parent Swarm Work Item's Cold-Start Handover Runbook to the shared beans store on every sweep, and publishes the standardized two-table Human-Consumable Swarm Status Report when requested on-demand or scheduled periodically.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_SwarmMonitorSweep">
+      <bpmn:lane id="Lane_SweepMonitor" name="Swarm monitor" partitionElementRef="swarm-monitor">
+        <bpmn:documentation>Runs every monitor wake (event-driven completion, routine check-in tick, or on-demand owner request): checks worker progress and compressed/swap headroom, keeps compute-bound workers productive on non-heavy idle backlog, syncs the Cold-Start Handover Runbook to the shared beans branch on every tick so any cold successor can take over in under 60 seconds, and publishes the anti-shorthand two-table status report according to the user's selected cadence.</bpmn:documentation>
+        <bpmn:flowNodeRef>Sweep_Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_Sweep</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_GwHealthy</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_Triage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_GwJoinTriage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_GwIdleCompute</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AssignIdleComputeBacklog</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_GwJoinIdle</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RefreshSwarmHandover</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_GwReportDue</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_Report</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_GwJoinReport</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sweep_End</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Sweep_Start" name="Monitor wakeup or check-in">
+      <bpmn:documentation>Triggered by a worker completion/blocker event, a 2-to-4-minute fallback timer, a scheduled periodic check-in, or an on-demand owner status request.</bpmn:documentation>
+      <bpmn:outgoing>SFlow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Mon_Sweep" name="Sweep progress, queues and swap">
+      <bpmn:documentation>Run the targeted JSONL progress extractor, query live forge PR/issue counts and synced beans states against origin/main, and inspect CPU load, root disk free space (df -h /), and total plus compressed/swap memory (top -l 1 -o mem -stats pid,command,mem,cmprs on macOS or VmRSS + VmSwap on Linux, never ps -o rss alone).</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="swarm-monitor"/></bpmn:extensionElements>
+      <bpmn:incoming>SFlow_1</bpmn:incoming>
+      <bpmn:outgoing>SFlow_2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Mon_GwHealthy" name="Stall, drift or swap leak?">
+      <bpmn:documentation>Yes when any worker subprocess breaches the memory+compressed/swap or root-disk floor, a worker is silent for over 3 minutes or repeats step counters across two sweeps, workers collide on a path, or completed slices diverge structurally. No when healthy.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="swarm-monitor"/></bpmn:extensionElements>
+      <bpmn:incoming>SFlow_2</bpmn:incoming>
+      <bpmn:outgoing>SFlow_3</bpmn:outgoing>
+      <bpmn:outgoing>SFlow_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Mon_Triage" name="Nudge, kill leak or pull Andon">
+      <bpmn:documentation>Immediately SIGKILL any runaway subprocess leaking into compressed memory or swapfiles and message its worker; nudge a silent worker via SendMessage; route dead sessions through stalled-agent-triage; or pull the Andon cord to halt remaining workers on structural divergence or host exhaustion.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="swarm-monitor"/></bpmn:extensionElements>
+      <bpmn:incoming>SFlow_3</bpmn:incoming>
+      <bpmn:outgoing>SFlow_5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Mon_GwJoinTriage">
+      <bpmn:documentation>Join after optional stall or swap-leak intervention before checking whether any worker is idle on single-core compute.</bpmn:documentation>
+      <bpmn:incoming>SFlow_4</bpmn:incoming>
+      <bpmn:incoming>SFlow_5</bpmn:incoming>
+      <bpmn:outgoing>SFlow_6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:exclusiveGateway id="Mon_GwIdleCompute" name="Worker idle on compute?">
+      <bpmn:documentation>Yes when a worker is waiting on single-core or long-running background compute (build, solver, or CI) with no substantive foreground work and non-heavy idle-backlog items exist. No otherwise.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="idle-backlog"/></bpmn:extensionElements>
+      <bpmn:incoming>SFlow_6</bpmn:incoming>
+      <bpmn:outgoing>SFlow_7</bpmn:outgoing>
+      <bpmn:outgoing>SFlow_8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_AssignIdleComputeBacklog" name="Assign non-heavy idle backlog">
+      <bpmn:documentation>Assign a right-scoped, non-compute-heavy item from the parent Swarm Work Item's idle-backlog queue (documentation, metadata, review checklists, or disjoint lightweight edits in a separate git worktree, never running git checkout inside the active build's worktree) instead of letting the worker sleep on passive timers.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="idle-backlog"/></bpmn:extensionElements>
+      <bpmn:incoming>SFlow_7</bpmn:incoming>
+      <bpmn:outgoing>SFlow_9</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Mon_GwJoinIdle">
+      <bpmn:documentation>Join before refreshing the parent Swarm Work Item's Cold-Start Handover Runbook.</bpmn:documentation>
+      <bpmn:incoming>SFlow_8</bpmn:incoming>
+      <bpmn:incoming>SFlow_9</bpmn:incoming>
+      <bpmn:outgoing>SFlow_10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_RefreshSwarmHandover" name="Refresh and push epic handover">
+      <bpmn:documentation>On every routine monitor check-in tick and milestone transition (whether chat reporting is periodic or quiet on-demand), update the parent Swarm Work Item's Cold-Start Handover Runbook (origin/main SHA, EC-1..EC-k exit status, merged/open PR wave queues, worktree-to-branch-to-HEAD-to-role/PID table, verbatim owner directives and safety fences, and under-60-second cold-takeover commands plus dispatch lines) and push immediately to cat/cat-harness/beans via swarm-epic-sync / state:push.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="swarm-monitor"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SFlow_10</bpmn:incoming>
+      <bpmn:outgoing>SFlow_11</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_HandoverRunbook">
+        <bpmn:targetRef>DOR_HandoverRunbook</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+      <bpmn:dataOutputAssociation id="DOA_HandoverBeans">
+        <bpmn:targetRef>DSR_work_plan</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Mon_GwReportDue" name="Report requested or periodic?">
+      <bpmn:documentation>Yes when the owner asks for status on-demand, when a user-enabled periodic report timer fires, or when a milestone/exit gate transitions. Quiet when running in background on-demand mode between user requests (handover state in beans is already synced).</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="swarm-monitor"/></bpmn:extensionElements>
+      <bpmn:incoming>SFlow_11</bpmn:incoming>
+      <bpmn:outgoing>SFlow_12</bpmn:outgoing>
+      <bpmn:outgoing>SFlow_13</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Mon_Report" name="Publish scoreboard and status table">
+      <bpmn:documentation>Publish the standardized two-table Human-Consumable Swarm Status Report with zero naked worker codes, bare PR ranges, or unglossed bean IDs: (Table 1) Live Repository Queue Scoreboard across PRs, Work Items, and Issues with host headroom, and (Table 2) Full Multi-Track End-State, Queue, and Worker Status Table stating EC-1..EC-k progress and plain-English proved or measured outcomes.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="swarm-monitor"/></bpmn:extensionElements>
+      <bpmn:incoming>SFlow_12</bpmn:incoming>
+      <bpmn:outgoing>SFlow_14</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Mon_GwJoinReport">
+      <bpmn:documentation>Join after optional human status report emission to return control to Process_SwarmDispatchAndMonitor.</bpmn:documentation>
+      <bpmn:incoming>SFlow_13</bpmn:incoming>
+      <bpmn:incoming>SFlow_14</bpmn:incoming>
+      <bpmn:outgoing>SFlow_15</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="Sweep_End" name="Sweep complete">
+      <bpmn:documentation>Progress, headroom, idle-backlog assignments, Cold-Start Handover Runbook in beans, and any due human status report are complete for this check-in.</bpmn:documentation>
+      <bpmn:incoming>SFlow_15</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:dataObject id="DataObject_HandoverRunbook"/>
+    <bpmn:dataObjectReference id="DOR_HandoverRunbook" name="Cold-start handover runbook" dataObjectRef="DataObject_HandoverRunbook"/>
+    <bpmn:dataStoreReference id="DSR_work_plan" name="Work plan (beans)" dataStoreRef="work-plan"/>
+
+    <bpmn:sequenceFlow id="SFlow_1" sourceRef="Sweep_Start" targetRef="Mon_Sweep"/>
+    <bpmn:sequenceFlow id="SFlow_2" sourceRef="Mon_Sweep" targetRef="Mon_GwHealthy"/>
+    <bpmn:sequenceFlow id="SFlow_3" name="Yes" sourceRef="Mon_GwHealthy" targetRef="Mon_Triage"/>
+    <bpmn:sequenceFlow id="SFlow_4" name="No" sourceRef="Mon_GwHealthy" targetRef="Mon_GwJoinTriage"/>
+    <bpmn:sequenceFlow id="SFlow_5" sourceRef="Mon_Triage" targetRef="Mon_GwJoinTriage"/>
+    <bpmn:sequenceFlow id="SFlow_6" sourceRef="Mon_GwJoinTriage" targetRef="Mon_GwIdleCompute"/>
+    <bpmn:sequenceFlow id="SFlow_7" name="Yes" sourceRef="Mon_GwIdleCompute" targetRef="Task_AssignIdleComputeBacklog"/>
+    <bpmn:sequenceFlow id="SFlow_8" name="No" sourceRef="Mon_GwIdleCompute" targetRef="Mon_GwJoinIdle"/>
+    <bpmn:sequenceFlow id="SFlow_9" sourceRef="Task_AssignIdleComputeBacklog" targetRef="Mon_GwJoinIdle"/>
+    <bpmn:sequenceFlow id="SFlow_10" sourceRef="Mon_GwJoinIdle" targetRef="Task_RefreshSwarmHandover"/>
+    <bpmn:sequenceFlow id="SFlow_11" sourceRef="Task_RefreshSwarmHandover" targetRef="Mon_GwReportDue"/>
+    <bpmn:sequenceFlow id="SFlow_12" name="Yes" sourceRef="Mon_GwReportDue" targetRef="Mon_Report"/>
+    <bpmn:sequenceFlow id="SFlow_13" name="Quiet" sourceRef="Mon_GwReportDue" targetRef="Mon_GwJoinReport"/>
+    <bpmn:sequenceFlow id="SFlow_14" sourceRef="Mon_Report" targetRef="Mon_GwJoinReport"/>
+    <bpmn:sequenceFlow id="SFlow_15" sourceRef="Mon_GwJoinReport" targetRef="Sweep_End"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_Process_SwarmMonitorSweep">
+    <bpmndi:BPMNPlane id="Plane_Process_SwarmMonitorSweep" bpmnElement="Collaboration_Process_SwarmMonitorSweep">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_SwarmMonitorSweep" bpmnElement="Participant_Process_SwarmMonitorSweep" isHorizontal="true">
+        <dc:Bounds x="30" y="30" width="1140" height="535"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_SweepMonitor" bpmnElement="Lane_SweepMonitor" isHorizontal="true">
+        <dc:Bounds x="60" y="30" width="1110" height="535"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Sweep_Start" bpmnElement="Sweep_Start">
+        <dc:Bounds x="108" y="127" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="92" y="170" width="88" height="48"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_Sweep" bpmnElement="Mon_Sweep">
+        <dc:Bounds x="185" y="85" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_GwHealthy" bpmnElement="Mon_GwHealthy" isMarkerVisible="true">
+        <dc:Bounds x="345" y="120" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="320" y="54" width="102" height="52"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_Triage" bpmnElement="Mon_Triage">
+        <dc:Bounds x="445" y="85" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_GwJoinTriage" bpmnElement="Mon_GwJoinTriage" isMarkerVisible="true">
+        <dc:Bounds x="605" y="120" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_GwIdleCompute" bpmnElement="Mon_GwIdleCompute" isMarkerVisible="true">
+        <dc:Bounds x="695" y="120" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="670" y="54" width="102" height="52"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AssignIdleComputeBacklog" bpmnElement="Task_AssignIdleComputeBacklog">
+        <dc:Bounds x="795" y="85" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_GwJoinIdle" bpmnElement="Mon_GwJoinIdle" isMarkerVisible="true">
+        <dc:Bounds x="960" y="120" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Task_RefreshSwarmHandover" bpmnElement="Task_RefreshSwarmHandover">
+        <dc:Bounds x="185" y="315" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_GwReportDue" bpmnElement="Mon_GwReportDue" isMarkerVisible="true">
+        <dc:Bounds x="485" y="350" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="455" y="286" width="112" height="52"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_Report" bpmnElement="Mon_Report">
+        <dc:Bounds x="595" y="315" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_GwJoinReport" bpmnElement="Mon_GwJoinReport" isMarkerVisible="true">
+        <dc:Bounds x="765" y="350" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Sweep_End" bpmnElement="Sweep_End">
+        <dc:Bounds x="875" y="357" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="850" y="400" width="90" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_DOR_HandoverRunbook" bpmnElement="DOR_HandoverRunbook">
+        <dc:Bounds x="172" y="470" width="36" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="95" y="524" width="132" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_DSR_work_plan" bpmnElement="DSR_work_plan">
+        <dc:Bounds x="335" y="470" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="305" y="524" width="112" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_SFlow_1" bpmnElement="SFlow_1">
+        <di:waypoint x="144" y="145"/>
+        <di:waypoint x="185" y="145"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_2" bpmnElement="SFlow_2">
+        <di:waypoint x="305" y="145"/>
+        <di:waypoint x="345" y="145"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_3" bpmnElement="SFlow_3">
+        <di:waypoint x="395" y="145"/>
+        <di:waypoint x="445" y="145"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="402" y="122" width="32" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_4" bpmnElement="SFlow_4">
+        <di:waypoint x="370" y="170"/>
+        <di:waypoint x="370" y="232"/>
+        <di:waypoint x="630" y="232"/>
+        <di:waypoint x="630" y="170"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="376" y="206" width="28" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_5" bpmnElement="SFlow_5">
+        <di:waypoint x="565" y="145"/>
+        <di:waypoint x="605" y="145"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_6" bpmnElement="SFlow_6">
+        <di:waypoint x="655" y="145"/>
+        <di:waypoint x="695" y="145"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_7" bpmnElement="SFlow_7">
+        <di:waypoint x="745" y="145"/>
+        <di:waypoint x="795" y="145"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="752" y="122" width="32" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_8" bpmnElement="SFlow_8">
+        <di:waypoint x="720" y="170"/>
+        <di:waypoint x="720" y="232"/>
+        <di:waypoint x="985" y="232"/>
+        <di:waypoint x="985" y="170"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="726" y="206" width="28" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_9" bpmnElement="SFlow_9">
+        <di:waypoint x="915" y="145"/>
+        <di:waypoint x="960" y="145"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_10" bpmnElement="SFlow_10">
+        <di:waypoint x="1010" y="145"/>
+        <di:waypoint x="1075" y="145"/>
+        <di:waypoint x="1075" y="268"/>
+        <di:waypoint x="245" y="268"/>
+        <di:waypoint x="245" y="315"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_11" bpmnElement="SFlow_11">
+        <di:waypoint x="305" y="375"/>
+        <di:waypoint x="485" y="375"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_12" bpmnElement="SFlow_12">
+        <di:waypoint x="535" y="375"/>
+        <di:waypoint x="595" y="375"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="546" y="352" width="32" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_13" bpmnElement="SFlow_13">
+        <di:waypoint x="510" y="400"/>
+        <di:waypoint x="510" y="472"/>
+        <di:waypoint x="790" y="472"/>
+        <di:waypoint x="790" y="400"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="518" y="446" width="48" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_14" bpmnElement="SFlow_14">
+        <di:waypoint x="715" y="375"/>
+        <di:waypoint x="765" y="375"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SFlow_15" bpmnElement="SFlow_15">
+        <di:waypoint x="815" y="375"/>
+        <di:waypoint x="875" y="375"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_HandoverRunbook" bpmnElement="DOA_HandoverRunbook">
+        <di:waypoint x="210" y="435"/>
+        <di:waypoint x="210" y="495"/>
+        <di:waypoint x="208" y="495"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_HandoverBeans" bpmnElement="DOA_HandoverBeans">
+        <di:waypoint x="275" y="435"/>
+        <di:waypoint x="275" y="495"/>
+        <di:waypoint x="335" y="495"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
