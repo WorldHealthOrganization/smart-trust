@@ -1,0 +1,193 @@
+---
+doc_id: 10665-270347
+doc_title: "Survival, plasma HIV-1 RNA concentrations and drug resistance in HIV-1-infected Haitian adolescents and young adults on antiretrovirals"
+section_id: page-003
+section_title: "Page 3"
+pages: 3-3
+pdf_page: 3
+source_pdf: 10665-270347.pdf
+source_sha256: 0e4b2b50455784fb
+text_source: ocr
+granularity: page
+---
+Research
+Antiretroviral therapy in Haitian youth
+
+HIV-1 was determined by analysing
+sequences with the Phylogeny Inference
+Package (version 3.6, by J Felsenstein,
+University of Washington, Seattle, WA,
+USA). Sequences for drug resistance
+were interpreted using the International
+
+AIDS Society-USA guidelines.”°
+
+Psychological and social
+information
+
+Information on depression was col-
+lected by reviewing GHESKIO primary
+care notes using the WHO definition
+of depression.”! Social questions of
+a sensitive nature, such as those sur-
+rounding physical or sexual abuse and
+child labour, were not posed by means
+of a standardized instrument. Instead,
+the information was gathered via inter-
+views with clinic doctors, psychologists,
+social workers and nurses.
+
+Data analysis
+
+Follow-up continued through 1 July
+2006. Data analysis was performed
+using SAS 9.1 (Carey, NC, USA). For
+categorical variables, frequency and
+proportions were calculated, while for
+continuous variables, the median and
+interquartile ranges (IQRs) were de-
+termined. Kaplan-Meier analysis was
+used to estimate survival probabilities
+and their 95% confidence intervals (CI)
+for the period from ART initiation to
+death. For patients who did not reach
+the study endpoint, data were censored
+at the date of their last clinic visit. A
+Cox proportional hazards regression
+was used to analyse mortality, and lo-
+gistic regression was used to analyse the
+data on plasma HIV-1 RNA concentra-
+tions. In regression models, a backward
+elimination procedure was used to
+remove variables from the model se-
+quentially if & was greater than 0.05.
+
+Consent for HIV testing and treat-
+ment was obtained from the parents or
+guardians of patients aged 13-17 years
+and from patients aged 18-25 years. In-
+stitutional review boards at GHESKIO
+and at Vanderbilt and Cornell Universi-
+ties approved this study.
+
+Results
+Enrolment and status at the time
+of analysis
+
+Between 1 March 2003 and 31 De-
+cember 2005, GHESKIO provided
+HIV counselling and testing to 21 817
+adolescents and young adults aged
+
+972
+
+Macarthur Charles et al.
+
+Fig. 1. Kaplan—Meier survival estimate of HIV-1-infected patients aged 13-25 years
+receiving ART in a clinic in Haiti, 2003-2005
+
+1.0-+..
+
+S = So
+i a roy
+| | |
+
+Survival probability
+
+°
+Y
+
+0.04
+
+T
+0 12
+
+24 36
+
+Months from start of antiretroviral therapy
+
+ART, antiretroviral therapy.
+
+® Number of patients at risk: 146 at 0 months, 100 at 12 months, 54 at 24 months and 20 at 36 months.
+
+13-25 years, of whom 1772 (8%) were
+seropositive for HIV. Among these
+seropositive adolescents and young
+adults, 146 treatment-naive patients
+met AIDS criteria and were started on
+ART; 1610 had early-stage HIV infec-
+tion and did not require ART; 10 had
+received ART previously; and 10 died
+a median of 4 weeks after HIV testing
+but before starting ART. Table 1 shows
+baseline characteristics, by age, for the
+146 adolescents and young adults who
+received ART and were included in
+the study. At the time of the analysis,
+the median follow-up time for the 146
+patients was 18 months. Of the 146
+patients, 96 (66%) remained under
+follow-up until the end date, 28 (19%)
+were lost to follow-up, and 22 (15%)
+died during follow-up. No baseline
+characteristic was found to be associ-
+ated with loss to follow-up.
+
+Survival
+
+According to the Kaplan—Meier survival
+analysis, 87% of the patients were alive
+at 12 months, 83% at 24 months, and
+80% at 36 months (Fig. 1). Predictors of
+mortality at the time of ART initiation
+were an AIDS-defining illness (hazard
+ratio, HR: 9.1; 95% CI: 2.0-40.8, P=
+0.004) and haemoglobin < 5.28 mmol/l
+(HR: 3.1; 95% Ck: 1.1-8.2, P = 0.025).
+Of note, there was no difference in sur-
+vival between age groups in the cohort
+(13-15 years, 16-19 years and 20-25
+years).
+
+Measures of treatment response
+Adherence
+
+Of the 106 patients in care at the end
+of 12 months of follow-up, only 48
+(45%) had received more than 95%
+of the doses of medication prescribed
+for them and were thus considered
+adherent.
+
+CD4 response
+
+The median increase in plasma CD4
+concentration from baseline to 12
+months was 172 cells/ml (IQR: 72-296
+cells/ml). Of the 96 patients whose
+CD4 concentration was recorded at
+baseline and at 12 months, 5 (5%) had
+a decrease of more than 30%, 14 (15%)
+had no change (less than 30% deviation
+from baseline) and 77 (80%) had an
+
+increase of more than 30%.
+
+Plasma HIV-1 RNA concentration
+
+HIV-1 RNA at 12 months was mea-
+sured in 79 (75%) of the 106 patients
+with at least 12 months of follow-up.
+Plasma HIV-1 RNA concentration was
+= 50 copies/ml in 40 (51%) and < 50
+copies/ml in 39 (49%) of the 79 patients
+tested. Predictors for having a plasma
+HIV-1 RNA concentration < 50 cop-
+ies/ml at 12 months were 95% adher-
+ence to treatment (OR: 13.5; 95% CI:
+3.6-50.6, P = 0.0001) and an increase
+of > 30% in CD4 concentration at 12
+months (OR: 11.9; 95% CI: 1.7-81.0,
+P=0.01).
+
+Bulletin of the World Health Organization l December 2008, 86 (12)

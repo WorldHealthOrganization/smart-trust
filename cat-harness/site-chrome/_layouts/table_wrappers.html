@@ -1,0 +1,94 @@
+---
+layout: null
+---
+{%- comment -%}
+  OVERRIDES just-the-docs 0.12.0's `_layouts/table_wrappers.html`, the layout
+  `default.html` sits in. The theme's is two whole-page replaces:
+
+    content | replace: '<table', '<div class="table-wrapper"><table'
+            | replace: '</table>', '</table></div>'
+
+  They run over the WHOLE rendered page, so they rewrite text inside an
+  inline <script> or <style> too. A generator that builds a table in
+  JavaScript (`h += "<table>..."`) had `class="table-wrapper"` dropped inside
+  its double-quoted string, the script failed to parse and the page never
+  loaded (/en/cat-harness/schemas/<instance>/, owner's report 2026-10-15).
+  It is the same class as `_includes/vendor/anchor_headings.html`'s override:
+  a theme pass that rewrites markup must not reach raw-text elements.
+
+  HOW. Cut at "<script" and, outside scripts, at "<style", exactly as that
+  include does; a piece from its opening tag to the first closing tag after
+  it is emitted untouched, and the theme's two replaces run on every other
+  piece. A page holding neither tag gets the theme's two replaces, whole.
+
+  COST (measured with `jekyll build --profile`). Each piece is EMITTED as
+  it is cut rather than appended to an accumulator: `capture out` of
+  `{{ out }}{{ piece }}` copies everything so far on every piece, O(pieces x
+  page) per page, and it was most of this layout's time. A page with scripts
+  but no `<table` and no `</table>` is emitted whole, and so is the markup
+  between two scripts that holds neither: the two replaces would change
+  nothing there, and the cut pieces join back to the text they were cut
+  from. (Liquid's `split` drops a TRAILING empty piece, so the one exception
+  is a "<script" or "<style" with nothing after it before the next "<script"
+  or the end of the page, which the cut used to drop and this keeps.)
+
+  NO PARENT LAYOUT. The theme's file sits in `vendor/compress`, a Liquid HTML
+  compressor. It never ran here: Jekyll's layout reader applies the site's
+  `exclude`, and `_config.yml` excludes `vendor`, so `_layouts/vendor/` is not
+  read, from the site or from the theme (a layer that sets its own
+  `exclude` restates `vendor`), and a missing parent layout is skipped
+  without a warning. `layout: null` says what was already true. It
+  is not merely tidy: the compressor folds every whitespace run outside
+  `<pre>` to one space, inside `<script>` too, so turning it on would join a
+  `// comment` to the line after it. The built pages are minified after
+  Jekyll instead (`minify-site.ts` of cat-harness-tools), which leaves
+  scripts, styles and text alone.
+
+  Keep in step with the theme when the just-the-docs pin moves
+  (upstream/upstream-pins.json).
+{%- endcomment -%}
+{%- if content contains '<script' or content contains '<style' -%}
+  {%- unless content contains '<table' or content contains '</table>' -%}
+{{ content }}
+  {%- else -%}
+  {%- assign _tw_scripts = content | split: '<script' -%}
+  {%- for _tw_s in _tw_scripts -%}
+    {%- if forloop.first -%}
+      {%- assign _tw_raw = '' -%}
+      {%- assign _tw_markup = _tw_s -%}
+    {%- elsif _tw_s contains '</script>' -%}
+      {%- assign _tw_body = _tw_s | split: '</script>' | first -%}
+      {%- capture _tw_raw -%}<script{{ _tw_body }}</script>{%- endcapture -%}
+      {%- assign _tw_markup = _tw_s | remove_first: _tw_body | remove_first: '</script>' -%}
+    {%- else -%}
+      {%- capture _tw_raw -%}<script{{ _tw_s }}{%- endcapture -%}
+      {%- assign _tw_markup = '' -%}
+    {%- endif -%}
+    {{- _tw_raw -}}
+    {%- unless _tw_markup contains '<table' or _tw_markup contains '</table>' -%}
+    {{- _tw_markup -}}
+    {%- else -%}
+    {%- assign _tw_styles = _tw_markup | split: '<style' -%}
+    {%- for _tw_t in _tw_styles -%}
+      {%- if forloop.first -%}
+        {%- assign _tw_traw = '' -%}
+        {%- assign _tw_tmarkup = _tw_t -%}
+      {%- elsif _tw_t contains '</style>' -%}
+        {%- assign _tw_tbody = _tw_t | split: '</style>' | first -%}
+        {%- capture _tw_traw -%}<style{{ _tw_tbody }}</style>{%- endcapture -%}
+        {%- assign _tw_tmarkup = _tw_t | remove_first: _tw_tbody | remove_first: '</style>' -%}
+      {%- else -%}
+        {%- capture _tw_traw -%}<style{{ _tw_t }}{%- endcapture -%}
+        {%- assign _tw_tmarkup = '' -%}
+      {%- endif -%}
+      {%- assign _tw_tmarkup = _tw_tmarkup | replace: '<table', '<div class="table-wrapper"><table' | replace: '</table>', '</table></div>' -%}
+      {{- _tw_traw -}}{{- _tw_tmarkup -}}
+    {%- endfor -%}
+    {%- endunless -%}
+  {%- endfor -%}
+  {%- endunless -%}
+{%- else -%}
+{% assign content_ = content | replace: '<table', '<div class="table-wrapper"><table' %}
+{% assign content_ = content_ | replace: '</table>', '</table></div>' %}
+{{ content_ }}
+{%- endif -%}

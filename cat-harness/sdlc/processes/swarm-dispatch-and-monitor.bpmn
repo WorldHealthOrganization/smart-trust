@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_SwarmDispatchAndMonitor"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="user" name="User"/>
+  <bpmn:resource id="session-coordinator" name="Session coordinator"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="swarm-monitor" name="Swarm monitor"/>
+  <bpmn:resource id="merge-steward" name="Merge steward"/>
+  <bpmn:resource id="work-plan" name="Work plan (beans)"/>
+  <bpmn:collaboration id="Collaboration_Process_SwarmDispatchAndMonitor">
+    <bpmn:participant id="Participant_Process_SwarmDispatchAndMonitor" name="Swarm dispatch and monitor" processRef="Process_SwarmDispatchAndMonitor"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_SwarmDispatchAndMonitor" name="Swarm dispatch and monitor" isExecutable="false">
+    <bpmn:documentation>Binds or cold-resumes any multi-agent swarm on a parent Swarm Work Item (epic or milestone in beans, for example a repository Stability epic, a proof-closure epic, or a literature-audit epic) carrying measurable exit criteria (EC-1..EC-k), structured child queues (completed, active, queued, idle-backlog), and a live Cold-Start Handover Runbook, then dispatches isolated-worktree workers under a per-swarm spawn gate and supervises them through Process_SwarmMonitorSweep until the epic drains or halts.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_SwarmDispatchAndMonitor">
+      <bpmn:lane id="Lane_Owner" name="Owner" partitionElementRef="user">
+        <bpmn:documentation>Grants or declines per-swarm spawn permission on a tappable decision card after reading worker count, model tiers, relative token cost, and status reporting preference (on-demand vs periodic) in chat, unless a bounded swarm-spawn waiver already covers the scope.</bpmn:documentation>
+        <bpmn:flowNodeRef>Owner_DecideSpawn</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Coordinator" name="Coordinator" partitionElementRef="session-coordinator">
+        <bpmn:documentation>Finds, cold-resumes, or idempotently initializes the parent Swarm Work Item (acceptance criteria EC-1..EC-k, child queues, and handover runbook), decomposes disjoint sub-beans and non-heavy idle-backlog items, opens the swarm epic via Process_BeanOpen, and dispatches isolated-worktree workers with the mandatory fresh-context Process &amp; Skill Launch Block, progress contract, and wakeup schedule.</bpmn:documentation>
+        <bpmn:flowNodeRef>Swarm_Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_InitOrClaimSwarmEpic</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Swarm_Decompose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Swarm_GwWaived</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Swarm_GwApproved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Swarm_EndSerial</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Swarm_OpenBean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DispatchWorker</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Workers" name="Worker agents" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Background workers operating in isolated git worktrees, one disjoint slice and one child work item per worker (plus right-scoped non-heavy idle-backlog items in separate worktrees while waiting on single-core compute). Each worker emits live progress and completion blocks and pushes its branch without merging.</bpmn:documentation>
+        <bpmn:flowNodeRef>Work_Execute</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Monitor" name="Swarm monitor" partitionElementRef="swarm-monitor">
+        <bpmn:documentation>Runs Process_SwarmMonitorSweep on reactive worker events, routine check-in ticks, or on-demand status requests to check progress and compressed/swap headroom, assign idle-on-compute backlog, refresh and push the Swarm Work Item's Cold-Start Handover Runbook, and publish anti-shorthand status tables; then hands verified PRs to the merge steward, refills freed slots, and closes via Process_BeanClose when drained.</bpmn:documentation>
+        <bpmn:flowNodeRef>Call_MonitorSweep</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_GwReadyPr</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_GwJoinNext</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_GwContinue</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_Refill</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_CloseBean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Mon_EndClosed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_MergeSteward" name="Merge steward" partitionElementRef="merge-steward">
+        <bpmn:documentation>Receives six-line merge requests for independently verified pull requests and routes them through the merge train or direct merge guard under the owner's batch approval, keeping merge-wave state reflected in the shared work plan.</bpmn:documentation>
+        <bpmn:flowNodeRef>Steward_QueuePr</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Swarm_Start" name="Swarm start or takeover">
+      <bpmn:documentation>Parallel workstreams are requested for a goal epic, or a successor coordinator/merge-steward takes over cold after a session stall exceeding the liveness window.</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_InitOrClaimSwarmEpic" name="Bind or resume swarm epic">
+      <bpmn:documentation>Query beans for an active parent Swarm Work Item (epic or milestone, parameterized by --epic-id or --swarm-title; check before creating). On cold takeover after a stall, read its Cold-Start Handover Runbook first; otherwise define measurable exit criteria (EC-1..EC-k), structured child queues (completed, active, queued, idle-backlog), and user-selected status cadence (on-demand vs periodic).</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="bean-coordination"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_1b</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_InitSwarmEpic">
+        <bpmn:targetRef>DSR_work_plan</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+
+    <bpmn:task id="Swarm_Decompose" name="Decompose disjoint sub-beans">
+      <bpmn:documentation>Verify that a swarm is justified over serial execution (swarm-management), partition the goal into child work items with disjoint writable paths, explicit Done-when criteria, and non-compute-heavy idle-backlog items, and size worker count, model tiers (cost-aware routing), and host concurrency bounds.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_1b</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Swarm_GwWaived" name="Swarm-spawn waived?">
+      <bpmn:documentation>Yes when an active owner confirmation waiver explicitly covers swarm-spawn up to this worker count and model tier, quoted in the turn report. No otherwise: ask first, per swarm.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="confirmation-waiver"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Owner_DecideSpawn" name="Decide swarm card">
+      <bpmn:documentation>Coordinator posts the full context, exit criteria, worker count, model tiers, relative token cost, reporting mode (on-demand vs periodic), options, and recommendation in chat, followed immediately by a tappable card; the owner approves or declines.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="interaction-modality"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Swarm_GwApproved" name="Spawn approved?">
+      <bpmn:documentation>Yes when the owner approves the swarm card. No when declined: fall back to sequential execution.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="dispatch-agent"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="Swarm_EndSerial" name="Run serially">
+      <bpmn:documentation>Swarm declined or unjustified; work proceeds sequentially one child work item at a time.</bpmn:documentation>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:callActivity id="Swarm_OpenBean" name="Open the swarm epic" calledElement="Process_BeanOpen">
+      <bpmn:documentation>Claim the parent Swarm Work Item and initial worker sub-beans in the shared beans store through Process_BeanOpen and push state to the branch store so sibling sessions see every active claim and handover header.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="bean-coordination"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:callActivity>
+
+    <bpmn:task id="Task_DispatchWorker" name="Dispatch workers with skill brief">
+      <bpmn:documentation>Spawned siblings start with a blank context: inject the mandatory role-specific Process &amp; Skill Launch Block into every worker prompt (for a Merge Steward: repo local skills, merge-manager-watcher, merge-queue / Process_MergeTrain + merge-overlap + Process_MergeRefusal, merge-to-main + Task_LocalGates + verify-merge-replay, merge-conflict-patterns, and beans show &lt;epic-id&gt;; for any Task Sibling: target repo .claude/skills/local/*.md first, continual-progress, idle-backlog without passive sleep timers or mid-build git checkout, merge-request / merge-queue never-self-merge 6-line handoff, interaction-modality / hand-back-to-discussion, one-voice-style-guide, and repo fences), plus the verbatim PROGRESS contract; arm the 2-to-4-minute fallback timer.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="dispatch-agent"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Work_Execute" name="Execute slice or idle backlog">
+      <bpmn:documentation>Each worker executes its claimed disjoint slice in its worktree (or advances a right-scoped non-heavy idle-backlog item in a separate worktree while waiting on single-core compute, never checking out mid-build), emits live progress blocks, runs verification, pushes its branch and PR, and emits DONE without merging.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="continual-progress"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:incoming>Flow_21</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:callActivity id="Call_MonitorSweep" name="Sweep, triage and sync handover" calledElement="Process_SwarmMonitorSweep">
+      <bpmn:documentation>Run Process_SwarmMonitorSweep on reactive wakeups, routine check-in ticks, or on-demand status requests: inspect worker progress, queues, and compressed/swap memory, triage leaks or stalls, assign non-heavy idle-backlog items to compute-bound workers, push a fresh Cold-Start Handover Runbook to beans, and emit the two-table status report when due.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="swarm-monitor"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+    </bpmn:callActivity>
+
+    <bpmn:exclusiveGateway id="Mon_GwReadyPr" name="Verified PR ready?">
+      <bpmn:documentation>Yes when a completed worker branch passes independent parent verification (typecheck, tests, and applicable gates) and is ready for merge-steward intake. No when workers are still running or blocked.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="swarm-monitor"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+      <bpmn:outgoing>Flow_16</bpmn:outgoing>
+      <bpmn:outgoing>Flow_17</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:callActivity id="Steward_QueuePr" name="Queue PR in merge watch" calledElement="Process_MergeManagerWatch">
+      <bpmn:documentation>Hand the verified six-line merge request (or ready-to-merge / needs-repin label) to the active merge steward for batch approval and merge-train landing; neither workers nor monitor self-merge outside the merge-steward lane.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="merge-manager-watcher"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_16</bpmn:incoming>
+      <bpmn:outgoing>Flow_18</bpmn:outgoing>
+    </bpmn:callActivity>
+
+    <bpmn:exclusiveGateway id="Mon_GwJoinNext">
+      <bpmn:documentation>Join after optional merge-steward handoff before evaluating remaining worker slots, exit criteria EC-1..EC-k, and queued beans.</bpmn:documentation>
+      <bpmn:incoming>Flow_17</bpmn:incoming>
+      <bpmn:incoming>Flow_18</bpmn:incoming>
+      <bpmn:outgoing>Flow_19</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:exclusiveGateway id="Mon_GwContinue" name="Slots active or refillable?">
+      <bpmn:documentation>Yes while workers remain live or unclaimed, unblocked child items remain before exit criteria EC-1..EC-k are all met, with healthy host headroom and no Andon halt. Drained when all EC-1..EC-k gates pass, items are parked on an owner decision card, or the Andon cord halts execution.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="swarm-monitor"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_19</bpmn:incoming>
+      <bpmn:outgoing>Flow_20</bpmn:outgoing>
+      <bpmn:outgoing>Flow_22</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Mon_Refill" name="Refill slots and re-arm timer">
+      <bpmn:documentation>Claim the next unblocked child work items in the shared beans store (pushing updated queue and handover state to the branch store), dispatch fresh isolated-worktree workers into freed slots with the mandatory role-specific Process &amp; Skill Launch Block and progress contract, and re-arm the 2-to-4-minute one-shot fallback timer before ending the turn.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="swarm-monitor"/>
+        <cat-harness.processes:bean op="note"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_20</bpmn:incoming>
+      <bpmn:outgoing>Flow_21</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DOA_MonRefill">
+        <bpmn:targetRef>DSR_work_plan</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+
+    <bpmn:callActivity id="Mon_CloseBean" name="Close or park swarm epic" calledElement="Process_BeanClose">
+      <bpmn:documentation>Cancel any remaining wakeup or periodic report timer and run Process_BeanClose on the parent Swarm Work Item: complete and archive once EC-1..EC-k are satisfied, or record explicit blockers and cold-takeover dispatch lines in beans and hand back cleanly.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="todo-manager"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_22</bpmn:incoming>
+      <bpmn:outgoing>Flow_23</bpmn:outgoing>
+    </bpmn:callActivity>
+
+    <bpmn:endEvent id="Mon_EndClosed" name="Swarm closed">
+      <bpmn:documentation>All swarm exit criteria have been met or cleanly parked, the final two-table Human-Consumable Swarm Status Report is published, and the Swarm Work Item state is synced.</bpmn:documentation>
+      <bpmn:incoming>Flow_23</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:dataStoreReference id="DSR_work_plan" name="Work plan (beans)" dataStoreRef="work-plan"/>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Swarm_Start" targetRef="Task_InitOrClaimSwarmEpic"/>
+    <bpmn:sequenceFlow id="Flow_1b" sourceRef="Task_InitOrClaimSwarmEpic" targetRef="Swarm_Decompose"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Swarm_Decompose" targetRef="Swarm_GwWaived"/>
+    <bpmn:sequenceFlow id="Flow_3" name="No" sourceRef="Swarm_GwWaived" targetRef="Owner_DecideSpawn"/>
+    <bpmn:sequenceFlow id="Flow_4" name="Yes" sourceRef="Swarm_GwWaived" targetRef="Swarm_OpenBean"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Owner_DecideSpawn" targetRef="Swarm_GwApproved"/>
+    <bpmn:sequenceFlow id="Flow_6" name="No" sourceRef="Swarm_GwApproved" targetRef="Swarm_EndSerial"/>
+    <bpmn:sequenceFlow id="Flow_7" name="Yes" sourceRef="Swarm_GwApproved" targetRef="Swarm_OpenBean"/>
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Swarm_OpenBean" targetRef="Task_DispatchWorker"/>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_DispatchWorker" targetRef="Work_Execute"/>
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Work_Execute" targetRef="Call_MonitorSweep"/>
+    <bpmn:sequenceFlow id="Flow_15" sourceRef="Call_MonitorSweep" targetRef="Mon_GwReadyPr"/>
+    <bpmn:sequenceFlow id="Flow_16" name="Yes" sourceRef="Mon_GwReadyPr" targetRef="Steward_QueuePr"/>
+    <bpmn:sequenceFlow id="Flow_17" name="No" sourceRef="Mon_GwReadyPr" targetRef="Mon_GwJoinNext"/>
+    <bpmn:sequenceFlow id="Flow_18" sourceRef="Steward_QueuePr" targetRef="Mon_GwJoinNext"/>
+    <bpmn:sequenceFlow id="Flow_19" sourceRef="Mon_GwJoinNext" targetRef="Mon_GwContinue"/>
+    <bpmn:sequenceFlow id="Flow_20" name="Yes" sourceRef="Mon_GwContinue" targetRef="Mon_Refill"/>
+    <bpmn:sequenceFlow id="Flow_21" sourceRef="Mon_Refill" targetRef="Work_Execute"/>
+    <bpmn:sequenceFlow id="Flow_22" name="Drained" sourceRef="Mon_GwContinue" targetRef="Mon_CloseBean"/>
+    <bpmn:sequenceFlow id="Flow_23" sourceRef="Mon_CloseBean" targetRef="Mon_EndClosed"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_Process_SwarmDispatchAndMonitor">
+    <bpmndi:BPMNPlane id="Plane_Process_SwarmDispatchAndMonitor" bpmnElement="Collaboration_Process_SwarmDispatchAndMonitor">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_SwarmDispatchAndMonitor" bpmnElement="Participant_Process_SwarmDispatchAndMonitor" isHorizontal="true">
+        <dc:Bounds x="30" y="30" width="1350" height="855"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Owner" bpmnElement="Lane_Owner" isHorizontal="true">
+        <dc:Bounds x="60" y="30" width="1320" height="150"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Coordinator" bpmnElement="Lane_Coordinator" isHorizontal="true">
+        <dc:Bounds x="60" y="180" width="1320" height="185"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Workers" bpmnElement="Lane_Workers" isHorizontal="true">
+        <dc:Bounds x="60" y="365" width="1320" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Monitor" bpmnElement="Lane_Monitor" isHorizontal="true">
+        <dc:Bounds x="60" y="525" width="1320" height="210"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_MergeSteward" bpmnElement="Lane_MergeSteward" isHorizontal="true">
+        <dc:Bounds x="60" y="735" width="1320" height="150"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Swarm_Start" bpmnElement="Swarm_Start">
+        <dc:Bounds x="108" y="254" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="92" y="296" width="82" height="50"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_InitOrClaimSwarmEpic" bpmnElement="Task_InitOrClaimSwarmEpic">
+        <dc:Bounds x="176" y="212" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Swarm_Decompose" bpmnElement="Swarm_Decompose">
+        <dc:Bounds x="328" y="212" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Swarm_GwWaived" bpmnElement="Swarm_GwWaived" isMarkerVisible="true">
+        <dc:Bounds x="480" y="247" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="536" y="296" width="90" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Owner_DecideSpawn" bpmnElement="Owner_DecideSpawn">
+        <dc:Bounds x="555" y="52" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Swarm_EndSerial" bpmnElement="Swarm_EndSerial">
+        <dc:Bounds x="598" y="254" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="562" y="226" width="82" height="20"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Swarm_GwApproved" bpmnElement="Swarm_GwApproved" isMarkerVisible="true">
+        <dc:Bounds x="680" y="247" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="716" y="202" width="84" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Swarm_OpenBean" bpmnElement="Swarm_OpenBean">
+        <dc:Bounds x="815" y="212" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_DispatchWorker" bpmnElement="Task_DispatchWorker">
+        <dc:Bounds x="980" y="212" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_DSR_work_plan" bpmnElement="DSR_work_plan">
+        <dc:Bounds x="1225" y="232" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1112" y="240" width="105" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Work_Execute" bpmnElement="Work_Execute">
+        <dc:Bounds x="115" y="385" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Call_MonitorSweep" bpmnElement="Call_MonitorSweep">
+        <dc:Bounds x="115" y="565" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_GwReadyPr" bpmnElement="Mon_GwReadyPr" isMarkerVisible="true">
+        <dc:Bounds x="305" y="600" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="284" y="546" width="92" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Steward_QueuePr" bpmnElement="Steward_QueuePr">
+        <dc:Bounds x="380" y="750" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_GwJoinNext" bpmnElement="Mon_GwJoinNext" isMarkerVisible="true">
+        <dc:Bounds x="535" y="600" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_GwContinue" bpmnElement="Mon_GwContinue" isMarkerVisible="true">
+        <dc:Bounds x="635" y="600" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="612" y="540" width="98" height="52"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_Refill" bpmnElement="Mon_Refill">
+        <dc:Bounds x="755" y="565" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_CloseBean" bpmnElement="Mon_CloseBean">
+        <dc:Bounds x="945" y="565" width="120" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Mon_EndClosed" bpmnElement="Mon_EndClosed">
+        <dc:Bounds x="1125" y="607" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1100" y="649" width="90" height="36"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="144" y="272"/>
+        <di:waypoint x="176" y="272"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_1b" bpmnElement="Flow_1b">
+        <di:waypoint x="296" y="272"/>
+        <di:waypoint x="328" y="272"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_2" bpmnElement="Flow_2">
+        <di:waypoint x="448" y="272"/>
+        <di:waypoint x="480" y="272"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_3" bpmnElement="Flow_3">
+        <di:waypoint x="505" y="247"/>
+        <di:waypoint x="505" y="112"/>
+        <di:waypoint x="555" y="112"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="511" y="216" width="28" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_4" bpmnElement="Flow_4">
+        <di:waypoint x="505" y="297"/>
+        <di:waypoint x="505" y="348"/>
+        <di:waypoint x="875" y="348"/>
+        <di:waypoint x="875" y="332"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="468" y="322" width="32" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_5" bpmnElement="Flow_5">
+        <di:waypoint x="675" y="112"/>
+        <di:waypoint x="705" y="112"/>
+        <di:waypoint x="705" y="247"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_6" bpmnElement="Flow_6">
+        <di:waypoint x="680" y="272"/>
+        <di:waypoint x="634" y="272"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="646" y="250" width="28" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_7" bpmnElement="Flow_7">
+        <di:waypoint x="730" y="272"/>
+        <di:waypoint x="815" y="272"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="748" y="250" width="32" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_8" bpmnElement="Flow_8">
+        <di:waypoint x="935" y="272"/>
+        <di:waypoint x="980" y="272"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_9" bpmnElement="Flow_9">
+        <di:waypoint x="1040" y="332"/>
+        <di:waypoint x="1040" y="415"/>
+        <di:waypoint x="235" y="415"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_10" bpmnElement="Flow_10">
+        <di:waypoint x="175" y="505"/>
+        <di:waypoint x="175" y="565"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_15" bpmnElement="Flow_15">
+        <di:waypoint x="235" y="625"/>
+        <di:waypoint x="305" y="625"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_16" bpmnElement="Flow_16">
+        <di:waypoint x="330" y="650"/>
+        <di:waypoint x="330" y="810"/>
+        <di:waypoint x="380" y="810"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="292" y="672" width="32" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_17" bpmnElement="Flow_17">
+        <di:waypoint x="355" y="625"/>
+        <di:waypoint x="535" y="625"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="415" y="603" width="28" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_18" bpmnElement="Flow_18">
+        <di:waypoint x="500" y="810"/>
+        <di:waypoint x="560" y="810"/>
+        <di:waypoint x="560" y="650"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_19" bpmnElement="Flow_19">
+        <di:waypoint x="585" y="625"/>
+        <di:waypoint x="635" y="625"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_20" bpmnElement="Flow_20">
+        <di:waypoint x="685" y="625"/>
+        <di:waypoint x="755" y="625"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="702" y="603" width="32" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_21" bpmnElement="Flow_21">
+        <di:waypoint x="815" y="565"/>
+        <di:waypoint x="815" y="475"/>
+        <di:waypoint x="235" y="475"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_22" bpmnElement="Flow_22">
+        <di:waypoint x="660" y="650"/>
+        <di:waypoint x="660" y="712"/>
+        <di:waypoint x="1005" y="712"/>
+        <di:waypoint x="1005" y="685"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="672" y="688" width="60" height="18"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_23" bpmnElement="Flow_23">
+        <di:waypoint x="1065" y="625"/>
+        <di:waypoint x="1125" y="625"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_InitSwarmEpic" bpmnElement="DOA_InitSwarmEpic">
+        <di:waypoint x="236" y="212"/>
+        <di:waypoint x="236" y="40"/>
+        <di:waypoint x="1250" y="40"/>
+        <di:waypoint x="1250" y="232"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DOA_MonRefill" bpmnElement="DOA_MonRefill">
+        <di:waypoint x="845" y="565"/>
+        <di:waypoint x="845" y="542"/>
+        <di:waypoint x="1250" y="542"/>
+        <di:waypoint x="1250" y="282"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

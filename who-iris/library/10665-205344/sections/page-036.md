@@ -1,0 +1,60 @@
+---
+doc_id: 10665-205344
+doc_title: "Information, education and communication: a guide for AIDS programme managers"
+section_id: page-036
+section_title: "Page 36"
+pages: 36-36
+pdf_page: 36
+source_pdf: 10665-205344.pdf
+source_sha256: 0fdcc9d570f32d5f
+text_source: ocr
+granularity: page
+---
+SEA/AIDS/81
+Page 33
+
+Annex 2
+
+PLANNING A MASS AWARENESS CAMPAIGN
+
+Mass awareness campaigns are recommended for reaching the general public with basic
+information on AIDS/STD, for articulating the general philosophy behind the overall
+programme, and for providing an umbrella message network for the entire programme. A
+mass awareness campaign is the utilization of all mass media channels (TV, radio, press,
+general print materials) to disseminate a sequence of basic messages on HIV/AIDS/STD in
+a coordinated fashion aimed at a loosely segmented target population. Often ad hoc media
+activities, such as individual TV spots, are mistaken for mass awareness campaigns. It is
+important that a campaign is recognized by the general population as a cohesive programme
+no matter which channel of the mass media is used.
+
+Most national AIDS programmes do not have the infrastructure to develop such a
+campaign in-house and the development of the design and media plan is often contracted out
+to communications professionals/organizations. Understanding of the elements which go into
+planning a mass awareness campaign is, however, useful for a programme planner and a
+concise overview of the elements and steps necessary for an effective mass awareness
+campaign therefore follows.
+
+Segment Target Population: A decision should be made on what segments of the
+general population should be targeted. For instance, if segmenting for youth, men and women
+between 15 and 49 is suggested, then messages directed at women, men, and youth in general
+should be developed.
+
+Market Research: Before developing a campaign it is essential to conduct some rapid
+research among the identified segments of the general population to ascertain current levels
+of knowledge, general practices, sexual health care seeking behaviour and perceptions of
+AIDS and STDs. A combination of quantitative and qualitative data collection is
+recommended. Qualitative research should be conducted first, after which a broader
+quantitative study for a larger sample size can be implemented. The quantitative study can
+provide baseline data for future evaluation of impact. Marketing research firms and large
+social science institutions can be contracted to carry out this work. It is essential that the
+programme planner works closely with the contractor on questionnaire development and
+sampling.
+
+Message Development: Specific messages for the segmented populations should be
+developed on the basis of the philosophy, the research and the availability of services.
+
+Concept Development and Media Plan: The overall tone and theme of a campaign
+should be developed on the basis of the philosophy and the results of research. This will entail
+designing a logo and signature line or tune to unite the various media used. Some samples are
+’Prevention is the only cure’ with an identifiable graphic for use in all visuals. At this stage
+the mix of media will be identified and, for each audience segment, a detailed plan for

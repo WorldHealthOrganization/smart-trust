@@ -1,0 +1,70 @@
+{
+  "$schema": "tool-definition/v1",
+  "tool": {
+    "id": "ci-code-quality-gates",
+    "title": "Run the platform index's code-quality gates",
+    "description": "Dispatch the index's `code-quality-gates.yml`: every gate over the whole mounted index, its cone, bundle cache and judge. Started with the standard GitHub CLI; the run is watched with `gh run watch`.",
+    "install": {
+      "cli": "gh"
+    },
+    "invoke": {
+      "shell": "gh workflow run code-quality-gates.yml"
+    },
+    "io": {
+      "inputs": [
+        {
+          "name": "repo",
+          "schema": {
+            "$type": "RepoFullName"
+          },
+          "description": "The repository whose workflow is run. Default: the current one.",
+          "required": false,
+          "arg": {
+            "flag": "--repo"
+          }
+        },
+        {
+          "name": "ref",
+          "schema": {
+            "$type": "Branch"
+          },
+          "description": "The branch to run it on. Default: the default branch.",
+          "required": false,
+          "arg": {
+            "flag": "--ref"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "run",
+          "schema": {
+            "$type": "Text"
+          },
+          "description": "The dispatched run; its outcome is read with `gh run watch` or `gh run view`."
+        }
+      ]
+    },
+    "satisfies": [
+      "platform-gates",
+      "qa-reports"
+    ],
+    "selection": {
+      "when": "Running the `code-quality-gates.yml` workflow on demand instead of waiting for its trigger, or finding which workflow a CI step belongs to.",
+      "limits": "Needs a token that may dispatch workflows (actions: write) on the repository.",
+      "cost": "A full CI run on GitHub's runners."
+    },
+    "requires": {
+      "runtime": [
+        "gh"
+      ],
+      "network": true
+    },
+    "remedies": [
+      {
+        "host": "github.com",
+        "none": "The workflow runs on GitHub; with no host there is nothing to dispatch. The scripts it runs can still be run locally by their own keys."
+      }
+    ]
+  }
+}

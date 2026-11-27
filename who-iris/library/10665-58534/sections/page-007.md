@@ -1,0 +1,60 @@
+---
+doc_id: 10665-58534
+doc_title: "Counselling for HIV/AIDS : a key to caring, for policy-makers, planners and implementors of counselling activities"
+section_id: page-007
+section_title: "Page 7"
+pages: 7-7
+pdf_page: 7
+source_pdf: 10665-58534.pdf
+source_sha256: 79af009d1163712c
+text_source: ocr
+granularity: page
+---
+WHO/GPA/TCO/HCS/95. 15
+
+INTRODUCTION
+
+Who is this document intended for?
+
+These guidelines are intended to provide policy-makers and planners working in
+health and social service organizations! with information to enable them to develop policies
+that will stimulate, encourage and support the development of appropriate HIV/AIDS
+counselling services and plan for this service.
+
+This document presents general policy issues in the area of HIV/AIDS counselling.
+The aim is to encourage countries to develop programme-linked policies and operational
+guidance for the provision of counselling, It is not intended to give detailed guidance on how
+to set up and manage HIV/AIDS counselling services or how to design, implement and
+evaluate training, education or communication programmes. Such guidance is available in
+other GPA material referenced in the appropriate sections of this publication.
+
+The guidelines are intended to reflect experiences and insights that have been gained
+in the field of HIV/AIDS counselling since the first version of WHO AIDS Series 8 was
+published in 1990. As countries develop their counselling services, new ideas and experience
+will in turn guide the further refinement of services and revision of policies.
+
+Why is it important to have policies on HIV/AIDS counselling?
+
+The existence of sound and clearly stated policies on HIV/AIDS counselling and
+related areas is central to the establishment of effective counselling services. Policies, in this
+context, are written guiding principles (including a preferred method of action) issued by the
+Ministry of Health or other institutions, regarding the provision of HIV/AIDS counselling.
+Development of policies is particularly important for HIV/AIDS counselling, because
+
+HIV/AIDS counselling is a recommended prerequisite for HIV testing and, in
+many instances, HIV testing is a politically sensitive issue. Clear policies are
+especially important in asserting the role of pre- and post-test counselling.
+HIV/AIDS counsellors, more than any other workers in the field of HIV/AIDS,
+deal with highly sensitive personal information and with people in their most
+vulnerable states of mind.
+
+Readers of these guidelines are likely to include:
+members of national AIDS committees
+planning officers
+programme managers
+training specialists
+managers of institutions providing counselling services
+managers of institutions providing training in HIV/AIDS counselling.
+
+The guidelines are also intended for managers, clinicians and others who may occasionally play a
+role in the policy-making process or have a special interest in HIV/AIDS counselling.

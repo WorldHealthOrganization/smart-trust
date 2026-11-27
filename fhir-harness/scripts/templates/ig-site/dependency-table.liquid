@@ -1,0 +1,31 @@
+{%- comment -%}
+The IG Publisher's package dependency table (`dependency-table.xhtml`, `-short`, `-nontech`), rendered by Jekyll from `site.data.fhir.dependencies`.
+Called by the fragment `build-ig-site.ts` writes in place of the one the Publisher would have generated (bean `4475`), with `include.form`:
+`full` (every row, nested by depth), `short` (the IG's own dependencies only) or `nontech` (titles only, as a list). Every value — the rows, their order,
+their depth, whether the package cache held a package — is computed by `ig-dependencies.ts`; this file only arranges them. A package the cache did not
+hold is SAID, rather than shown as a leaf that depends on nothing. No dependencies at all is said too.
+{%- endcomment -%}
+{%- assign rows = site.data.fhir.dependencies -%}
+{%- if rows and rows.size > 0 -%}
+{%- if include.form == "nontech" %}
+<ul class="ig-dependency-list">
+{%- for r in rows %}{% if r.depth == 0 %}<li>{{ r.title | default: r.packageId | escape }}</li>{% endif %}{% endfor %}
+</ul>
+{%- else %}
+<table class="ig-dependency-table grid">
+<thead><tr><th>IG</th><th>Package</th><th>FHIR</th><th>Comment</th></tr></thead>
+<tbody>
+{%- for r in rows %}{% if include.form == "short" and r.depth > 0 %}{% continue %}{% endif %}
+<tr class="ig-dependency-depth-{{ r.depth }}">
+<td style="padding-left: {{ r.depth | times: 1.5 | plus: 0.25 }}em">{% if r.canonical %}<a href="{{ r.canonical }}">{{ r.title | default: r.packageId | escape }}</a>{% else %}{{ r.title | default: r.packageId | escape }}{% endif %}</td>
+<td><a href="https://simplifier.net/packages/{{ r.packageId }}/{{ r.version }}">{{ r.packageId }}#{{ r.version }}</a></td>
+<td>{{ r.fhirVersion }}</td>
+<td>{% if r.repeat %}listed above{% elsif r.resolved == false %}not in the package cache this build read, so what it depends on is not shown{% endif %}</td>
+</tr>
+{%- endfor %}
+</tbody>
+</table>
+{%- endif %}
+{%- else %}
+<p class="ig-dependency-table-empty">This guide declares no package dependencies.</p>
+{%- endif %}

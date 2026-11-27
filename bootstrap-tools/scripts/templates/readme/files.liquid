@@ -1,0 +1,60 @@
+{%- comment -%}
+  The file table: files directly in the directory, then its subdirectories.
+  Included by subgraph.liquid; reads `files`, `subdirs`, `folded` and
+  `summary`.
+
+  A subdirectory row says WHAT IT IS (subdir-what.liquid): declared by the
+  caller when it resolved a description, else read from the subdirectory
+  itself — its README, a self-describing file, or the kinds of file it holds.
+  It never prints a file count (bean `ba9e`). A count drifts on every commit
+  that adds a file: one line of `beans/README.md` conflicted three times in a
+  single day (2026-10-01), and 207 such counts in 54 READMEs made almost every
+  merge conflict. The numbers are in the writer's `Plan.counts`, for a
+  harness to publish where they cannot conflict.
+
+  Over the subdirectory limit (`folded`), the subdirectory rows move into a
+  `<details>` disclosure after the file table, every row still there. The
+  `markdown="1"` attribute is what makes kramdown (Jekyll, the github-pages
+  build) read the table inside as markdown; GitHub reads it regardless, given
+  the blank lines around it.
+
+  The table is written only when it has a row. Over the list limit `files` is
+  empty, and with no subdirectory either the summary is the whole answer: a
+  header and separator with no body is not a table to kramdown, which keeps
+  it as a paragraph and turns `---` into an em dash.
+{%- endcomment -%}
+{%- if summary != "" -%}
+_{{ summary }}_
+
+{% endif -%}
+{%- if files.size == 0 and subdirs.size == 0 -%}
+{%- if summary == "" -%}
+_This directory holds no files yet._
+{%- endif -%}
+{%- elsif folded -%}
+{%- if files.size > 0 -%}
+| file | what it is | used by |
+|---|---|---|
+{% for f in files -%}
+| [`{{ f.path }}`]({{ f.href }}) | {{ f.what }} | {{ f.usedBy }} |
+{% endfor %}
+{% endif -%}
+<details markdown="1">
+<summary>Subdirectories, by name — expand to list them</summary>
+
+| subdirectory | what it is |
+|---|---|
+{% for d in subdirs -%}
+| [`{{ d.name }}/`]({% if d.readme != "" %}{{ d.readme }}{% else %}{{ d.href }}/{% endif %}) | {% include subdir-what.liquid d=d %} |
+{% endfor %}
+</details>
+{%- else -%}
+| file | what it is | used by |
+|---|---|---|
+{% for f in files -%}
+| [`{{ f.path }}`]({{ f.href }}) | {{ f.what }} | {{ f.usedBy }} |
+{% endfor -%}
+{% for d in subdirs -%}
+| [`{{ d.name }}/`]({% if d.readme != "" %}{{ d.readme }}{% else %}{{ d.href }}/{% endif %}) | {% include subdir-what.liquid d=d %} | |
+{% endfor -%}
+{%- endif %}

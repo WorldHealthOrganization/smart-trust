@@ -1,0 +1,1 @@
+The registry shall conform to best practices in information systems design in order to assure quality, accuracy, timeliness, completeness, reliability, privacy, security, and confidentiality of the data and information systems and assets.

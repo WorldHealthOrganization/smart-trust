@@ -1,0 +1,54 @@
+---
+doc_id: 10665-58534
+doc_title: "Counselling for HIV/AIDS : a key to caring, for policy-makers, planners and implementors of counselling activities"
+section_id: page-022
+section_title: "Page 22"
+pages: 22-22
+pdf_page: 22
+source_pdf: 10665-58534.pdf
+source_sha256: 79af009d1163712c
+text_source: ocr
+granularity: page
+---
+Counselling for HIV/AIDS: A key to caring
+
+In countries, or in defined geographical areas within a country, where HIV prevalence
+is high, HIV/AIDS counselling services should also be available at the following sites :
+
+community sites where ongoing support is provided to those affected by
+HIV/AIDS;
+
+- health clinics at the workplace; and
+
+- independent sites where voluntary counselling and testing can be sought.
+
+Who takes part in an HIV/AIDS counselling session?
+
+Most HIV/AIDS counselling sessions are confidential and most involve the
+participation of a single client and a single care-provider. The client has an absolute right to
+confidentiality and/or anonymity unless and until he or she decides otherwise. However, at
+the discretion of the client and the care-provider, the following other people may be involved
+in an HIV/AIDS counselling session:
+
+members of the client’s family;
+a second care-provider with additional counselling skills which may be
+required to help the client address a particular problem,
+
+- other resource person such as a clinician, a co-worker or religious leader.
+
+Counselling clients in a group can be less time-consuming and therefore less costly
+than counselling individual clients. However, the circumstances under which more than one
+client attends a counselling session are subject to careful consideration. The use of group
+counselling is probably most appropriate at those stages of the counselling process when the
+educational element is paramount. Group counselling is not appropriate when the emotional
+support element takes precedence (for example, at a counselling session when a client is to be
+informed of the positive result of an HIV test) and/or when confidentiality is required.
+
+Because..of the greater potential for ‘breaches of confidentiality when group
+counselling is being undertaken, clients should always be given the opportunity to give their
+fully informed consent before participating in a group counselling session. Secondly,
+selection of group members should be sensitive to age, gender and sexuality differences
+among potential group members. Female sex workers may not find it easy to be in the same
+group as married women; men who have occasional sex with other men may not relate well
+with men who identify as gay; men who never have sex with men will relate even less well,
+and street children may not be understood by moralistic adults.

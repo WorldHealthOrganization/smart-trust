@@ -1,0 +1,266 @@
+@startuml assistant-framework
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam packageFontSize 14
+skinparam shadowing false
+
+title Assistant Framework — Schema UML
+
+package "Registry" <<Rectangle>> {
+  class SkillRegistry {
+    schemaVersion: "1.0"
+    repository: string
+    actors: ActorDefinition[]
+    capabilities: CapabilityDefinition[]
+    skills: SkillDefinition[]
+    requirements: Requirement[]
+    packages: SkillPackageRef[]
+    hooks: SessionHook[]
+    roleAssignments: RoleAssignment[]
+  }
+}
+
+package "Actors & Roles" <<Rectangle>> {
+  class ActorDefinition {
+    id: string
+    name: string
+    type: "person" | "system"
+    description: string
+    inherits: string[]
+    capabilities: string[]
+    meta?: Record<string, unknown>
+  }
+
+  class RoleAssignment {
+    userPattern: string
+    identitySource: IdentitySource
+    actorId: string
+    priority: number
+  }
+
+  enum IdentitySource {
+    git_config
+    github_oauth
+    google_oauth
+    env_var
+    bearer_token
+    default
+  }
+}
+
+package "Capabilities" <<Rectangle>> {
+  class CapabilityDefinition {
+    id: string
+    name: string
+    description: string
+    detection: CapabilityDetection
+    requires?: string[]
+  }
+
+  class CapabilityDetection <<union>> {
+    method: "command" | "env-var" |
+      "file-exists" | "mcp-probe" | "always"
+    command?: string
+    variable?: string
+    path?: string
+    endpoint?: string
+  }
+}
+
+package "Skills" <<Rectangle>> {
+  class SkillDefinition {
+    id: string
+    name: string
+    description: string
+    roles: string[]
+    requiredCapabilities: SkillCapabilityRef[]
+    dependsOn?: SkillDependency[]
+    scripts?: SkillScript[]
+    mcpServices?: string[]
+    validators?: SkillValidator[]
+    routingPatterns?: string[]
+    schemas?: SkillSchemaRef[]
+    tags?: string[]
+  }
+
+  class SkillCapabilityRef {
+    capabilityId: string
+    degradation: "fail" | "warn" |
+      "skip" | "fallback"
+    fallbackCapabilityId?: string
+  }
+
+  class SkillDependency {
+    ref: string
+    kind: "skill" | "requirement"
+    conformance: Conformance
+  }
+
+  class SkillScript {
+    path: string
+    runtime: "bash" | "python" |
+      "typescript" | "bun"
+    phase: "pre" | "execute" |
+      "validate" | "post"
+  }
+
+  class SkillSchemaRef {
+    module: string
+    types: string[]
+    access: "read" | "write" | "read-write"
+  }
+}
+
+package "Requirements (FHIR R5)" <<Rectangle>> {
+  class Requirement {
+    id: string
+    title: string
+    description: string
+    derivedFrom?: string[]
+    actors: string[]
+    statements: RequirementStatement[]
+    tags?: string[]
+  }
+
+  class RequirementStatement {
+    key: string
+    label: string
+    conformance: Conformance
+    requirement: string
+    satisfiedBy?: SatisfiedByRef[]
+    dependsOn?: string[]
+  }
+
+  class SatisfiedByRef {
+    kind: "skill" | "capability" |
+      "requirement-statement"
+    ref: string
+  }
+
+  enum Conformance {
+    SHALL
+    SHOULD
+    MAY
+    "SHALL NOT"
+  }
+}
+
+package "Workflow Lifecycle" <<Rectangle>> {
+  class WorkflowDefinition {
+    id: string
+    name: string
+    stages: LifecycleStage[]
+    transitions: StageTransition[]
+    bindings: StageSkillBinding[]
+  }
+
+  class StageTransition {
+    from: LifecycleStage
+    to: LifecycleStage
+    trigger: "auto" | "manual" | "ci"
+    gates?: string[]
+  }
+
+  class StageSkillBinding {
+    stage: LifecycleStage
+    skills: { skillId, conformance, role }[]
+  }
+
+  enum LifecycleStage {
+    develop
+    validate
+    review
+    test
+    publish
+    feedback
+    revise
+  }
+}
+
+package "Docker Packaging" <<Rectangle>> {
+  class PackageManifest {
+    packageId: string
+    name: string
+    baseImage: string
+    apt?: AptDependency[]
+    installers?: InstallerDependency[]
+    python?: PythonDependency[]
+    node?: NodeDependency[]
+    envVars?: { name, description, required }[]
+    exposedPorts?: { port, protocol, service }[]
+    healthcheck?: { test, interval, timeout, retries }
+    ociAnnotations?: Record<string, string>
+  }
+}
+
+' ── Relationships ──
+
+SkillRegistry "1" *-- "many" ActorDefinition
+SkillRegistry "1" *-- "many" CapabilityDefinition
+SkillRegistry "1" *-- "many" SkillDefinition
+SkillRegistry "1" *-- "many" Requirement
+SkillRegistry "1" *-- "many" SessionHook : hooks
+SkillRegistry "1" *-- "many" RoleAssignment : roleAssignments
+
+ActorDefinition "0..*" --> "0..*" ActorDefinition : inherits
+ActorDefinition "0..*" --> "0..*" CapabilityDefinition : capabilities
+
+RoleAssignment "many" --> "1" ActorDefinition : actorId
+
+SkillDefinition "0..*" --> "0..*" ActorDefinition : roles
+SkillDefinition "1" *-- "many" SkillCapabilityRef : requiredCapabilities
+SkillDefinition "0..1" *-- "many" SkillDependency : dependsOn
+SkillDefinition "0..1" *-- "many" SkillScript : scripts
+SkillDefinition "0..1" *-- "many" SkillSchemaRef : schemas
+
+SkillCapabilityRef "many" --> "1" CapabilityDefinition : capabilityId
+SkillCapabilityRef "0..1" ..> "1" CapabilityDefinition : fallbackCapabilityId
+
+SkillDependency "many" --> "0..1" SkillDefinition : ref (skill)
+SkillDependency "many" --> "0..1" Requirement : ref (requirement)
+
+CapabilityDefinition "1" *-- "1" CapabilityDetection : detection
+CapabilityDefinition "0..*" --> "0..*" CapabilityDefinition : requires
+
+Requirement "0..*" --> "0..*" ActorDefinition : actors
+Requirement "1" *-- "many" RequirementStatement : statements
+RequirementStatement "0..1" *-- "many" SatisfiedByRef : satisfiedBy
+
+SatisfiedByRef "many" ..> "0..1" SkillDefinition : ref (skill)
+SatisfiedByRef "many" ..> "0..1" CapabilityDefinition : ref (capability)
+SatisfiedByRef "many" ..> "0..1" RequirementStatement : ref (statement)
+
+WorkflowDefinition "1" *-- "many" StageTransition
+WorkflowDefinition "1" *-- "many" StageSkillBinding
+StageSkillBinding "many" --> "0..*" SkillDefinition : skillId
+StageTransition "many" ..> "0..*" RequirementStatement : gates
+
+PackageManifest "0..1" --> "0..*" SkillDefinition : package scope
+
+note right of SkillDefinition
+  **Skill** = what an agent CAN DO
+  (action + role access + tooling)
+
+  Has implementations:
+  scripts, MCP services,
+  validators, schemas
+end note
+
+note right of CapabilityDefinition
+  **Capability** = what the ENVIRONMENT HAS
+  (prerequisite, probed at session start)
+
+  Detected via shell command,
+  env var, file check, or MCP probe
+end note
+
+note right of Requirement
+  **Requirement** = what MUST BE TRUE
+  (constraint, validated by skills/capabilities)
+
+  FHIR R5 conformance verbs:
+  SHALL / SHOULD / MAY
+end note
+
+@enduml

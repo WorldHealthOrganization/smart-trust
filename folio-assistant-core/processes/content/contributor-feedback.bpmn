@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — contributor feedback on a working draft.
+
+  Source of truth: this file. The SVG under docs/assets/img/workflows/ is
+  generated from it by `bun run cat render:bpmn` — never hand-edit the SVG.
+
+  The drafting-stage counterpart of public-comment.bpmn: an Authoring
+  Committee works on a document still being written, through the
+  Contributor Feedback sheet (skill review-sheet-script), one row per change
+  set and one pull request per row. Called from folio-review-publish.bpmn
+  and review-log-watch.bpmn.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_ContributorFeedback"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-committee" name="Authoring Committee"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="editor" name="Editor"/>
+  <bpmn:resource id="qc-reviewer" name="QA reviewer (independent)"/>
+
+  <bpmn:collaboration id="Collaboration_ContributorFeedback">
+    <bpmn:participant id="Participant_ContributorFeedback" name="Contributor feedback — one change set, from a row to a merged pull request" processRef="Process_ContributorFeedback" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_ContributorFeedback" name="Contributor feedback on a working draft" isExecutable="false">
+    <bpmn:documentation>
+      A document is still being written, and the Authoring Committee gives
+      feedback on it in a shared Contributor Feedback sheet. This is what
+      happens to ONE change set, one row of that sheet: a member starts it
+      with a title, the sections it is about and their feedback; the agent
+      proposes a direction; an Editor lets the agent edit; the agent makes the
+      edit in the row's one pull request, whose staging preview shows what
+      changed; the committee answers on the row; and an Editor lets the agent
+      merge. If the row's feedback changes after the agent wrote its
+      proposal, the proposal is marked stale and the row's Ready for agent
+      goes back to No, so the agent proposes again and an Editor decides
+      again. The sheet's colours follow the lanes: Blue for the committee,
+      Green for the agent, Orange for the Editor. Skill: review-sheet-script.
+    </bpmn:documentation>
+    <bpmn:laneSet id="Process_ContributorFeedback_LaneSet">
+      <bpmn:lane id="Lane_Committee" name="Authoring Committee" partitionElementRef="authoring-committee">
+        <bpmn:documentation>The people writing the document with the editor: contributors, each with their own Contributor Feedback column (Blue). They start rows, give feedback and answer the preview. They recommend; they do not set the Ready columns.</bpmn:documentation>
+        <bpmn:flowNodeRef>StartEvent_Feedback</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_StartRow</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AnswerPreview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_FeedbackChanged</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Authoring agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Writes only Green cells and the Agent tab. Proposes a direction for each row, edits the document in the row's one pull request once an Editor says so, and merges it once an Editor says so.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Propose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_EditInPullRequest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CloseChangeSet</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Merged</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Editor" name="Editor" partitionElementRef="editor">
+        <bpmn:documentation>The one lane that decides, through the Orange Ready columns, which only the people in the sheet's EDITORS list may set. Ready for agent lets the agent edit; Ready for merge lets it merge.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_ReadyForAgent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReadyForMerge</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_QaReviewer" name="QA reviewer (independent)" partitionElementRef="qc-reviewer">
+        <bpmn:documentation>Whoever runs the QA gate: an agent session that did not write the row's pull request, or a person. Never the authoring agent's own session. Writes only QA gate (change set) on the Agent tab.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_QaGate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_QaPassed</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="StartEvent_Feedback" name="Feedback on the working draft">
+      <bpmn:outgoing>CF01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_StartRow" name="Start a change-set row">
+      <bpmn:documentation>A member adds a row on the Contributor Feedback tab: a title, the Selected Sections it is about (a dropdown from the document's table of contents) and their feedback in their own Blue column. The script gives the row its Change-set id and links each section.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="review-sheet-script"/></bpmn:extensionElements>
+      <bpmn:incoming>CF01</bpmn:incoming>
+      <bpmn:outgoing>CF02</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_Propose" name="Propose a direction">
+      <bpmn:documentation>Reads: the row (Title, Selected Sections, the Contributor Feedback columns, Disposition) and the sections it names. Writes: a proposed direction in Feedback (agent) (Green), and the row's feedback basis on the Agent tab, so the script can tell when the feedback has moved on. A question for people goes in Feedback (agent) as a Decision needed block with options and a recommendation, and the row's Agentic status becomes Needs human; a chat card may repeat it, but the sheet is the record. An answered question leaves the feedback: its decision is added to the change set's Disposition (change set) on the Agent tab, shown in Disposition (agent), whose decision history is appended to and never removed. It ends with Record agent step (record-agent-step.bpmn): the Agent tab row first, then Feedback (agent) from it, then the sheet read back, never Feedback (agent) alone.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="review-sheet-script"/></bpmn:extensionElements>
+      <bpmn:incoming>CF02</bpmn:incoming>
+      <bpmn:incoming>CF07</bpmn:incoming>
+      <bpmn:outgoing>CF03</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_ReadyForAgent" name="Set Ready for agent to Yes">
+      <bpmn:documentation>An Editor agrees the direction and sets the row's Ready for agent (Orange) to Yes. Person-only: the agent never sets it.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="review-sheet-script"/></bpmn:extensionElements>
+      <bpmn:incoming>CF03</bpmn:incoming>
+      <bpmn:outgoing>CF04</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_EditInPullRequest" name="Edit the document in the row's pull request">
+      <bpmn:documentation>One row, one branch, one active pull request: the agent edits on the row's branch and opens its pull request, or updates it when the row comes round again. A closed pull request the committee wants back is reopened, or replaced by a new one on the same branch; earlier ones stay listed in Agentic status. Agentic status (Green) says where it is, and Staging review opens the preview's what-changed page. Before the preview is staged, the agent writes the change set's Disposition (change set) on the Agent tab: one line per feedback item, starting from the people's Blue Disposition, after an optional Overall statement; the sheet shows it in Disposition (agent) and flags any item without a disposition, or one that differs from the people's. It ends with Record agent step (record-agent-step.bpmn): the Agent tab row first, then Feedback (agent) from it, then the sheet read back, never Feedback (agent) alone.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="review-sheet-script"/></bpmn:extensionElements>
+      <bpmn:incoming>CF04</bpmn:incoming>
+      <bpmn:incoming>CF12</bpmn:incoming>
+      <bpmn:outgoing>CF05</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_AnswerPreview" name="Review the preview and answer">
+      <bpmn:documentation>Members read the preview and answer in their Blue columns, or leave them as they are when the change is right. They record the row's Disposition (Blue): Pending, Accepted, Partially accepted, Not accepted, Noted, Duplicate or Out of scope.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="review-sheet-script"/></bpmn:extensionElements>
+      <bpmn:incoming>CF05</bpmn:incoming>
+      <bpmn:outgoing>CF06</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_FeedbackChanged" name="Feedback changed since the proposal?">
+      <bpmn:documentation>Answered by the script, which compares the row's Blue cells with the basis the agent wrote. `changed`: the proposal is marked stale and Ready for agent goes back to No, so the agent proposes again and an Editor decides again. `agreed`: nothing moved, and the row goes to the merge decision.</bpmn:documentation>
+      <bpmn:incoming>CF06</bpmn:incoming>
+      <bpmn:outgoing>CF07</bpmn:outgoing>
+      <bpmn:outgoing>CF08</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_QaGate" name="QA gate: check dispositions and PR">
+      <bpmn:documentation>Reads: the change set's Disposition (change set), the people's Blue Disposition and feedback, the pull request's diff at its head commit, and the staging QA report. Checks that every feedback item has one disposition; that each agrees with the people's Blue Disposition; that each Accepted or Partially accepted item has the change in the diff, and a Not accepted, Noted, Duplicate or Out of scope item has none; that the diff changes nothing no disposition accounts for; and that the QA report for the staged commit has no failing gate. Writes: QA gate (change set) on the Agent tab, first line "Passed &lt;head sha&gt;: …" or "Failed &lt;head sha&gt;: &lt;why&gt;", and QA report (change set), the report's link. The sheet shows the gate under Staging review; a pass for an older commit reads as stale. It ends with Record agent step (record-agent-step.bpmn): the Agent tab row first, then Feedback (agent) from it, then the sheet read back, never Feedback (agent) alone.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="review-sheet-script"/></bpmn:extensionElements>
+      <bpmn:incoming>CF08</bpmn:incoming>
+      <bpmn:outgoing>CF11</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_QaPassed" name="QA gate passed for the PR's head?">
+      <bpmn:incoming>CF11</bpmn:incoming>
+      <bpmn:outgoing>CF12</bpmn:outgoing>
+      <bpmn:outgoing>CF13</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_ReadyForMerge" name="Set Ready for merge to Yes">
+      <bpmn:documentation>An Editor sets the row's Ready for merge (Orange) to Yes once the QA gate has passed for the pull request's head commit. Person-only. Set earlier, the agent does not merge until the gate passes, and its feedback says so.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="review-sheet-script"/></bpmn:extensionElements>
+      <bpmn:incoming>CF13</bpmn:incoming>
+      <bpmn:outgoing>CF09</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_Merge" name="Merge the pull request">
+      <bpmn:documentation>The agent merges the row's pull request, and Agentic status says merged. The change set's Dispositions blurb, as it stands when Ready for merge is set to Yes, is the summary: it goes into the merge, and closes the change set's issue. It ends with Record agent step (record-agent-step.bpmn): the Agent tab row first, then Feedback (agent) from it, then the sheet read back, never Feedback (agent) alone.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="review-sheet-script"/></bpmn:extensionElements>
+      <bpmn:incoming>CF09</bpmn:incoming>
+      <bpmn:outgoing>CF10</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_CloseChangeSet" name="Close the change set: the issue, then the sheet row">
+      <bpmn:documentation>Closing is one step with two tools, GitHub and the review sheet. The agent closes the change set's issue on GitHub, with the merge or the reason it closed unmerged, then records Agentic status Closed (or Change merged) on the Agent tab through Record agent step (record-agent-step.bpmn). The sheet script then hides the row and strikes the whole row through ("make sure complete changeset rows are hidden so not cluttered and that text of that whole row is crossed out"). The agent never hides or strikes a row by hand, and never deletes one: reopening the issue and writing a new status shows it again. Hiding and striking are formatting only, which the review-log watcher ignores. A change set closed without a merge, at a person's request, takes this step too.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="review-sheet-agent-columns"/></bpmn:extensionElements>
+      <bpmn:incoming>CF10</bpmn:incoming>
+      <bpmn:outgoing>CF14</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Merged" name="Change merged and closed">
+      <bpmn:incoming>CF14</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="CF01" sourceRef="StartEvent_Feedback" targetRef="Task_StartRow" />
+    <bpmn:sequenceFlow id="CF02" sourceRef="Task_StartRow" targetRef="Task_Propose" />
+    <bpmn:sequenceFlow id="CF03" sourceRef="Task_Propose" targetRef="Task_ReadyForAgent" />
+    <bpmn:sequenceFlow id="CF04" sourceRef="Task_ReadyForAgent" targetRef="Task_EditInPullRequest" />
+    <bpmn:sequenceFlow id="CF05" sourceRef="Task_EditInPullRequest" targetRef="Task_AnswerPreview" />
+    <bpmn:sequenceFlow id="CF06" sourceRef="Task_AnswerPreview" targetRef="Gateway_FeedbackChanged" />
+    <bpmn:sequenceFlow id="CF07" name="changed" sourceRef="Gateway_FeedbackChanged" targetRef="Task_Propose" />
+    <bpmn:sequenceFlow id="CF08" name="agreed" sourceRef="Gateway_FeedbackChanged" targetRef="Task_QaGate" />
+    <bpmn:sequenceFlow id="CF11" sourceRef="Task_QaGate" targetRef="Gateway_QaPassed" />
+    <bpmn:sequenceFlow id="CF12" name="failed" sourceRef="Gateway_QaPassed" targetRef="Task_EditInPullRequest" />
+    <bpmn:sequenceFlow id="CF13" name="passed" sourceRef="Gateway_QaPassed" targetRef="Task_ReadyForMerge" />
+    <bpmn:sequenceFlow id="CF09" sourceRef="Task_ReadyForMerge" targetRef="Task_Merge" />
+    <bpmn:sequenceFlow id="CF10" sourceRef="Task_Merge" targetRef="Task_CloseChangeSet" />
+    <bpmn:sequenceFlow id="CF14" sourceRef="Task_CloseChangeSet" targetRef="EndEvent_Merged" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ContributorFeedback">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_ContributorFeedback">
+      <bpmndi:BPMNShape id="Participant_ContributorFeedback_di" bpmnElement="Participant_ContributorFeedback" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="1380" height="660" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Committee_di" bpmnElement="Lane_Committee" isHorizontal="true">
+        <dc:Bounds x="190" y="60" width="1350" height="180" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Agent_di" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="240" width="1350" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Editor_di" bpmnElement="Lane_Editor" isHorizontal="true">
+        <dc:Bounds x="190" y="400" width="1350" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_QaReviewer_di" bpmnElement="Lane_QaReviewer" isHorizontal="true">
+        <dc:Bounds x="190" y="560" width="1350" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Feedback_di" bpmnElement="StartEvent_Feedback">
+        <dc:Bounds x="240" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="220" y="182" width="85" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_StartRow_di" bpmnElement="Task_StartRow">
+        <dc:Bounds x="310" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Propose_di" bpmnElement="Task_Propose">
+        <dc:Bounds x="460" y="260" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReadyForAgent_di" bpmnElement="Task_ReadyForAgent">
+        <dc:Bounds x="610" y="420" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_EditInPullRequest_di" bpmnElement="Task_EditInPullRequest">
+        <dc:Bounds x="760" y="260" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AnswerPreview_di" bpmnElement="Task_AnswerPreview">
+        <dc:Bounds x="760" y="100" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_FeedbackChanged_di" bpmnElement="Gateway_FeedbackChanged" isMarkerVisible="true">
+        <dc:Bounds x="920" y="135" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="975" y="80" width="135" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_QaGate_di" bpmnElement="Task_QaGate">
+        <dc:Bounds x="900" y="580" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_QaPassed_di" bpmnElement="Gateway_QaPassed" isMarkerVisible="true">
+        <dc:Bounds x="1060" y="615" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1115" y="655" width="130" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReadyForMerge_di" bpmnElement="Task_ReadyForMerge">
+        <dc:Bounds x="1150" y="420" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Merge_di" bpmnElement="Task_Merge">
+        <dc:Bounds x="1150" y="260" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CloseChangeSet_di" bpmnElement="Task_CloseChangeSet">
+        <dc:Bounds x="1310" y="260" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Merged_di" bpmnElement="EndEvent_Merged">
+        <dc:Bounds x="1470" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1443" y="344" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="CF01_di" bpmnElement="CF01">
+        <di:waypoint x="276" y="160" />
+        <di:waypoint x="310" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CF02_di" bpmnElement="CF02">
+        <di:waypoint x="370" y="220" />
+        <di:waypoint x="370" y="320" />
+        <di:waypoint x="460" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CF03_di" bpmnElement="CF03">
+        <di:waypoint x="520" y="380" />
+        <di:waypoint x="520" y="480" />
+        <di:waypoint x="610" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CF04_di" bpmnElement="CF04">
+        <di:waypoint x="670" y="420" />
+        <di:waypoint x="670" y="320" />
+        <di:waypoint x="760" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CF05_di" bpmnElement="CF05">
+        <di:waypoint x="820" y="260" />
+        <di:waypoint x="820" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CF06_di" bpmnElement="CF06">
+        <di:waypoint x="880" y="160" />
+        <di:waypoint x="920" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CF07_di" bpmnElement="CF07">
+        <di:waypoint x="945" y="135" />
+        <di:waypoint x="945" y="80" />
+        <di:waypoint x="520" y="80" />
+        <di:waypoint x="520" y="260" />
+        <bpmndi:BPMNLabel><dc:Bounds x="680" y="62" width="60" height="16" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CF08_di" bpmnElement="CF08">
+        <di:waypoint x="945" y="185" />
+        <di:waypoint x="945" y="580" />
+        <bpmndi:BPMNLabel><dc:Bounds x="952" y="200" width="55" height="16" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CF11_di" bpmnElement="CF11">
+        <di:waypoint x="1020" y="640" />
+        <di:waypoint x="1060" y="640" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CF12_di" bpmnElement="CF12">
+        <di:waypoint x="1085" y="665" />
+        <di:waypoint x="1085" y="710" />
+        <di:waypoint x="820" y="710" />
+        <di:waypoint x="820" y="380" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1030" y="688" width="45" height="16" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CF13_di" bpmnElement="CF13">
+        <di:waypoint x="1110" y="640" />
+        <di:waypoint x="1210" y="640" />
+        <di:waypoint x="1210" y="540" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1135" y="620" width="50" height="16" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CF09_di" bpmnElement="CF09">
+        <di:waypoint x="1210" y="420" />
+        <di:waypoint x="1210" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CF10_di" bpmnElement="CF10">
+        <di:waypoint x="1270" y="320" />
+        <di:waypoint x="1310" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="CF14_di" bpmnElement="CF14">
+        <di:waypoint x="1430" y="320" />
+        <di:waypoint x="1470" y="320" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

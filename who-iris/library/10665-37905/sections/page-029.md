@@ -1,0 +1,51 @@
+---
+doc_id: 10665-37905
+doc_title: "Accélération des activités de vaccination : principes de planification / déclaration conjointe OMS/FISE"
+section_id: page-029
+section_title: "Page 29"
+pages: 29-29
+pdf_page: 29
+source_pdf: 10665-37905.pdf
+source_sha256: 9ca36288eaaca93f
+text_source: ocr
+granularity: page
+---
+- 29 -
+
+Utilisation ou adoption de dossiers et
+d'un système d'enregistrement pouvant
+être utilisé par les services de santé
+ordinaires.
+
+Commande de matériel de chaîne du froid,
+de fournitures et de moyens de transport
+s'harmonisant avec les matériels déjà
+utilisés dans les services de santé.
+
+Organisation d'une structure bénévole en
+coordination avec les personnels de santé
+permanents et les services de santé.
+
+Utilisation d'une approche pluri-
+sectorielle largement implantée, surtout
+pour les communications et la motivation,
+mais sans contourner ni s'aliéner le
+systéme de santé ordinaire existant.
+
+Information et publicité dans les médias
+pour sensibiliser le public au systéme de
+prestation permanent ainsi qu'à toute
+stratégie spéciale telle que des journées
+nationales et pour encourager la réalisa-
+tion de la vaccination complète une fois
+achevé l'effort d'accélération.
+
+Utilisation d'un système pour la distri-
+bution des vaccins pouvant être reproduit
+sur une plus petite échelle par les
+réseaux logistiques permanents.
+
+Evaluation de la couverture réalisée
+permettant de distinguer entre les
+enfants de moins de douze mois et les
+enfants plus 4gés.
