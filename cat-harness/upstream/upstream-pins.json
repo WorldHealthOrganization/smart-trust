@@ -1,0 +1,123 @@
+{
+  "$schema": "folio-upstream-pins/v1",
+  "_comment": "Pinned upstream dependencies, and what has to be true before one of them moves. Read by `bun run cat check:upstream-pins` and by the `upstream-pin-watch` / `upstream-version-adoption` processes under processes/. NOTE WHAT IS NOT HERE: the pinned version. It lives in the file the build reads, and `pinnedIn` + `pattern` say how to read it from there — a registry with its own copy would be a second answer to \"what are we running\", free to disagree with the build. LOCATION: the harness's declared `upstream/` directory since 2026-10-06 (bean `ar1s`; it sat at the repository root before); every `pinnedIn` resolves against the harness root, where the files the build reads live.",
+  "pins": [
+    {
+      "id": "just-the-docs",
+      "title": "just-the-docs Jekyll theme",
+      "repo": "https://github.com/just-the-docs/just-the-docs",
+      "pinnedIn": "site-chrome/_config.yml",
+      "pattern": "^remote_theme:\\s*just-the-docs/just-the-docs@(\\S+)\\s*$",
+      "tagPattern": "^v\\d+\\.\\d+\\.\\d+$",
+      "themedPaths": [
+        "_sass",
+        "_includes",
+        "_layouts",
+        "assets"
+      ],
+      "binds": [
+        "site-chrome/assets/js/docs-ui.js — MOVES the theme's own search markup into the action launcher; binds `.search`, `#search-input`, `.search-label`. An upstream rename degrades a shipped feature without failing the build.",
+        "site-chrome/assets/css/docs-ui.css — overrides `.side-bar`, `.site-header`, `.main-header`; `sidebar-panels.e2e.ts` records that the theme hard-caps `.site-header` height.",
+        "test/a11y.e2e.ts — fixtures reproduce the theme's own search markup, including that the accessible name comes from `<label for=search-input>` rather than an aria-label.",
+        "test/action-tiles.e2e.ts — asserts the theme's search element as rendered into `.main-header`.",
+        "test/sidebar-panels.e2e.ts — asserts the theme's sidebar column and capped header.",
+        "site-chrome/_includes/head_custom.html — pulled into every page by the theme.",
+        "site-chrome/_includes/css/activation.scss.liquid, components/breadcrumbs.html and components/children_nav.html — OVERRIDE the theme's files of those names (\"cache the nav\"). The theme re-derives each page's place in the nav on every page — re-walking the whole nav HTML for the first two, regrouping every page by parent for the third, each page touched costing a to_liquid that re-evaluates every front-matter `defaults` scope under Jekyll 3 — which is O(pages²) for the site. Here site-chrome/_includes/nav_cache/*.html compute those answers ONCE per build (include_cached) with the theme's own loops, and each page looks its answer up. The parts outside the marked blocks, and the maps' loop bodies, are the theme's verbatim; a pin move re-copies them and diffs a full build's pages against the theme's own output, which must be byte-identical.",
+        "site-chrome/_includes/vendor/anchor_headings.html and site-chrome/_layouts/table_wrappers.html — OVERRIDE the theme's files of those names so its two markup passes (heading anchors on the content, table wrappers on the whole page) skip <script> and <style> bodies; the theme's string replaces broke every inline script that builds HTML (owner's report 2026-10-15, /en/cat-harness/schemas/bootstrap/). anchor_headings_core.html is the theme's include VERBATIM, renamed; table_wrappers.html restates the theme's two replaces, and has NO parent layout: the theme's `vendor/compress` never ran here, because `exclude: vendor` keeps Jekyll from reading `_layouts/vendor/`, so `layout: null` states it. A pin move re-copies the first and re-reads the second; schemas/site-chrome.test.ts renders both.",
+        "site-chrome/_config.yml — `search_enabled`, `heading_anchors`, `color_scheme: dark`, `mermaid` are theme options; so are `keep_files` and `footer_content`, which the site sets in docs/_config.yml (its identity, overlaid on the chrome by compose-docs)."
+      ],
+      "mvp": [
+        "rm -rf _kg _site",
+        "bun test",
+        "CI=1 bun run cat test:e2e",
+        "bun run scripts/site-links.ts --site ./_site"
+      ]
+    },
+    {
+      "id": "bun",
+      "title": "Bun runtime",
+      "repo": "https://github.com/oven-sh/bun",
+      "pinnedIn": ".bun-version",
+      "pattern": "^(\\d+\\.\\d+\\.\\d+)\\s*$",
+      "tagPattern": "^bun-v\\d+\\.\\d+\\.\\d+$",
+      "tagPrefix": "bun-v",
+      "binds": [
+        "Every `.github/workflows/*.yml` of the composed checkout — 59 `oven-sh/setup-bun@v2` sites across folio-assistant's workflows on 2026-10-30 (22 when the pin was added) carry `bun-version` literals, and `check:bun-pin` fails if any disagrees with `.bun-version`. That gate is what makes this ONE answer rather than many: without it the copies would be free to disagree, which is exactly what this registry's own note forbids.",
+        "cat-harness-tools/pipeline/qa-utils.ts — `saveQaScriptSidecar` stamps `engine_version` (`bun-${Bun.version}`). It was a substantive field until #1452, so an unpinned runtime rewrote every script sidecar whenever the engine differed and took `bun run cat gates`' tree-mutation detector to 'NOT clean' on every branch (bean `3ozg`). It no longer triggers a write on its own, so a bump does not rewrite the sidecars; it records the engine of a sidecar's last CONTENT change.",
+        "cat-harness/test/results/script-sidecars/*.script.json — 86 committed records whose `engine_version` is this pin's observable consequence. They held TWO values when the pin was added: 72 at bun-1.3.14 and 14 at bun-1.3.11.",
+        "cat-harness/site-chrome/assets/js/navbar.js — minified by `Bun.build`, whose identifier choices change between releases; `navbar:assets:check` fails until it is regenerated (`bun run cat navbar:assets`) under the new pin.",
+        "Each layer's own workflows and workflow templates, which `check:bun-pin` does NOT read and so must be moved by hand: cat-harness, cat-harness-tools and folio-assistant-core `release-npm.yml`, cat-harness-tools' layer workflows, folio-assistant-core `templates/public-comment/github/workflows/*`, fhir-harness `ig-ast-refresh.yml` and `templates/ig-repo-site/site-publish.yml`, who-iris `checks.yml`.",
+        "folio-assistant test/workflows/merge-main-workflow.test.ts — asserts the `bun-version` literal of merge-main's `setup-bun` step."
+      ]
+    },
+    {
+      "id": "plantuml",
+      "title": "PlantUML diagram renderer (tool-release)",
+      "repo": "https://github.com/plantuml/plantuml",
+      "pinnedIn": "tool-releases/plantuml-1.2026.10.json",
+      "pattern": "^\\s*\"version\":\\s*\"([^\"]+)\"",
+      "tagPattern": "^v\\d+\\.\\d{4}\\.\\d+$",
+      "tagPrefix": "v",
+      "binds": [
+        "cat-harness/tool-releases/plantuml-1.2026.10.json — `digest.digest` and `source.url` must be updated to the new release's jar and sha256, and the file renamed to match the version.",
+        "cat-harness/tool-releases/default.profile.json — `tools.plantuml` selects `plantuml@<version>`.",
+        "cat-harness/tool-releases/ci-2026-10.profile.json and cat-harness/tool-releases/lean-4.35-test.profile.json — `tools.plantuml` selects `plantuml@<version>`.",
+        "cat-harness-tools/scripts/plantuml-render.ts — `PLANTUML` re-exports the release pin and resolves it through `tool-releases.ts`.",
+        "Copies outside this registry that do not read it, and so must move by hand: `PLANTUML_VERSION` in https://github.com/litlfred/fhir-harness/blob/main/scripts/ig-repo-site.ts, and the jar URL in folio-assistant `.github/workflows/docs-site.yml` and `feature-staging.yml`."
+      ]
+    },
+    {
+      "id": "graphviz",
+      "title": "Graphviz dot layout engine (tool-release)",
+      "repo": "https://gitlab.com/graphviz/graphviz",
+      "pinnedIn": "tool-releases/graphviz-16.1.1-linux-x64-ubuntu-24.04.json",
+      "pattern": "^\\s*\"version\":\\s*\"([^\"]+)\"",
+      "tagPattern": "^\\d+\\.\\d+\\.\\d+$",
+      "binds": [
+        "cat-harness/tool-releases/graphviz-16.1.1-linux-x64-ubuntu-24.04.json — `digest.digest` and `source.url` must be updated to the new `.deb` and sha256.",
+        "cat-harness/tool-releases/plantuml-1.2026.10.json — `runtimes[]` injects `graphviz@<version>` onto `PATH` so `plantuml` finds `dot`.",
+        "cat-harness/tool-releases/default.profile.json — `tools.graphviz` selects `graphviz@<version>`.",
+        "cat-harness/tool-releases/ci-2026-10.profile.json and cat-harness/tool-releases/lean-4.35-test.profile.json — `tools.graphviz` selects `graphviz@<version>`."
+      ]
+    },
+    {
+      "id": "fsh-sushi",
+      "title": "FHIR Shorthand SUSHI compiler (tool-release)",
+      "repo": "https://github.com/FHIR/sushi",
+      "pinnedIn": "tool-releases/fsh-sushi-3.21.0.json",
+      "pattern": "^\\s*\"version\":\\s*\"([^\"]+)\"",
+      "tagPattern": "^v\\d+\\.\\d+\\.\\d+$",
+      "tagPrefix": "v",
+      "binds": [
+        "cat-harness/tool-releases/fsh-sushi-3.21.0.json — `digest.digest` and `source.url` must be updated to the new npm tarball and sha256, the file renamed to match the version, and `licence` re-read from the tarball (it is Apache-2.0).",
+        "cat-harness/tool-releases/ci-2026-10.profile.json — `tools[\"fsh-sushi\"]` selects `fsh-sushi@<version>`."
+      ]
+    },
+    {
+      "id": "node-22",
+      "title": "Node.js 22 LTS runtime (tool-release)",
+      "repo": "https://github.com/nodejs/node",
+      "pinnedIn": "tool-releases/node-22.23.5-linux-x64.json",
+      "pattern": "^\\s*\"version\":\\s*\"([^\"]+)\"",
+      "tagPattern": "^v22\\.\\d+\\.\\d+$",
+      "tagPrefix": "v",
+      "binds": [
+        "cat-harness/tool-releases/node-22.23.5-linux-x64.json — `digest.digest`, `source.url` and `entry.home` must be updated to the new Node 22 LTS tarball and sha256.",
+        "cat-harness/tool-releases/fsh-sushi-3.21.0.json — `runtimes[]` injects `node@<version>` onto `PATH`."
+      ]
+    },
+    {
+      "id": "lean-toolchain",
+      "title": "Lean 4 toolchain (tool-release)",
+      "repo": "https://github.com/leanprover/lean4",
+      "pinnedIn": "tool-releases/lean-toolchain-4.35.0.json",
+      "pattern": "^\\s*\"version\":\\s*\"([^\"]+)\"",
+      "tagPattern": "^v\\d+\\.\\d+\\.\\d+$",
+      "tagPrefix": "v",
+      "binds": [
+        "cat-harness/tool-releases/lean-toolchain-4.35.0.json — `digest.digest` and `source.url` must be updated to the new `lean-toolchain` file and sha256, and the file renamed to match the version. The source is a file whose content is `leanprover/lean4:v<version>` (Mathlib's `lean-toolchain` at its `v<version>` tag), NEVER leanprover/lean4's own `lean-toolchain`, which names the in-tree build rather than a release.",
+        "cat-harness/tool-releases/ci-2026-10.profile.json and lean-4.35-test.profile.json — `tools[\"lean-toolchain\"]` selects `lean-toolchain@<version>`."
+      ]
+    }
+  ]
+}

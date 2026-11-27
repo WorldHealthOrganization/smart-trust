@@ -1,0 +1,84 @@
+---
+doc_id: 10665-385346
+doc_title: "Cost-effectiveness of introducing the pneumococcal conjugate vaccine for children under 5 years in the Islamic Republic of Iran"
+section_id: page-006
+section_title: "Page 6"
+pages: 6-6
+pdf_page: 6
+source_pdf: 10665-385346.pdf
+source_sha256: fb44d54395d4c22b
+text_source: ocr
+granularity: page
+---
+Research article
+
+EMH] - Vol. 25 No. 10 - 2019
+
+Table 5 Data used for variables in the TRIVAC model to estimate health service utilization and costs (all costs are for 2014)
+
+Scenario
+Variable Estimate Source/s
+High Low
+Outpatient visits
+Outpatient visits per disease episode
+All-cause acute otitis media 1 1 0.7 MoHME
+Pneumococcal pneumonia 0.47 0.6 0.2 MoHME
+Pneumococcal meningitis 0.05, 0.08 0.02 MoHME
+Pneumococcal NPNM 0.05 0.08 0.02 MoHME
+Government cost per outpatient visit (US$)
+All-cause acute otitis media 2.6 3 2.2 Calculated
+Pneumococcal pneumonia 74 8 6.8 Calculated
+Pneumococcal meningitis 10.7 1L5 9.9 Calculated
+Pneumococcal NPNM 15.4 16.2 14.6 Calculated
+Household cost per outpatient visit (US$)
+All-cause acute otitis media 1.6 2 12 Calculated
+Pneumococcal pneumonia 2.9 3.5 2.3 Calculated
+Pneumococcal meningitis 4.6 5.4 3.8 Calculated
+Pneumococcal NPNM 6.6 74 5.8 Calculated
+Inpatient admissions
+Inpatient admissions per disease episode
+Pneumococcal pneumonia 0.47 0.6 0.2 MoHME
+Pneumococcal meningitis 0.95 0.99 0.85 MoHME
+Pneumococcal NPNM 0.95 0.99 0.85 MoHME
+Government cost per inpatient admission (US$)
+Pneumococcal pneumonia 126.2 213.2 39.2 Calculated
+Pneumococcal meningitis 434.4 461.4 427.4 Calculated
+Pneumococcal NPNM 4415 465.5 417-5 Calculated
+Household cost per inpatient admission (US$)
+Pneumococcal pneumonia 117.2 204.2 30.2 Calculated
+Pneumococcal meningitis 128.5 101.5 155.5 Calculated
+Pneumococcal NPNM 100.2 124.2 76.2 Calculated
+Meningitis sequelae
+Government cost of meningitis sequelae/year (US$)
+Major sequelae (single) (0) fo) ° TRIVAC assumption (15)
+Major sequelae (multiple) (0) fo) ° TRIVAC assumption (15)
+Household cost of meningitis sequelae/year (US$)
+Major sequelae (single) 4525.95 4073.35 4978.54 TRIVAC assumption (15)
+Major sequelae (multiple) 4525.95 4073.35 4978.54 TRIVAC assumption (15)
+
+NPNM = non-pneumonia, non-meningitis, and other diseases except sepsis; MoHME = Ministry of Health and Medical Education, Islamic Republic of Iran.
+
+Results
+
+Estimated health benefits of pneumococcal
+conjugate vaccine-13
+
+As shown in Table 6, the introduction of PCV-13 would
+avert 9998 deaths over the period 2014-2023, or 37.9% of
+all deaths from pneumococcal disease, and would pre-
+vent 105 802 inpatient admissions, 36.7% of all pneumo-
+coccal-related hospitalizations.
+
+Estimated economic benefits
+
+From a government perspective, PCV-13 was estimat-
+ed to avert US$ 45.54 million discounted health ser-
+vice costs over the 10-year period, 2014-2023 (Table 7).
+From the perspective of society, the saving is about
+US$ 152.32 million.
+
+The introduction of the PCV13 would be highly
+cost-effective with an incremental cost-effectiveness
+threshold of US$ 1890 and US$ 1538 per averted DALY
+
+691

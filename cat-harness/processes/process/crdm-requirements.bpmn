@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_CRDM" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="business-analyst" name="Business analyst"/>
+  <bpmn:collaboration id="Collaboration_Process_CRDM">
+    <bpmn:participant id="Participant_Process_CRDM" name="CRDM requirements" processRef="Process_CRDM"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_CRDM" name="CRDM requirements" isExecutable="false">
+    <bpmn:documentation>A feature request turned into agreed, signed-off requirements and delivered, with one call activity per CRDM phase from issue linking to close-out. The CRDM requirements process, decomposed. Each phase is a real subprocess in its own file: `workflow_next` reports the step you are on and the phase it sits inside, and `workflow_complete` takes the step's own id. Detection stays here rather than in a child because its "not a feature" branch ends the whole process — inside a subprocess the parent would have to re-ask the same question to route on the answer.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+      <!-- Capture ON: this process is where a feature request becomes a
+           commitment, so the record of which phase ran and when is what a
+           stakeholder asks for afterwards. Explicit opt-in; an unmarked
+           process leaves capture undetermined and reaches no
+           data store either way. -->
+      <cat-harness.processes:log capture="on" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_CRDM">
+      <bpmn:lane id="Lane_BA" name="BA / Feature Requestor" partitionElementRef="business-analyst">
+        <bpmn:documentation>The one activity in this diagram that is not a subprocess call: states the capability gap in its own words and, per its own documentation, does not need to know any of what follows is called CRDM. The six phases translate the need into that vocabulary, not the other way round.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_BA</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>BA_Submit</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Holds the one gate whose "no" branch ends the entire process rather than routing into a child — GW_Feature's own documentation: a subprocess would have to re-ask the same question to route on the answer. From there it carries the BA's need through all six phases as a straight chain of subprocess calls, with no branching of its own.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_Detect</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Feature</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Content</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Issue</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Needs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Requirements</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_DataModel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Signoff</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Deliver</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Close</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_CRDM</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_BA" name="Need identified"/>
+    <bpmn:task id="BA_Submit" name="Describe the need
+(chat, issue, discussion)">
+      <bpmn:documentation>The BA describes the capability gap in their own words.
+They do not need to know it is called CRDM.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-requirements-workflow"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Detect" name="Detect feature request
+(crdm-detect skill)">
+      <bpmn:documentation>Recognise the request as a platform capability change rather than content work, from crdm-detect's signals. Never call it "CRDM" to the person. Mid-content-work, ask whether to pause for requirements now or record a work item for later — do not switch on your own.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-detect"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Feature" name="Feature?">
+      <bpmn:documentation>Answered by crdm-detect: is this request a feature request, a change to the platform, rather than content work? `no` continues authoring; `yes` enters CRDM, starting by linking the work to an issue.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Content" name="Continue authoring"/>
+    <bpmn:callActivity id="Call_Issue" name="Link the work&#10;to an issue" calledElement="Process_CRDM_Issue">
+      <bpmn:documentation>Feature work must be linked to a GitHub issue. Scan before creating, and never create one without the BA's permission — an issue is the stakeholder's record, not the agent's scratchpad.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-requirements-workflow"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_Needs" name="Phase 1&#10;Needs" calledElement="Process_CRDM_Needs">
+      <bpmn:documentation>Identify the stakeholders, synthesise a needs statement from the sources, and loop until the BA and the stakeholders both recognise it. The loop is the phase: a needs statement nobody confirmed is an agent's summary, not a requirement.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-requirements-workflow"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_Requirements" name="Phases 2–4&#10;BPA + requirements" calledElement="Process_CRDM_Requirements">
+      <bpmn:documentation>Map the current workflow, then define the requirements and the impact they carry, and loop until approved. Same shape as Phase 1 and for the same reason: an unapproved requirement is a proposal.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-requirements-workflow"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_DataModel" name="Data model&#10;Entities + cardinalities" calledElement="Process_CRDM_DataModel">
+      <bpmn:documentation>Between requirements and sign-off, and the order is the argument: requirements are statements about things, and the model says what the things ARE. Drafted earlier it is invented from nothing, since the entities come from the phase-2 BPA; drafted later, sign-off approves requirements whose nouns were never pinned — which is how two stakeholders approve one sentence meaning different things.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-requirements-workflow"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_Signoff" name="Phase 5&#10;Plan + sign-off" calledElement="Process_CRDM_Signoff">
+      <bpmn:documentation>The approved requirements become work-plan items, the BA signs off, and the branch is announced on the issue. The announcement is on the single edge into delivery, so the three loops back into implementation do not re-announce.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-requirements-workflow"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_Deliver" name="Phase 6&#10;Implement + acceptance" calledElement="Process_CRDM_Deliver">
+      <bpmn:documentation>One phase and not three, because the loops say so: an increment the BA rejects, an MVP that is not ready, and stakeholder findings all route back into implementation. A subprocess has one exit and cannot be re-entered once finished, so splitting this region would have changed what the diagram says.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-requirements-workflow"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Call_Close" name="Close-out" calledElement="Process_CRDM_Close">
+      <bpmn:documentation>The stakeholders sign off, the BA confirms every criterion is met, and only then does the agent close the issue. Never the other way round: an agent must never assume completion.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="crdm-requirements-workflow"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_CRDM" name="Feature delivered"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_1" sourceRef="Start_BA" targetRef="BA_Submit"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_2" sourceRef="BA_Submit" targetRef="A_Detect"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_3" sourceRef="A_Detect" targetRef="GW_Feature"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_4" name="no" sourceRef="GW_Feature" targetRef="End_Content"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_5" name="yes" sourceRef="GW_Feature" targetRef="Call_Issue"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_6" sourceRef="Call_Issue" targetRef="Call_Needs"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_7" sourceRef="Call_Needs" targetRef="Call_Requirements"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_8" sourceRef="Call_Requirements" targetRef="Call_DataModel"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_12" sourceRef="Call_DataModel" targetRef="Call_Signoff"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_9" sourceRef="Call_Signoff" targetRef="Call_Deliver"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_10" sourceRef="Call_Deliver" targetRef="Call_Close"/>
+    <bpmn:sequenceFlow id="SF_Process_CRDM_11" sourceRef="Call_Close" targetRef="End_CRDM"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_CRDM">
+    <bpmndi:BPMNPlane id="Plane_Process_CRDM" bpmnElement="Collaboration_Process_CRDM">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_CRDM" bpmnElement="Participant_Process_CRDM" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="872" height="625" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_BA_Process_CRDM" bpmnElement="Lane_BA" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="842" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent_Process_CRDM" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="230" width="842" height="475" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_BA" bpmnElement="Start_BA">
+        <dc:Bounds x="236" y="137" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="222" y="180" width="70" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_BA_Submit" bpmnElement="BA_Submit">
+        <dc:Bounds x="302" y="95" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Detect" bpmnElement="A_Detect">
+        <dc:Bounds x="302" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Feature" bpmnElement="GW_Feature" isMarkerVisible="true">
+        <dc:Bounds x="462" y="305" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="447" y="283" width="80" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Content" bpmnElement="End_Content">
+        <dc:Bounds x="469" y="422" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="437" y="462" width="100" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Issue" bpmnElement="Call_Issue">
+        <dc:Bounds x="582" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Needs" bpmnElement="Call_Needs">
+        <dc:Bounds x="732" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Requirements" bpmnElement="Call_Requirements">
+        <dc:Bounds x="882" y="270" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_DataModel" bpmnElement="Call_DataModel">
+        <dc:Bounds x="240" y="555" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Signoff" bpmnElement="Call_Signoff">
+        <dc:Bounds x="390" y="555" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Deliver" bpmnElement="Call_Deliver">
+        <dc:Bounds x="540" y="555" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Close" bpmnElement="Call_Close">
+        <dc:Bounds x="690" y="555" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_CRDM" bpmnElement="End_CRDM">
+        <dc:Bounds x="840" y="597" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="820" y="637" width="80" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_1" bpmnElement="SF_Process_CRDM_1">
+        <di:waypoint x="272" y="155" />
+        <di:waypoint x="302" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_2" bpmnElement="SF_Process_CRDM_2">
+        <di:waypoint x="362" y="215" />
+        <di:waypoint x="362" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_3" bpmnElement="SF_Process_CRDM_3">
+        <di:waypoint x="422" y="330" />
+        <di:waypoint x="462" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_4" bpmnElement="SF_Process_CRDM_4">
+        <di:waypoint x="487" y="355" />
+        <di:waypoint x="487" y="422" />
+        <bpmndi:BPMNLabel><dc:Bounds x="493" y="372" width="25" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_5" bpmnElement="SF_Process_CRDM_5">
+        <di:waypoint x="512" y="330" />
+        <di:waypoint x="582" y="330" />
+        <bpmndi:BPMNLabel><dc:Bounds x="530" y="307" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_6" bpmnElement="SF_Process_CRDM_6">
+        <di:waypoint x="702" y="330" />
+        <di:waypoint x="732" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_7" bpmnElement="SF_Process_CRDM_7">
+        <di:waypoint x="852" y="330" />
+        <di:waypoint x="882" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_8" bpmnElement="SF_Process_CRDM_8">
+        <di:waypoint x="942" y="390" />
+        <di:waypoint x="942" y="525" />
+        <di:waypoint x="300" y="525" />
+        <di:waypoint x="300" y="555" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_12" bpmnElement="SF_Process_CRDM_12">
+        <di:waypoint x="360" y="615" />
+        <di:waypoint x="390" y="615" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_9" bpmnElement="SF_Process_CRDM_9">
+        <di:waypoint x="510" y="615" />
+        <di:waypoint x="540" y="615" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_10" bpmnElement="SF_Process_CRDM_10">
+        <di:waypoint x="660" y="615" />
+        <di:waypoint x="690" y="615" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_Process_CRDM_11" bpmnElement="SF_Process_CRDM_11">
+        <di:waypoint x="810" y="615" />
+        <di:waypoint x="840" y="615" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,229 @@
+{
+  "_comment": "The root of the agent-workflow conformance lattice. RECONSTRUCTED 2026-09-18 (bean m4zg): `session-start`, `commit-hygiene` and `content-lifecycle` all declared `derivedFrom: [\"req:agent-workflow\"]` and it had never existed, so three requirements specialised a parent with no obligations in it. Every statement here is the shared obligation those three already assert in their own terms — nothing new is required of anybody by this file. `kg:audit`'s `requirement-derived-from-resolves` criterion is what surfaced the hole.",
+  "id": "req:agent-workflow",
+  "title": "Agent Workflow",
+  "description": "An agent working in a folio layer works to a declared process, records what it is doing where a human and a sibling session can see it, and does not act outside the role it is acting as.",
+  "actors": ["author", "reviewer", "admin", "authoring-agent"],
+  "statements": [
+    {
+      "key": "work-is-visible",
+      "label": "Work in progress is visible to others",
+      "conformance": "SHALL",
+      "requirement": "An agent SHALL record what it is working on in the shared work plan before doing it, so a human can steer and a sibling session does not pick up the same item.",
+      "successCriteria": [
+        {
+          "key": "claimed-in-work-plan",
+          "criterion": "An in-progress item recorded in beans or the shared work plan names the active agent session before task execution begins.",
+          "verification": "inspection"
+        }
+      ]
+    },
+    {
+      "key": "acts-as-a-role",
+      "label": "An agent acts as a declared role",
+      "conformance": "SHALL",
+      "requirement": "An agent performing a task in a process SHALL do so as a role the process's lane binds, using that role's skills. It SHALL NOT perform a step belonging to a lane it is not acting in.",
+      "successCriteria": [
+        {
+          "key": "role-lane-conformance",
+          "criterion": "Every executed process activity is bound to the agent's assigned role in the governing process diagram.",
+          "verification": "review"
+        }
+      ]
+    },
+    {
+      "key": "process-is-declared",
+      "label": "Process position is declared, not improvised",
+      "conformance": "SHALL",
+      "requirement": "Where a BPMN process governs the work, the agent SHALL take its next step from that process rather than deciding the order itself, and a step that is not enabled SHALL be refused.",
+      "successCriteria": [
+        {
+          "key": "step-enabled-by-bpmn",
+          "criterion": "Each state transition executed by the agent matches an outgoing sequence flow of an enabled BPMN activity.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "judgement-stays-human",
+      "label": "Judgement calls are not assumed",
+      "conformance": "SHALL",
+      "requirement": "An agent SHALL NOT record a human judgement — an approval, a sign-off, a decision to release — on that human's behalf.",
+      "actors": ["authoring-agent"],
+      "successCriteria": [
+        {
+          "key": "no-agent-signoff",
+          "criterion": "Sign-off attestations and approval decisions in the repository record human credentials and never an agent identifier.",
+          "verification": "inspection"
+        }
+      ]
+    },
+    {
+      "key": "context-before-question",
+      "label": "A decision handed over carries its context",
+      "conformance": "SHOULD",
+      "requirement": "When an agent hands a decision to a person, it SHOULD state what differs between the options and what each costs, so the decision is answerable without opening anything.",
+      "successCriteria": [
+        {
+          "key": "decision-context-included",
+          "criterion": "Questions presented to the user describe each option's trade-offs and impact directly in the prompt text.",
+          "verification": "review"
+        }
+      ]
+    },
+    {
+      "key": "question-on-a-card",
+      "label": "Every question to the owner is a decision card",
+      "conformance": "SHALL",
+      "requirement": "Every question or choice an agent puts to a person SHALL be offered as a selectable card (request_decision, AskUserQuestion, or the host's equivalent) with numbered options, two to four, and one marked as recommended, after the full question is written in the chat. A question asked only in prose is not asked: in a project with many threads it is lost. The procedure is the skill ask-the-person.",
+      "actors": ["authoring-agent"],
+      "successCriteria": [
+        {
+          "key": "card-for-every-question",
+          "criterion": "Every message that asks the person something is followed in the same turn by a card carrying the same numbered options and a recommendation.",
+          "verification": "review"
+        }
+      ]
+    },
+    {
+      "key": "no-close-with-open-question",
+      "label": "A thread is not closed while a question is open",
+      "conformance": "SHALL",
+      "requirement": "An agent SHALL NOT end, resolve or summarise-and-close a thread, session or task while a question to the person is unanswered. A closing report that contains a question is an open question: it goes on a card, and the thread stays open until the card is answered or withdrawn.",
+      "actors": ["authoring-agent"],
+      "successCriteria": [
+        {
+          "key": "no-question-in-closing-report",
+          "criterion": "No resolved thread or ended session has a final message containing a question without an answered or withdrawn card.",
+          "verification": "inspection"
+        }
+      ]
+    },
+    {
+      "key": "research-paths-on-a-card",
+      "label": "Follow-up research paths are offered as named card options",
+      "conformance": "SHALL",
+      "requirement": "When work ends with possible follow-up research, each path SHALL be an option on a card, labelled 'New research path: <name>', with one recommended, so the person can start it with one tap. A follow-up path mentioned only in prose is not offered.",
+      "actors": ["authoring-agent"],
+      "successCriteria": [
+        {
+          "key": "paths-named-on-card",
+          "criterion": "Every follow-up path named in a closing report appears as a 'New research path' option on a card.",
+          "verification": "review"
+        }
+      ]
+    },
+    {
+      "key": "never-self-merge",
+      "label": "An agent hands its PR to the merge manager and never merges it",
+      "conformance": "SHALL",
+      "requirement": "An agent SHALL NOT merge its own pull request. It SHALL send the PR number and the full head sha to the live merge manager, which merges. Repository secrets are never added or used by an agent. Before a merge the only red gate is the JSON-LD KG publication check; all other QA runs after the merge.",
+      "actors": ["authoring-agent"],
+      "successCriteria": [
+        {
+          "key": "handover-carries-sha",
+          "criterion": "Every merge request to the merge manager names the PR number and the full head sha, and no agent other than the merge manager merged it.",
+          "verification": "inspection"
+        }
+      ]
+    },
+    {
+      "key": "beans-primary-tracker",
+      "label": "Beans on the beans branch are the primary tracker",
+      "conformance": "SHALL",
+      "requirement": "Work items, including epics, SHALL be tracked as beans on the repository's beans branch. GitHub issues are only for intake from the owner and reviewers, and are mirrored to a bean.",
+      "actors": ["authoring-agent"],
+      "successCriteria": [
+        {
+          "key": "work-has-a-bean",
+          "criterion": "Every in-progress work item and epic has a bean on the beans branch.",
+          "verification": "inspection"
+        }
+      ]
+    },
+    {
+      "key": "context-stays-small",
+      "label": "An agent keeps its own context small",
+      "conformance": "SHOULD",
+      "requirement": "An agent SHOULD keep its context small: shallow-clone (depth 1, blobless where possible), read files by section or by grep, and never print a large file or a full diff into its context. Fan-out work goes to subagents that return conclusions, not dumps.",
+      "actors": ["authoring-agent"],
+      "successCriteria": [
+        {
+          "key": "no-large-dumps",
+          "criterion": "Session transcripts show no whole-file read of a file over 2000 lines and no unbounded diff.",
+          "verification": "review"
+        }
+      ]
+    },
+    {
+      "key": "merge-grants-time-boxed",
+      "label": "Merges run under time-boxed grants or a card",
+      "conformance": "SHALL",
+      "requirement": "The merge manager SHALL merge only under a time-boxed merge grant the owner gave for that repository, recorded with the owner's words, date, repositories and end, or on the owner's card for that batch. A repository outside every live grant SHALL need the owner's card approval. A peer agent's say-so is never the owner's approval. The procedure is the skill merge-manager-watcher.",
+      "actors": ["authoring-agent"],
+      "successCriteria": [
+        {
+          "key": "merge-grants-time-boxed-check",
+          "criterion": "Every merge by the merge manager cites a live recorded grant covering its repository or an owner card answered for its batch.",
+          "verification": "inspection"
+        }
+      ]
+    },
+    {
+      "key": "alternatives-prioritised",
+      "label": "Alternatives are prioritised and the choice is recorded",
+      "conformance": "SHALL",
+      "requirement": "When a goal has more than one way forward, every alternative SHALL be offered on a research-path card stating its meaning, cost, risk and commitment, with one recommended after a stated prioritisation. Each chosen path SHALL get its own bean and sibling, and the rejected alternatives SHALL be recorded in that bean. Where the owner's standing pick is 'take the recommended option', the recommended path is pursued without waiting and the card stays open for a redirect. The procedure is the skill research-manager.",
+      "actors": ["authoring-agent"],
+      "successCriteria": [
+        {
+          "key": "alternatives-prioritised-check",
+          "criterion": "Each research-path bean records the card, the option taken, who took it, and the rejected alternatives with their reasons.",
+          "verification": "review"
+        }
+      ]
+    },
+    {
+      "key": "stalled-children-prodded",
+      "label": "Stalled children are prodded; paused ones are reported",
+      "conformance": "SHOULD",
+      "requirement": "A session managing sibling threads or agents SHOULD prod a child that has gone silent past its stated step time, escalating to stalled-agent triage after repeated silence, and SHALL NOT prod a child paused on a usage limit: that pause is reported to the owner instead.",
+      "actors": ["authoring-agent"],
+      "successCriteria": [
+        {
+          "key": "stalled-children-prodded-check",
+          "criterion": "No prod is sent to a child whose last state is a usage-limit pause, and each such pause appears in a report to the owner.",
+          "verification": "review"
+        }
+      ]
+    },
+    {
+      "key": "caches-kept-by-merge-manager",
+      "label": "Repository caches are a lane of the merge manager",
+      "conformance": "SHOULD",
+      "requirement": "The Lean cache, its overlays and every other declared repository cache SHOULD be refreshed by the merge manager after the merge that made them stale, from main's head and through the cache's guarded contribute step, never from a PR head and never by force-push or deletion. Direct Lean verification for a session without a toolchain is a service on request, not a pre-merge gate. The procedures are the skills lean-cache-manager and repo-cache-manager.",
+      "actors": ["authoring-agent"],
+      "successCriteria": [
+        {
+          "key": "caches-kept-by-merge-manager-check",
+          "criterion": "Each cache refresh records the main SHA it was built from, and no cache branch is force-pushed or deleted.",
+          "verification": "inspection"
+        }
+      ]
+    },
+    {
+      "key": "unverified-reports-not-sources",
+      "label": "Unverified external reports are not sources",
+      "conformance": "SHALL",
+      "requirement": "An agent SHALL NOT cite, build on, or scope work against an external report whose claims have not been independently verified, including reports generated by another AI system. Work that was scoped against such a report is re-scoped off it, and the report may be listed only as unverified context.",
+      "actors": ["authoring-agent"],
+      "successCriteria": [
+        {
+          "key": "unverified-reports-not-sources-check",
+          "criterion": "No work item, proof or content block names an unverified external report as its basis.",
+          "verification": "review"
+        }
+      ]
+    }
+  ]
+}

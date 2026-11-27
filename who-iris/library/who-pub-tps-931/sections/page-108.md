@@ -1,0 +1,50 @@
+---
+doc_id: who-pub-tps-931
+doc_title: "WHO Editorial Style Manual"
+section_id: page-108
+section_title: "Page 108"
+section_number: null
+pages: 108-108
+source_pdf: WHO_PUB_TPS_93.1.pdf
+source_sha256: ecc88eee99756755
+toc_source: undetermined
+---
+Annex 2— Member States
+
+Short name Full name Adjective/People Capital city
+Kazakhstan the Republic of Kazakhstan Kazakh Almaty
+Kenya the Republic of Kenya Kenyan Nairobi
+Kiribati Kiribati of Kiribati Tarawa
+Koren: see Democratic People’s Republic of Korea (the), and Republic of Korea (the)
+Kuwait the State of Kuwait Kuwaiti Kuwait
+Kyrgyzstan the Kyrgyz Republic Kyrgyz Bishkek
+Lao People’s Demo- the Lao People’s Lao, a Lao, Vientiane
+cratic Republic (the) Democratic Republic the Laot
+Latvia the Republic of Latvia Latvian Riga
+Lebanon the Lebanese Republic Lebanese Beirut
+Lesotho the Kingdom of Lesotho (of) Lesotho Maseru
+Liberia the Republic of Liberia Liberian Monrovia
+Libyan Arab the Socialist People’s Libyan Tripoli
+Jamahiriya (the) Libyan Arab Jamahiriya
+Liechtenstein the Principality of (of) Liechtenstein Vaduz
+Liechtenstein
+Lithuania the Republic of Lithuania Lithuanian Vilnius
+Luxembourg the Grand Duchy (of) Luxembourg — Luxembourg
+of Luxembourg
+Macedonia: see The former Yugoslav Republic of Macedonia
+Madagascar the Republic of Madagascar Malagasy Antananarivo
+Malawi the Republic of Malawi Malawian Lilongwe
+Malaysia Malaysia Malaysian Kuala Lumpur
+Maldives the Republic of Maldives Maldivian Malé
+Mali the Republic of Mali Malian Bamako
+Malta the Republic of Malta Maltese Valletta
+Marshall Islands the Republic of the of the Marshall Majuro
+(the) Marshall Islands Islands, Marshallese
+Mauritania the Islamic Republic Mauritanian Nouakchott
+of Mauritania
+Mauritius the Republic of Mauritius Mauritian Port Louis
+Mexico the United Mexican States = Mexican Mexico City
+
+' Lao” is invariable, both as an adjective and as a noun, in English, French and Spanish.
+
+103

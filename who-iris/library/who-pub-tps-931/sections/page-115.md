@@ -1,0 +1,58 @@
+---
+doc_id: who-pub-tps-931
+doc_title: "WHO Editorial Style Manual"
+section_id: page-115
+section_title: "Page 115"
+section_number: null
+pages: 115-115
+source_pdf: WHO_PUB_TPS_93.1.pdf
+source_sha256: ecc88eee99756755
+toc_source: undetermined
+---
+WHO Editorial Style Manual
+
+English/approved name Local/other name English/approved name Local/other name
+Hague (The) Den Haag, Lvov Lwéw
+°’s Gravenhage Lyon Lyons
+Haifa Kaiffa, Khaifa
+Haiti* Haiti Manama Al-Manamah
+Hanover Hannover Mantua Mantova
+Hanoi Hanot Marrakesh Marakesh,
+Havana Habana (La) Marrakech
+Helsinki Helsingfors Marseilles Marseille
+Hungary* Magyarorszag Mauritania* Mauritanie
+: Mauritius* Ile Maurice
+Iceland* Island Mecca Makkah, Mekka
+Traq* Trak Milan Milano
+Ireland* Eire Mogadishu Mogadiscio,
+Mogadisho
+Jaffa Yafa, Yafo Morocco* Al-Maghribiyah,
+Jakarta Djakarta Al-Mamlakah
+Moscow Moskva
+Kathmandu Katmandu, Mozambique* = Moçambique
+Khatmandu Munich Miinchen
+Kazakhstan* Kazakstan Muscat Maskat, Masqat
+Kenya* Kenia Myanmar* Burma
+Khartoum Khartum
+Kiev Kiyev, Kiyiv Naples Napoli
+Kuwait* Koweit, Kuweit N’Djamena Fort-Lamy
+Kyrgyzstan* Kirghizia, Kirgizia Netherlands (the)* Holland
+Norway* Norge
+Nuremberg Niirnberg
+Latvia* Latvija, Lettland
+Lebanon* Liban Ostend Oostende, Ostende
+Leghorn Livorno
+Libya* Libia Padua Padova
+Liége Luik Palau* Belau, Belew
+Lisbon Lisboa Phnom Penh Pnompenh
+Ljubljana Lyublyana Port Said Bur Sa’id
+Louvain Leuven Prague Praha
+Luanda Loanda
+Lucerne Luzern Qatar* Katar
+Luxembourg* — Luxemburg
+Luxor Al-Aqsur, Al-Qusur, Reykjavik Reikjavik
+Al-Ugsor Riyadh Er Riad, Riad
+
+* WHO Member States. For full, official names, see Annex 2.
+
+110

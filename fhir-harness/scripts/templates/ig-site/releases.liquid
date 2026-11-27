@@ -1,0 +1,23 @@
+{%- comment -%}
+The IG's Releases page: the binary assets each GitHub release carries, as links.
+Reads `site.data.ig_releases`: `repository`, `read_at`, and `releases[]`
+(`tag`, `name`, `url`, `published`, `prerelease`, `assets[]` with `name`, `url`,
+`size`, `digest`). Every value is computed by `releaseVariables` in
+`build-ig-site.ts` from `fhir-artifact-index/releases.json` (`ig-releases/v1`);
+this file only arranges them. The bytes are never on this site: previews and
+pages carry no binaries, releases do (bean `b8ip`).
+{%- endcomment -%}
+# Releases
+
+The binary artefacts of this IG (packages, archives, validator packs) are published as assets of its [GitHub releases](https://github.com/{{ site.data.ig_releases.repository }}/releases), not on these pages. This list was read on {{ site.data.ig_releases.read_at }}; a release made since then is on GitHub but not yet here.
+{% if site.data.ig_releases.releases.size == 0 %}
+This repository has no published releases yet.
+{% endif %}{% for r in site.data.ig_releases.releases %}
+## [{{ r.name }}]({{ r.url }})
+
+Tag `{{ r.tag }}`, published {{ r.published }}{% if r.prerelease %} (pre-release){% endif %}.
+
+| File | Size | SHA-256 |
+|---|---|---|
+{% for a in r.assets %}| [{{ a.name }}]({{ a.url }}) | {{ a.size }} | {% if a.digest %}`{{ a.digest }}`{% else %}not reported{% endif %} |
+{% endfor %}{% endfor %}

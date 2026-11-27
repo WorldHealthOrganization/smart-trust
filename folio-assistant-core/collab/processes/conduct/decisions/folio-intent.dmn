@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "What is the user asking for?" — Gateway_Intent in getting-started.bpmn.
+
+  One sentence — "create a folio" — carries five different requests, and the
+  agent's job before anything else is to find out which. This table decides the
+  branch from facts, so that "I'll just assume they want a new folio" is not
+  available as a move.
+
+  Facts the caller supplies:
+
+    statedIntent    "new-repo" | "overlay" | "add-folio" | "new-content" |
+                    "unstated". What the user has SAID, in their own words,
+                    mapped onto the five branches. "unstated" until they have
+                    been asked. This is a fact about the conversation, not a
+                    guess about the user.
+    isFolio         the layer's entry in `index.config.json` (the one
+                    config, bean ymvt; a legacy `<name>.config.json` it
+                    imports is overlaid by it) DECLARES a `contentType`. Not its mere presence, nor
+                    its listing in the index: that is instantiation, the
+                    `harness` membership, and the two were one question only
+                    while the declaration was a separate file.
+    repoHasContent  the working tree holds files that are neither VCS
+                    bookkeeping nor folio scaffolding — i.e. somebody's
+                    existing repository rather than a bare one.
+
+  ## What this table honestly decides, and what it does not
+
+  Exactly ONE case is decidable from the filesystem alone: a bare repository
+  that is not a folio can only mean "scaffold a folio here". Every other
+  filesystem state is genuinely ambiguous —
+
+    - a repo that IS a folio may mean "add a second folio at top level", "start
+      a new folio in a NEW repo", or "add a document to the folio I already
+      have"; the directory listing distinguishes none of these.
+    - a repo that is not a folio but has content may mean "overlay
+      folio-assistant onto THIS repo" or "leave this alone and start
+      elsewhere".
+
+  So the table returns `ask` for both, and that is the point rather than a
+  shortfall. `ask` being an OUTCOME OF THE TABLE, not a decision the agent
+  reaches on its own, is what makes the question obligatory: the agent cannot
+  route to a branch the table did not return. Once the user answers,
+  `statedIntent` stops being "unstated" and the same table routes
+  deterministically on rules 1-4. The user's answer is a fact, and it is read
+  here like any other.
+
+  Hit policy FIRST, so a stated intent always beats an inference about the
+  filesystem. A user who says what they want is never overruled by a heuristic.
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="Definitions_FolioIntent"
+             name="Folio intent"
+             namespace="https://litlfred.github.io/folio-assistant/decisions">
+  <decision id="Decision_FolioIntent" name="What is the user asking for?">
+    <decisionTable id="Table_FolioIntent" hitPolicy="FIRST">
+      <input id="In_StatedIntent" label="what the user said">
+        <inputExpression id="Expr_StatedIntent" typeRef="string">
+          <text>statedIntent</text>
+        </inputExpression>
+      </input>
+      <input id="In_IsFolio" label="already a folio?">
+        <inputExpression id="Expr_IsFolio" typeRef="boolean">
+          <text>isFolio</text>
+        </inputExpression>
+      </input>
+      <input id="In_RepoHasContent" label="repo has existing content?">
+        <inputExpression id="Expr_RepoHasContent" typeRef="boolean">
+          <text>repoHasContent</text>
+        </inputExpression>
+      </input>
+      <output id="Out_Intent" name="outcome" typeRef="string" />
+
+      <rule id="Rule_SaidNewRepo">
+        <description>The user said they want a fresh folio in a new repository.</description>
+        <inputEntry id="IE_SaidNewRepo_1"><text>"new-repo"</text></inputEntry>
+        <inputEntry id="IE_SaidNewRepo_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_SaidNewRepo_3"><text>-</text></inputEntry>
+        <outputEntry id="OE_SaidNewRepo"><text>"new-repo"</text></outputEntry>
+      </rule>
+      <rule id="Rule_SaidOverlay">
+        <description>The user said they want folio-assistant laid over the repository they already have.</description>
+        <inputEntry id="IE_SaidOverlay_1"><text>"overlay"</text></inputEntry>
+        <inputEntry id="IE_SaidOverlay_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_SaidOverlay_3"><text>-</text></inputEntry>
+        <outputEntry id="OE_SaidOverlay"><text>"overlay"</text></outputEntry>
+      </rule>
+      <rule id="Rule_SaidAddFolio">
+        <description>The user said they want another folio at top level in a layer they already have.</description>
+        <inputEntry id="IE_SaidAddFolio_1"><text>"add-folio"</text></inputEntry>
+        <inputEntry id="IE_SaidAddFolio_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_SaidAddFolio_3"><text>-</text></inputEntry>
+        <outputEntry id="OE_SaidAddFolio"><text>"add-folio"</text></outputEntry>
+      </rule>
+      <rule id="Rule_SaidNewContent">
+        <description>The user meant a new content object inside the folio they already have — the misspeak case, and the one an eager agent turns into a second repository.</description>
+        <inputEntry id="IE_SaidNewContent_1"><text>"new-content"</text></inputEntry>
+        <inputEntry id="IE_SaidNewContent_2"><text>-</text></inputEntry>
+        <inputEntry id="IE_SaidNewContent_3"><text>-</text></inputEntry>
+        <outputEntry id="OE_SaidNewContent"><text>"new-content"</text></outputEntry>
+      </rule>
+
+      <rule id="Rule_AlreadyFolio">
+        <description>Unstated, and this IS a folio: add-folio, new-repo and new-content are all consistent with what is on disk. Ask.</description>
+        <inputEntry id="IE_AlreadyFolio_1"><text>"unstated"</text></inputEntry>
+        <inputEntry id="IE_AlreadyFolio_2"><text>true</text></inputEntry>
+        <inputEntry id="IE_AlreadyFolio_3"><text>-</text></inputEntry>
+        <outputEntry id="OE_AlreadyFolio"><text>"ask"</text></outputEntry>
+      </rule>
+      <rule id="Rule_ExistingRepo">
+        <description>Unstated, not a folio, but somebody's repository: overlay and new-repo are both consistent. Ask — never overlay a repo on inference.</description>
+        <inputEntry id="IE_ExistingRepo_1"><text>"unstated"</text></inputEntry>
+        <inputEntry id="IE_ExistingRepo_2"><text>false</text></inputEntry>
+        <inputEntry id="IE_ExistingRepo_3"><text>true</text></inputEntry>
+        <outputEntry id="OE_ExistingRepo"><text>"ask"</text></outputEntry>
+      </rule>
+      <rule id="Rule_BareRepo">
+        <description>Unstated, not a folio, nothing here to overlay. The one filesystem state that answers the question by itself.</description>
+        <inputEntry id="IE_BareRepo_1"><text>"unstated"</text></inputEntry>
+        <inputEntry id="IE_BareRepo_2"><text>false</text></inputEntry>
+        <inputEntry id="IE_BareRepo_3"><text>false</text></inputEntry>
+        <outputEntry id="OE_BareRepo"><text>"new-repo"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

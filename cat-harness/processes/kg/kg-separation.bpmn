@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_KgSeparation" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="administrator" name="Administrator"/>
+  <bpmn:resource id="authoring-agent" name="Authoring agent"/>
+  <bpmn:resource id="platform-authoring-agent" name="Platform authoring agent"/>
+  <bpmn:collaboration id="Collaboration_Process_KgSeparation">
+    <bpmn:participant id="Participant_Process_KgSeparation" name="A knowledge graph leaves for its own repositories" processRef="Process_KgSeparation"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_KgSeparation" name="A knowledge graph leaves for its own repositories" isExecutable="false">
+    <bpmn:documentation>Move part of a knowledge graph into repositories of its own: the content (files to read, no code) and its tools (the code that writes and checks it) separate as a pair, into two repositories, not one. `kg-separation.md` is the practice; this is its order and its gates. Stages 1-3 are `graph-detanglement`, reused rather than restated.
+
+EVERY GATEWAY IS A COMMAND. `Tools closed?` is `check:tools-closure` with the content's no-code test and a byte-identity check on the generated files; `Every identifier its file's path?` is `check:node-iris`; `Green alone?` is the standalone rehearsal; `Ready to seed?` is `seed:ready --layer &lt;name&gt; --rehearse`, decided by decisions/seed-readiness-gate.dmn. A check that could not run stops the process rather than reading as clean.
+
+A PERSON DECIDES FOUR TIMES, AND THE ADMINISTRATOR LANE SAYS WHERE: whether to separate at all, whether to authorise the extraction, creating the repositories, and the cutover. Nothing is committed to the new repositories before they are created, and the parent keeps its own copy until it consumes the first release.
+
+VERSIONS: the pair starts at the content's version at the split, then each is versioned on its own; a tools release lists the content majors it supports. Examples: bootstrap and bootstrap-tools; cat-harness and cat-harness-tools. DRAWN IN PHASES (owner, 2026-11-08): prepare, authorise, move and cut over are each their own diagram, called here; a loop that crosses phases is drawn at this level.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_KgSeparation">
+      <bpmn:lane id="Lane_Agent" name="Authoring agent" partitionElementRef="authoring-agent">
+        <bpmn:documentation>Briefs, measures the signals, runs declare-detangle-isolate, reports what would move, seeds the repositories once they exist, and adopts each later release. Verification is always by re-running a gate, never by a change looking right.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Trigger</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Brief</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Measure</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Detangle</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Move</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Moved</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Platform" name="Platform authoring agent" partitionElementRef="platform-authoring-agent">
+        <bpmn:documentation>The platform-side stages: the graph's identity (version, iriBase, nodeSchemas), moving harness output about it into the host, splitting the content from its tools, and making the parent consume the pair additively.</bpmn:documentation>
+        <bpmn:flowNodeRef>Call_Prepare</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Prepared</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Admin" name="Administrator" partitionElementRef="administrator">
+        <bpmn:documentation>The person's decisions: whether to separate at all, authorising the extraction, creating the repositories, and the cutover that retires the parent's copy. An agent reports and waits at each; none of them may be relaxed by a package.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Decide</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Separate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Stays</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Authorise</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Authorised</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Declined</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Call_Cutover</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_CutOver</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Separated</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Unknown</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Trigger" name="Too large, or readers&#10;and cadence differ">
+      <bpmn:outgoing>F0</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="Task_Brief" name="Brief the work" calledElement="GT_Brief">
+      <bpmn:documentation>Here the work is a separation: what is separating, and why.</bpmn:documentation>
+      <bpmn:incoming>F0</bpmn:incoming>
+      <bpmn:outgoing>F1</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:task id="Task_Measure" name="Measure the signals">
+      <bpmn:documentation>Files and bytes per layer, clone cost (`bun run cat health`), gate time, merge contention, the candidate's cohesion and cut (`kg:detangle`), wrong-direction edges, and the would-be tools package's import cone. Recorded in the work context; none alone is a trigger.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-separation"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F1</bpmn:incoming>
+      <bpmn:outgoing>F2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="Task_Decide" calledElement="Process_AskThePerson" name="Ask whether to&#10;separate it">
+      <bpmn:documentation>The owner decides from the measured signals, and also decides the address base for its identifiers, where verdicts about it live, and what its tools repository owns. Declining is a real outcome: the graph stays where it is.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-separation"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F2</bpmn:incoming>
+      <bpmn:outgoing>F3</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Separate" name="Separate this graph?">
+      <bpmn:documentation>Reads the owner's answer to the ask before it. Declining is a real outcome: the graph stays where it is.</bpmn:documentation>
+      <bpmn:incoming>F3</bpmn:incoming>
+      <bpmn:outgoing>F4</bpmn:outgoing>
+      <bpmn:outgoing>F5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Stays" name="Stays where it is">
+      <bpmn:incoming>F4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_Detangle" name="Declare, detangle,&#10;isolate">
+      <bpmn:documentation>The graph-detanglement practice, all of its gates: declared in place, zero wrong-direction edges on every axis, and standing alone with its own declaration, namespace and artefact. A plain task on purpose, not a call to graph-detanglement.bpmn: that process ends in its own authorise-and-extract steps, which here are stages 9-13 of this one, and calling it would run them twice.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="graph-detanglement"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F5</bpmn:incoming>
+      <bpmn:incoming>F9</bpmn:incoming>
+      <bpmn:outgoing>F6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:callActivity id="Call_Prepare" name="Prepare it to&#10;stand alone" calledElement="Process_KgSeparationPrepare">
+      <bpmn:documentation>Identity, hosted output, the content-tools split, the publication plan, and the standalone rehearsal.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-separation"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F6</bpmn:incoming>
+      <bpmn:outgoing>F7</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Prepared" name="Green alone?">
+      <bpmn:documentation>Reads which end the prepare phase reached. An unseen edge sends the graph back to detangling.</bpmn:documentation>
+      <bpmn:incoming>F7</bpmn:incoming>
+      <bpmn:outgoing>F8</bpmn:outgoing>
+      <bpmn:outgoing>F9</bpmn:outgoing>
+      <bpmn:outgoing>F10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_Authorise" name="Authorise the&#10;extraction" calledElement="Process_KgSeparationAuthorise">
+      <bpmn:documentation>Report what moves and ask the administrator. A repository cut changes the substrate every other process binds to; that is a person's decision.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="deletion-requires-confirmation"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F8</bpmn:incoming>
+      <bpmn:outgoing>F11</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Authorised" name="Authorised?">
+      <bpmn:documentation>Reads which end the authorise phase reached. Declining leaves the graph declared, detangled, isolated and split in place.</bpmn:documentation>
+      <bpmn:incoming>F11</bpmn:incoming>
+      <bpmn:outgoing>F12</bpmn:outgoing>
+      <bpmn:outgoing>F13</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Declined" name="Stays in place,&#10;ready to leave">
+      <bpmn:incoming>F13</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:callActivity id="Call_Move" name="Move it into its&#10;repositories" calledElement="Process_KgSeparationMove">
+      <bpmn:documentation>Create the repositories, drain, seed, consume additively, release, and check every identifier dereferences.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-separation"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F12</bpmn:incoming>
+      <bpmn:outgoing>F14</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_Moved" name="Seeded and&#10;released?">
+      <bpmn:documentation>Reads which end the move phase reached. Nothing is seeded on an unknown readiness.</bpmn:documentation>
+      <bpmn:incoming>F14</bpmn:incoming>
+      <bpmn:outgoing>F15</bpmn:outgoing>
+      <bpmn:outgoing>F16</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Call_Cutover" name="Cut over" calledElement="Process_KgSeparationCutover">
+      <bpmn:documentation>Retire the parent's copy and measure the cutover until it is complete or cannot be shown complete.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="kg-separation"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F15</bpmn:incoming>
+      <bpmn:outgoing>F17</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="GW_CutOver" name="Cut over?">
+      <bpmn:documentation>Reads which end the cutover phase reached: complete, or not shown complete.</bpmn:documentation>
+      <bpmn:incoming>F17</bpmn:incoming>
+      <bpmn:outgoing>F18</bpmn:outgoing>
+      <bpmn:outgoing>F19</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Separated" name="Separated">
+      <bpmn:incoming>F18</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Unknown" name="UNKNOWN — stop.&#10;Not clean">
+      <bpmn:incoming>F10</bpmn:incoming>
+      <bpmn:incoming>F16</bpmn:incoming>
+      <bpmn:incoming>F19</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="F0" sourceRef="Start_Trigger" targetRef="Task_Brief"/>
+    <bpmn:sequenceFlow id="F1" sourceRef="Task_Brief" targetRef="Task_Measure"/>
+    <bpmn:sequenceFlow id="F2" sourceRef="Task_Measure" targetRef="Task_Decide"/>
+    <bpmn:sequenceFlow id="F3" sourceRef="Task_Decide" targetRef="GW_Separate"/>
+    <bpmn:sequenceFlow id="F4" name="declined" sourceRef="GW_Separate" targetRef="End_Stays"/>
+    <bpmn:sequenceFlow id="F5" name="separate" sourceRef="GW_Separate" targetRef="Task_Detangle"/>
+    <bpmn:sequenceFlow id="F6" sourceRef="Task_Detangle" targetRef="Call_Prepare"/>
+    <bpmn:sequenceFlow id="F7" sourceRef="Call_Prepare" targetRef="GW_Prepared"/>
+    <bpmn:sequenceFlow id="F8" name="green" sourceRef="GW_Prepared" targetRef="Call_Authorise"/>
+    <bpmn:sequenceFlow id="F9" name="red: an unseen edge" sourceRef="GW_Prepared" targetRef="Task_Detangle"/>
+    <bpmn:sequenceFlow id="F10" name="could not run" sourceRef="GW_Prepared" targetRef="End_Unknown"/>
+    <bpmn:sequenceFlow id="F11" sourceRef="Call_Authorise" targetRef="GW_Authorised"/>
+    <bpmn:sequenceFlow id="F12" name="authorised" sourceRef="GW_Authorised" targetRef="Call_Move"/>
+    <bpmn:sequenceFlow id="F13" name="declined" sourceRef="GW_Authorised" targetRef="End_Declined"/>
+    <bpmn:sequenceFlow id="F14" sourceRef="Call_Move" targetRef="GW_Moved"/>
+    <bpmn:sequenceFlow id="F15" name="released" sourceRef="GW_Moved" targetRef="Call_Cutover"/>
+    <bpmn:sequenceFlow id="F16" name="unknown" sourceRef="GW_Moved" targetRef="End_Unknown"/>
+    <bpmn:sequenceFlow id="F17" sourceRef="Call_Cutover" targetRef="GW_CutOver"/>
+    <bpmn:sequenceFlow id="F18" name="complete" sourceRef="GW_CutOver" targetRef="End_Separated"/>
+    <bpmn:sequenceFlow id="F19" name="could not determine" sourceRef="GW_CutOver" targetRef="End_Unknown"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_KgSeparation">
+    <bpmndi:BPMNPlane id="Plane_Process_KgSeparation" bpmnElement="Collaboration_Process_KgSeparation">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_KgSeparation" bpmnElement="Participant_Process_KgSeparation" isHorizontal="true"><dc:Bounds x="130" y="60" width="1390" height="820"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent" bpmnElement="Lane_Agent" isHorizontal="true"><dc:Bounds x="160" y="60" width="1360" height="220"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Platform" bpmnElement="Lane_Platform" isHorizontal="true"><dc:Bounds x="160" y="660" width="1360" height="220"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Admin" bpmnElement="Lane_Admin" isHorizontal="true"><dc:Bounds x="160" y="280" width="1360" height="380"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Trigger" bpmnElement="Start_Trigger"><dc:Bounds x="220" y="132" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="195" y="175" width="85" height="60"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Brief" bpmnElement="Task_Brief"><dc:Bounds x="290" y="110" width="120" height="120"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Measure" bpmnElement="Task_Measure"><dc:Bounds x="430" y="110" width="120" height="120"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Decide" bpmnElement="Task_Decide"><dc:Bounds x="430" y="340" width="120" height="120"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Separate" bpmnElement="GW_Separate" isMarkerVisible="true"><dc:Bounds x="560" y="375" width="50" height="50"/><bpmndi:BPMNLabel><dc:Bounds x="535" y="335" width="100" height="36" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Stays" bpmnElement="End_Stays"><dc:Bounds x="567" y="532" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="535" y="574" width="100" height="24"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_Detangle" bpmnElement="Task_Detangle"><dc:Bounds x="650" y="110" width="120" height="120"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Prepare" bpmnElement="Call_Prepare"><dc:Bounds x="650" y="710" width="120" height="120"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Prepared" bpmnElement="GW_Prepared" isMarkerVisible="true"><dc:Bounds x="810" y="745" width="50" height="50"/><bpmndi:BPMNLabel><dc:Bounds x="866" y="762" width="85" height="20" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Authorise" bpmnElement="Call_Authorise"><dc:Bounds x="850" y="340" width="120" height="120"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Authorised" bpmnElement="GW_Authorised" isMarkerVisible="true"><dc:Bounds x="1005" y="375" width="50" height="50"/><bpmndi:BPMNLabel><dc:Bounds x="980" y="345" width="75" height="20" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Declined" bpmnElement="End_Declined"><dc:Bounds x="1012" y="532" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="980" y="574" width="100" height="36"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Move" bpmnElement="Call_Move"><dc:Bounds x="1080" y="110" width="120" height="120"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Moved" bpmnElement="GW_Moved" isMarkerVisible="true"><dc:Bounds x="1235" y="145" width="50" height="50"/><bpmndi:BPMNLabel><dc:Bounds x="1210" y="105" width="100" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Call_Cutover" bpmnElement="Call_Cutover"><dc:Bounds x="1150" y="340" width="120" height="120"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_CutOver" bpmnElement="GW_CutOver" isMarkerVisible="true"><dc:Bounds x="1310" y="375" width="50" height="50"/><bpmndi:BPMNLabel><dc:Bounds x="1295" y="348" width="80" height="22"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Separated" bpmnElement="End_Separated"><dc:Bounds x="1427" y="382" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="1405" y="424" width="80" height="24"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Unknown" bpmnElement="End_Unknown"><dc:Bounds x="1427" y="532" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="1395" y="574" width="100" height="36"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_F0" bpmnElement="F0"><di:waypoint x="256" y="150"/><di:waypoint x="290" y="150"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F1" bpmnElement="F1"><di:waypoint x="410" y="170"/><di:waypoint x="430" y="170"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F2" bpmnElement="F2">
+        <di:waypoint x="490" y="230" />
+        <di:waypoint x="490" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F3" bpmnElement="F3"><di:waypoint x="550" y="400"/><di:waypoint x="560" y="400"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F4" bpmnElement="F4"><di:waypoint x="585" y="425"/><di:waypoint x="585" y="532"/><bpmndi:BPMNLabel><dc:Bounds x="591" y="465" width="60" height="18" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F5" bpmnElement="F5">
+        <di:waypoint x="610" y="400" />
+        <di:waypoint x="630" y="400" />
+        <di:waypoint x="630" y="170" />
+        <di:waypoint x="650" y="170" />
+        <bpmndi:BPMNLabel><dc:Bounds x="635" y="300" width="55" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F6" bpmnElement="F6">
+        <di:waypoint x="710" y="230" />
+        <di:waypoint x="710" y="710" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F7" bpmnElement="F7"><di:waypoint x="770" y="770"/><di:waypoint x="810" y="770"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F8" bpmnElement="F8"><di:waypoint x="835" y="745"/><di:waypoint x="835" y="400"/><di:waypoint x="850" y="400"/><bpmndi:BPMNLabel><dc:Bounds x="841" y="550" width="45" height="18"/></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F9" bpmnElement="F9"><di:waypoint x="810" y="770"/><di:waypoint x="802" y="770"/><di:waypoint x="802" y="80"/><di:waypoint x="710" y="80"/><di:waypoint x="710" y="110"/><bpmndi:BPMNLabel><dc:Bounds x="716" y="550" width="80" height="45"/></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F10" bpmnElement="F10"><di:waypoint x="835" y="795"/><di:waypoint x="835" y="850"/><di:waypoint x="1385" y="850"/><di:waypoint x="1385" y="550"/><di:waypoint x="1427" y="550"/><bpmndi:BPMNLabel><dc:Bounds x="1050" y="828" width="85" height="18"/></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F11" bpmnElement="F11"><di:waypoint x="970" y="400"/><di:waypoint x="1005" y="400"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F12" bpmnElement="F12">
+        <di:waypoint x="1055" y="400" />
+        <di:waypoint x="1065" y="400" />
+        <di:waypoint x="1065" y="170" />
+        <di:waypoint x="1080" y="170" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1070" y="300" width="65" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F13" bpmnElement="F13"><di:waypoint x="1030" y="425"/><di:waypoint x="1030" y="532"/><bpmndi:BPMNLabel><dc:Bounds x="1036" y="465" width="60" height="18" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F14" bpmnElement="F14"><di:waypoint x="1200" y="170"/><di:waypoint x="1235" y="170"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F15" bpmnElement="F15"><di:waypoint x="1260" y="195"/><di:waypoint x="1260" y="300"/><di:waypoint x="1210" y="300"/><di:waypoint x="1210" y="340"/><bpmndi:BPMNLabel><dc:Bounds x="1195" y="250" width="60" height="18"/></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F16" bpmnElement="F16"><di:waypoint x="1285" y="170"/><di:waypoint x="1485" y="170"/><di:waypoint x="1485" y="550"/><di:waypoint x="1463" y="550"/><bpmndi:BPMNLabel><dc:Bounds x="1330" y="148" width="60" height="18"/></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F17" bpmnElement="F17"><di:waypoint x="1270" y="400"/><di:waypoint x="1310" y="400"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F18" bpmnElement="F18"><di:waypoint x="1360" y="400"/><di:waypoint x="1427" y="400"/><bpmndi:BPMNLabel><dc:Bounds x="1362" y="378" width="60" height="18"/></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F19" bpmnElement="F19"><di:waypoint x="1335" y="425"/><di:waypoint x="1335" y="550"/><di:waypoint x="1427" y="550"/><bpmndi:BPMNLabel><dc:Bounds x="1245" y="475" width="85" height="32" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

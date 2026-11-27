@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_BoardOpenClose"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="board-renderer" name="Board renderer"/>
+  <bpmn:resource id="user" name="User"/>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Opening and closing content on a board — folio-assistant
+
+       TWO MECHANISMS, and the diagram exists to keep them apart.
+       Semantic zoom is automatic and driven by SIZE; open and close are
+       a PERSON's. An open window is projected onto the board rather
+       than being the card grown large, so it survives a zoom-out and
+       only `[x]` closes it. A process that modelled one gateway for
+       both would be the defect drawn.
+
+       THE CLOSE HAS AN INVERSE, and the diagram says so rather than
+       ending at `hidden`. An action whose inverse is not
+       reachable is not a toggle. On page-content the way back is a
+       control in the thing's own position; on an overlay it is the
+       launcher tile that was already there.
+       ═══════════════════════════════════════════════════════════ -->
+
+  <bpmn:collaboration id="Collab_BoardOpenClose">
+    <bpmn:participant id="Participant_BoardOpenClose" name="Board: open and close content" processRef="Process_BoardOpenClose"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_BoardOpenClose" name="Board: open and close content" isExecutable="true">
+    <bpmn:documentation>What a reader does to a board and what the renderer does back: every card rests as its avatar, a window opens onto the one the reader chose, and it closes back to where it came from.
+
+You are in this process when the question is a READER's — which card is open, what is raised, how to get back. Semantic zoom is in here too and is deliberately not the same mechanism: the threshold is resolved from the kind and applies itself by SIZE, while opening and closing are a person's acts.
+
+The rule the diagram holds is the one about the way back: an action whose inverse is not reachable is not a toggle.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <!-- Advisory: a reader opening a card is not a gate, and refusing a
+           step here would refuse a click. The base content processes gate;
+           this one describes an interaction so that it can be reviewed and
+           tested rather than living only in `docs-ui.js`. -->
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+
+    <bpmn:laneSet id="LaneSet_BoardOpenClose">
+      <bpmn:lane id="Lane_Reader" name="Reader" partitionElementRef="user">
+        <bpmn:flowNodeRef>Start_Board</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Act_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Act</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Board</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <!-- The renderer ACTS AND DECIDES NOTHING, which is why every task
+           is here and the one gateway is not: it reads the declared
+           threshold, swaps a card for its avatar, and projects or withdraws
+           a window because the reader said so. Mechanical, in the
+           `role-model` sense. -->
+      <bpmn:lane id="Lane_Renderer" name="Board renderer" partitionElementRef="board-renderer">
+        <bpmn:documentation>Acts and decides nothing: the start, the gateway and the end all sit in the reader's lane, so every node here is downstream of a choice somebody else made.</bpmn:documentation>
+        <bpmn:flowNodeRef>A_RenderAvatars</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Open</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Raise</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Close</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_OfferWayBack</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ResolveThreshold</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_SwapToAvatar</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Board" name="A board is opened">
+      <bpmn:outgoing>F_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="A_RenderAvatars" name="Render every card as its avatar">
+      <bpmn:documentation>Render every card as its avatar — the starting state. Each content kind controls its own avatar; the board decides only that nothing starts open.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="board-windows"/></bpmn:extensionElements>
+      <bpmn:incoming>F_1</bpmn:incoming>
+      <bpmn:incoming>F_Zoom2</bpmn:incoming>
+      <bpmn:outgoing>F_2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="GW_Act_Join">
+      <bpmn:documentation>Brings the paths together before the decision after it, so that decision only splits.</bpmn:documentation>
+      <bpmn:incoming>F_2</bpmn:incoming>
+      <bpmn:incoming>F_Back</bpmn:incoming>
+      <bpmn:outgoing>Flow_GW_Act_Join</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="GW_Act" name="What did the reader do?">
+      <bpmn:documentation>Waits on the reader's next action on the board. Opening a card projects a window; selecting a window raises it; `[x]` closes a window back to its avatar; resizing the board re-resolves each kind's zoom threshold; leaving ends. Every branch but `leave` comes back here, which is what makes open and close a toggle.</bpmn:documentation>
+      
+      <bpmn:incoming>Flow_GW_Act_Join</bpmn:incoming>
+      <bpmn:outgoing>F_DoOpen</bpmn:outgoing>
+      <bpmn:outgoing>F_DoRaise</bpmn:outgoing>
+      <bpmn:outgoing>F_DoClose</bpmn:outgoing>
+      <bpmn:outgoing>F_DoZoom</bpmn:outgoing>
+      <bpmn:outgoing>F_Leave</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="A_Open" name="Project a window onto the board">
+      <bpmn:documentation>Project a window onto the board for the chosen card. A window is not the card grown large: it survives zooming out, and only [x] closes it. The frame is fixed ([x] always present, always in the same place); the kind fills in its declared controls.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="board-windows"/></bpmn:extensionElements>
+      <bpmn:incoming>F_DoOpen</bpmn:incoming>
+      <bpmn:outgoing>F_Opened</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_Raise" name="Raise the window the reader selected">
+      <bpmn:documentation>Raise the selected window to the top. Selecting ANY part raises it, not just a title bar. Z-order is session-only by stated default: no z is written to the layout, so a raise is never a file write.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="board-windows"/></bpmn:extensionElements>
+      <bpmn:incoming>F_DoRaise</bpmn:incoming>
+      <bpmn:incoming>F_Opened</bpmn:incoming>
+      <bpmn:outgoing>F_Raised</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_Close" name="Close the window back to its avatar">
+      <bpmn:documentation>[x] closes the window back to its avatar. Only a person's [x] does this; a zoom-out never closes a window, or [x] and zooming become indistinguishable to the reader.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="board-windows"/></bpmn:extensionElements>
+      <bpmn:incoming>F_DoClose</bpmn:incoming>
+      <bpmn:outgoing>F_Closed</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_OfferWayBack" name="Leave a reachable way back">
+      <bpmn:documentation>Leave the way back reachable: the collapsed window becomes a control in its own position and focus moves to it — left alone, focus lands on &lt;body&gt; and the keyboard position is lost. An action whose inverse is not reachable is not a toggle.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <!-- NOT a courtesy step: closing without this is a
+             delete with no confirmation wearing a toggle's clothes. -->
+        <bootstrap.processes:skill ref="board-windows"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_Closed</bpmn:incoming>
+      <bpmn:outgoing>F_Back</bpmn:outgoing>
+    </bpmn:task>
+
+    <!-- ── The automatic half, which decides nothing ──────────── -->
+
+    <bpmn:task id="A_ResolveThreshold" name="Resolve the kind's zoom threshold">
+      <bpmn:documentation>Resolve the semantic-zoom threshold for each card's kind: the folio default unless the kind overrides it with a stated because. Return the source alongside the value, so a card that flipped too early can be traced to a decision or to a default.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="board-windows"/></bpmn:extensionElements>
+      <bpmn:incoming>F_DoZoom</bpmn:incoming>
+      <bpmn:outgoing>F_Zoom1</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="A_SwapToAvatar" name="Swap cards below the threshold; leave open windows alone">
+      <bpmn:documentation>Cards whose rendered width is strictly below the threshold swap to their avatar — automatic, driven by size. Open windows are left alone: semantic zoom and open/close are two mechanisms and must not be conflated.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <!-- The sentence that keeps the two mechanisms apart, in the one
+             place a renderer would otherwise conflate them. -->
+        <bootstrap.processes:skill ref="board-windows"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>F_Zoom1</bpmn:incoming>
+      <bpmn:outgoing>F_Zoom2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Board" name="The reader leaves the board">
+      <bpmn:incoming>F_Leave</bpmn:incoming>
+      <bpmn:incoming>F_Raised</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="F_1" sourceRef="Start_Board" targetRef="A_RenderAvatars"/>
+    <bpmn:sequenceFlow id="F_2" sourceRef="A_RenderAvatars" targetRef="GW_Act_Join"/>
+    <bpmn:sequenceFlow id="F_DoOpen" name="open a card" sourceRef="GW_Act" targetRef="A_Open"/>
+    <bpmn:sequenceFlow id="F_DoRaise" name="select a window" sourceRef="GW_Act" targetRef="A_Raise"/>
+    <bpmn:sequenceFlow id="F_DoClose" name="[x]" sourceRef="GW_Act" targetRef="A_Close"/>
+    <bpmn:sequenceFlow id="F_DoZoom" name="resize the board" sourceRef="GW_Act" targetRef="A_ResolveThreshold"/>
+    <bpmn:sequenceFlow id="F_Leave" name="leave" sourceRef="GW_Act" targetRef="End_Board"/>
+    <bpmn:sequenceFlow id="F_Opened" sourceRef="A_Open" targetRef="A_Raise"/>
+    <bpmn:sequenceFlow id="F_Raised" sourceRef="A_Raise" targetRef="End_Board"/>
+    <bpmn:sequenceFlow id="F_Closed" sourceRef="A_Close" targetRef="A_OfferWayBack"/>
+    <bpmn:sequenceFlow id="F_Back" sourceRef="A_OfferWayBack" targetRef="GW_Act_Join"/>
+    <bpmn:sequenceFlow id="Flow_GW_Act_Join" sourceRef="GW_Act_Join" targetRef="GW_Act"/>
+    <bpmn:sequenceFlow id="F_Zoom1" sourceRef="A_ResolveThreshold" targetRef="A_SwapToAvatar"/>
+    <bpmn:sequenceFlow id="F_Zoom2" sourceRef="A_SwapToAvatar" targetRef="A_RenderAvatars"/>
+  </bpmn:process>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Diagram interchange. Layout only: every fact about what the
+       process DOES is above, and nothing here changes it. Moving a
+       shape is not editing the process — the same separation the
+       `board-diagram-interchange` skill draws between a folio and a
+       board of it.
+       ═══════════════════════════════════════════════════════════ -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_BoardOpenClose">
+    <bpmndi:BPMNPlane id="BPMNPlane_BoardOpenClose" bpmnElement="Collab_BoardOpenClose">
+      <bpmndi:BPMNShape id="Shape_Participant_BoardOpenClose" bpmnElement="Participant_BoardOpenClose" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1020" height="630" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Reader" bpmnElement="Lane_Reader" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="990" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Renderer" bpmnElement="Lane_Renderer" isHorizontal="true">
+        <dc:Bounds x="190" y="220" width="990" height="490" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Start_Board" bpmnElement="Start_Board">
+        <dc:Bounds x="240" y="132" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="265" y="90" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Act_Join" bpmnElement="GW_Act_Join" isMarkerVisible="true">
+        <dc:Bounds x="480" y="125" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_GW_Act_Join" bpmnElement="Flow_GW_Act_Join">
+        <di:waypoint x="530" y="150"/>
+        <di:waypoint x="570" y="150"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_GW_Act" bpmnElement="GW_Act" isMarkerVisible="true">
+        <dc:Bounds x="570" y="125" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="386" y="94" width="180" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Board" bpmnElement="End_Board">
+        <dc:Bounds x="1050" y="132" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1092" y="123" width="82" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_RenderAvatars" bpmnElement="A_RenderAvatars">
+        <dc:Bounds x="300" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Open" bpmnElement="A_Open">
+        <dc:Bounds x="700" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Raise" bpmnElement="A_Raise">
+        <dc:Bounds x="860" y="240" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_ResolveThreshold" bpmnElement="A_ResolveThreshold">
+        <dc:Bounds x="700" y="390" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_SwapToAvatar" bpmnElement="A_SwapToAvatar">
+        <dc:Bounds x="860" y="390" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Close" bpmnElement="A_Close">
+        <dc:Bounds x="700" y="540" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_OfferWayBack" bpmnElement="A_OfferWayBack">
+        <dc:Bounds x="860" y="540" width="120" height="120" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_F_1" bpmnElement="F_1">
+        <di:waypoint x="258" y="168" />
+        <di:waypoint x="258" y="300" />
+        <di:waypoint x="300" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_2" bpmnElement="F_2">
+        <di:waypoint x="420" y="300" />
+        <di:waypoint x="450" y="300" />
+        <di:waypoint x="450" y="150" />
+        <di:waypoint x="480" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_DoOpen" bpmnElement="F_DoOpen">
+        <di:waypoint x="610" y="175" />
+        <di:waypoint x="610" y="300" />
+        <di:waypoint x="700" y="300" />
+        <bpmndi:BPMNLabel><dc:Bounds x="618" y="256" width="74" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_DoRaise" bpmnElement="F_DoRaise">
+        <di:waypoint x="620" y="150" />
+        <di:waypoint x="920" y="150" />
+        <di:waypoint x="920" y="240" />
+        <bpmndi:BPMNLabel><dc:Bounds x="720" y="154" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_DoZoom" bpmnElement="F_DoZoom">
+        <di:waypoint x="595" y="175"/>
+        <di:waypoint x="595" y="450"/>
+        <di:waypoint x="700" y="450"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="603" y="406" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_DoClose" bpmnElement="F_DoClose">
+        <di:waypoint x="580" y="175" />
+        <di:waypoint x="580" y="600" />
+        <di:waypoint x="700" y="600" />
+        <bpmndi:BPMNLabel><dc:Bounds x="605" y="576" width="40" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Leave" bpmnElement="F_Leave">
+        <di:waypoint x="595" y="125"/>
+        <di:waypoint x="595" y="100"/>
+        <di:waypoint x="1068" y="100"/>
+        <di:waypoint x="1068" y="132"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="801.5" y="81" width="90" height="17" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Opened" bpmnElement="F_Opened">
+        <di:waypoint x="820" y="300" />
+        <di:waypoint x="860" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Raised" bpmnElement="F_Raised">
+        <di:waypoint x="980" y="300" />
+        <di:waypoint x="1030" y="300" />
+        <di:waypoint x="1030" y="150" />
+        <di:waypoint x="1050" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Closed" bpmnElement="F_Closed">
+        <di:waypoint x="820" y="600" />
+        <di:waypoint x="860" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Back" bpmnElement="F_Back">
+        <di:waypoint x="920" y="660" />
+        <di:waypoint x="920" y="676" />
+        <di:waypoint x="505" y="676" />
+        <di:waypoint x="505" y="175" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Zoom1" bpmnElement="F_Zoom1">
+        <di:waypoint x="820" y="450"/>
+        <di:waypoint x="860" y="450"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F_Zoom2" bpmnElement="F_Zoom2">
+        <di:waypoint x="980" y="450" />
+        <di:waypoint x="1015" y="450" />
+        <di:waypoint x="1015" y="694" />
+        <di:waypoint x="360" y="694" />
+        <di:waypoint x="360" y="360" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

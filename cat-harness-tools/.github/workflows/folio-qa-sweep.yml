@@ -1,0 +1,136 @@
+name: Folio QA sweep
+
+# Every integration watcher over a folio's blocks, as ONE reusable workflow.
+# It replaces the per-folio copies `folio_init` used to write (and smart-ra
+# and dth-hrh carried, each fixed in a different half: smart-ra mounted its
+# layers but committed derived sidecars; dth-hrh published to qa-reports but
+# still cloned the retired folio-assistant platform checkout).
+#
+# Derived QA verdicts live in the working copy under test/results/ and are
+# stored on the orphan `qa-reports` branch, keyed by commit (arc 3fva, skill
+# sdlc/skills/sdlc-core/qa-reports.md). Judgements stay on the default branch
+# in test/attestations/.
+#
+#   - Mounts the layers the caller's index.lock.json pins.
+#   - Refuses to start when <folio>/ holds no <paper>/<paper>.ts manifest.
+#   - Runs every axis with --ci, the per-axis summary and the staleness map
+#     (warn-only), and HARD-gates the shape of every .qa.json and
+#     attestation file.
+#   - Publishes the verdicts to qa-reports: pr/<n>/<sha> on a same-repository
+#     pull request, main/<sha> otherwise. A fork's read-only token skips it.
+#
+#   jobs:
+#     qa-sweep:
+#       uses: litlfred/cat-harness-tools/.github/workflows/folio-qa-sweep.yml@main
+
+on:
+  workflow_call:
+    inputs:
+      folio:
+        description: "The folio's content root in the calling repository."
+        type: string
+        default: folio
+
+permissions:
+  contents: write
+
+jobs:
+  qa-sweep:
+    runs-on: ubuntu-24.04
+    env:
+      FOLIO: ${{ inputs.folio }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Preflight — the folio must hold a document
+        run: |
+          papers=$(find "$FOLIO" -mindepth 2 -maxdepth 2 -name '*.ts' \
+            -exec sh -c 'd=$(dirname "$1"); [ "$(basename "$1" .ts)" = "$(basename "$d")" ] && echo "$d"' _ {} \; | sort -u)
+          if [ -z "$papers" ]; then
+            echo "::error::$FOLIO/ has no <paper>/<paper>.ts manifest — nothing to sweep."
+            exit 1
+          fi
+          echo "documents: $(echo "$papers" | tr '\n' ' ')"
+
+      - uses: litlfred/cat-harness-tools/.github/actions/mount-layers@1257da8bbbb8e661391d08b014b16464de19613f # last change to .github/actions/mount-layers
+
+      - name: QA sweep (warn-only on baseline criticals)
+        continue-on-error: true
+        run: |
+          bun run "$FA_TOOLS/pipeline/qa-sweep.ts" "$FOLIO" --ci 2>&1 | tee /tmp/qa-sweep.log
+          echo "Sweep exit code: ${PIPESTATUS[0]}"
+
+      - name: Per-axis fail summary
+        continue-on-error: true
+        run: |
+          for axis in one-voice proof canonical compute detangler bibliography; do
+            echo ""
+            echo "── axis: $axis ─────────────────────────────────"
+            bun run "$FA_TOOLS/pipeline/qa-sweep.ts" "$FOLIO" --axis "$axis" --json 2>/dev/null \
+              | python3 "$FA_TOOLS/scripts/ci/qa-axis-summary.py" 2>&1 | tee "/tmp/qa-axis-$axis.log"
+          done
+
+      - name: QA staleness map
+        continue-on-error: true
+        run: bun run "$FA_TOOLS/pipeline/qa-staleness.ts" "$FOLIO" --ci 2>&1 | tee /tmp/qa-staleness.log
+
+      - name: Schema sanity (.qa.json and attestation files)
+        run: |
+          bad=0; seen=0
+          while IFS= read -r f; do
+            seen=$((seen+1))
+            if ! grep -q '"\$schema": "block-qa/v1"' "$f"; then
+              echo "::error file=$f::missing or wrong \$schema marker"
+              bad=$((bad+1))
+            fi
+          done < <(find "$FOLIO" test/results -name '*.qa.json' -type f 2>/dev/null)
+          if [ "$seen" -eq 0 ]; then
+            echo "::error::found NO .qa.json files — refusing to report success"
+            exit 1
+          fi
+          if [ "$bad" -gt 0 ]; then
+            echo "::error::$bad of $seen .qa.json file(s) failed schema sanity"
+            exit 1
+          fi
+          echo "schema sanity: all $seen .qa.json file(s) pass"
+          att_seen=0; att_bad=0
+          while IFS= read -r af; do
+            att_seen=$((att_seen+1))
+            if ! grep -q '"\$schema": "qa-attestations/v1"' "$af"; then
+              echo "::error file=$af::missing or wrong \$schema marker for attestation"
+              att_bad=$((att_bad+1))
+            fi
+          done < <(find test/attestations -name '*.attestations.json' -type f 2>/dev/null)
+          if [ "$att_bad" -gt 0 ]; then
+            echo "::error::$att_bad of $att_seen attestation file(s) failed schema sanity"
+            exit 1
+          fi
+
+      - name: Publish QA verdicts to qa-reports
+        env:
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+        run: |
+          if [ ! -d test/results ] || [ -z "$(find test/results -type f 2>/dev/null)" ]; then
+            echo "No QA results to publish — exiting cleanly."
+            exit 0
+          fi
+          if [ -n "$PR" ] && [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            echo "::notice::Fork PR — skipping qa-reports publish (read-only token)."
+            exit 0
+          fi
+          if [ -n "$PR" ] && [ -n "$HEAD_SHA" ]; then QA_REF="pr/$PR/$HEAD_SHA"; else QA_REF="main/$(git rev-parse HEAD)"; fi
+          bun run "$FA_TOOLS/scripts/qa-store.ts" publish --ref "$QA_REF" --root test/results
+
+      - name: Upload sweep + staleness logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: qa-sweep-logs
+          path: |
+            /tmp/qa-sweep.log
+            /tmp/qa-staleness.log
+            /tmp/qa-axis-*.log
+          retention-days: 14

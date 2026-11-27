@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  folio-assistant — Guideline Updates: taking up a new version of a guideline,
+  or a changed lower layer, along the dependency chain.
+
+  Source of truth: this file. The SVG under docs/assets/img/workflows/ is
+  generated from it by `bun run cat render:bpmn`, so never hand-edit the SVG.
+
+  Re-pins happen a lot in rapid development, and a re-pin is also a review
+  step. A country taking up a new version of a WHO guideline
+  compares the current guideline, the new one and its existing adaptations,
+  then decides the impact and which adaptations to revise. This process holds
+  both sides: the people (who reviews, who decides) and the technical steps
+  (re-pin in dependency order, impact report, merge). The planner is
+  cat-harness-tools `mount:repin:cone`.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_GuidelineUpdates"
+                  targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="publication-manager" name="Publication manager"/>
+  <bpmn:resource id="merge-steward" name="Merge steward"/>
+  <bpmn:resource id="business-analyst" name="Business analyst"/>
+  <bpmn:resource id="authoring-committee" name="Authoring Committee"/>
+  <bpmn:import namespace="https://litlfred.github.io/folio-assistant/workflows" location="content-change-review.bpmn" importType="http://www.omg.org/spec/BPMN/20100524/MODEL" />
+  <bpmn:collaboration id="Collaboration_GuidelineUpdates">
+    <bpmn:participant id="Participant_GuidelineUpdates" name="Guideline Updates: take up a new version, layer by layer, with a review of every adaptation" processRef="Process_GuidelineUpdates" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_GuidelineUpdates" name="Guideline Updates" isExecutable="false">
+    <bpmn:documentation>
+      Taking up a new version of a guideline, or a changed lower layer, is a
+      re-pin and a review at once. The steward maps the affected layers and
+      re-pins them in dependency order. For each re-pin, the adaptation team
+      compares the old version, the new version and its own adaptations. A
+      change that touches no adaptation or policy merges on the technical
+      path. One that does goes to the adaptation committee, which decides for
+      each adaptation whether to keep, revise or retire it. Revisions are
+      ordinary content changes (Process_ContentChangeReview), and the re-pin
+      merges with them. The loop runs until every layer is current.
+    </bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict" />
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="Process_GuidelineUpdates_LaneSet">
+      <bpmn:lane id="Lane_Publisher" name="Guideline publisher" partitionElementRef="publication-manager">
+        <bpmn:documentation>The body that issues the guideline (for example WHO). It publishes a new version with change notes that say what changed and why. It does not decide how a country adapts. That is the adaptation committee&#x27;s call.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_NewVersion</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ChangeNotes</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Steward" name="Re-pin steward and build pipeline" partitionElementRef="merge-steward">
+        <bpmn:documentation>Moves the pins, one layer at a time and in dependency order, so each site re-pins only after every layer it takes from has landed. Each re-pin is a pull request with a staging preview and the impact report attached. In rapid development this lane runs on its own for changes that touch no adaptation.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_LayerChanged</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MapCone</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenRepin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_More</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Current</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Adaptation" name="Adaptation team (human or agentic)" partitionElementRef="business-analyst">
+        <bpmn:documentation>The country or implementer team that keeps the adaptations: the local content, overlays and overrides that sit on top of the guideline. It reads the impact report, says which adaptations and policies a change touches, and makes the revisions the committee decides.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Impact</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Touches</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Revise</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Committee" name="Adaptation committee (policy, clinical, programme)" partitionElementRef="authoring-committee">
+        <bpmn:documentation>The stakeholders who own the adapted guideline: policy, clinical and programme leads, and others the country names. They review the impact with the old and new versions side by side and decide, for each adaptation, whether to keep, revise or retire it. Their decisions are recorded, and they are what the release notes cite.</bpmn:documentation>
+        <bpmn:flowNodeRef>Task_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Decide</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Revise</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_NewVersion" name="A new guideline version is published">
+      <bpmn:documentation>The issuing body publishes a new version. A country that adapted an earlier version enters here when it decides to take it up.</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_ChangeNotes" name="Publish the version with its change notes">
+      <bpmn:documentation>The publisher states what changed, what was added and what was withdrawn, and why, in words a country team can act on. The notes go with the release, so the comparison below starts from the publisher&#x27;s own account rather than only from a diff.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-publish"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:startEvent id="Start_LayerChanged" name="A harness or base layer changed">
+      <bpmn:documentation>Rapid development: a lower layer merged a change, and the sites above it need the new pin. The same steps run, and most such changes take the technical path only.</bpmn:documentation>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_MapCone" name="Map the affected layers in order">
+      <bpmn:documentation>Run the re-pin planner (mount:repin:cone) with the fleet and the changed repository. It lists every site downstream in waves, so a site moves only after the layers it takes from have moved, and marks which sites are ready now.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="remote-mount"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_OpenRepin" name="Open the re-pin for the next ready layer">
+      <bpmn:documentation>For each site that is ready now, open one re-pin pull request that moves its pins from the old version to the new one. Its staging preview is a full build with QA. A site&#x27;s standing consent may let its own workflow open this pull request.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="remote-mount"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:incoming>Flow_16</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Impact" name="Compare old, new and our adaptations">
+      <bpmn:documentation>Attach the impact report to the re-pin: the changes that reach this site (only what it mounts), and its own files that look like adaptations of a changed file. The team adds what a diff cannot see: which policies, local decisions and translations rest on the changed text.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="rendered-impact"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gw_Touches" name="Does the change touch an adaptation or policy?">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Review" name="Review the impact with stakeholders">
+      <bpmn:documentation>The committee reads the old version, the new version and each affected adaptation side by side on the staging preview, and hears the adaptation team&#x27;s account of what rests on them.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-review"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Decide" name="Decide each adaptation: keep, revise or retire">
+      <bpmn:documentation>One recorded decision per affected adaptation, with its reason: keep it as is, revise it to the new version, or retire it because the new version now covers it. A decision to diverge from the new version is recorded as such.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="decision-audit"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gw_Revise" name="Any adaptation to revise?">
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="Task_Revise" name="Revise the adaptations as decided" calledElement="Process_ContentChangeReview">
+      <bpmn:documentation>Each revision is an ordinary content change, reviewed on its staging preview through content change review, on the re-pin&#x27;s branch or a branch that merges with it.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-review"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:task id="Task_Merge" name="Merge the re-pin with its decided revisions">
+      <bpmn:documentation>The re-pin merges when its checks are green and every decision it needs is recorded. Its pull request cites the decisions, which become the release notes for this site&#x27;s update.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="prepare-merge"/></bpmn:extensionElements>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gw_More" name="More layers left to re-pin?">
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+      <bpmn:outgoing>Flow_16</bpmn:outgoing>
+      <bpmn:outgoing>Flow_17</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Current" name="Every layer current with the new version">
+      <bpmn:documentation>Every site in the cone has moved, and each adaptation has a recorded decision.</bpmn:documentation>
+      <bpmn:incoming>Flow_17</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_NewVersion" targetRef="Task_ChangeNotes" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_ChangeNotes" targetRef="Task_MapCone" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Start_LayerChanged" targetRef="Task_MapCone" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_MapCone" targetRef="Task_OpenRepin" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_OpenRepin" targetRef="Task_Impact" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_Impact" targetRef="Gw_Touches" />
+    <bpmn:sequenceFlow id="Flow_7" name="yes" sourceRef="Gw_Touches" targetRef="Task_Review" />
+    <bpmn:sequenceFlow id="Flow_8" name="no" sourceRef="Gw_Touches" targetRef="Task_Merge" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_Review" targetRef="Task_Decide" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Task_Decide" targetRef="Gw_Revise" />
+    <bpmn:sequenceFlow id="Flow_11" name="yes" sourceRef="Gw_Revise" targetRef="Task_Revise" />
+    <bpmn:sequenceFlow id="Flow_12" name="no" sourceRef="Gw_Revise" targetRef="Task_Merge" />
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="Task_Revise" targetRef="Task_Merge" />
+    <bpmn:sequenceFlow id="Flow_15" sourceRef="Task_Merge" targetRef="Gw_More" />
+    <bpmn:sequenceFlow id="Flow_16" name="yes" sourceRef="Gw_More" targetRef="Task_OpenRepin" />
+    <bpmn:sequenceFlow id="Flow_17" name="no" sourceRef="Gw_More" targetRef="End_Current" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_GuidelineUpdates">
+    <bpmndi:BPMNPlane id="BPMNPlane_GuidelineUpdates" bpmnElement="Collaboration_GuidelineUpdates">
+      <bpmndi:BPMNShape id="Participant_GuidelineUpdates_di" bpmnElement="Participant_GuidelineUpdates" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1380" height="760" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Publisher_di" bpmnElement="Lane_Publisher" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1350" height="190" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Steward_di" bpmnElement="Lane_Steward" isHorizontal="true">
+        <dc:Bounds x="190" y="270" width="1350" height="190" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Adaptation_di" bpmnElement="Lane_Adaptation" isHorizontal="true">
+        <dc:Bounds x="190" y="460" width="1350" height="190" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Committee_di" bpmnElement="Lane_Committee" isHorizontal="true">
+        <dc:Bounds x="190" y="650" width="1350" height="190" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_NewVersion_di" bpmnElement="Start_NewVersion">
+        <dc:Bounds x="250" y="157" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="218" y="197" width="110" height="44" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ChangeNotes_di" bpmnElement="Task_ChangeNotes">
+        <dc:Bounds x="330" y="115" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_LayerChanged_di" bpmnElement="Start_LayerChanged">
+        <dc:Bounds x="250" y="347" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="218" y="387" width="110" height="44" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_MapCone_di" bpmnElement="Task_MapCone">
+        <dc:Bounds x="330" y="305" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenRepin_di" bpmnElement="Task_OpenRepin">
+        <dc:Bounds x="480" y="305" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Impact_di" bpmnElement="Task_Impact">
+        <dc:Bounds x="630" y="495" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_Touches_di" bpmnElement="Gw_Touches" isMarkerVisible="true">
+        <dc:Bounds x="780" y="530" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="836" y="482" width="110" height="44" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Review_di" bpmnElement="Task_Review">
+        <dc:Bounds x="860" y="685" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Decide_di" bpmnElement="Task_Decide">
+        <dc:Bounds x="1010" y="685" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_Revise_di" bpmnElement="Gw_Revise" isMarkerVisible="true">
+        <dc:Bounds x="1160" y="720" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1130" y="774" width="110" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Revise_di" bpmnElement="Task_Revise">
+        <dc:Bounds x="1240" y="495" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Merge_di" bpmnElement="Task_Merge">
+        <dc:Bounds x="1240" y="305" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_More_di" bpmnElement="Gw_More" isMarkerVisible="true">
+        <dc:Bounds x="1400" y="340" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1424.5" y="292" width="110" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Current_di" bpmnElement="End_Current">
+        <dc:Bounds x="1480" y="347" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1424.5" y="395" width="110" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="286" y="175" />
+        <di:waypoint x="330" y="175" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="390" y="235" />
+        <di:waypoint x="390" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="286" y="365" />
+        <di:waypoint x="330" y="365" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="450" y="365" />
+        <di:waypoint x="480" y="365" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="600" y="365" />
+        <di:waypoint x="690" y="365" />
+        <di:waypoint x="690" y="495" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="750" y="555" />
+        <di:waypoint x="780" y="555" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="805" y="580" />
+        <di:waypoint x="805" y="745" />
+        <di:waypoint x="860" y="745" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="805" y="530" />
+        <di:waypoint x="805" y="292" />
+        <di:waypoint x="1270" y="292" />
+        <di:waypoint x="1270" y="305" />
+        <bpmndi:BPMNLabel><dc:Bounds x="809" y="402" width="90" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+        <di:waypoint x="980" y="745" />
+        <di:waypoint x="1010" y="745" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="1130" y="745" />
+        <di:waypoint x="1160" y="745" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+        <di:waypoint x="1210" y="745" />
+        <di:waypoint x="1300" y="745" />
+        <di:waypoint x="1300" y="615" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12_di" bpmnElement="Flow_12">
+        <di:waypoint x="1185" y="720" />
+        <di:waypoint x="1185" y="365" />
+        <di:waypoint x="1240" y="365" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13_di" bpmnElement="Flow_13">
+        <di:waypoint x="1300" y="495" />
+        <di:waypoint x="1300" y="425" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15_di" bpmnElement="Flow_15">
+        <di:waypoint x="1360" y="365" />
+        <di:waypoint x="1400" y="365" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16_di" bpmnElement="Flow_16">
+        <di:waypoint x="1425" y="340" />
+        <di:waypoint x="1425" y="278" />
+        <di:waypoint x="540" y="278" />
+        <di:waypoint x="540" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_17_di" bpmnElement="Flow_17">
+        <di:waypoint x="1450" y="365" />
+        <di:waypoint x="1480" y="365" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

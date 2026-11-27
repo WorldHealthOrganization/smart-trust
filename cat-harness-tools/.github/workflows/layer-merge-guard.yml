@@ -1,0 +1,283 @@
+# The `merge-guard` commit status on every PR head of a harnessed layer, as ONE
+# reusable workflow (owner, 2026-11-13, card "A. merge-guard required
+# status").
+#
+# It posts the status with the context `merge-guard` (`STATUS_CONTEXT` in
+# `scripts/merge-guard.ts`). The merge manager makes that context a required
+# check on each layer's `main`, so no PR lands until the guard says so.
+#
+# THE FAST GATE (owner, 2026-11-27: "no slow merges, no red gates except
+# JSON-LD KG publication; all QA runs after"). By default the guard runs with
+# `--gate fast`: the status is `success` once the PR is on `main`, not a draft,
+# carries `ready-to-merge` and not `needs-merge-human`, and merges cleanly.
+# Every other check is still judged and shown in the run's summary, but is
+# advisory; its QA runs after the merge. It does not wait for the full tier
+# (`full-tier` is off by default), and a PR with the `release` label still
+# gates on CI. A caller that wants the old behaviour passes `gate: strict`
+# and `full-tier: true`, which the rest of this header describes.
+#
+# AUTO-MERGE (owner, 2026-11-27, decision card "Fast gate + auto-merge"; no
+# repository secrets): with `auto-merge` on (the default), a PR the fast gate
+# passes is merged here at once with the workflow's own token, pinned to the
+# head that was judged (`merge-guard.ts --auto-merge`), so a merge no longer
+# waits for the merge manager. GitHub starts no `push` workflow for a merge
+# made with that token, so the guard then dispatches, on main, every workflow
+# of the caller that runs on a push to main and has `workflow_dispatch`: the
+# post-merge QA and KG publication still run. A caller that grants only read
+# gets no merge (the run says so) and the merge manager lands the PR.
+#
+# Under `gate: strict` the status posts `success` only when all nine checks of
+# `scripts/merge-guard.ts` pass, run with `--full-tier`:
+#   - the FULL tier is green on the head (a `No new failures` judge concluded
+#     success; the fast tier alone is not enough). Labelling the PR
+#     `release` runs the full tier, and so does `ready-to-merge` in a layer
+#     whose PR checks read the live labels (layer-pr-checks.yml); this
+#     repository's own pr-tests.yml reads only `release`;
+#   - the `ready-to-merge` label is on (check 4), and the PR's own session said
+#     ready (check 3: its `ready: <sha>`, or one the merge manager relays for it);
+#   - and the rest: base is main, not a draft, no unticked box, no open
+#     question to the owner, merges cleanly.
+# An unfinished PR posts `pending`, a defect `failure`, a fact that could not
+# be read `error`.
+#
+# Under `gate: strict`, or when the caller grants no write, it never merges: the merge
+# manager merges (owner, 2026-11-13, cat-harness#1313), with
+# `merge:guard --merge`, and this only posts the status that merge must agree
+# with.
+#
+# The guard runs from the CALLER'S DEFAULT BRANCH, never the PR head: the
+# caller is checked out at main (that is also the `--root` whose
+# `pull_request` workflows check 5 owes), and the guard itself is
+# cat-harness-tools at `tools-ref`. So a PR cannot edit the judge it is judged
+# by.
+#
+# ## No `pull_request_target` (owner, 2026-11-17)
+#
+# Callers used to run on `pull_request_target`. GitHub is changing that
+# trigger's defaults, and its brownout of 2026-11-16 (16:12-18:00Z) failed
+# every guard run. A caller now runs only on events whose workflow file GitHub
+# takes from the default branch (`issue_comment`, `workflow_run`,
+# `workflow_dispatch`), and the pull-request events reach it through a signal:
+#
+#   PR labelled / pushed / edited / readied
+#     -> `Merge guard trigger` (`merge-guard-trigger.yml`, on `pull_request`):
+#        `permissions: {}`, no checkout, no secrets, decides nothing
+#     -> its completion fires the caller on `workflow_run`, from main, with
+#        `statuses: write`; this workflow re-reads every fact from the API
+#        and from main, and posts the status on the PR head.
+#
+# Threat model. The `pull_request` side runs the PR's own copy of the signal,
+# so it is treated as hostile: it holds no token and nothing it says is
+# trusted. The guard takes from its run only WHICH PR to judge (the PR numbers
+# GitHub attaches to the run, else the open PRs on its head sha, else the
+# `#<n>` of its run name, digits only), and judging a PR is always safe: the
+# verdict is computed afresh from that PR's live state. A PR that deletes or
+# breaks its signal only goes unjudged on that event: its head has no
+# `merge-guard` status (or keeps the old one, which was posted for an older
+# head), and a required check blocks on that. The privileged side never checks
+# out, installs or runs anything from the PR head: it checks out main, clones
+# cat-harness-tools at `tools-ref`, and reads the PR through the API. It holds
+# no secret; under auto-merge its token can write, which is safe because
+# nothing it runs comes from the PR head.
+#
+# Rejected: computing the verdict in the `pull_request` job and posting it from
+# `workflow_run` (that job runs a file the PR controls, so its verdict could
+# be forged), and posting from the PR-checks workflow's final judge (the same,
+# and it would need `statuses: write` in a PR-controlled run). What neither
+# design can stop: a workflow a PR adds in its own head runs on `pull_request`
+# with whatever token the repository's settings grant same-repository
+# branches, and could post a `merge-guard` status itself. Keep the default
+# workflow permissions read-only in each layer; this guard holds against a
+# careless steward, not a hostile author with push access.
+#
+# This workflow refuses to run on `pull_request`: the caller's file would then
+# be the PR's own. `pull_request_target` is still judged, so a layer not yet
+# re-pinned keeps its guard; `bun run cat workflow-pins --write` moves it.
+#
+# A caller (in each layer, `.github/workflows/merge-guard.yml` — keep that
+# name: the guard ignores its own runs as evidence about the head):
+#
+#   name: Merge guard
+#   on:
+#     issue_comment:
+#       types: [created, edited]
+#     workflow_run:
+#       workflows: ["Layer PR checks", "Merge guard trigger"]   # the caller's PR-checks workflow name(s), and the signal
+#       types: [completed]
+#     workflow_dispatch:
+#       inputs: { pr: { type: string, required: false, description: "PR number; empty: every open PR" } }
+#   permissions: { contents: write, pull-requests: write, issues: read, actions: write, checks: read, statuses: write }   # read-only contents/pull-requests/actions: no auto-merge
+#   jobs:
+#     guard:
+#       uses: litlfred/cat-harness-tools/.github/workflows/layer-merge-guard.yml@main
+#       with: { pr: "${{ inputs.pr }}" }
+#
+# and beside it `.github/workflows/merge-guard-trigger.yml`, exactly as
+# `MERGE_GUARD_TRIGGER_TEXT` in `scripts/workflow-pins.ts` writes it.
+# `bun run cat workflow-pins --write` (which `mount:remote` runs on a re-pin
+# outside CI) drops `pull_request_target` from the caller, adds the signal to
+# its `workflow_run.workflows` and writes the signal file; until then
+# `check:workflow-pins` warns.
+#
+# Which PRs a run judges (step "Which PRs"): the PR of a pull_request_target
+# event; the PR of a comment on a PR (a comment on an issue judges none); the
+# PRs a finished workflow run names, or else the open PRs whose head is its
+# head sha, or else the `#<n>` in a signal's run name (a fork PR's runs name
+# no PR); and on workflow_dispatch the `pr` input, or every open PR. A
+# `pull_request` event is refused.
+
+name: Layer merge guard
+
+on:
+  workflow_call:
+    inputs:
+      pr:
+        description: "A PR number to judge; empty means the PRs the event names (every open PR on workflow_dispatch)."
+        required: false
+        type: string
+        default: ""
+      tools-ref:
+        description: "The ref of cat-harness-tools, cat-harness and bootstrap-tools whose guard runs."
+        required: false
+        type: string
+        default: "main"
+      full-tier:
+        description: "Require the full tier green on the head (--full-tier), even on a non-release merge. Off by default since the fast gate (owner, 2026-11-27): a release still gates on CI."
+        required: false
+        type: boolean
+        default: false
+      auto-merge:
+        description: "Land a PR the fast gate passes (--auto-merge), pinned to the judged head, then dispatch the push workflows of main (owner, 2026-11-27). Needs contents, pull-requests and actions write from the caller; without them nothing is merged."
+        required: false
+        type: boolean
+        default: true
+      gate:
+        description: "Which checks block (--gate): `fast` (base, draft, labels, conflicts; the rest advisory, QA after merge) or `strict` (all nine)."
+        required: false
+        type: string
+        default: "fast"
+
+# No `permissions` here or on the job: the job runs with what the CALLER
+# grants (a called workflow that asks for more than its caller grants fails to
+# start, so a layer whose caller grants only read keeps working, without
+# auto-merge). Auto-merge needs the caller to grant `contents: write`,
+# `pull-requests: write` and `actions: write` (owner, 2026-11-27).
+
+concurrency:
+  group: merge-guard-${{ github.repository }}-${{ inputs.pr || github.event.pull_request.number || github.event.issue.number || github.event.workflow_run.head_sha || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    name: Post the merge-guard status
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Which PRs
+        id: prs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          INPUT_PR: ${{ inputs.pr }}
+        run: |
+          set -euo pipefail
+          ev="$GITHUB_EVENT_PATH"
+          prs=""
+          if [ -n "$INPUT_PR" ]; then
+            prs="$INPUT_PR"
+          else
+            case "$EVENT" in
+              pull_request)
+                # The caller's file would be the PR's own: never judge from it.
+                echo "::error::the merge guard does not run on pull_request (its caller would be the PR's own file): call it on workflow_run of \"Merge guard trigger\" (re-pin: workflow-pins --write)"
+                exit 1 ;;
+              pull_request_target)
+                prs="$(jq -r '.pull_request.number // empty' "$ev")"
+                echo "::warning::this caller still runs on pull_request_target: re-pin (workflow-pins --write) to move it to the merge guard trigger" ;;
+              issue_comment)
+                prs="$(jq -r 'if .issue.pull_request then .issue.number else empty end' "$ev")" ;;
+              workflow_run)
+                prs="$(jq -r '[.workflow_run.pull_requests[]?.number] | map(tostring) | join(" ")' "$ev")"
+                if [ -z "$prs" ]; then
+                  sha="$(jq -r '.workflow_run.head_sha // empty' "$ev")"
+                  [ -n "$sha" ] && prs="$(gh api "repos/$REPO/commits/$sha/pulls" --jq '[.[] | select(.state == "open") | .number | tostring] | join(" ")')"
+                fi
+                if [ -z "$prs" ]; then
+                  # A fork PR's signal names no PR; its run name does. Only
+                  # which PR to judge is taken from it, and only digits.
+                  prs="$(jq -r '.workflow_run.display_title // "" | capture("^Merge guard trigger #(?<n>[0-9]+)$").n // empty' "$ev")"
+                fi ;;
+              workflow_dispatch|schedule)
+                prs="$(gh api "repos/$REPO/pulls?state=open&per_page=100" --jq '[.[].number | tostring] | join(" ")')" ;;
+            esac
+          fi
+          prs="$(printf '%s\n' $prs | grep -E '^[0-9]+$' | sort -un | tr '\n' ' ' | sed 's/ $//')" || true
+          echo "prs=$prs" >> "$GITHUB_OUTPUT"
+          echo "judging: ${prs:-no PR} ($EVENT)" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Check out the caller at its default branch (the root check 5 reads)
+        if: steps.prs.outputs.prs != ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: site
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        if: steps.prs.outputs.prs != ''
+        with:
+          bun-version: 1.4.4
+      - name: Compose the guard at ${{ inputs.tools-ref }}
+        if: steps.prs.outputs.prs != ''
+        env:
+          REF: ${{ inputs.tools-ref }}
+        run: |
+          set -euo pipefail
+          mkdir tools
+          for r in bootstrap bootstrap-tools cat-harness cat-harness-tools; do
+            git clone -q --depth 1 --branch "$REF" "https://github.com/litlfred/$r" "tools/$r" \
+              || git clone -q --depth 1 "https://github.com/litlfred/$r" "tools/$r"
+          done
+          cat > tools/package.json <<'JSON'
+          { "name": "merge-guard-tools", "private": true, "workspaces": ["bootstrap-tools", "cat-harness", "cat-harness-tools"] }
+          JSON
+          # Resolve from cat-harness-tools' committed lockfile, never from the
+          # newest npm: a lockless install pulled typescript-eslint 8.73.0
+          # while it was half-published (only some of its packages on the
+          # registry yet) and turned a layer's guard red, 2026-11-16
+          # 17:09-17:14Z (issue #2383). Not --frozen-lockfile: this composed
+          # root's workspace entries differ from the layer's own, so bun
+          # rewrites those and keeps every locked package version.
+          cp tools/cat-harness-tools/bun.lock tools/bun.lock
+          (cd tools && bun install)
+      - name: Post the merge-guard status on each PR head
+        if: steps.prs.outputs.prs != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PRS: ${{ steps.prs.outputs.prs }}
+          FULL_TIER: ${{ inputs.full-tier }}
+          GATE: ${{ inputs.gate || 'fast' }}
+          AUTO_MERGE: ${{ inputs.auto-merge }}
+        run: |
+          set -uo pipefail
+          tier=(--gate "${GATE:-fast}")
+          [ "$FULL_TIER" = "true" ] && tier+=(--full-tier)
+          [ "${AUTO_MERGE:-false}" = "true" ] && [ "${GATE:-fast}" = "fast" ] && tier+=(--auto-merge)
+          failed=""
+          for n in $PRS; do
+            # Exit 1 (refused) and 2 (unknown) are verdicts, posted as the
+            # status; only a status that could not be posted fails this job.
+            # Actions runs this step as `bash -e`, and a refusal exits 1: without
+            # `|| code=$?` the step died here, printing nothing (first live run,
+            # #2103 at 857b26f, 2026-11-13).
+            code=0
+            out="$(bun tools/cat-harness-tools/scripts/merge-guard.ts "$n" --repo "$REPO" --root site --status "${tier[@]}" 2>&1)" || code=$?
+            printf '%s\n' "$out"
+            { echo '```'; printf '%s\n' "$out"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+            if printf '%s' "$out" | grep -q "could not post the merge-guard status"; then failed="$failed #$n"; fi
+            echo "#$n: exit $code"
+          done
+          if [ -n "$failed" ]; then
+            echo "::error::the merge-guard status could not be posted on:$failed"
+            exit 1
+          fi
