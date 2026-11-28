@@ -1,0 +1,131 @@
+{
+  "id": "req:content-lifecycle",
+  "title": "Content Development Lifecycle",
+  "description": "Content must follow the plan → author → validate → review → test → publish → feedback lifecycle with appropriate phase gates.",
+  "derivedFrom": ["req:agent-workflow"],
+  "actors": ["author", "reviewer", "content-reviewer", "qc-reviewer", "publication-manager", "programme-manager"],
+  "statements": [
+    {
+      "key": "plan-before-author",
+      "label": "Planning precedes authoring",
+      "conformance": "SHALL",
+      "requirement": "Content authoring MUST NOT begin until a project plan with defined scope and team is established.",
+      "actors": ["programme-manager"],
+      "successCriteria": [
+        {
+          "key": "project-plan-established",
+          "criterion": "A project plan document defining scope and assigned team members exists and is approved prior to content creation.",
+          "verification": "review"
+        }
+      ]
+    },
+    {
+      "key": "validate-before-review",
+      "label": "Validation precedes review",
+      "conformance": "SHALL",
+      "requirement": "Content MUST pass automated validation (schema, FHIR, Lean) before entering formal review.",
+      "dependsOn": ["plan-before-author"],
+      "successCriteria": [
+        {
+          "key": "automated-validation-clean",
+          "criterion": "Automated schema, FHIR, and Lean validation checks execute with zero errors on the content.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "review-before-test",
+      "label": "Review precedes testing",
+      "conformance": "SHALL",
+      "requirement": "Content MUST receive formal review approval before integration testing.",
+      "dependsOn": ["validate-before-review"],
+      "actors": ["content-reviewer"],
+      "successCriteria": [
+        {
+          "key": "formal-review-approved",
+          "criterion": "Documented review approval from the designated content reviewer is recorded prior to beginning integration testing.",
+          "verification": "inspection"
+        }
+      ]
+    },
+    {
+      "key": "test-before-publish",
+      "label": "Testing precedes publication",
+      "conformance": "SHALL",
+      "requirement": "Content MUST pass all tests before publication.",
+      "dependsOn": ["review-before-test"],
+      "actors": ["qc-reviewer"],
+      "successCriteria": [
+        {
+          "key": "all-tests-pass",
+          "criterion": "The entire publication test suite completes with all test cases passing.",
+          "verification": "test"
+        }
+      ]
+    },
+    {
+      "key": "publish-authorized",
+      "label": "Publication requires authorization",
+      "conformance": "SHALL",
+      "requirement": "Publication MUST be authorized by the Programme Manager or designated authority.",
+      "dependsOn": ["test-before-publish"],
+      "actors": ["programme-manager", "publication-manager"],
+      "successCriteria": [
+        {
+          "key": "publication-authorization-recorded",
+          "criterion": "A release authorization signed off by the Programme Manager or designated authority is logged before publication.",
+          "verification": "review"
+        }
+      ]
+    },
+    {
+      "key": "feedback-collected",
+      "label": "Feedback collected post-publication",
+      "conformance": "SHOULD",
+      "requirement": "Feedback SHOULD be collected from implementers and users after publication and triaged for the next iteration.",
+      "dependsOn": ["publish-authorized"],
+      "successCriteria": [
+        {
+          "key": "feedback-intake-channel",
+          "criterion": "A documented feedback channel or issue queue is active and receiving post-publication feedback items.",
+          "verification": "inspection"
+        }
+      ]
+    },
+    {
+      "key": "no-measured-values-in-proofs",
+      "label": "Formal proofs use no measured values",
+      "conformance": "SHALL",
+      "requirement": "A formal proof, theorem, lemma or Lean declaration SHALL NOT depend on an empirical or measured value. Measured values appear only in comparison blocks, after the mathematics is complete. Where both are available, a constructive algebraic argument is preferred over an analytic one.",
+      "actors": ["author", "reviewer"],
+      "successCriteria": [
+        {
+          "key": "proofs-free-of-measurement",
+          "criterion": "No proof block or Lean declaration cites a measured constant; every measured value sits in a comparison block.",
+          "verification": "review"
+        }
+      ]
+    },
+    {
+      "key": "one-nonconstructive-axiom",
+      "label": "What cannot be made algebraic rests on one shared axiom",
+      "conformance": "SHALL",
+      "requirement": "Where a result cannot be proved by a constructive algebraic argument, its non-constructive part SHALL be isolated as a single named axiom shared across the corpus, and every other non-constructive result SHALL be derived from that axiom rather than carrying its own analytic step or assumption. The migration follows the strangler pattern: the shared axiom is introduced beside the existing proofs, results are moved onto it one at a time, each move keeping the corpus building, and an old analytic route is retired only when nothing depends on it. If two results cannot share a foundation, that is recorded as an open question for the owner, not resolved by adding a second axiom.",
+      "actors": ["author", "reviewer"],
+      "dependsOn": ["no-measured-values-in-proofs"],
+      "successCriteria": [
+        {
+          "key": "single-axiom-census",
+          "criterion": "A census of non-constructive axioms and analytic assumptions in the corpus lists at most one, and every non-constructive result names it as its foundation, or is listed as not yet migrated.",
+          "verification": "inspection"
+        },
+        {
+          "key": "migration-keeps-building",
+          "criterion": "Each migration step moves results onto the shared axiom without breaking the build, and removes an old route only once nothing references it.",
+          "verification": "inspection"
+        }
+      ]
+    }
+  ],
+  "tags": ["common", "lifecycle"]
+}

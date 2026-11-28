@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_HandBackToDiscussion" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="sibling-session" name="Sibling session"/>
+  <bpmn:resource id="session-coordinator" name="Session coordinator"/>
+  <bpmn:collaboration id="Collaboration_Process_HandBackToDiscussion">
+    <bpmn:participant id="Participant_Process_HandBackToDiscussion" name="Hand back to the discussion" processRef="Process_HandBackToDiscussion"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_HandBackToDiscussion" name="Hand back to the discussion" isExecutable="false">
+    <bpmn:documentation>How a sibling agent gets a card, question, result, blocker or context in front of the person: through the discussion agent that is talking with them, never only in its own thread. The person's answer comes back the same way.
+
+INPUT AND OUTPUT: the `hand-back-to-discussion` skill's schemas, schemas/skills/hand-back-to-discussion/input.schema.json (from, to, kind, summary, ask = the ask-the-person input, context, links, channels, answerRoute, blocking) and output.schema.json (shown, state, chosen, quote, answeredIn, marked, deliveredBack).
+
+THE PERSON'S STEP is inside `Process_AskThePerson`, called by the discussion agent, so the asking rule (chat text first, then the card) holds here unchanged. A Blue-column answer in a review sheet is an answer to that same question.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="strict"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_HandBackToDiscussion">
+      <bpmn:lane id="Lane_Sibling" name="Sibling" partitionElementRef="sibling-session">
+        <bpmn:documentation>Any agent that is not the one talking with the person: a project thread, a subagent, a workflow agent, a cloud session. It did the analysis, so it composes the hand-back.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Process_HandBackToDiscussion</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S_Compose</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Channel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S_Mirror</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_ChannelJoin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S_HandBack</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>S_Act</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Acted</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Discussion" name="Discussion agent" partitionElementRef="session-coordinator">
+        <bpmn:documentation>The agent the person is talking with right now. Shows the hand-back, asks, marks every copy answered and routes the answer back.</bpmn:documentation>
+        <bpmn:flowNodeRef>GW_NeedsAnswer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>D_Ask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>D_RouteBack</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>D_MarkAnswered</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>D_Inform</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Informed</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Process_HandBackToDiscussion" name="The person must see&#10;or decide something"/>
+    <bpmn:task id="S_Compose" name="Compose the hand-back&#10;and post it in own thread">
+      <bpmn:documentation>Compose it once, against the input schema: a question is the full ask-the-person input (what will differ, context, lettered options with a one-line trade-off each, the recommendation, what happens with no answer); context, a result or a blocker gets the same stand-alone test. Post it in your own thread too, chat text then card. Your own thread is never the only copy.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="hand-back-to-discussion"/>
+        <bootstrap.processes:skill ref="ask-the-person"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_Channel" name="Feedback channel&#10;in play?">
+      <bpmn:documentation>`yes` when the brief or the work names a review sheet, issue or PR where the people concerned read; `no` otherwise.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="S_Mirror" name="Mirror it to the&#10;feedback channel">
+      <bpmn:documentation>Review sheet: the "Decision needed" block in the row's agent column, Agentic status `Needs you` (the document layer's `review-sheet-script` skill). Issue or PR: a comment. An extra copy, never instead of the discussion.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="hand-back-to-discussion"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_ChannelJoin"/>
+    <bpmn:task id="S_HandBack" name="Hand it back to the&#10;discussion agent">
+      <bpmn:documentation>By the host's route: `message_coordinator` or `message_thread` in Claude projects; the final report (a json block valid against the input schema) for a subagent; `SendMessage` for a sibling session. Then keep working on the recommended option where it can be undone, or stop if `blocking`.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="hand-back-to-discussion"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_NeedsAnswer" name="Needs an answer?">
+      <bpmn:documentation>`yes` for kind decision or question; `no` for context, result or blocker.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="D_Inform" name="Post it in the discussion">
+      <bpmn:documentation>Say it comes from the sibling (title and link) and give the context or result in full. State `informed`.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="hand-back-to-discussion"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Informed" name="Person informed"/>
+    <bpmn:callActivity id="D_Ask" calledElement="Process_AskThePerson" name="Ask the person">
+      <bpmn:documentation>The sibling's ask, unchanged in letters and recommendation, through `Process_AskThePerson`: the full chat text first, naming the sibling and that the answer will be passed on, then the card. A tap on the sibling's own card or a Blue-column answer in the sheet answers it too; take the first.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="ask-the-person"/>
+        <bootstrap.processes:skill ref="hand-back-to-discussion"/>
+      </bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:task id="D_RouteBack" name="Route the answer back,&#10;quoted">
+      <bpmn:documentation>On `answerRoute`, with the person's own message attached by id where the host allows, so the sibling can treat it as the person's approval. A paraphrase is never approval.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="hand-back-to-discussion"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="D_MarkAnswered" name="Mark every copy answered">
+      <bpmn:documentation>Chat copies keep their text: the question struck through and "[Edit: &lt;letter&gt; chosen by &lt;who&gt;, &lt;time&gt;]" added. Cards closed with the chosen option. The sheet's "Decision needed" block replaced by the decision and who made it. Withdrawn or superseded hand-backs marked the same way, with the reason.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="hand-back-to-discussion"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="S_Act" name="Act on the answer">
+      <bpmn:documentation>Never ask the person again for what they answered. A rule-level answer goes into the governing skill in the same turn.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="hand-back-to-discussion"/>
+        <bootstrap.processes:skill ref="symbiotic-interaction"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Acted" name="Answer acted on"/>
+    <bpmn:sequenceFlow id="SF_HB_1" sourceRef="Start_Process_HandBackToDiscussion" targetRef="S_Compose"/>
+    <bpmn:sequenceFlow id="SF_HB_2" sourceRef="S_Compose" targetRef="GW_Channel"/>
+    <bpmn:sequenceFlow id="SF_HB_3" name="yes" sourceRef="GW_Channel" targetRef="S_Mirror"/>
+    <bpmn:sequenceFlow id="SF_HB_4" name="no" sourceRef="GW_Channel" targetRef="GW_ChannelJoin"/>
+    <bpmn:sequenceFlow id="SF_HB_5" sourceRef="S_Mirror" targetRef="GW_ChannelJoin"/>
+    <bpmn:sequenceFlow id="SF_HB_6" sourceRef="GW_ChannelJoin" targetRef="S_HandBack"/>
+    <bpmn:sequenceFlow id="SF_HB_7" sourceRef="S_HandBack" targetRef="GW_NeedsAnswer"/>
+    <bpmn:sequenceFlow id="SF_HB_8" name="yes" sourceRef="GW_NeedsAnswer" targetRef="D_Ask"/>
+    <bpmn:sequenceFlow id="SF_HB_9" name="no" sourceRef="GW_NeedsAnswer" targetRef="D_Inform"/>
+    <bpmn:sequenceFlow id="SF_HB_10" sourceRef="D_Inform" targetRef="End_Informed"/>
+    <bpmn:sequenceFlow id="SF_HB_11" sourceRef="D_Ask" targetRef="D_RouteBack"/>
+    <bpmn:sequenceFlow id="SF_HB_12" sourceRef="D_RouteBack" targetRef="D_MarkAnswered"/>
+    <bpmn:sequenceFlow id="SF_HB_13" sourceRef="D_MarkAnswered" targetRef="S_Act"/>
+    <bpmn:sequenceFlow id="SF_HB_14" sourceRef="S_Act" targetRef="End_Acted"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_HandBackToDiscussion">
+    <bpmndi:BPMNPlane id="Plane_Process_HandBackToDiscussion" bpmnElement="Collaboration_Process_HandBackToDiscussion">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_HandBackToDiscussion" bpmnElement="Participant_Process_HandBackToDiscussion" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1360" height="500" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Sibling" bpmnElement="Lane_Sibling" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1330" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Discussion" bpmnElement="Lane_Discussion" isHorizontal="true">
+        <dc:Bounds x="190" y="280" width="1330" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Process_HandBackToDiscussion" bpmnElement="Start_Process_HandBackToDiscussion">
+        <dc:Bounds x="232" y="162" width="36" height="36" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="222" y="197.5" width="76" height="72" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_S_Compose" bpmnElement="S_Compose">
+        <dc:Bounds x="300" y="120" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Channel" bpmnElement="GW_Channel" isMarkerVisible="true">
+        <dc:Bounds x="450" y="155" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_S_Mirror" bpmnElement="S_Mirror">
+        <dc:Bounds x="530" y="120" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_ChannelJoin" bpmnElement="GW_ChannelJoin" isMarkerVisible="true">
+        <dc:Bounds x="680" y="155" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_S_HandBack" bpmnElement="S_HandBack">
+        <dc:Bounds x="760" y="120" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_S_Act" bpmnElement="S_Act">
+        <dc:Bounds x="1280" y="120" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Acted" bpmnElement="End_Acted">
+        <dc:Bounds x="1432" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_NeedsAnswer" bpmnElement="GW_NeedsAnswer" isMarkerVisible="true">
+        <dc:Bounds x="795" y="355" width="50" height="50" />
+        
+      <bpmndi:BPMNLabel><dc:Bounds x="701" y="362.5" width="90" height="35" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_D_Ask" bpmnElement="D_Ask">
+        <dc:Bounds x="880" y="320" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_D_RouteBack" bpmnElement="D_RouteBack">
+        <dc:Bounds x="1030" y="320" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_D_MarkAnswered" bpmnElement="D_MarkAnswered">
+        <dc:Bounds x="1180" y="320" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_D_Inform" bpmnElement="D_Inform">
+        <dc:Bounds x="880" y="440" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Informed" bpmnElement="End_Informed">
+        <dc:Bounds x="1042" y="482" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_1" bpmnElement="SF_HB_1">
+        <di:waypoint x="268" y="180" />
+        <di:waypoint x="300" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_2" bpmnElement="SF_HB_2">
+        <di:waypoint x="420" y="180" />
+        <di:waypoint x="450" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_3" bpmnElement="SF_HB_3">
+        <di:waypoint x="500" y="180" />
+        <di:waypoint x="530" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_4" bpmnElement="SF_HB_4">
+        <di:waypoint x="475" y="155" /><di:waypoint x="475" y="110" /><di:waypoint x="705" y="110" /><di:waypoint x="705" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_5" bpmnElement="SF_HB_5">
+        <di:waypoint x="650" y="180" />
+        <di:waypoint x="680" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_6" bpmnElement="SF_HB_6">
+        <di:waypoint x="730" y="180" />
+        <di:waypoint x="760" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_7" bpmnElement="SF_HB_7">
+                <di:waypoint x="820" y="240" />
+        <di:waypoint x="820" y="355" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_8" bpmnElement="SF_HB_8">
+        <di:waypoint x="845" y="380" />
+        <di:waypoint x="880" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_9" bpmnElement="SF_HB_9">
+        <di:waypoint x="820" y="405" />
+        <di:waypoint x="820" y="500" />
+        <di:waypoint x="880" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_10" bpmnElement="SF_HB_10">
+        <di:waypoint x="1000" y="500" />
+        <di:waypoint x="1042" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_11" bpmnElement="SF_HB_11">
+        <di:waypoint x="1000" y="380" />
+        <di:waypoint x="1030" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_12" bpmnElement="SF_HB_12">
+        <di:waypoint x="1150" y="380" />
+        <di:waypoint x="1180" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_13" bpmnElement="SF_HB_13">
+                <di:waypoint x="1300" y="380" />
+        <di:waypoint x="1340" y="380" />
+        <di:waypoint x="1340" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_HB_14" bpmnElement="SF_HB_14">
+        <di:waypoint x="1400" y="180" />
+        <di:waypoint x="1432" y="180" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

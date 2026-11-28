@@ -1,0 +1,52 @@
+# Do the signed files in this repo still match their signatures?
+# (cat-harness-tools#1730)
+#
+# Checks every tracked `*.sig` against the file it sits next to, using
+# `scripts/sign.sh verify` and the caller's `.signing/allowed_signers`.
+# The signatures come from a YubiKey (`sign.sh file`); this job only needs
+# the public keys, so it holds no secret.
+#
+# A caller is one `uses:` line:
+#
+#   on: { pull_request: {}, push: { branches: [main] } }
+#   permissions: { contents: read }
+#   jobs:
+#     signatures:
+#       uses: litlfred/cat-harness-tools/.github/workflows/verify-signatures.yml@main
+
+name: Verify signatures
+
+on:
+  workflow_call:
+    inputs:
+      allowed-signers:
+        description: "Path, in the caller repo, of the allowed_signers file."
+        required: false
+        type: string
+        default: ".signing/allowed_signers"
+      tools-ref:
+        description: "The cat-harness-tools ref whose sign.sh runs."
+        required: false
+        type: string
+        default: "main"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: litlfred/cat-harness-tools
+          ref: ${{ inputs.tools-ref }}
+          path: .cat-harness-tools
+          sparse-checkout: scripts/sign.sh
+          sparse-checkout-cone-mode: false
+      - name: Verify every signed file
+        env:
+          SIGN_ALLOWED: ${{ github.workspace }}/${{ inputs.allowed-signers }}
+        run: bash .cat-harness-tools/scripts/sign.sh verify

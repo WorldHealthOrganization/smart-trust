@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:bootstrap.processes="https://litlfred.github.io/bootstrap/v0/processes/ns/"
+                  xmlns:cat-harness.processes="https://litlfred.github.io/cat-harness/v0/processes/ns/"
+                  id="Definitions_Process_ContentAcquisition" targetNamespace="https://litlfred.github.io/folio-assistant/workflows"
+                  exporter="folio-assistant" exporterVersion="1">
+  <bpmn:import namespace="https://litlfred.github.io/bootstrap/v0/processes/ns/" location="https://litlfred.github.io/bootstrap/v0/processes/ns.jsonld" importType="http://www.w3.org/ns/json-ld"/>
+  <bpmn:resource id="ingestion-agent" name="Ingestion engine"/>
+  <bpmn:resource id="user" name="User"/>
+  <bpmn:collaboration id="Collaboration_Process_ContentAcquisition">
+    <bpmn:participant id="Participant_Process_ContentAcquisition" name="Content acquisition" processRef="Process_ContentAcquisition"/>
+  </bpmn:collaboration>
+  <bpmn:process id="Process_ContentAcquisition" name="Content acquisition" isExecutable="false">
+    <bpmn:documentation>How a resource gets into the graph in the first place. `document-ingestion.bpmn` begins at "a file lands in uploads/" and calls that its only entry point — true of ingestion, and silent on how the file got there. This is the step before it. The channels are plural and the set is open: uploads/ is one, the conversation is another.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <cat-harness.processes:policy enforcement="advisory"/>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_Process_ContentAcquisition">
+      <bpmn:lane id="Lane_Person" name="Contributor" partitionElementRef="user">
+        <bpmn:documentation>Both of this lane's tasks are optional by design, not merely possible: P_Respond's 'or neither' is a real, accepted outcome rather than a stall, and A_Ask already states what happens if nothing comes back — so this lane can contribute nothing at all and the process still proceeds, which is not true of the sign-off lanes elsewhere in this corpus.</bpmn:documentation>
+        <!-- Bound EXPLICITLY rather than by lane name. `roles.json` matches a
+             lane to a role by name, and name matching invites aliases.
+             "Contributor" is what this lane IS in this
+             process; `user` is the declared role performing it. -->
+        <bpmn:flowNodeRef>P_Respond</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>P_Upload</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="Agent" partitionElementRef="ingestion-agent">
+        <bpmn:documentation>This lane is not unattended, unlike the same role elsewhere: A_Ask and A_Route both wait on Lane_Person, for minutes or days, because there is no material yet to make a gate decidable from — that only becomes true once a file or description exists. Acquisition ends at the moment something lands in the queue; everything past that boundary is document-ingestion.bpmn's actually-unattended run, not this one.</bpmn:documentation>
+        <bpmn:flowNodeRef>Start_Acquire</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Offered</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Ask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_PointToUpload</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Accept</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_Route</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Acquired</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Acquire" name="A resource is needed,&#10;or one is offered"/>
+    <bpmn:exclusiveGateway id="GW_Offered" name="Offered already?">
+      <bpmn:documentation>Did the resource arrive with the request? `no`: say what is needed and ask for a link or a description. `yes`: accept it and record where it came from.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="A_Ask" calledElement="Process_AskThePerson" name="Ask for a link or a description">
+      <bpmn:documentation>Both forms, named together. A person who cannot find the file often knows exactly what it is, and a description in their own words is an acquired resource rather than a consolation prize. Asking for the upload first demands the one thing they may not have, before the cheaper answers have been offered. Say what happens if they do nothing.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-acquisition"/></bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:task id="P_Respond" name="Give a link,&#10;a description, or neither">
+      <bpmn:documentation>"Or neither" is a real outcome, not a failure. The ask says what happens if nothing comes, and then that happens — the work proceeds without the resource and says so.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="A person answering a question. The skill governs how the agent ASKS, which is A_Ask; there is nothing here for a skill to instruct."/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_PointToUpload" name="Point at the upload target">
+      <bpmn:documentation>Composed from the declaration by the `upload-url` Tool, never written by hand: the queue is declared with INSTANCE scope, and a forge URL needs the path relative to the REPOSITORY. Every failure is named — no origin remote, a non-GitHub forge, a declared-but-absent queue — because a URL is believed, and somebody sent to a wrong one cannot tell it from an empty directory. On failure, fall back to the conversation.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-acquisition"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="P_Upload" name="Drop the file&#10;in the queue">
+      <bpmn:documentation>Through the forge's upload form, a commit, or any other route that lands the file in the declared queue. The agent watches rather than chases: an arrival may be minutes or days away.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <cat-harness.processes:no-skill reason="A person dropping a file. The agent's half is pointing at the right target (A_PointToUpload) and noticing the arrival (A_Route), and both carry skills."/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Accept" name="Accept it, and record&#10;where it came from">
+      <bpmn:documentation>Both branches land here. An unprompted offer is accepted as it stands — do not make somebody follow a process to hand over what they already have. Provenance is recorded whichever channel it arrived through: a description given in chat has a source and can be wrong, exactly as a PDF does.</bpmn:documentation>
+      <bpmn:extensionElements><bootstrap.processes:skill ref="content-acquisition"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="A_Route" name="Route it, and watch&#10;the queue">
+      <bpmn:documentation>A file goes to ingestion; a link or a description goes to whatever will resolve it. Acquisition stops here — the moment a file is in the queue, library-ingestion owns it, and keeping that seam sharp is what lets a resource acquired through a channel that does not exist yet reach ingestion unchanged. An arrival may be minutes or days away, so it is watched rather than chased.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <bootstrap.processes:skill ref="uploads-watch"/>
+        <bootstrap.processes:skill ref="library-ingestion"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Acquired" name="In the queue, or&#10;recorded in the conversation"/>
+    <bpmn:sequenceFlow id="SF_CA_1" sourceRef="Start_Acquire" targetRef="GW_Offered"/>
+    <bpmn:sequenceFlow id="SF_CA_2" name="no" sourceRef="GW_Offered" targetRef="A_Ask"/>
+    <bpmn:sequenceFlow id="SF_CA_3" sourceRef="A_Ask" targetRef="P_Respond"/>
+    <bpmn:sequenceFlow id="SF_CA_4" sourceRef="P_Respond" targetRef="A_PointToUpload"/>
+    <bpmn:sequenceFlow id="SF_CA_5" sourceRef="A_PointToUpload" targetRef="P_Upload"/>
+    <bpmn:sequenceFlow id="SF_CA_6" sourceRef="P_Upload" targetRef="A_Accept"/>
+    <bpmn:sequenceFlow id="SF_CA_7" name="yes" sourceRef="GW_Offered" targetRef="A_Accept"/>
+    <bpmn:sequenceFlow id="SF_CA_8" sourceRef="A_Accept" targetRef="A_Route"/>
+    <bpmn:sequenceFlow id="SF_CA_9" sourceRef="A_Route" targetRef="End_Acquired"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Process_ContentAcquisition">
+    <bpmndi:BPMNPlane id="Plane_Process_ContentAcquisition" bpmnElement="Collaboration_Process_ContentAcquisition">
+      <bpmndi:BPMNShape id="Shape_Participant_Process_ContentAcquisition" bpmnElement="Participant_Process_ContentAcquisition" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1320" height="340" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Person" bpmnElement="Lane_Person" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1290" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Agent" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="190" y="250" width="1290" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start_Acquire" bpmnElement="Start_Acquire">
+        <dc:Bounds x="230" y="317" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="225" y="361" width="110" height="54" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GW_Offered" bpmnElement="GW_Offered" isMarkerVisible="true">
+        <dc:Bounds x="320" y="310" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="300" y="270" width="90" height="36" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Ask" bpmnElement="A_Ask">
+        <dc:Bounds x="420" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_P_Respond" bpmnElement="P_Respond">
+        <dc:Bounds x="570" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_PointToUpload" bpmnElement="A_PointToUpload">
+        <dc:Bounds x="720" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_P_Upload" bpmnElement="P_Upload">
+        <dc:Bounds x="870" y="105" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Accept" bpmnElement="A_Accept">
+        <dc:Bounds x="1020" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_A_Route" bpmnElement="A_Route">
+        <dc:Bounds x="1170" y="275" width="120" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_Acquired" bpmnElement="End_Acquired">
+        <dc:Bounds x="1330" y="317" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1372" y="290.5" width="90" height="89" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_SF_CA_1" bpmnElement="SF_CA_1">
+        <di:waypoint x="266" y="335" />
+        <di:waypoint x="320" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CA_2" bpmnElement="SF_CA_2">
+        <di:waypoint x="370" y="335" />
+        <di:waypoint x="420" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CA_3" bpmnElement="SF_CA_3">
+        <di:waypoint x="540" y="335" />
+        <di:waypoint x="555" y="335" />
+        <di:waypoint x="555" y="165" />
+        <di:waypoint x="570" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CA_4" bpmnElement="SF_CA_4">
+        <di:waypoint x="690" y="165" />
+        <di:waypoint x="705" y="165" />
+        <di:waypoint x="705" y="335" />
+        <di:waypoint x="720" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CA_5" bpmnElement="SF_CA_5">
+        <di:waypoint x="840" y="335" />
+        <di:waypoint x="855" y="335" />
+        <di:waypoint x="855" y="165" />
+        <di:waypoint x="870" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CA_6" bpmnElement="SF_CA_6">
+        <di:waypoint x="990" y="165" />
+        <di:waypoint x="1005" y="165" />
+        <di:waypoint x="1005" y="335" />
+        <di:waypoint x="1020" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CA_7" bpmnElement="SF_CA_7">
+        <di:waypoint x="345" y="360" />
+        <di:waypoint x="345" y="412" />
+        <di:waypoint x="1080" y="412" />
+        <di:waypoint x="1080" y="395" />
+        <bpmndi:BPMNLabel><dc:Bounds x="355" y="388" width="30" height="18" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CA_8" bpmnElement="SF_CA_8">
+        <di:waypoint x="1140" y="335" />
+        <di:waypoint x="1170" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_SF_CA_9" bpmnElement="SF_CA_9">
+        <di:waypoint x="1290" y="335" />
+        <di:waypoint x="1330" y="335" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

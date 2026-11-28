@@ -1,0 +1,57 @@
+---
+doc_id: 10665-205344
+doc_title: "Information, education and communication: a guide for AIDS programme managers"
+section_id: page-026
+section_title: "Page 26"
+pages: 26-26
+pdf_page: 26
+source_pdf: 10665-205344.pdf
+source_sha256: 0fdcc9d570f32d5f
+text_source: ocr
+granularity: page
+---
+SEA/AIDS/81
+Page 23
+
+Annex 1
+
+IEC FOR SPECIFIC TARGET AUDIENCES —- YOUTH AS AN EXAMPLE
+
+This section illustrates the use of the IEC planning and implementation process with one
+target group: young persons - adolescents and youth - from 10 to 24 years of age. This group
+will need to be divided into segments due to the wide range of developmental stages and
+cultural norms.
+
+1 PLANNING
+1.1 Situational Analysis
+(1) ‘National policy and organizational structure
+
+In the case of youth it is important to know what policies are in place for: the health
+of youth of each segment, including children in school, condom use and sex education in
+schools. In light of the AIDS pandemic, the need for advocacy to change policies should also
+be assessed. An analysis should take place on how best to utilize the government structures
+for Youth and AIDS.
+
+(2) Philosophy/approach to IEC for youth
+
+At the central level a decision needs to be made on how to approach the topic of Youth
+and AIDS. This will entail a decision on sex education or life-style education in schools; how
+to handle discussion on condoms; and other issues. It is necessary to strike a delicate balance
+between the promotion of traditional values and a practical programme to meet the needs of
+young people who may already be sexually active.
+
+(3) Examining existing data
+
+The factors that need to be examined as part of the situational analysis have already
+been discussed. It is on the basis of such an analysis that one can identify youth as a priority
+target group. The situational analysis will also provide details that will help to further identify
+the target group and how to reach them, involvement with youth/sports or other organizations
+and key ‘influencers’ (e.g. teachers). Existing research reports may indicate the habits,
+preferences and effectiveness of different media, etc. for this target group. All this data will
+be crucial in:
+
+— Further/finer stratification of the target group;
+— Developing suitable messages;
+
+— Ensuring participation and involvement of youth in the process (message design)
+and — where possible — in developing communication tools;
